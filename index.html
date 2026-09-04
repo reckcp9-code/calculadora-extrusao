@@ -11,17 +11,18 @@
 <script>
 (async()=>{
   try{
-    const r=await fetch('./app.html?v=20260904-auto-peso4',{cache:'no-store'});
+    const r=await fetch('./app.html?v=20260904-auto-peso5-logo-todas1',{cache:'no-store'});
     if(!r.ok) throw new Error('Falha ao carregar o aplicativo');
     let h=await r.text();
 
-    const img='<img class="logo" src="./logo.jpg.jpeg?v=20260904-logo-exata1" alt="DF Manutenção e Consultoria">';
+    const img='<img class="logo" src="./logo.jpg.jpeg?v=20260904-logo-exata2" alt="DF Manutenção e Consultoria">';
 
     const css=`
       :root{--bg:#08090b;--card:#12151a;--box:#0b0d10;--text:#f6f7f8;--muted:#a7adb6;--border:#2b3138;--accent:#f5a000;--accent2:#ffd36a}
       .w{max-width:760px;margin:auto;padding:16px 16px 44px}
       .brand{text-align:center!important;background:#000!important;border:1px solid #20242a!important;border-radius:24px!important;padding:22px 14px 24px!important;margin:4px 0 16px!important;box-shadow:0 18px 60px rgba(0,0,0,.28)}
-      .licenseBox .logo{width:min(300px,80vw)!important;height:auto!important;object-fit:contain!important;display:block!important;margin:0 auto 12px!important;border-radius:12px!important}
+      .licenseBox .logo{width:min(300px,80vw)!important;height:auto!important;object-fit:contain!important;display:block!important;margin:0 auto 12px!important;border-radius:12px!important;background:#000!important}
+      .brand .logo{width:min(260px,75vw)!important;height:auto!important;object-fit:contain!important;display:block!important;margin:0 auto 12px!important;border-radius:14px!important;background:#000!important}
       .brand h1{font-size:34px!important;line-height:1.08!important;margin:18px 0 8px!important;letter-spacing:-.8px}
       .sub,.hint{color:var(--muted)!important;font-size:18px!important;line-height:1.35!important}
       .brand .sub{font-weight:800!important}
@@ -36,15 +37,15 @@
       .result{border-radius:18px!important}
       .foot{text-align:center!important;color:#737b87!important;font-size:13px!important;margin-top:22px!important;line-height:1.7}
       .foot a{color:var(--accent2)!important;font-weight:900!important;text-decoration:none!important}
-      @media(max-width:560px){.brand h1{font-size:30px!important}.sub,.hint{font-size:16px!important}.w{padding:14px 14px 40px}.tab{font-size:12px!important;padding:12px 2px!important}.licenseBox .logo{width:min(300px,80vw)!important}}
+      @media(max-width:560px){.brand h1{font-size:30px!important}.sub,.hint{font-size:16px!important}.w{padding:14px 14px 40px}.tab{font-size:12px!important;padding:12px 2px!important}.licenseBox .logo{width:min(300px,80vw)!important}.brand .logo{width:min(240px,74vw)!important}}
     `;
     h=h.replace('</style>',css+'</style>');
 
-    // Tela principal sem logo. Logo somente na tela de login/key.
+    // Logo na tela de login/key e também no cabeçalho das telas da calculadora.
     const brandStart='<div class="brand">';
     const tabsStart='<div class="tabs">';
     const a=h.indexOf(brandStart), b=h.indexOf(tabsStart);
-    const brand=brandStart+'<span class="tag">USO EXCLUSIVO DF</span><h1 id="heroTitle">Calculadora de Extrusão</h1><div id="heroSub" class="sub">PESO POR METRO • MICRA • DENSIDADE</div></div>';
+    const brand=brandStart+img+'<span class="tag">USO EXCLUSIVO DF</span><h1 id="heroTitle">Calculadora de Extrusão</h1><div id="heroSub" class="sub">PESO POR METRO • MICRA • DENSIDADE</div></div>';
     if(a>-1&&b>-1) h=h.slice(0,a)+brand+h.slice(b);
 
     h=h.replace('<div class="licenseBox">','<div class="licenseBox">'+img);
