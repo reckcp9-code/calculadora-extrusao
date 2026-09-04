@@ -11,11 +11,11 @@
 <script>
 (async()=>{
   try{
-    const r=await fetch('./app.html?v=20260904-puxador1',{cache:'no-store'});
+    const r=await fetch('./app.html?v=20260904-extrusao-modos1',{cache:'no-store'});
     if(!r.ok) throw new Error('Falha ao carregar o aplicativo');
     let h=await r.text();
 
-    const img='<img class="logo" src="./logo.jpg.jpeg?v=20260904-logo-exata2" alt="DF Manutenção e Consultoria">';
+    const img='<img class="logo" src="./logo.jpg.jpeg?v=20260904-logo-exata3" alt="DF Manutenção e Consultoria">';
 
     const css=`
       :root{--bg:#08090b;--card:#12151a;--box:#0b0d10;--text:#f6f7f8;--muted:#a7adb6;--border:#2b3138;--accent:#f5a000;--accent2:#ffd36a}
@@ -41,11 +41,6 @@
     `;
     h=h.replace('</style>',css+'</style>');
 
-
-    const oldPuxador='<label>Peso medido de 1 metro (g)</label><input id="exP" class="main" inputmode="decimal" placeholder="Ex.: 25,0"><div class="result"><span>MICRA REAL — PAREDE DUPLA</span><b id="exMr">0,00 µm</b><div id="exSt" class="status"></div></div></div></section>';
-    const newPuxador='<label>Peso medido de 1 metro (g)</label><input id="exP" class="main" inputmode="decimal" placeholder="Ex.: 48"><label style="margin-top:12px">Velocidade atual do rolo/puxador</label><input id="exVel" class="main" inputmode="decimal" placeholder="Ex.: 10"><div class="result"><span>MICRA REAL — PAREDE DUPLA</span><b id="exMr">0,00 µm</b><div id="exSt" class="status"></div></div><div class="result"><span>PUXADOR PARA CHEGAR NA MICRA CERTA</span><b id="exPux">—</b><div id="exPuxHint" class="status"></div></div><div class="kpi"><span>Fator de correção</span><b id="exFator">—</b></div></div></section>';
-    h=h.replace(oldPuxador,newPuxador);
-
     // Logo na tela de login/key e também no cabeçalho das telas da calculadora.
     const brandStart='<div class="brand">';
     const tabsStart='<div class="tabs">';
@@ -65,10 +60,8 @@
 
     h=h.replace('<div class="foot">DF Manutenção e Consultoria • licença KeyAuth</div>','<div class="foot">DF Manutenção e Consultoria • licença KeyAuth<br><a href="https://www.instagram.com/df_manutencaoeconsultoria/" target="_blank" rel="noopener">📷 @df_manutencaoeconsultoria</a></div>');
 
-
-    const puxadorScript='<scr'+'ipt>(function(){function e(i){return document.getElementById(i)}function n(i){const x=e(i);let s=String(x&&x.value||``).trim().replace(/\s/g,``);if(s.includes(`,`)&&s.includes(`.`))s=s.replace(/\./g,``).replace(`,`,`.`);else s=s.replace(`,`,`.`);const v=parseFloat(s);return Number.isFinite(v)?v:0}function f(v,d=2){return Number.isFinite(v)?v.toLocaleString(`pt-BR`,{minimumFractionDigits:d,maximumFractionDigits:d}):`—`}function d(){const s=e(`exDs`);return s&&s.value===`manual`?n(`exDm`):s?parseFloat(s.value):0}function calc(){const l=n(`exL`),m=n(`exM`),den=d(),p=n(`exP`),vel=n(`exVel`),ideal=l*m*den*.01,mr=l&&den?p/(l*den*.01):0,fat=ideal>0&&p>0?p/ideal:0,pux=fat&&vel?vel*fat:0;if(e(`exPux`))e(`exPux`).textContent=pux?f(pux,2):`—`;if(e(`exFator`))e(`exFator`).textContent=fat?f(fat,3)+`x`:`—`;if(e(`exPuxHint`)){if(!(ideal>0&&p>0&&vel>0)){e(`exPuxHint`).textContent=`Digite peso medido e velocidade atual.`;e(`exPuxHint`).className=`status warn`}else{const dif=(p-ideal)/ideal*100;e(`exPuxHint`).textContent=`Peso ideal: `+f(ideal,2)+` g/m • ajuste `+(dif>=0?`+`:``)+f(dif,2)+`%`;e(`exPuxHint`).className=`status `+(Math.abs(dif)<=2?`ok`:`warn`)}}}function bind(){[`exL`,`exM`,`exDm`,`exP`,`exVel`].forEach(i=>{const x=e(i);if(x)x.addEventListener(`input`,calc)});const s=e(`exDs`);if(s)s.addEventListener(`change`,calc);calc()}if(document.readyState===`loading`)document.addEventListener(`DOMContentLoaded`,bind);else bind()})();</scr'+'ipt>';
     const heroScript='<scr'+'ipt>(function(){const H={ex:[`Calculadora de Extrusão`,`PESO POR METRO • MICRA • DENSIDADE`],sa:[`Calculadora de Sacolas`,`MICRA = PAREDE DUPLA • cálculo automático`],cu:[`Calculadora de Custos`,`CUSTO • VENDA • LUCRO POR ROLO`]};function sh(p){const v=H[p]||H.ex,t=document.getElementById(`heroTitle`),s=document.getElementById(`heroSub`);if(t)t.textContent=v[0];if(s)s.textContent=v[1]}const old=window.show;if(old)window.show=function(p){old(p);sh(p)};const a=document.querySelector(`.page.on`);sh(a&&a.id===`pgSa`?`sa`:a&&a.id===`pgCu`?`cu`:`ex`);})();</scr'+'ipt>';
-    h=h.replace('</body>',puxadorScript+heroScript+'</body>');
+    h=h.replace('</body>',heroScript+'</body>');
 
     document.open();document.write(h);document.close();
   }catch(e){
