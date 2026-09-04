@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" role="img" aria-label="DF Manutenção e Consultoria"><image width="280" height="280" preserveAspectRatio="xMidYMid meet" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-label="DF Manutenção e Consultoria">
+  <rect width="600" height="600" fill="#000"/>
+  <g transform="translate(0,12)">
+    <text x="300" y="335" text-anchor="middle" fill="#fff" font-family="Arial Black,Arial,sans-serif" font-size="230" font-weight="900" font-style="italic" letter-spacing="-28">DF</text>
+    <polygon points="95,300 236,277 232,248 506,286 237,327 241,297" fill="#f5a300"/>
+    <text x="300" y="420" text-anchor="middle" fill="#fff" font-family="Arial Black,Arial,sans-serif" font-size="34" font-weight="900" letter-spacing="1">MANUTENÇÃO E CONSULTORIA</text>
+  </g>
+</svg>
