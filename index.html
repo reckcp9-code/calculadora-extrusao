@@ -11,9 +11,53 @@
 <script>
 (async()=>{
   try{
-    const r=await fetch('./app.html?v=20260904-formulacao-v5',{cache:'no-store'});
+    const r=await fetch('./app.html?v=20260904-formulacao-v6',{cache:'no-store'});
     if(!r.ok) throw new Error('Falha ao carregar aplicativo');
-    const h=await r.text();
+    let h=await r.text();
+    const pdfPatch=`<script>(function(){
+      function q(id){return document.getElementById(id)}
+      function escPdf(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+      function numPdf(v,d){var n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
+      function moneyPdf(v){var n=Number(v);return n>0?n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—'}
+      function getFormsPdf(){try{return window.loadForms?loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}}
+      function getMatsPdf(){try{return window.loadMats?loadMats():JSON.parse(localStorage.getItem('df_formula_materiais_v2')||'[]')}catch(e){return[]}}
+      function matByIdPdf(id){return getMatsPdf().find(function(m){return String(m.id)===String(id)})}
+      function printFormulaPdf(id){
+        var forms=getFormsPdf();
+        var f=forms.find(function(x){return String(x.id)===String(id)});
+        if(!f){alert('Formulação não encontrada.');return}
+        var total=Number(f.total)||0,rows=f.rows||[],pct=0,kgTotal=0,custoTotal=0;
+        var trs='';
+        for(var i=0;i<rows.length;i++){
+          var r=rows[i]||{},mat=matByIdPdf(r.id)||r,nome=mat.nome||r.nome||'',preco=Number(r.preco||mat.preco)||0,p=Number(r.pct)||0,kg=total*p/100,custo=preco>0?kg*preco:0;
+          pct+=p;kgTotal+=kg;custoTotal+=custo;
+          trs+='<tr><td>'+escPdf(nome)+'</td><td>'+numPdf(p,2)+'%</td><td>'+numPdf(kg,3)+' kg</td><td>'+moneyPdf(preco)+'</td><td>'+moneyPdf(custo)+'</td></tr>';
+        }
+        if(!trs)trs='<tr><td colspan="5">Sem materiais nesta formulação.</td></tr>';
+        var custoKg=custoTotal&&total?custoTotal/total:0;
+        var hoje=new Date().toLocaleString('pt-BR');
+        var html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Formulação '+escPdf(f.nome||'')+'</title><style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#111;margin:28px}h1{margin:0 0 4px;font-size:26px}h2{margin:24px 0 10px;font-size:18px}.sub{color:#555;margin-bottom:18px}.top{border-bottom:3px solid #111;padding-bottom:12px;margin-bottom:18px}.box{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.kpi{border:1px solid #ddd;border-radius:10px;padding:10px}.kpi span{display:block;color:#555;font-size:12px}.kpi b{font-size:17px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ccc;padding:10px;text-align:left;font-size:13px}th{background:#eee}.foot{margin-top:26px;color:#666;font-size:12px}@media print{button{display:none}body{margin:18px}.box{grid-template-columns:repeat(2,1fr)}}</style></head><body>';
+        html+='<div class="top"><h1>DF Manutenção e Consultoria</h1><div class="sub">Relatório de Formulação</div></div>';
+        html+='<h2>'+escPdf(f.nome||'Formulação')+'</h2>';
+        html+='<div class="box"><div class="kpi"><span>Quantidade total</span><b>'+numPdf(total,3)+' kg</b></div><div class="kpi"><span>Total da porcentagem</span><b>'+numPdf(pct,2)+'%</b></div><div class="kpi"><span>Custo total</span><b>'+moneyPdf(custoTotal)+'</b></div><div class="kpi"><span>Custo por kg final</span><b>'+moneyPdf(custoKg)+'</b></div></div>';
+        html+='<table><thead><tr><th>Material</th><th>%</th><th>Kg</th><th>Valor/kg</th><th>Custo</th></tr></thead><tbody>'+trs+'</tbody></table>';
+        html+='<div class="foot">Gerado em '+escPdf(hoje)+' • DF EXTRUSOR PRO</div>';
+        html+='<script>setTimeout(function(){window.focus();window.print()},450)<\\/script></body></html>';
+        var w=window.open('','_blank');
+        if(!w){alert('O navegador bloqueou a janela do PDF. Libere pop-up e tente de novo.');return}
+        w.document.open();w.document.write(html);w.document.close();
+      }
+      var oldRender=window.renderForms;
+      window.renderForms=function(){
+        var b=q('foSaved'),forms=getFormsPdf();
+        if(!b)return;
+        if(!forms.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return}
+        b.innerHTML=forms.map(function(f){return '<div class="savedItem"><b>'+escPdf(f.nome||'Formulação')+'</b><div class="formNote">'+numPdf(f.total||0,2)+' kg • '+((f.rows||[]).length)+' materiais • '+(f.custo?moneyPdf(f.custo):'sem custo')+'</div><div class="savedBtns" style="grid-template-columns:repeat(4,1fr)"><button class="miniBtn" data-openform="'+f.id+'">ABRIR</button><button class="miniBtn" data-pdfform="'+f.id+'">PDF</button><button class="miniBtn" data-dupform="'+f.id+'">DUPLICAR</button><button class="delBtn" data-delform="'+f.id+'">EXCLUIR</button></div></div>'}).join('')
+      };
+      document.addEventListener('click',function(ev){var id=ev.target&&ev.target.dataset?ev.target.dataset.pdfform:null;if(id){ev.preventDefault();printFormulaPdf(id)}});
+      setTimeout(function(){try{window.renderForms&&renderForms()}catch(e){}},200);
+    })();<\/script>`;
+    h=h.replace('</body>',pdfPatch+'</body>');
     document.open();
     document.write(h);
     document.close();
