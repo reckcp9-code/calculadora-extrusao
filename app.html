@@ -14,7 +14,7 @@
     const r=await fetch('https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html',{cache:'no-store'});
     if(!r.ok) throw new Error('Falha ao carregar aplicativo');
     let h=await r.text();
-    h=h.replace('</body>','<script src="./formula-extra.js?v=20260904-op-beauty-v11"></scr'+'ipt><script src="./formula-select.js?v=20260904-select-v12"></scr'+'ipt><script src="./cost-extra.js?v=20260904-cost-auto-v13"></scr'+'ipt><script src="./formula-unlock.js?v=20260905-unlock-all-v14"></scr'+'ipt></body>');
+    h=h.replace('</body>','<script src="./formula-extra.js?v=20260904-op-beauty-v11"></scr'+'ipt><script src="./formula-select.js?v=20260904-select-v12"></scr'+'ipt><script src="./cost-extra.js?v=20260904-cost-auto-v13"></scr'+'ipt><script src="./formula-unlock.js?v=20260905-unlock-all-v14"></scr'+'ipt><script src="./help-extra.js?v=20260905-help-v15"></scr'+'ipt></body>');
     document.open();
     document.write(h);
     document.close();
