@@ -11,9 +11,47 @@
 <script>
 (async()=>{
   try{
-    const r=await fetch('./app.html?v=20260904-formulacao-v2',{cache:'no-store'});
+    const r=await fetch('./app.html?v=20260904-formulacao-v3',{cache:'no-store'});
     if(!r.ok) throw new Error('Falha ao carregar aplicativo');
-    const h=await r.text();
+    let h=await r.text();
+    const patch=`<script>(function(){
+      function safeLower(t){return String(t||'').trim().toLocaleLowerCase('pt-BR')}
+      window.renderMatBatch=function(){
+        const b=window.$&&$('matBatch');
+        if(!b)return;
+        const card=b.closest('.card');
+        if(card){
+          const h2=card.querySelector('h2');
+          const hint=card.querySelector('.hint');
+          if(h2)h2.textContent='1. Cadastrar material';
+          if(hint)hint.textContent='Cadastre um material por vez. O preço por kg é opcional. Ao cadastrar, a linha limpa e fica pronta para o próximo material.';
+        }
+        b.innerHTML='<div class="formRow"><div class="rowTitle">Novo material</div><div class="grid"><div><label>Nome do material</label><input id="matNome1" placeholder="Ex.: Canela"></div><div><label>Preço por kg opcional</label><input id="matPreco1" inputmode="decimal" placeholder="Ex.: 5,50"></div></div></div>';
+        const btn=$('matSave'); if(btn)btn.textContent='CADASTRAR MATERIAL';
+        const clear=$('matClearBatch'); if(clear)clear.style.display='none';
+      };
+      window.renderMatSaved=function(){
+        const b=window.$&&$('matSaved');
+        if(!b)return;
+        const card=b.closest('.card');
+        if(card)card.style.display='none';
+      };
+      window.salvarMateriais=function(){
+        const nomeEl=$('matNome1'),precoEl=$('matPreco1');
+        const nome=(nomeEl&&nomeEl.value||'').trim();
+        const preco=window.parseNum?parseNum(precoEl&&precoEl.value||''):0;
+        if(!nome){alert('Digite o nome do material.');return}
+        let mats=window.loadMats?loadMats():[];
+        if(mats.some(m=>safeLower(m.nome)===safeLower(nome))){alert('Esse material já está cadastrado. Não pode cadastrar duas vezes com o mesmo nome.');if(nomeEl)nomeEl.focus();return}
+        mats.push({id:Date.now()+Math.floor(Math.random()*999),nome:nome,preco:preco});
+        if(window.saveMats)saveMats(mats);
+        if(nomeEl)nomeEl.value='';
+        if(precoEl)precoEl.value='';
+        if(nomeEl)nomeEl.focus();
+        alert('Material cadastrado. Campo liberado para o próximo material.');
+      };
+    })();<\/script>`;
+    h=h.replace('</body>',patch+'</body>');
     document.open();
     document.write(h);
     document.close();
