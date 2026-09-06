@@ -1,6 +1,6 @@
 {
-  "version": "1.0.34",
+  "version": "1.0.35",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "O relatório de formulação foi trocado por um modelo bem simples e profissional, parecido com o exemplo escolhido: cabeçalho limpo, quatro resumos e tabela direta. A base continua fixa em 100 kg.",
-  "updatedAt": "2026-09-06T04:10:00-03:00"
+  "message": "O relatório de formulação foi simplificado: agora o resumo mostra somente Total da porcentagem e Fator KG. A tabela também foi limpa para Material, %, e Kg na base de 100 kg, sem custo total nem valor por material.",
+  "updatedAt": "2026-09-06T04:25:00-03:00"
 }
