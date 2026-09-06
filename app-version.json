@@ -1,6 +1,6 @@
 {
-  "version": "1.0.40",
+  "version": "1.0.41",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Adicionado o botão EDITAR MATERIAIS CADASTRADOS na Formulação. Agora é possível alterar o nome, alterar o preço por kg ou excluir um material do cadastro diretamente pelo app.",
-  "updatedAt": "2026-09-06T06:34:00-03:00"
+  "message": "Adicionada a nova aba FEEDBACK. Agora é possível escolher o tipo de feedback, dar uma nota de 1 a 5, escrever uma mensagem e abrir o WhatsApp da DF com o feedback já preenchido.",
+  "updatedAt": "2026-09-06T15:03:00-03:00"
 }
