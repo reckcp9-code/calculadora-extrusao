@@ -40,6 +40,8 @@
       '.dfBobinaResults .kpi{margin-top:0}',
       '.dfBobinaBox{display:none}',
       '.dfBobinaBox.on{display:block}',
+      '.dfCalBox{margin-top:14px;padding:14px;border:1px solid #334155;border-radius:16px;background:#0b1220}',
+      '.dfCalBox h3{margin:0 0 8px;font-size:16px;color:#facc15}',
       '@media(max-width:560px){.dfBobinaResults{grid-template-columns:1fr}.dfBobinaTop{align-items:stretch}.dfBobinaCheck{width:100%}}'
     ].join('');
     document.head.appendChild(st);
@@ -96,7 +98,17 @@
         <div class="kpi"><span>Peso plástico usado</span><b id="bobPesoUsado">—</b></div>
         <div class="kpi"><span>Tubete somado</span><b id="bobTubeteUsado">—</b></div>
       </div>
-      <div class="smallNote">Para ajustar fino: pese uma bobina pronta, digite o raio dela e mude o fator de aperto até o resultado bater com a balança.</div>
+
+      <div class="dfCalBox">
+        <h3>Calibrar bobina pela balança</h3>
+        <div class="hint">Use uma bobina real: informe o peso que deu na balança e o raio medido. O sistema ajusta o fator para bater com a sua máquina/material.</div>
+        <div class="grid">
+          <div><label>Peso real na balança (kg)</label><input id="bobCalPeso" inputmode="decimal" placeholder="Ex.: 100"></div>
+          <div><label>O peso da balança inclui tubete?</label><select id="bobCalTipo"><option value="total">Sim, inclui tubete</option><option value="plastico">Não, só plástico</option></select></div>
+        </div>
+        <button id="bobCalBtn" class="calcBtn alt dfBobinaMini" type="button">CALIBRAR FATOR PELA BALANÇA</button>
+        <div class="smallNote" id="bobCalRes">Para calibrar, preencha também raio externo, raio do tubete, largura, densidade e tipo da bobina.</div>
+      </div>
     </div>`}
 
   function medidas(){
@@ -195,13 +207,55 @@
     }else setMsg('Preencha o raio externo para saber o peso ou digite o peso desejado para saber o raio.','warn');
   }
 
+  function calibrar(){
+    const w=medidas();
+    const Lfis=w.fisica;
+    const Leq=w.equiv;
+    const D=n($('bobD')?.value);
+    const re=n($('bobRe')?.value), ri=n($('bobRi')?.value);
+    const core=n($('bobCore')?.value);
+    const pesoReal=n($('bobCalPeso')?.value);
+    const tipoPeso=$('bobCalTipo')?.value||'total';
+    const res=$('bobCalRes');
+    function r(txt){if(res)res.textContent=txt}
+
+    if(!(Lfis>0&&Leq>0&&D>0&&re>0&&ri>=0&&re>ri&&pesoReal>0)){
+      r('Confira peso real, raio externo, raio do tubete, largura física e densidade.');
+      setMsg('Não consegui calibrar. Falta algum dado da bobina real.','bad');
+      return;
+    }
+
+    let kgPlastico=tipoPeso==='total'?pesoReal-core:pesoReal;
+    if(!(kgPlastico>0)){
+      r('Peso real ficou menor que o peso do tubete.');
+      setMsg('Peso real menor que o tubete.','bad');
+      return;
+    }
+
+    const area=PI*(re*re-ri*ri);
+    const kRaio=kgPlastico*1000/(area*Lfis*D);
+    const ajusteSanfonada=(w.tipo==='sanfonada'&&Leq>Lfis)?(Lfis/Leq):1;
+    const kBase=kRaio/ajusteSanfonada;
+
+    if(!(kBase>0&&isFinite(kBase))){
+      r('Não foi possível calcular o fator. Confira os dados.');
+      return;
+    }
+
+    if($('bobK'))$('bobK').value=fmtInp(kBase*100,1);
+    r('Fator calibrado: '+fmt(kBase*100,1)+'%. Fator usado no raio: '+fmt(fatorRaio(w,kBase)*100,1)+'%. Agora a conta fica ajustada pela bobina real.');
+    calc();
+    setMsg('Calibração feita pela balança. O fator foi ajustado para sua bobina real.','ok');
+  }
+
   function bind(){
-    const pull=$('bobPull'),auto=$('bobAuto'),tipo=$('bobTipo');
+    const pull=$('bobPull'),auto=$('bobAuto'),tipo=$('bobTipo'),cal=$('bobCalBtn');
     if(pull&&!pull.dfBound){pull.dfBound=true;pull.addEventListener('click',()=>{if(auto)auto.checked=true;syncFromExtrusao(true)})}
     if(auto&&!auto.dfBound){auto.dfBound=true;auto.addEventListener('change',()=>syncFromExtrusao(false))}
     if(tipo&&!tipo.dfTipoBound){tipo.dfTipoBound=true;tipo.addEventListener('change',updateTipo)}
+    if(cal&&!cal.dfCalBound){cal.dfCalBound=true;cal.addEventListener('click',calibrar)}
     ['bobL','bobM','bobD'].forEach(id=>{const el=$(id);if(el&&!el.dfManualBound){el.dfManualBound=true;el.addEventListener('input',()=>{const a=$('bobAuto');if(a)a.checked=false;calc()})}});
-    ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal','bobSanfona'].forEach(id=>{const el=$(id);if(el&&!el.dfCalcBound){el.dfCalcBound=true;el.addEventListener('input',calc);el.addEventListener('change',calc)}});
+    ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal','bobSanfona','bobCalPeso','bobCalTipo'].forEach(id=>{const el=$(id);if(el&&!el.dfCalcBound){el.dfCalcBound=true;el.addEventListener('input',calc);el.addEventListener('change',calc)}});
     ['exL','exM','exDm','exDs'].forEach(id=>{const el=$(id);if(el&&!el.dfBobExBound){el.dfBobExBound=true;el.addEventListener('input',()=>syncFromExtrusao(false));el.addEventListener('change',()=>syncFromExtrusao(false))}});
     updateTipo();
     syncFromExtrusao(false);
