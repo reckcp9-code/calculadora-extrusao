@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.39';
-  const CACHE_TAG='20260906-offline-backup-v39';
+  const APP_VERSION='1.0.41';
+  const CACHE_TAG='20260906-feedback-v41';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
