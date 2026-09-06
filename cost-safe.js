@@ -3,6 +3,7 @@
   const $=id=>document.getElementById(id);
   const num=v=>window.parseNum?window.parseNum(v):(parseFloat(String(v||'').replace(',','.'))||0);
   const get=id=>num($(id)?.value);
+  const getQtd=id=>{const e=$(id);if(!e)return 0;const s=String(e.value||'').trim().replace(/\s/g,'');if(!s)return 0;if(/^\d{1,3}(\.\d{3})+$/.test(s))return parseInt(s.replace(/\./g,''),10)||0;if(/^\d{1,3}(,\d{3})+$/.test(s))return parseInt(s.replace(/,/g,''),10)||0;const n=parseInt(s.replace(/\D/g,''),10);return Number.isFinite(n)?n:0};
   const fmt=(v,d=2)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const rs=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const set=(id,t)=>{const e=$(id);if(e)e.textContent=t};
@@ -47,7 +48,9 @@
       const pesoUnidade=Number(d&&d.pesoUnidade)||0;
 
       if($('cuPeso'))$('cuPeso').value=peso>0?fmt(peso,3):'';
-      if($('cuUnid'))$('cuUnid').value=qtd>0?fmt(qtd,0):'';
+      // IMPORTANTE: não usar separador de milhar dentro do input.
+      // Ex.: 29.760 era interpretado como 29,76 e fazia o custo unitário explodir.
+      if($('cuUnid'))$('cuUnid').value=qtd>0?String(Math.round(qtd)):'';
 
       if(peso>0&&qtd>0){
         if(d.origem==='peso'){
@@ -67,7 +70,7 @@
   async function calc(){
     if(typeof window.dfCalc!=='function')return;
     await fillFromSacolas(false);
-    const peso=get('cuPeso'),unid=get('cuUnid'),custoKg=get('cuKg'),lucroPct=get('cuLucroPct'),qtdRolos=get('cuQtd')||1;
+    const peso=get('cuPeso'),unid=getQtd('cuUnid'),custoKg=get('cuKg'),lucroPct=get('cuLucroPct'),qtdRolos=get('cuQtd')||1;
     const vendaKg=custoKg*(1+lucroPct/100);
     try{
       const r=await window.dfCalc('custo',{pesoKg:peso,custoKg,vendaKg,quantidade:qtdRolos});
