@@ -52,15 +52,15 @@
     return '<div class="card dfVendedorCard" id="dfVendedorCard">'+
       '<span class="tag">Vendedor</span>'+
       '<h2>WhatsApp / PDF ao salvar</h2>'+
-      '<div class="hint">Quando salvar uma formulação, o sistema pode abrir o WhatsApp do vendedor com a mensagem pronta e também gerar o PDF para compartilhar.</div>'+ 
+      '<div class="hint">Quando salvar uma formulação, o sistema pode abrir diretamente o WhatsApp cadastrado com a mensagem pronta e também gerar o PDF para anexar.</div>'+ 
       '<div class="dfVendedorGrid">'+
         '<div><label>WhatsApp do vendedor com DDD</label><input id="foVendWhats" inputmode="tel" value="'+esc(phone)+'" placeholder="Ex.: 47992825006"></div>'+
         '<div><label>Teste mensagem</label><button id="foVendTest" class="calcBtn alt dfVendedorMini" type="button">ENVIAR MSG DA ÚLTIMA</button></div>'+ 
         '<div><label>Teste PDF</label><button id="foVendPdfTest" class="calcBtn dfVendedorPdf dfVendedorMini" type="button">ENVIAR PDF DA ÚLTIMA</button></div>'+ 
       '</div>'+ 
       '<label class="dfVendedorCheck"><input id="foVendAuto" type="checkbox" '+checked+'> Abrir WhatsApp com mensagem quando salvar formulação</label>'+ 
-      '<label class="dfVendedorCheck"><input id="foVendPdfAuto" type="checkbox" '+pdfChecked+'> Gerar/compartilhar PDF quando salvar formulação</label>'+ 
-      '<div id="foVendMsg" class="smallNote">No celular, o botão PDF abre o compartilhamento para escolher WhatsApp. No PC, ele baixa o PDF e abre o WhatsApp com a mensagem pronta.</div>'+ 
+      '<label class="dfVendedorCheck"><input id="foVendPdfAuto" type="checkbox" '+pdfChecked+'> Gerar PDF e abrir o WhatsApp cadastrado quando salvar formulação</label>'+ 
+      '<div id="foVendMsg" class="smallNote">Ao clicar em ENVIAR PDF DA ÚLTIMA, o PDF é baixado e a conversa do WhatsApp cadastrado abre direto. Depois é só anexar o PDF e enviar.</div>'+ 
     '</div>';
   }
 
@@ -214,18 +214,8 @@
 
   async function sharePdf(f,manual){
     const msg=$('foVendMsg');
-    const blob=makePdfBlob(f);
-    const name=safeName(f);
-    try{
-      const file=new File([blob],name,{type:'application/pdf'});
-      if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){
-        await navigator.share({files:[file],title:'Formulação DF',text:'Segue PDF da formulação '+(f.nome||'')});
-        if(msg)msg.textContent='PDF compartilhado. Escolha o WhatsApp e envie para o vendedor.';
-        return;
-      }
-    }catch(e){}
     downloadPdf(f);
-    if(msg)msg.textContent='PDF baixado. No PC, anexe esse PDF no WhatsApp. Também abri a mensagem pronta.';
+    if(msg)msg.textContent='PDF gerado. Abrindo diretamente o WhatsApp cadastrado. Anexe o PDF baixado e envie.';
     openWhats(f,manual);
   }
 
@@ -234,8 +224,8 @@
     const url='https://wa.me/'+phone+'?text='+encodeURIComponent(messageFor(f));
     const w=window.open(url,'_blank','noopener');
     const msg=$('foVendMsg');
-    if(msg)msg.textContent='WhatsApp aberto para '+phone+'. Confira e aperte ENVIAR.';
-    if(!w)alert('O navegador bloqueou o WhatsApp. Use o botão ENVIAR MSG/PDF ou libere pop-up.');
+    if(msg)msg.textContent='WhatsApp cadastrado aberto. Anexe o PDF baixado e aperte ENVIAR.';
+    if(!w)alert('O navegador bloqueou o WhatsApp. Libere pop-up e tente novamente.');
   }
 
   function wrapSave(){
