@@ -1,6 +1,6 @@
 {
-  "version": "1.0.50",
-  "title": "DF EXTRUSOR PRO — Teste Push fechado",
-  "message": "Segundo teste automático do Web Push: deve chegar mesmo com o aplicativo fechado.",
-  "updatedAt": "2026-09-06T17:40:00-03:00"
+  "version": "1.0.51",
+  "title": "DF EXTRUSOR PRO atualizado",
+  "message": "Corrigida a mensagem antiga do Backup na Nuvem. O app não mostra mais que falta ativar o D1 quando a estrutura já está configurada.",
+  "updatedAt": "2026-09-06T17:49:00-03:00"
 }
