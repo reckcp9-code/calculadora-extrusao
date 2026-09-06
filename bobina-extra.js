@@ -38,6 +38,8 @@
       '.dfBobinaMini{font-size:12px!important;padding:10px 8px!important;margin-top:8px!important}',
       '.dfBobinaResults{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}',
       '.dfBobinaResults .kpi{margin-top:0}',
+      '.dfBobinaBox{display:none}',
+      '.dfBobinaBox.on{display:block}',
       '@media(max-width:560px){.dfBobinaResults{grid-template-columns:1fr}.dfBobinaTop{align-items:stretch}.dfBobinaCheck{width:100%}}'
     ].join('');
     document.head.appendChild(st);
@@ -52,16 +54,18 @@
         </div>
         <label class="dfBobinaCheck"><input id="bobAuto" type="checkbox" checked> Puxar largura, micra e densidade da Extrusão</label>
       </div>
-      <div class="hint">Calcula <b>raio → peso</b> e também <b>peso → raio</b>. Quanto melhor informar o tubete e o fator de aperto, mais preciso fica.</div>
+      <div class="hint">Calcula <b>raio → peso</b> e também <b>peso → raio</b>. Se for sanfonada, selecione o tipo e informe a sanfona de cada lado.</div>
       <button id="bobPull" class="calcBtn alt dfBobinaMini" type="button">PUXAR DADOS DA EXTRUSÃO AGORA</button>
 
       <div class="grid">
-        <div><label>Largura da bobina / filme fechado (cm)</label><input id="bobL" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
+        <div><label>Largura base da bobina / filme fechado (cm)</label><input id="bobL" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
         <div><label>Micra parede dupla (µm)</label><input id="bobM" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
         <div><label>Densidade</label><input id="bobD" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
         <div><label>Fator de aperto da bobina (%)</label><input id="bobK" inputmode="decimal" value="92" placeholder="Ex.: 92"></div>
+        <div><label>Tipo da bobina</label><select id="bobTipo"><option value="normal">Normal</option><option value="sanfonada">Sanfonada</option></select></div>
+        <div id="bobSanfonaBox" class="dfBobinaBox"><label>Sanfona de cada lado (cm)</label><input id="bobSanfona" inputmode="decimal" placeholder="Ex.: 5"></div>
       </div>
-      <div class="smallNote">Referência: 100% seria bobina totalmente compacta. Bobina firme costuma ficar perto de 90% a 96%. Bobina frouxa fica menor.</div>
+      <div class="smallNote">Na sanfonada, a calculadora soma a sanfona dos dois lados: largura de cálculo = largura base + sanfona + sanfona.</div>
 
       <div class="grid">
         <div><label>Raio externo da bobina (cm)</label><input id="bobRe" class="main" inputmode="decimal" placeholder="Centro até a borda"></div>
@@ -75,6 +79,8 @@
 
       <div class="result"><span>RAIO → PESO DA BOBINA</span><b id="bobPesoTotal">—</b></div>
       <div class="dfBobinaResults">
+        <div class="kpi"><span>Tipo usado</span><b id="bobTipoUsado">—</b></div>
+        <div class="kpi"><span>Largura de cálculo</span><b id="bobLargCalc">—</b></div>
         <div class="kpi"><span>Peso do plástico</span><b id="bobPesoPlastico">—</b></div>
         <div class="kpi"><span>Metros aproximados</span><b id="bobMetros">—</b></div>
         <div class="kpi"><span>Diâmetro externo</span><b id="bobDiametro">—</b></div>
@@ -91,6 +97,20 @@
       <div class="smallNote">Para ajustar fino: pese uma bobina pronta, digite o raio dela e mude o fator de aperto até o resultado bater com a balança.</div>
     </div>`}
 
+  function larguraCalc(){
+    const L=n($('bobL')?.value);
+    const tipo=$('bobTipo')?.value||'normal';
+    const sanfona=tipo==='sanfonada'?Math.max(0,n($('bobSanfona')?.value)):0;
+    return {base:L,tipo,sanfona,calc:L+(sanfona*2)};
+  }
+
+  function updateTipo(){
+    const tipo=$('bobTipo')?.value||'normal';
+    const box=$('bobSanfonaBox');
+    if(box)box.classList.toggle('on',tipo==='sanfonada');
+    calc();
+  }
+
   function syncFromExtrusao(force){
     const auto=$('bobAuto');
     if(!force && auto && !auto.checked)return;
@@ -102,23 +122,26 @@
   }
 
   function calc(){
-    const L=n($('bobL')?.value), M=n($('bobM')?.value), D=n($('bobD')?.value);
+    const w=larguraCalc();
+    const L=w.calc;
+    const M=n($('bobM')?.value), D=n($('bobD')?.value);
     const k=n($('bobK')?.value)/100;
     const re=n($('bobRe')?.value), ri=n($('bobRi')?.value);
     const core=n($('bobCore')?.value);
     const target=n($('bobTarget')?.value);
     const incluiTubete=!!$('bobTargetTotal')?.checked;
 
-    ['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado'].forEach(id=>set(id,'—'));
+    ['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado','bobTipoUsado','bobLargCalc'].forEach(id=>set(id,'—'));
 
-    if(!(L>0&&M>0&&D>0&&k>0&&ri>=0)){
+    if(!(w.base>0&&L>0&&M>0&&D>0&&k>0&&ri>=0)){
       setMsg('Confira largura, micra, densidade, raio do tubete e fator de aperto.','bad');
       return;
     }
 
-    const espCm=M/10000;
     const gMetro=(L*M*D)/100;
     set('bobGm',fmt(gMetro,2)+' g/m');
+    set('bobTipoUsado',w.tipo==='sanfonada'?'Sanfonada':'Normal');
+    set('bobLargCalc',fmt(L,2)+' cm');
     let ok=false;
 
     if(re>0){
@@ -128,7 +151,7 @@
         const area=PI*(re*re-ri*ri);
         const volPlastico=area*L*k;
         const kgPlastico=(volPlastico*D)/1000;
-        const metros=(area*k/espCm)/100;
+        const metros=(kgPlastico*1000)/gMetro;
         const kgTotal=kgPlastico+core;
         set('bobPesoTotal',fmt(kgTotal,3)+' kg total');
         set('bobPesoPlastico',fmt(kgPlastico,3)+' kg');
@@ -154,17 +177,21 @@
       }
     }
 
-    if(ok)setMsg('Cálculo pronto. Resultado aproximado pelo volume da bobina e fator de aperto.','ok');
-    else setMsg('Preencha o raio externo para saber o peso ou digite o peso desejado para saber o raio.','warn');
+    if(ok){
+      const extra=w.tipo==='sanfonada'?' Sanfona considerada na largura de cálculo.':'';
+      setMsg('Cálculo pronto. Resultado aproximado pelo volume da bobina e fator de aperto.'+extra,'ok');
+    }else setMsg('Preencha o raio externo para saber o peso ou digite o peso desejado para saber o raio.','warn');
   }
 
   function bind(){
-    const pull=$('bobPull'),auto=$('bobAuto');
+    const pull=$('bobPull'),auto=$('bobAuto'),tipo=$('bobTipo');
     if(pull&&!pull.dfBound){pull.dfBound=true;pull.addEventListener('click',()=>{if(auto)auto.checked=true;syncFromExtrusao(true)})}
     if(auto&&!auto.dfBound){auto.dfBound=true;auto.addEventListener('change',()=>syncFromExtrusao(false))}
+    if(tipo&&!tipo.dfTipoBound){tipo.dfTipoBound=true;tipo.addEventListener('change',updateTipo)}
     ['bobL','bobM','bobD'].forEach(id=>{const el=$(id);if(el&&!el.dfManualBound){el.dfManualBound=true;el.addEventListener('input',()=>{const a=$('bobAuto');if(a)a.checked=false;calc()})}});
-    ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal'].forEach(id=>{const el=$(id);if(el&&!el.dfCalcBound){el.dfCalcBound=true;el.addEventListener('input',calc);el.addEventListener('change',calc)}});
+    ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal','bobSanfona'].forEach(id=>{const el=$(id);if(el&&!el.dfCalcBound){el.dfCalcBound=true;el.addEventListener('input',calc);el.addEventListener('change',calc)}});
     ['exL','exM','exDm','exDs'].forEach(id=>{const el=$(id);if(el&&!el.dfBobExBound){el.dfBobExBound=true;el.addEventListener('input',()=>syncFromExtrusao(false));el.addEventListener('change',()=>syncFromExtrusao(false))}});
+    updateTipo();
     syncFromExtrusao(false);
   }
 
@@ -180,13 +207,12 @@
 
   function init(){
     addBobina();
-    bind();
-    setTimeout(addBobina,350);
-    setTimeout(addBobina,1000);
-    setTimeout(addBobina,2000);
+    setTimeout(()=>{addBobina();bind();},300);
+    setTimeout(()=>{addBobina();bind();},900);
+    setTimeout(()=>{addBobina();bind();},1800);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
   else init();
-  document.addEventListener('click',()=>setTimeout(init,120),true);
+  document.addEventListener('click',()=>setTimeout(()=>{addBobina();bind();},200),true);
 })();
