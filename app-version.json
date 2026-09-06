@@ -1,6 +1,6 @@
 {
-  "version": "1.0.39",
-  "title": "DF EXTRUSOR PRO — Offline e Backup",
-  "message": "Adicionado modo offline para abrir o app e consultar dados salvos mesmo sem internet, com sincronização automática ao voltar. Também foi adicionada a área de Backup na Nuvem criptografado para materiais, formulações, WhatsApp cadastrado e preferências.",
-  "updatedAt": "2026-09-06T06:20:00-03:00"
+  "version": "1.0.40",
+  "title": "DF EXTRUSOR PRO atualizado",
+  "message": "Adicionado o botão EDITAR MATERIAIS CADASTRADOS na Formulação. Agora é possível alterar o nome, alterar o preço por kg ou excluir um material do cadastro diretamente pelo app.",
+  "updatedAt": "2026-09-06T06:34:00-03:00"
 }
