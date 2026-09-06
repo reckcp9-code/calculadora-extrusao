@@ -1,6 +1,6 @@
 {
-  "version": "1.0.46",
+  "version": "1.0.47",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Corrigida a aba Custo para puxar automaticamente da aba Sacolas o peso do rolo e a quantidade de sacolas, inclusive quando a quantidade é calculada pelo peso desejado do rolo.",
-  "updatedAt": "2026-09-06T17:07:00-03:00"
+  "message": "Corrigida a sincronização da versão exibida no topo e o botão ATUALIZAR agora força a atualização do cache e do Service Worker antes de recarregar o aplicativo.",
+  "updatedAt": "2026-09-06T17:12:00-03:00"
 }
