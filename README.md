@@ -1,5 +1,11 @@
-# Calculadora de Extrusão
+# Calculadora de Extrusão DF
 
-Aplicação web para cálculo de extrusão, sacolas, custo e formulação.
+Calculadora web para estimar gramas por metro e descobrir a micra real do filme tubular.
 
-Uso exclusivo DF Manutenção e Consultoria.
+## Recursos
+- cálculo de g/m
+- cálculo inverso da micra pelo peso de 1 metro
+- densidade pré-definida ou manual para material reciclado
+- interface simples para celular
+
+Abra `index.html` no navegador.
