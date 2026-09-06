@@ -1,6 +1,6 @@
 {
-  "version": "1.0.55",
+  "version": "1.0.56",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Adicionada na aba Custo a opção de escolher entre Lucro sobre custo (Markup) e Margem sobre venda, mantendo as explicações de cada resultado.",
-  "updatedAt": "2026-09-06T18:50:00-03:00"
+  "message": "A aba Custo agora calcula custo fabril, impostos, comissão, lucro bruto, lucro líquido e também permite informar diretamente o preço de venda por sacola, rolo ou kg.",
+  "updatedAt": "2026-09-06T19:05:00-03:00"
 }
