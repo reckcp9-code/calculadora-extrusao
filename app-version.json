@@ -1,6 +1,6 @@
 {
-  "version": "1.0.27",
+  "version": "1.0.28",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Nova versão com suporte a PWA e avisos de atualização.",
-  "updatedAt": "2026-09-06T02:31:00-03:00"
+  "message": "Nova versão com envio da formulação pelo WhatsApp e relatório RESINAS PDF com Fator KG.",
+  "updatedAt": "2026-09-06T03:05:00-03:00"
 }
