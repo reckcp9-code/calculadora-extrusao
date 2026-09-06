@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.38';
-  const CACHE_TAG='20260906-webpush-ios-v38';
+  const APP_VERSION='1.0.39';
+  const CACHE_TAG='20260906-offline-backup-v39';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
