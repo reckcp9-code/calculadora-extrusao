@@ -1,6 +1,6 @@
 {
-  "version": "1.0.31",
+  "version": "1.0.32",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Ao clicar em ENVIAR PDF DA ÚLTIMA, o sistema agora abre diretamente o WhatsApp cadastrado e mantém o relatório profissional pronto para salvar em PDF.",
-  "updatedAt": "2026-09-06T03:34:00-03:00"
+  "message": "O relatório de resinas foi deixado mais profissional, em A4 e com visual mais limpo. O botão ENVIAR PDF DA ÚLTIMA agora abre direto a conversa do WhatsApp cadastrado.",
+  "updatedAt": "2026-09-06T03:45:00-03:00"
 }
