@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.45';
-  const CACHE_TAG='20260906-sacola-peso-qtd-v45';
+  const APP_VERSION='1.0.46';
+  const CACHE_TAG='20260906-custo-sacola-auto-v46';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
