@@ -21,6 +21,13 @@
       const e=h.indexOf(closeScript,p);
       if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length);
     }
+
+    // A prévia roda dentro de /secure-frontend/. Corrige somente os caminhos
+    // visuais/navegação para usar os mesmos arquivos do projeto principal.
+    h=h.replaceAll('src="./logo.jpg.jpeg','src="../logo.jpg.jpeg');
+    h=h.replaceAll("location.href='./curso.html'","location.href='../curso.html'");
+    h=h.replaceAll('href="./curso.html','href="../curso.html');
+
     h=h.replace('</body>',
       '<script src="../safe-core.js?v=20260906-safe-core-3"></scr'+'ipt>'+
       '<script src="../cost-safe.js?v=20260906-cost-safe-3"></scr'+'ipt>'+
