@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.27';
-  const CACHE_TAG='20260906-pwa-notify-v27';
+  const APP_VERSION='1.0.28';
+  const CACHE_TAG='20260906-resinas-share-v28';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
