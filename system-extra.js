@@ -1,6 +1,8 @@
 (function(){
-  const APP_VERSION='1.0.46';
-  const CACHE_TAG='20260906-custo-sacola-auto-v46';
+  const APP_VERSION='1.0.47';
+  const CACHE_TAG='20260906-version-sync-v47';
+  const BASE=location.pathname.includes('/secure-frontend/')?'../':'./';
+  const VERSION_URL=BASE+'app-version.json';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -19,21 +21,50 @@
     document.head.appendChild(st);
   }
 
+  async function latestVersionData(){
+    try{
+      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok)return null;
+      return await r.json();
+    }catch(e){return null}
+  }
+
+  function setVersionLabel(version){
+    const el=document.querySelector('.dfSystemVer');
+    const v=String(version||APP_VERSION).trim()||APP_VERSION;
+    if(el)el.textContent='DF EXTRUSOR PRO v'+v;
+  }
+
+  async function syncVersionLabel(){
+    const data=await latestVersionData();
+    setVersionLabel(data&&data.version?data.version:APP_VERSION);
+  }
+
   function clearBrowserCaches(){
     const jobs=[];
     try{if('caches' in window)jobs.push(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))))}catch(e){}
     return Promise.allSettled(jobs);
   }
 
-  function refreshClean(){
+  async function updateServiceWorkerNow(){
+    if(!('serviceWorker' in navigator))return;
+    try{
+      const reg=await navigator.serviceWorker.getRegistration(BASE);
+      if(reg)await reg.update();
+    }catch(e){console.warn('DF SW update:',e)}
+  }
+
+  async function refreshClean(){
     const btn=document.getElementById('dfSystemRefresh');
     if(btn)btn.textContent='ATUALIZANDO...';
-    clearBrowserCaches().finally(()=>{
-      const url=new URL(location.href);
-      url.searchParams.set('v',CACHE_TAG);
-      url.searchParams.set('t',Date.now());
-      location.replace(url.toString());
-    });
+    await clearBrowserCaches();
+    await updateServiceWorkerNow();
+    const data=await latestVersionData();
+    if(data&&data.version)setVersionLabel(data.version);
+    const url=new URL(location.href);
+    url.searchParams.set('v',String(data&&data.version||CACHE_TAG));
+    url.searchParams.set('t',Date.now());
+    location.replace(url.toString());
   }
 
   async function notifyState(){
@@ -63,6 +94,7 @@
     const btn=document.getElementById('dfSystemRefresh');if(btn&&!btn.dfRefreshBound){btn.dfRefreshBound=true;btn.addEventListener('click',refreshClean)}
     const nbtn=document.getElementById('dfSystemNotify');if(nbtn&&!nbtn.dfNotifyBound){nbtn.dfNotifyBound=true;nbtn.addEventListener('click',enableNotify)}
     notifyState();
+    syncVersionLabel();
   }
 
   function loadVendedor(){
@@ -70,7 +102,12 @@
     const s=document.createElement('script');s.id='dfVendedorScript';s.src='./vendedor-extra.js?v=20260906-whatsapp-cadastrado-v37';document.body.appendChild(s);
   }
 
-  function init(){addBar();loadVendedor();setTimeout(()=>{addBar();loadVendedor()},500);setTimeout(()=>{addBar();loadVendedor()},1500)}
+  function init(){
+    addBar();loadVendedor();
+    setTimeout(()=>{addBar();loadVendedor();syncVersionLabel()},500);
+    setTimeout(()=>{addBar();loadVendedor();syncVersionLabel()},1500);
+    setInterval(syncVersionLabel,60*1000);
+  }
   window.addEventListener('df-notify-status',notifyState);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
