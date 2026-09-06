@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.24';
-  const CACHE_TAG='20260905-pro-v24';
+  const APP_VERSION='1.0.25';
+  const CACHE_TAG='20260905-pro-v25';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
