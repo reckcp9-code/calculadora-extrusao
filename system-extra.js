@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.42';
-  const CACHE_TAG='20260906-feedback-comments-v42';
+  const APP_VERSION='1.0.43';
+  const CACHE_TAG='20260906-feedback-cloud-v43';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
