@@ -1,6 +1,6 @@
 {
-  "version": "1.0.58",
-  "title": "DF EXTRUSOR PRO — correção de acesso",
-  "message": "Corrigido o login para não apagar a licença salva quando houver falha temporária de rede ou durante uma atualização. O acesso automático volta a tentar sem perder a chave.",
-  "updatedAt": "2026-09-06T19:28:00-03:00"
+  "version": "1.0.59",
+  "title": "DF EXTRUSOR PRO — restauração de estabilidade",
+  "message": "Rollback emergencial para a versão estável anterior. Removidas temporariamente as duas últimas alterações que afetaram o acesso ao app.",
+  "updatedAt": "2026-09-06T19:36:00-03:00"
 }
