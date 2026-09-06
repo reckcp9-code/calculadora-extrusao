@@ -3,24 +3,46 @@
   const OLD_KEY='df_vendedor_pdf_auto_v1';
   const PRO_KEY='df_vendedor_pdf_auto_prof_v1';
   const KEY_NUM='df_vendedor_whats_num_v1';
-  const DEFAULT_NUM='5547992825006';
+  const LEGACY_KEYS=['df_vendedor_whatsapp','df_whatsapp_vendedor','vendedorWhatsapp'];
   const forms=()=>{try{return window.loadForms?window.loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}};
 
   try{localStorage.setItem(OLD_KEY,'0')}catch(e){}
 
   function normalizePhone(raw){
     let d=String(raw||'').replace(/\D/g,'');
-    if(!d)d=DEFAULT_NUM;
     if(d.length===10||d.length===11)d='55'+d;
     return d;
   }
 
-  function getPhone(){
-    return normalizePhone(localStorage.getItem(KEY_NUM)||DEFAULT_NUM);
+  function phoneFromField(){
+    const el=document.getElementById('foVendWhats');
+    return normalizePhone(el&&el.value);
   }
 
-  function whatsUrl(f){
-    const phone=getPhone();
+  function syncPhone(){
+    let phone=phoneFromField();
+    if(!phone){
+      try{phone=normalizePhone(localStorage.getItem(KEY_NUM)||'')}catch(e){}
+    }
+    if(!phone){
+      for(const k of LEGACY_KEYS){
+        try{phone=normalizePhone(localStorage.getItem(k)||'')}catch(e){}
+        if(phone)break;
+      }
+    }
+    if(phone){
+      try{localStorage.setItem(KEY_NUM,phone)}catch(e){}
+      const el=document.getElementById('foVendWhats');
+      if(el&&normalizePhone(el.value)!==phone)el.value=phone;
+    }
+    return phone;
+  }
+
+  function validPhone(phone){
+    return /^55\d{10,11}$/.test(String(phone||''));
+  }
+
+  function whatsUrl(f,phone){
     const texto='Segue o PDF da formulação '+String(f?.nome||'Formulação')+'.';
     const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if(mobile)return 'https://wa.me/'+phone+'?text='+encodeURIComponent(texto);
@@ -40,6 +62,15 @@
 
   async function enviarPdfUltima(f){
     if(!f){alert('Nenhuma formulação salva ainda.');return;}
+
+    const phone=syncPhone();
+    if(!validPhone(phone)){
+      alert('Cadastre o WhatsApp com DDD antes de enviar o PDF. Ex.: 47999999999.');
+      const el=document.getElementById('foVendWhats');
+      if(el)el.focus();
+      return;
+    }
+
     if(typeof window.dfPdfResinasProfissional!=='function'){
       alert('O relatório profissional ainda está carregando. Tente novamente em alguns segundos.');
       return;
@@ -52,16 +83,14 @@
     }
 
     const msg=document.getElementById('foVendMsg');
-    if(msg)msg.textContent='Gerando relatório profissional e abrindo o WhatsApp cadastrado...';
+    if(msg)msg.textContent='Gerando relatório e abrindo direto o WhatsApp cadastrado...';
 
     const ok=await window.dfPdfResinasProfissional(f,pdfWin);
     if(!ok){try{pdfWin.close()}catch(e){} return;}
 
-    if(msg)msg.textContent='Relatório pronto. Abrindo direto a conversa do WhatsApp cadastrado.';
+    if(msg)msg.textContent='Relatório pronto. Abrindo a conversa do número cadastrado: '+phone+'.';
 
-    // O WhatsApp usa a própria aba do aplicativo. Assim não depende de um segundo pop-up
-    // e abre de forma muito mais confiável no número já cadastrado.
-    window.location.href=whatsUrl(f);
+    window.location.href=whatsUrl(f,phone);
   }
 
   async function abrirProfissional(f){
@@ -80,10 +109,19 @@
     if(!btn)return;
     ev.preventDefault();
     ev.stopImmediatePropagation();
+    syncPhone();
     enviarPdfUltima(forms()[0]);
   },true);
 
+  document.addEventListener('input',function(ev){
+    if(ev.target&&ev.target.id==='foVendWhats')syncPhone();
+  },true);
+  document.addEventListener('change',function(ev){
+    if(ev.target&&ev.target.id==='foVendWhats')syncPhone();
+  },true);
+
   function ajustarAuto(){
+    syncPhone();
     const cb=document.getElementById('foVendPdfAuto');
     if(!cb||cb.dataset.dfPdfProf==='1')return;
     cb.dataset.dfPdfProf='1';
@@ -104,7 +142,7 @@
   }
 
   let lastId='';
-  function initLast(){const f=forms()[0];lastId=f?String(f.id):'';}
+  function initLast(){const f=forms()[0];lastId=f?String(f.id):'';syncPhone();}
   function watchNew(){
     ajustarAuto();
     try{localStorage.setItem(OLD_KEY,'0')}catch(e){}
@@ -117,6 +155,9 @@
     }
     if(id)lastId=id;
   }
+
+  window.dfGetVendedorWhats=syncPhone;
+  window.dfEnviarPdfUltima=enviarPdfUltima;
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initLast();setTimeout(ajustarAuto,500)});
   else{initLast();setTimeout(ajustarAuto,500)}
