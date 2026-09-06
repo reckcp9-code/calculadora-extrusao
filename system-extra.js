@@ -64,10 +64,19 @@
     }
   }
 
+  function loadVendedor(){
+    if(document.getElementById('dfVendedorScript'))return;
+    const s=document.createElement('script');
+    s.id='dfVendedorScript';
+    s.src='./vendedor-extra.js?v=20260905-vendedor-v25';
+    document.body.appendChild(s);
+  }
+
   function init(){
     addBar();
-    setTimeout(addBar,500);
-    setTimeout(addBar,1500);
+    loadVendedor();
+    setTimeout(()=>{addBar();loadVendedor();},500);
+    setTimeout(()=>{addBar();loadVendedor();},1500);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
