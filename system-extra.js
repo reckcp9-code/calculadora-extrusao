@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.31';
-  const CACHE_TAG='20260906-whatsapp-direto-v31';
+  const APP_VERSION='1.0.32';
+  const CACHE_TAG='20260906-a4-whatsapp-v32';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
