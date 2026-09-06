@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.28';
-  const CACHE_TAG='20260906-resinas-share-v28';
+  const APP_VERSION='1.0.29';
+  const CACHE_TAG='20260906-resinas-pdf-pro-v29';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
