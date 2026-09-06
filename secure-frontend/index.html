@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>DF EXTRUSOR PRO</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}.w{max-width:820px;margin:auto;padding:16px 14px 40px}.brand,.card,.licenseBox{background:#111827;border:1px solid #263244;border-radius:18px;padding:16px;margin-bottom:14px}.brand{text-align:center;background:#000}.logo{width:min(260px,72vw);border-radius:14px}.tag{display:inline-block;background:#241600;color:#ffd36a;border:1px solid #f5a000;padding:6px 11px;border-radius:999px;font-size:12px;font-weight:900;margin-top:10px}.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;position:sticky;top:6px;z-index:5;background:#08090bee;padding:6px;border:1px solid #1d2228;border-radius:16px;margin:12px 0}.tab,.btn{border:1px solid #334155;background:#111827;color:#e2e8f0;border-radius:12px;padding:11px 8px;font-weight:900}.tab.on{background:#211400;border-color:#f5a000;color:#ffd36a}.btn{width:100%;margin-top:10px}.btn.go{border-color:#16a34a;background:#0c321c;color:#86efac}.btn.alt{border-color:#f5a000;background:#241600;color:#ffd36a}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:block;color:#cbd5e1;font-size:13px;margin:10px 0 5px}input,select{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:11px;padding:12px;font-size:16px}.page{display:none}.page.on{display:block}.result{margin-top:12px;border:1px solid #274734;background:#0c1c13;border-radius:14px;padding:13px;text-align:center}.result span{display:block;color:#bbf7d0;font-size:12px}.result b{display:block;color:#86efac;font-size:27px;margin-top:4px}.status{font-size:13px;font-weight:800;margin-top:7px}.ok{color:#86efac}.warn{color:#fbbf24}.bad{color:#fca5a5}.hint{color:#94a3b8;font-size:13px;line-height:1.45}.kpi{display:flex;justify-content:space-between;gap:10px;background:#0f172a;border:1px solid #263244;border-radius:11px;padding:10px;margin-top:8px}.licenseGate{position:fixed;inset:0;z-index:999;background:#080b13;display:flex;align-items:center;justify-content:center;padding:18px}.licenseBox{width:min(440px,100%);text-align:center}.licenseMsg{min-height:20px;margin-top:10px;font-size:13px;font-weight:800}.row{background:#0f172a;border:1px solid #263244;border-radius:12px;padding:10px;margin-top:8px}.rowBtns{display:flex;gap:6px;margin-top:8px}.rowBtns button{flex:1}.small{font-size:12px;color:#94a3b8}.hidden{display:none!important}@media(max-width:600px){.grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(3,1fr)}.tab{font-size:11px}.result b{font-size:24px}}
+</style>
+</head>
+<body>
+<div id="licenseGate" class="licenseGate">
+  <div class="licenseBox">
+    <img class="logo" src="../logo.jpg.jpeg" alt="DF Manutenção e Consultoria">
+    <div class="tag">ACESSO PROTEGIDO</div>
+    <h2>DF EXTRUSOR PRO</h2>
+    <p class="hint">A licença é validada no servidor privado. As fórmulas não ficam neste site.</p>
+    <input id="licenseKey" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX">
+    <button id="loginBtn" class="btn go" type="button">ATIVAR / ENTRAR</button>
+    <div id="licenseMsg" class="licenseMsg"></div>
+    <div id="deviceText" class="small"></div>
+  </div>
+</div>
+
+<div class="w" id="app" style="display:none">
+  <div class="brand">
+    <img class="logo" src="../logo.jpg.jpeg" alt="DF Manutenção e Consultoria">
+    <div class="tag">USO EXCLUSIVO DF</div>
+    <h1>DF EXTRUSOR PRO</h1>
+    <div class="hint">Cálculos processados na API privada</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-page="ex">EXTRUSÃO</button>
+    <button class="tab" data-page="sa">SACOLAS</button>
+    <button class="tab" data-page="cu">CUSTO</button>
+    <button class="tab" data-page="fo">FORMULAÇÃO</button>
+    <button class="tab" data-page="bo">BOBINA</button>
+  </div>
+
+  <section id="pg-ex" class="page on">
+    <div class="card">
+      <div class="tag">Extrusão</div><h2>Peso ideal e micra real</h2>
+      <div class="grid">
+        <div><label>Largura do filme fechado (cm)</label><input id="exL" inputmode="decimal"></div>
+        <div><label>Micra desejada — parede dupla (µm)</label><input id="exM" inputmode="decimal"></div>
+        <div><label>Densidade</label><select id="exD"><option value="0.922">0,922 — referência</option><option value="0.918">0,918 — Linear</option><option value="0.952">0,952 — Alta</option><option value="manual">Manual</option></select></div>
+        <div id="exDManualBox" class="hidden"><label>Densidade manual</label><input id="exDManual" inputmode="decimal"></div>
+        <div><label>Peso medido de 1 metro (g)</label><input id="exP" inputmode="decimal"></div>
+      </div>
+      <button id="exCalc" class="btn go">CALCULAR</button>
+      <div class="result"><span>PESO IDEAL</span><b id="exPesoIdeal">—</b></div>
+      <div class="result"><span>MICRA REAL</span><b id="exMicraReal">—</b><div id="exDifMicra" class="status"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="tag">Correção</div><h2>Corrigir micra por peso</h2>
+      <div class="grid">
+        <div><label>RPM motor de massa</label><input id="corMassa" inputmode="decimal"></div>
+        <div><label>RPM puxador</label><input id="corPux" inputmode="decimal"></div>
+        <div><label>RPM anel de ar</label><input id="corAr" inputmode="decimal"></div>
+      </div>
+      <button id="corCalc" class="btn go">CALCULAR CORREÇÃO</button>
+      <div class="result"><span>DIFERENÇA DE PESO</span><b id="corDif">—</b></div>
+      <div class="kpi"><span>Puxador recomendado</span><b id="corPuxRes">—</b></div>
+      <div class="kpi"><span>Massa recomendada</span><b id="corMassaRes">—</b></div>
+      <div class="kpi"><span>Anel de ar atual</span><b id="corArRes">—</b></div>
+    </div>
+
+    <div class="card">
+      <div class="tag">Produção</div><h2>Aumentar / diminuir produção</h2>
+      <div class="grid">
+        <div><label>RPM massa</label><input id="prodMassa" inputmode="decimal"></div>
+        <div><label>RPM puxador</label><input id="prodPux" inputmode="decimal"></div>
+        <div><label>RPM ar</label><input id="prodAr" inputmode="decimal"></div>
+        <div><label>% de alteração</label><input id="prodPct" inputmode="decimal" placeholder="Ex.: 20 ou -10"></div>
+      </div>
+      <button id="prodCalc" class="btn go">CALCULAR NOVA PRODUÇÃO</button>
+      <div class="kpi"><span>Nova massa</span><b id="prodMassaRes">—</b></div>
+      <div class="kpi"><span>Novo puxador</span><b id="prodPuxRes">—</b></div>
+      <div class="kpi"><span>Novo ar</span><b id="prodArRes">—</b></div>
+    </div>
+  </section>
+
+  <section id="pg-sa" class="page">
+    <div class="card">
+      <div class="tag">Sacolas</div><h2>Peso e quantidade</h2>
+      <div class="grid">
+        <div><label>Largura (cm)</label><input id="saL" inputmode="decimal"></div>
+        <div><label>Comprimento (cm)</label><input id="saC" inputmode="decimal"></div>
+        <div><label>Micra parede dupla (µm)</label><input id="saM" inputmode="decimal"></div>
+        <div><label>Densidade</label><input id="saD" inputmode="decimal" value="0,922"></div>
+        <div><label>Desconto de alça (%)</label><input id="saDesc" inputmode="decimal" value="0"></div>
+        <div><label>Quantidade</label><input id="saQ" inputmode="decimal"></div>
+      </div>
+      <button id="saCalc" class="btn go">CALCULAR</button>
+      <div class="kpi"><span>Peso por unidade</span><b id="saPeso">—</b></div>
+      <div class="kpi"><span>Peso da quantidade</span><b id="saQtdPeso">—</b></div>
+      <div class="kpi"><span>Unidades por kg</span><b id="saPorKg">—</b></div>
+      <div class="kpi"><span>Peso de 1.000</span><b id="saMil">—</b></div>
+    </div>
+  </section>
+
+  <section id="pg-cu" class="page">
+    <div class="card">
+      <div class="tag">Custo</div><h2>Custo, venda e lucro</h2>
+      <div class="grid">
+        <div><label>Peso do rolo/unidade (kg)</label><input id="cuPeso" inputmode="decimal"></div>
+        <div><label>Custo por kg (R$)</label><input id="cuCusto" inputmode="decimal"></div>
+        <div><label>Venda por kg (R$)</label><input id="cuVenda" inputmode="decimal"></div>
+        <div><label>Quantidade</label><input id="cuQ" inputmode="decimal" value="1"></div>
+      </div>
+      <button id="cuCalc" class="btn go">CALCULAR</button>
+      <div class="kpi"><span>Custo unitário</span><b id="cuCustoU">—</b></div>
+      <div class="kpi"><span>Venda unitária</span><b id="cuVendaU">—</b></div>
+      <div class="kpi"><span>Lucro total</span><b id="cuLucro">—</b></div>
+    </div>
+  </section>
+
+  <section id="pg-fo" class="page">
+    <div class="card">
+      <div class="tag">Formulação</div><h2>Montar formulação</h2>
+      <div class="grid">
+        <div><label>Nome da formulação</label><input id="foNome"></div>
+        <div><label>Total a produzir (kg)</label><input id="foTotal" inputmode="decimal"></div>
+      </div>
+      <div id="foRows"></div>
+      <button id="foAdd" class="btn alt">ADICIONAR MATERIAL</button>
+      <button id="foCalc" class="btn go">CALCULAR FORMULAÇÃO</button>
+      <div class="kpi"><span>Total %</span><b id="foPct">—</b></div>
+      <div class="kpi"><span>Total kg</span><b id="foKg">—</b></div>
+      <div class="kpi"><span>Custo total</span><b id="foCusto">—</b></div>
+      <div class="kpi"><span>Custo por kg</span><b id="foCustoKg">—</b></div>
+      <div id="foStatus" class="status"></div>
+    </div>
+  </section>
+
+  <section id="pg-bo" class="page">
+    <div class="card">
+      <div class="tag">Bobina</div><h2>Raio, peso e calibração</h2>
+      <div class="grid">
+        <div><label>Largura física (cm)</label><input id="boL" inputmode="decimal"></div>
+        <div><label>Micra parede dupla (µm)</label><input id="boM" inputmode="decimal"></div>
+        <div><label>Densidade</label><input id="boD" inputmode="decimal" value="0,922"></div>
+        <div><label>Fator de aperto (%)</label><input id="boK" inputmode="decimal" value="92"></div>
+        <div><label>Tipo</label><select id="boTipo"><option value="normal">Normal</option><option value="sanfonada">Sanfonada</option></select></div>
+        <div><label>Sanfona de cada lado (cm)</label><input id="boSanf" inputmode="decimal" value="0"></div>
+        <div><label>Raio externo (cm)</label><input id="boRe" inputmode="decimal"></div>
+        <div><label>Raio do tubete (cm)</label><input id="boRi" inputmode="decimal" value="3,8"></div>
+        <div><label>Peso tubete (kg)</label><input id="boCore" inputmode="decimal" value="0"></div>
+        <div><label>Peso desejado (kg)</label><input id="boTarget" inputmode="decimal"></div>
+      </div>
+      <label><input id="boInclui" type="checkbox" checked style="width:auto"> Peso desejado inclui o tubete</label>
+      <button id="boCalc" class="btn go">CALCULAR BOBINA</button>
+      <div class="kpi"><span>Peso total no raio</span><b id="boPeso">—</b></div>
+      <div class="kpi"><span>Metros aproximados</span><b id="boMetros">—</b></div>
+      <div class="kpi"><span>Raio necessário</span><b id="boRaio">—</b></div>
+      <div class="kpi"><span>Diâmetro necessário</span><b id="boDiam">—</b></div>
+      <hr style="border-color:#263244;margin:18px 0">
+      <h3>Calibrar pela balança</h3>
+      <div class="grid">
+        <div><label>Peso real (kg)</label><input id="boCalPeso" inputmode="decimal"></div>
+        <div><label>Peso real inclui tubete?</label><select id="boCalInclui"><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+      </div>
+      <button id="boCal" class="btn alt">CALIBRAR FATOR</button>
+      <div class="kpi"><span>Novo fator de aperto</span><b id="boCalRes">—</b></div>
+    </div>
+  </section>
+
+  <div class="card"><div id="globalMsg" class="status"></div><div class="small">Frontend seguro: os cálculos são feitos fora do GitHub Pages.</div></div>
+</div>
+<script src="./api-config.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
