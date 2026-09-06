@@ -1,6 +1,6 @@
 {
-  "version": "1.0.54",
+  "version": "1.0.55",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Adicionadas explicações curtas em cada resultado da aba Custo para facilitar a leitura de custo, venda e lucro.",
-  "updatedAt": "2026-09-06T18:44:00-03:00"
+  "message": "Adicionada na aba Custo a opção de escolher entre Lucro sobre custo (Markup) e Margem sobre venda, mantendo as explicações de cada resultado.",
+  "updatedAt": "2026-09-06T18:50:00-03:00"
 }
