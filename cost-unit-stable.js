@@ -11,6 +11,14 @@
     if(!s)return 0;
     return s.value==='manual'?get('saDm'):num(s.value);
   }
+  function modo(){return $('cuLucroModo')?.value||localStorage.getItem('df_custo_lucro_modo_v1')||'markup'}
+  function precoVenda(custo,pct){
+    if(modo()==='margin'){
+      if(!(pct>=0&&pct<100))return NaN;
+      return custo/(1-pct/100);
+    }
+    return custo*(1+pct/100);
+  }
 
   function schedule(){
     clearTimeout(timer);
@@ -38,12 +46,12 @@
 
       const lucroPct=get('cuLucroPct');
       const custoUnidade=(pesoUnidadeG/1000)*custoKg;
-      const vendaUnidade=custoUnidade*(1+lucroPct/100);
+      const vendaUnidade=precoVenda(custoUnidade,lucroPct);
 
       const custoEl=$('cuCustoUnid');
       const vendaEl=$('cuPrecoUnid');
       if(custoEl)custoEl.textContent=rs(custoUnidade);
-      if(vendaEl)vendaEl.textContent=rs(vendaUnidade);
+      if(vendaEl)vendaEl.textContent=Number.isFinite(vendaUnidade)?rs(vendaUnidade):'—';
     }catch(e){
       console.warn('DF custo por unidade estável:',e);
     }
@@ -54,7 +62,7 @@
     if(!pg)return false;
     if(!bound){
       bound=true;
-      ['cuKg','cuLucroPct','cuAuto','saL','saC','saM','saDes','saDm','saPesoAlvo','saQ'].forEach(id=>{
+      ['cuKg','cuLucroPct','cuLucroModo','cuAuto','saL','saC','saM','saDes','saDm','saPesoAlvo','saQ'].forEach(id=>{
         const e=$(id);
         e?.addEventListener('input',()=>setTimeout(schedule,40));
         e?.addEventListener('change',()=>setTimeout(schedule,40));
