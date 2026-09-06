@@ -1,6 +1,6 @@
 {
-  "version": "1.0.38",
-  "title": "DF EXTRUSOR PRO — Atualizações no iPhone",
-  "message": "Preparado o Web Push real com Service Worker e badge 1 para receber avisos de novas versões mesmo com o app fechado. No iPhone, use o DF EXTRUSOR adicionado à Tela de Início.",
-  "updatedAt": "2026-09-06T06:10:00-03:00"
+  "version": "1.0.39",
+  "title": "DF EXTRUSOR PRO — Offline e Backup",
+  "message": "Adicionado modo offline para abrir o app e consultar dados salvos mesmo sem internet, com sincronização automática ao voltar. Também foi adicionada a área de Backup na Nuvem criptografado para materiais, formulações, WhatsApp cadastrado e preferências.",
+  "updatedAt": "2026-09-06T06:20:00-03:00"
 }
