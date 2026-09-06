@@ -1,6 +1,6 @@
 {
-  "version": "1.0.52",
+  "version": "1.0.53",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Corrigido o custo e o preço por unidade/sacola para permanecerem estáveis quando o peso do rolo aumenta, usando o peso real de cada sacola como base.",
-  "updatedAt": "2026-09-06T18:12:00-03:00"
+  "message": "Corrigida a leitura da quantidade de sacolas quando passa de mil. Valores como 29.760 agora são tratados como 29.760 unidades, mantendo custo e preço por sacola corretos ao aumentar o peso do rolo.",
+  "updatedAt": "2026-09-06T18:36:00-03:00"
 }
