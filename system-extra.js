@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.36';
-  const CACHE_TAG='20260906-voltar-pdf-op-v36';
+  const APP_VERSION='1.0.37';
+  const CACHE_TAG='20260906-whatsapp-cadastrado-v37';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -105,7 +105,7 @@
     if(document.getElementById('dfVendedorScript'))return;
     const s=document.createElement('script');
     s.id='dfVendedorScript';
-    s.src='./vendedor-extra.js?v=20260906-whatsapp-direto-v31';
+    s.src='./vendedor-extra.js?v=20260906-whatsapp-cadastrado-v37';
     document.body.appendChild(s);
   }
 
