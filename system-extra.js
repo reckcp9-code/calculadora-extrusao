@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.43';
-  const CACHE_TAG='20260906-feedback-cloud-v43';
+  const APP_VERSION='1.0.44';
+  const CACHE_TAG='20260906-webpush-badge-v44';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
