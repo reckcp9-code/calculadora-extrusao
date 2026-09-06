@@ -1,10 +1,10 @@
-const DF_CACHE='df-extrusor-shell-v4';
+const DF_CACHE='df-extrusor-shell-v5';
 const STATE_CACHE='df-extrusor-state-v1';
 const HISTORICAL_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
 const CORE=[
   './','./index.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './offline-auth-shim.js','./safe-core.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
-  './bobina-safe.js','./contact-extra.js','./pwa-update.js','./system-extra.js','./offline-mode.js','./cloud-backup.js',
+  './offline-auth-shim.js','./safe-core.js','./material-manager.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
+  './bobina-safe.js','./contact-extra.js','./pwa-update.js','./system-extra.js','./offline-mode.js','./cloud-backup.js','./feedback-extra.js',
   './op-single-safe.js','./formula-share-safe.js','./pdf-button-safe.js','./formula-view-safe.js',
   './vendedor-pdf-profissional.js','./vendedor-extra.js',HISTORICAL_APP
 ];
