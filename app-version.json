@@ -1,6 +1,6 @@
 {
-  "version": "1.0.35",
+  "version": "1.0.36",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "O relatório de formulação foi simplificado: agora o resumo mostra somente Total da porcentagem e Fator KG. A tabela também foi limpa para Material, %, e Kg na base de 100 kg, sem custo total nem valor por material.",
-  "updatedAt": "2026-09-06T04:25:00-03:00"
+  "message": "Adicionado o botão VOLTAR PARA FORMULAÇÃO no PDF e mantido o mesmo botão na OP, para retornar direto à tela de Formulação sem ficar preso na visualização.",
+  "updatedAt": "2026-09-06T05:46:00-03:00"
 }
