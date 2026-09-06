@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.32';
-  const CACHE_TAG='20260906-a4-whatsapp-v32';
+  const APP_VERSION='1.0.33';
+  const CACHE_TAG='20260906-pdf-modelo-simples-v33';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
