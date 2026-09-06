@@ -1,6 +1,6 @@
 {
-  "version": "1.0.49",
-  "title": "DF EXTRUSOR PRO — Teste de notificação",
-  "message": "Teste automático: esta notificação deve chegar mesmo com o aplicativo fechado.",
-  "updatedAt": "2026-09-06T17:36:00-03:00"
+  "version": "1.0.50",
+  "title": "DF EXTRUSOR PRO — Teste Push fechado",
+  "message": "Segundo teste automático do Web Push: deve chegar mesmo com o aplicativo fechado.",
+  "updatedAt": "2026-09-06T17:40:00-03:00"
 }
