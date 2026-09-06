@@ -1,9 +1,9 @@
-const DF_CACHE='df-extrusor-shell-v8';
+const DF_CACHE='df-extrusor-shell-v9';
 const STATE_CACHE='df-extrusor-state-v1';
 const HISTORICAL_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
 const CORE=[
   './','./index.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './offline-auth-shim.js','./safe-core.js','./material-manager.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
+  './offline-auth-shim.js','./safe-core.js','./sacola-peso-quantidade.js','./material-manager.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
   './bobina-safe.js','./contact-extra.js','./pwa-update.js','./system-extra.js','./offline-mode.js','./cloud-backup.js','./feedback-extra.js',
   './op-single-safe.js','./formula-share-safe.js','./pdf-button-safe.js','./formula-view-safe.js',
   './vendedor-pdf-profissional.js','./vendedor-extra.js',HISTORICAL_APP
@@ -34,10 +34,23 @@ async function notifyUpdate(data){
 
 async function precache(){
   const cache=await caches.open(DF_CACHE);
-  await Promise.allSettled(CORE.map(async url=>{try{const req=new Request(url,{cache:'reload'});const res=await fetch(req);if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone())}catch(e){}}));
+  await Promise.allSettled(CORE.map(async url=>{try{const req=new Request(url,{cache:'reload'});const res=await fetch(req,{cache:'no-store'});if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone())}catch(e){}}));
 }
 async function cached(req){const cache=await caches.open(DF_CACHE);return cache.match(req,{ignoreSearch:true})}
-async function networkFirst(req){const cache=await caches.open(DF_CACHE);try{const res=await fetch(req);if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});return res}catch(e){const hit=await cache.match(req,{ignoreSearch:true});if(hit)return hit;throw e}}
+async function networkFirst(req){
+  const cache=await caches.open(DF_CACHE);
+  try{
+    let netReq=req;
+    try{netReq=new Request(req,{cache:'no-store'})}catch(e){}
+    const res=await fetch(netReq,{cache:'no-store'});
+    if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});
+    return res;
+  }catch(e){
+    const hit=await cache.match(req,{ignoreSearch:true});
+    if(hit)return hit;
+    throw e;
+  }
+}
 
 self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('df-extrusor-shell-')&&k!==DF_CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});
