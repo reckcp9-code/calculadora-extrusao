@@ -1,6 +1,6 @@
 {
-  "version": "1.0.28",
+  "version": "1.0.29",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Nova versão com envio da formulação pelo WhatsApp e relatório RESINAS PDF com Fator KG.",
-  "updatedAt": "2026-09-06T03:05:00-03:00"
+  "message": "RESINAS PDF agora tem layout profissional e usa sempre a base padrão de 100 kg.",
+  "updatedAt": "2026-09-06T03:09:00-03:00"
 }
