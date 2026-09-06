@@ -1,6 +1,6 @@
 {
-  "version": "1.0.33",
+  "version": "1.0.34",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Novo modelo do relatório de resinas: A4 simples, branco, profissional e com o Fator KG em destaque, seguindo o modelo escolhido.",
-  "updatedAt": "2026-09-06T03:55:00-03:00"
+  "message": "O relatório de formulação foi trocado por um modelo bem simples e profissional, parecido com o exemplo escolhido: cabeçalho limpo, quatro resumos e tabela direta. A base continua fixa em 100 kg.",
+  "updatedAt": "2026-09-06T04:10:00-03:00"
 }
