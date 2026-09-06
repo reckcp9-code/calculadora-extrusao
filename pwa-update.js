@@ -25,6 +25,32 @@
     }
   }
 
+  async function currentVersionData(){
+    try{
+      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+      return r.ok?await r.json():null;
+    }catch(e){return null}
+  }
+
+  async function syncVersionToSW(){
+    try{
+      const data=await currentVersionData();
+      if(!data||!data.version)return;
+      const r=reg||await navigator.serviceWorker.ready;
+      const target=r.active||r.waiting||r.installing;
+      if(target)target.postMessage({type:'DF_SET_VERSION',version:String(data.version)});
+    }catch(e){}
+  }
+
+  async function enablePeriodicCheck(){
+    try{
+      const r=reg||await navigator.serviceWorker.ready;
+      if(r&&'periodicSync' in r){
+        await r.periodicSync.register('df-version-check',{minInterval:60*60*1000});
+      }
+    }catch(e){console.warn('DF periodic sync:',e)}
+  }
+
   async function showDeviceNotification(title,body){
     if(!('Notification' in window)||Notification.permission!=='granted')return;
     try{
@@ -57,13 +83,12 @@
 
   async function checkVersion(){
     try{
-      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
-      if(!r.ok)return;
-      const data=await r.json();
+      const data=await currentVersionData();
+      if(!data)return;
       const current=String(data.version||'').trim();
       if(!current)return;
       const seen=localStorage.getItem(LAST_VERSION);
-      if(!seen){localStorage.setItem(LAST_VERSION,current);return;}
+      if(!seen){localStorage.setItem(LAST_VERSION,current);await syncVersionToSW();return;}
       if(seen===current)return;
       showBanner(data);
       const notified=localStorage.getItem(LAST_NOTIFY);
@@ -85,6 +110,8 @@
       return false;
     }
     await registerSW();
+    await syncVersionToSW();
+    await enablePeriodicCheck();
     await showDeviceNotification('DF EXTRUSOR PRO','Notificações de atualização ativadas neste aparelho.');
     window.dispatchEvent(new CustomEvent('df-notify-status',{detail:{permission:'granted'}}));
     return true;
@@ -97,6 +124,10 @@
   async function init(){
     ensureManifest();
     await registerSW();
+    if('Notification' in window&&Notification.permission==='granted'){
+      await syncVersionToSW();
+      await enablePeriodicCheck();
+    }
     setTimeout(checkVersion,1200);
     setInterval(checkVersion,15*60*1000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion();});
