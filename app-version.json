@@ -1,6 +1,6 @@
 {
-  "version": "1.0.57",
-  "title": "DF EXTRUSOR PRO atualizado",
-  "message": "A aba Custo agora destaca em um quadro principal o preço total do fardo, preço por kg e preço por unidade, e mostra o lucro em um segundo quadro separado.",
-  "updatedAt": "2026-09-06T19:23:00-03:00"
+  "version": "1.0.58",
+  "title": "DF EXTRUSOR PRO — correção de acesso",
+  "message": "Corrigido o login para não apagar a licença salva quando houver falha temporária de rede ou durante uma atualização. O acesso automático volta a tentar sem perder a chave.",
+  "updatedAt": "2026-09-06T19:28:00-03:00"
 }
