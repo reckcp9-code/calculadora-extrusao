@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.34';
-  const CACHE_TAG='20260906-pdf-simples-v34';
+  const APP_VERSION='1.0.35';
+  const CACHE_TAG='20260906-pdf-total-fator-v35';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
