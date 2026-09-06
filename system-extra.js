@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.29';
-  const CACHE_TAG='20260906-resinas-pdf-pro-v29';
+  const APP_VERSION='1.0.30';
+  const CACHE_TAG='20260906-vendedor-pdf-pro-v30';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
