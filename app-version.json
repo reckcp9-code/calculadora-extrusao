@@ -1,6 +1,6 @@
 {
-  "version": "1.0.37",
-  "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Corrigido o botão ENVIAR PDF DA ÚLTIMA para usar exatamente o WhatsApp cadastrado no campo, salvar o número antes do envio e abrir direto a conversa correspondente.",
-  "updatedAt": "2026-09-06T05:55:00-03:00"
+  "version": "1.0.38",
+  "title": "DF EXTRUSOR PRO — Atualizações no iPhone",
+  "message": "Preparado o Web Push real com Service Worker e badge 1 para receber avisos de novas versões mesmo com o app fechado. No iPhone, use o DF EXTRUSOR adicionado à Tela de Início.",
+  "updatedAt": "2026-09-06T06:10:00-03:00"
 }
