@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v6';
+const DF_CACHE='df-extrusor-shell-v7';
 const STATE_CACHE='df-extrusor-state-v1';
 const HISTORICAL_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
 const CORE=[
