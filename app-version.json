@@ -1,6 +1,6 @@
 {
-  "version": "1.0.29",
+  "version": "1.0.30",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "RESINAS PDF agora tem layout profissional e usa sempre a base padrão de 100 kg.",
-  "updatedAt": "2026-09-06T03:09:00-03:00"
+  "message": "O PDF profissional de resinas agora fica em ENVIAR PDF DA ÚLTIMA na área Vendedor, e os botões extras foram removidos das formulações salvas.",
+  "updatedAt": "2026-09-06T03:24:00-03:00"
 }
