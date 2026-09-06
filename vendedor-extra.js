@@ -1,6 +1,7 @@
 (function(){
   const KEY_NUM='df_vendedor_whats_num_v1';
   const KEY_AUTO='df_vendedor_whats_auto_v1';
+  const KEY_PDF_AUTO='df_vendedor_pdf_auto_v1';
   const DEFAULT_NUM='5547992825006';
   const $=id=>document.getElementById(id);
 
@@ -19,6 +20,7 @@
   }
   function getPhone(){return normalizePhone(localStorage.getItem(KEY_NUM)||DEFAULT_NUM)}
   function autoOn(){return localStorage.getItem(KEY_AUTO)!=='0'}
+  function pdfAutoOn(){return localStorage.getItem(KEY_PDF_AUTO)!=='0'}
 
   function addStyle(){
     if($('dfVendedorStyle'))return;
@@ -30,31 +32,35 @@
       '.dfVendedorCheck{display:flex;align-items:center;gap:8px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:11px 12px;color:#cbd5e1;font-size:13px;font-weight:900;margin-top:12px}',
       '.dfVendedorCheck input{width:auto;transform:scale(1.15)}',
       '.dfVendedorMini{font-size:12px!important;padding:10px 8px!important;margin-top:10px!important}',
+      '.dfVendedorPdf{border-color:#22c55e!important;background:#0c321c!important;color:#bbf7d0!important}',
       '@media(max-width:560px){.dfVendedorGrid{grid-template-columns:1fr}}'
     ].join('');
     document.head.appendChild(st);
   }
 
   function saveCfg(){
-    const n=$('foVendWhats');
-    const a=$('foVendAuto');
+    const n=$('foVendWhats'),a=$('foVendAuto'),p=$('foVendPdfAuto');
     if(n)localStorage.setItem(KEY_NUM,normalizePhone(n.value));
     if(a)localStorage.setItem(KEY_AUTO,a.checked?'1':'0');
+    if(p)localStorage.setItem(KEY_PDF_AUTO,p.checked?'1':'0');
   }
 
   function configHtml(){
     const phone=localStorage.getItem(KEY_NUM)||DEFAULT_NUM;
     const checked=autoOn()?'checked':'';
+    const pdfChecked=pdfAutoOn()?'checked':'';
     return '<div class="card dfVendedorCard" id="dfVendedorCard">'+
       '<span class="tag">Vendedor</span>'+
-      '<h2>WhatsApp automático ao salvar</h2>'+
-      '<div class="hint">Quando salvar uma formulação, o sistema abre o WhatsApp do vendedor com a mensagem pronta. No WhatsApp comum ainda precisa apertar ENVIAR.</div>'+ 
+      '<h2>WhatsApp / PDF ao salvar</h2>'+
+      '<div class="hint">Quando salvar uma formulação, o sistema pode abrir o WhatsApp do vendedor com a mensagem pronta e também gerar o PDF para compartilhar.</div>'+ 
       '<div class="dfVendedorGrid">'+
         '<div><label>WhatsApp do vendedor com DDD</label><input id="foVendWhats" inputmode="tel" value="'+esc(phone)+'" placeholder="Ex.: 47992825006"></div>'+
-        '<div><label>Ação</label><button id="foVendTest" class="calcBtn alt dfVendedorMini" type="button">ENVIAR ÚLTIMA FORMULAÇÃO</button></div>'+ 
+        '<div><label>Teste mensagem</label><button id="foVendTest" class="calcBtn alt dfVendedorMini" type="button">ENVIAR MSG DA ÚLTIMA</button></div>'+ 
+        '<div><label>Teste PDF</label><button id="foVendPdfTest" class="calcBtn dfVendedorPdf dfVendedorMini" type="button">ENVIAR PDF DA ÚLTIMA</button></div>'+ 
       '</div>'+ 
-      '<label class="dfVendedorCheck"><input id="foVendAuto" type="checkbox" '+checked+'> Abrir WhatsApp automaticamente quando salvar formulação</label>'+ 
-      '<div id="foVendMsg" class="smallNote">O PDF/OP não anexa sozinho pelo WhatsApp comum. A mensagem vai pronta; o PDF pode ser gerado no botão PDF/OP.</div>'+ 
+      '<label class="dfVendedorCheck"><input id="foVendAuto" type="checkbox" '+checked+'> Abrir WhatsApp com mensagem quando salvar formulação</label>'+ 
+      '<label class="dfVendedorCheck"><input id="foVendPdfAuto" type="checkbox" '+pdfChecked+'> Gerar/compartilhar PDF quando salvar formulação</label>'+ 
+      '<div id="foVendMsg" class="smallNote">No celular, o botão PDF abre o compartilhamento para escolher WhatsApp. No PC, ele baixa o PDF e abre o WhatsApp com a mensagem pronta.</div>'+ 
     '</div>';
   }
 
@@ -69,10 +75,12 @@
   }
 
   function bindConfig(){
-    const n=$('foVendWhats'),a=$('foVendAuto'),t=$('foVendTest');
+    const n=$('foVendWhats'),a=$('foVendAuto'),p=$('foVendPdfAuto'),t=$('foVendTest'),pdf=$('foVendPdfTest');
     if(n&&!n.dfVendBound){n.dfVendBound=true;n.addEventListener('input',saveCfg);n.addEventListener('change',saveCfg)}
     if(a&&!a.dfVendBound){a.dfVendBound=true;a.addEventListener('change',saveCfg)}
+    if(p&&!p.dfVendBound){p.dfVendBound=true;p.addEventListener('change',saveCfg)}
     if(t&&!t.dfVendBound){t.dfVendBound=true;t.addEventListener('click',function(){saveCfg();const f=forms()[0];if(!f){alert('Nenhuma formulação salva ainda.');return}openWhats(f,true)})}
+    if(pdf&&!pdf.dfVendBound){pdf.dfVendBound=true;pdf.addEventListener('click',function(){saveCfg();const f=forms()[0];if(!f){alert('Nenhuma formulação salva ainda.');return}sharePdf(f,true)})}
   }
 
   function messageFor(f){
@@ -112,13 +120,122 @@
     return linhas.join('\n');
   }
 
+  function pdfLines(f){
+    const total=Number(f.total)||0,rows=f.rows||[],op=f.op||{};
+    let l=[];
+    l.push('DF EXTRUSOR PRO');
+    l.push('RELATORIO DE FORMULACAO');
+    l.push('Gerado em: '+new Date().toLocaleString('pt-BR'));
+    l.push('');
+    l.push('FORMULACAO: '+(f.nome||'Formulação'));
+    l.push('TOTAL: '+fmt(total,2)+' kg');
+    if(f.custo)l.push('CUSTO TOTAL: '+money(f.custo));
+    if(f.custoKg)l.push('CUSTO POR KG: '+money(f.custoKg));
+    if(op.largura||op.comprimento||op.micra||op.grama){
+      l.push('');
+      l.push('DADOS DA EXTRUSAO');
+      if(op.largura)l.push('Largura: '+fmt(op.largura,1)+' cm');
+      if(op.comprimento)l.push('Comprimento: '+fmt(op.comprimento,1)+' cm');
+      if(op.micra)l.push('Micra dupla: '+fmt(op.micra,2)+' um');
+      if(op.grama)l.push('Peso metro: '+fmt(op.grama,2)+' g/m');
+    }
+    l.push('');
+    l.push('MATERIAIS');
+    if(rows.length){
+      rows.forEach(r=>{
+        const m=mat(r.id)||r;
+        const pct=Number(r.pct)||0,kg=total*pct/100,preco=Number(r.preco||m.preco)||0;
+        l.push((m.nome||r.nome||'Material')+' | '+fmt(pct,2)+'% | '+fmt(kg,3)+' kg'+(preco?' | '+money(preco)+'/kg':''));
+      });
+    }else l.push('Sem materiais.');
+    l.push('');
+    l.push('Observacao: confira os dados antes de produzir. Resultado depende de densidade, medicao e materia-prima.');
+    return l;
+  }
+
+  function ascii(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,' ')}
+  function pdfEsc(t){return ascii(t).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)')}
+  function wrap(arr,max){
+    const out=[];
+    arr.forEach(line=>{
+      let s=ascii(line);
+      if(!s){out.push('');return}
+      while(s.length>max){
+        let cut=s.lastIndexOf(' ',max);
+        if(cut<25)cut=max;
+        out.push(s.slice(0,cut));
+        s=s.slice(cut).trim();
+      }
+      out.push(s);
+    });
+    return out.slice(0,46);
+  }
+  function safeName(f){
+    const base=ascii(f&&f.nome?f.nome:'formulacao').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'formulacao';
+    return 'DF-'+base+'.pdf';
+  }
+
+  function makePdfBlob(f){
+    const lines=wrap(pdfLines(f),82);
+    let body='BT\n/F2 18 Tf\n50 800 Td\n(DF EXTRUSOR PRO) Tj\n/F1 11 Tf\n0 -24 Td\n';
+    lines.slice(1).forEach((line,i)=>{
+      if(i>0)body+='0 -15 Td\n';
+      body+='('+pdfEsc(line)+') Tj\n';
+    });
+    body+='ET\n';
+    const objects=[];
+    objects.push('<< /Type /Catalog /Pages 2 0 R >>');
+    objects.push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    objects.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>');
+    objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+    objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+    objects.push('<< /Length '+body.length+' >>\nstream\n'+body+'endstream');
+    let pdf='%PDF-1.4\n';
+    const offsets=[0];
+    objects.forEach((obj,i)=>{offsets.push(pdf.length);pdf+=(i+1)+' 0 obj\n'+obj+'\nendobj\n'});
+    const xref=pdf.length;
+    pdf+='xref\n0 '+(objects.length+1)+'\n0000000000 65535 f \n';
+    for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+    pdf+='trailer\n<< /Size '+(objects.length+1)+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+    return new Blob([pdf],{type:'application/pdf'});
+  }
+
+  function downloadPdf(f){
+    const blob=makePdfBlob(f);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=safeName(f);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+
+  async function sharePdf(f,manual){
+    const msg=$('foVendMsg');
+    const blob=makePdfBlob(f);
+    const name=safeName(f);
+    try{
+      const file=new File([blob],name,{type:'application/pdf'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){
+        await navigator.share({files:[file],title:'Formulação DF',text:'Segue PDF da formulação '+(f.nome||'')});
+        if(msg)msg.textContent='PDF compartilhado. Escolha o WhatsApp e envie para o vendedor.';
+        return;
+      }
+    }catch(e){}
+    downloadPdf(f);
+    if(msg)msg.textContent='PDF baixado. No PC, anexe esse PDF no WhatsApp. Também abri a mensagem pronta.';
+    openWhats(f,manual);
+  }
+
   function openWhats(f,manual){
     const phone=getPhone();
     const url='https://wa.me/'+phone+'?text='+encodeURIComponent(messageFor(f));
     const w=window.open(url,'_blank','noopener');
     const msg=$('foVendMsg');
     if(msg)msg.textContent='WhatsApp aberto para '+phone+'. Confira e aperte ENVIAR.';
-    if(!w)alert('O navegador bloqueou o WhatsApp. Use o botão ENVIAR ÚLTIMA FORMULAÇÃO ou libere pop-up.');
+    if(!w)alert('O navegador bloqueou o WhatsApp. Use o botão ENVIAR MSG/PDF ou libere pop-up.');
   }
 
   function wrapSave(){
@@ -130,10 +247,11 @@
       const ret=original.apply(this,arguments);
       try{
         saveCfg();
-        if(autoOn()){
-          const after=forms();
-          const novo=after.find(f=>!beforeSet.has(String(f.id)));
-          if(novo)openWhats(novo,false);
+        const after=forms();
+        const novo=after.find(f=>!beforeSet.has(String(f.id)));
+        if(novo){
+          if(pdfAutoOn())sharePdf(novo,false);
+          if(autoOn())openWhats(novo,false);
         }
       }catch(e){}
       return ret;
@@ -146,9 +264,9 @@
   function init(){
     addConfig();
     wrapSave();
-    setTimeout(()=>{addConfig();wrapSave();},400);
-    setTimeout(()=>{addConfig();wrapSave();},1200);
-    setTimeout(()=>{addConfig();wrapSave();},2500);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();},400);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();},1200);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();},2500);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
