@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.25';
-  const CACHE_TAG='20260905-pro-v25';
+  const APP_VERSION='1.0.26';
+  const CACHE_TAG='20260905-pro-v26';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -68,7 +68,7 @@
     if(document.getElementById('dfVendedorScript'))return;
     const s=document.createElement('script');
     s.id='dfVendedorScript';
-    s.src='./vendedor-extra.js?v=20260905-vendedor-v25';
+    s.src='./vendedor-extra.js?v=20260905-vendedor-pdf-v26';
     document.body.appendChild(s);
   }
 
