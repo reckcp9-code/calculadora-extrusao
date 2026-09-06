@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.37';
-  const CACHE_TAG='20260906-whatsapp-cadastrado-v37';
+  const APP_VERSION='1.0.38';
+  const CACHE_TAG='20260906-webpush-ios-v38';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -40,19 +40,30 @@
     });
   }
 
-  function notifyState(){
+  async function notifyState(){
     const btn=document.getElementById('dfSystemNotify');
     if(!btn)return;
+
     let p='unsupported';
-    try{p=window.dfNotificationPermission?window.dfNotificationPermission():('Notification' in window?Notification.permission:'unsupported')}catch(e){}
-    if(p==='granted'){
-      btn.textContent='✓ NOTIFICAÇÕES';
+    try{
+      if(typeof window.dfPushStatus==='function')p=await window.dfPushStatus();
+      else p=window.dfNotificationPermission?window.dfNotificationPermission():('Notification' in window?Notification.permission:'unsupported');
+    }catch(e){}
+
+    btn.style.display='';
+
+    if(p==='push'){
+      btn.textContent='✓ ATUALIZAÇÕES ATIVAS';
       btn.className='dfSystemBtn ok';
-      btn.title='Notificações de atualização ativadas neste aparelho';
+      btn.title='Web Push ativo neste aparelho, inclusive com o app fechado';
+    }else if(p==='granted'){
+      btn.textContent='🔔 CONCLUIR ATUALIZAÇÕES';
+      btn.className='dfSystemBtn alt';
+      btn.title='Permissão liberada; falta concluir a assinatura Web Push';
     }else if(p==='unsupported'){
       btn.style.display='none';
     }else{
-      btn.textContent='🔔 ATIVAR NOTIFICAÇÕES';
+      btn.textContent='🔔 ATIVAR ATUALIZAÇÕES';
       btn.className='dfSystemBtn alt';
       btn.title='Receber avisos quando o DF EXTRUSOR PRO for atualizado';
     }
@@ -63,9 +74,9 @@
     if(btn)btn.textContent='ATIVANDO...';
     try{
       if(typeof window.dfEnableNotifications==='function')await window.dfEnableNotifications();
-      else alert('O sistema de notificações ainda está carregando. Tente novamente em alguns segundos.');
+      else alert('O sistema de atualizações ainda está carregando. Tente novamente em alguns segundos.');
     }catch(e){console.warn(e)}
-    notifyState();
+    await notifyState();
   }
 
   function addBar(){
@@ -76,7 +87,7 @@
       bar.id='dfSystemBar';
     }
     bar.className='dfSystemBar';
-    bar.innerHTML='<span class="dfSystemVer">DF EXTRUSOR PRO v'+APP_VERSION+'</span><div class="dfSystemActions"><button id="dfSystemNotify" class="dfSystemBtn alt" type="button">🔔 ATIVAR NOTIFICAÇÕES</button><button id="dfSystemRefresh" class="dfSystemBtn" type="button">↻ ATUALIZAR</button></div>';
+    bar.innerHTML='<span class="dfSystemVer">DF EXTRUSOR PRO v'+APP_VERSION+'</span><div class="dfSystemActions"><button id="dfSystemNotify" class="dfSystemBtn alt" type="button">🔔 ATIVAR ATUALIZAÇÕES</button><button id="dfSystemRefresh" class="dfSystemBtn" type="button">↻ ATUALIZAR</button></div>';
 
     const app=document.getElementById('appContent');
     const tabs=app?app.querySelector('.tabs'):document.querySelector('.tabs');
