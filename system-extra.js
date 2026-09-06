@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.30';
-  const CACHE_TAG='20260906-vendedor-pdf-pro-v30';
+  const APP_VERSION='1.0.31';
+  const CACHE_TAG='20260906-whatsapp-direto-v31';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -105,7 +105,7 @@
     if(document.getElementById('dfVendedorScript'))return;
     const s=document.createElement('script');
     s.id='dfVendedorScript';
-    s.src='./vendedor-extra.js?v=20260905-vendedor-pdf-v26';
+    s.src='./vendedor-extra.js?v=20260906-whatsapp-direto-v31';
     document.body.appendChild(s);
   }
 
