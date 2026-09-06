@@ -54,18 +54,18 @@
         </div>
         <label class="dfBobinaCheck"><input id="bobAuto" type="checkbox" checked> Puxar largura, micra e densidade da Extrusão</label>
       </div>
-      <div class="hint">Calcula <b>raio → peso</b> e também <b>peso → raio</b>. Se for sanfonada, selecione o tipo e informe a sanfona de cada lado.</div>
+      <div class="hint">Calcula <b>raio → peso</b> e também <b>peso → raio</b>. Na sanfonada, o raio usa a largura física do rolo e a metragem usa a largura equivalente.</div>
       <button id="bobPull" class="calcBtn alt dfBobinaMini" type="button">PUXAR DADOS DA EXTRUSÃO AGORA</button>
 
       <div class="grid">
-        <div><label>Largura base da bobina / filme fechado (cm)</label><input id="bobL" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
+        <div><label>Largura física da bobina / boca fechada (cm)</label><input id="bobL" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
         <div><label>Micra parede dupla (µm)</label><input id="bobM" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
         <div><label>Densidade</label><input id="bobD" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
         <div><label>Fator de aperto da bobina (%)</label><input id="bobK" inputmode="decimal" value="92" placeholder="Ex.: 92"></div>
         <div><label>Tipo da bobina</label><select id="bobTipo"><option value="normal">Normal</option><option value="sanfonada">Sanfonada</option></select></div>
         <div id="bobSanfonaBox" class="dfBobinaBox"><label>Sanfona de cada lado (cm)</label><input id="bobSanfona" inputmode="decimal" placeholder="Ex.: 5"></div>
       </div>
-      <div class="smallNote">Na sanfonada, a calculadora soma a sanfona dos dois lados: largura de cálculo = largura base + sanfona + sanfona.</div>
+      <div class="smallNote">Normal: usa a largura física. Sanfonada: o peso pelo raio usa a largura física da bobina; o peso por metro usa largura equivalente = largura física + sanfona + sanfona.</div>
 
       <div class="grid">
         <div><label>Raio externo da bobina (cm)</label><input id="bobRe" class="main" inputmode="decimal" placeholder="Centro até a borda"></div>
@@ -80,7 +80,8 @@
       <div class="result"><span>RAIO → PESO DA BOBINA</span><b id="bobPesoTotal">—</b></div>
       <div class="dfBobinaResults">
         <div class="kpi"><span>Tipo usado</span><b id="bobTipoUsado">—</b></div>
-        <div class="kpi"><span>Largura de cálculo</span><b id="bobLargCalc">—</b></div>
+        <div class="kpi"><span>Largura física do rolo</span><b id="bobLargFis">—</b></div>
+        <div class="kpi"><span>Largura equivalente</span><b id="bobLargEquiv">—</b></div>
         <div class="kpi"><span>Peso do plástico</span><b id="bobPesoPlastico">—</b></div>
         <div class="kpi"><span>Metros aproximados</span><b id="bobMetros">—</b></div>
         <div class="kpi"><span>Diâmetro externo</span><b id="bobDiametro">—</b></div>
@@ -97,11 +98,11 @@
       <div class="smallNote">Para ajustar fino: pese uma bobina pronta, digite o raio dela e mude o fator de aperto até o resultado bater com a balança.</div>
     </div>`}
 
-  function larguraCalc(){
-    const L=n($('bobL')?.value);
+  function medidas(){
+    const fisica=n($('bobL')?.value);
     const tipo=$('bobTipo')?.value||'normal';
     const sanfona=tipo==='sanfonada'?Math.max(0,n($('bobSanfona')?.value)):0;
-    return {base:L,tipo,sanfona,calc:L+(sanfona*2)};
+    return {fisica,tipo,sanfona,equiv:fisica+(sanfona*2)};
   }
 
   function updateTipo(){
@@ -122,8 +123,9 @@
   }
 
   function calc(){
-    const w=larguraCalc();
-    const L=w.calc;
+    const w=medidas();
+    const Lfis=w.fisica;
+    const Leq=w.equiv;
     const M=n($('bobM')?.value), D=n($('bobD')?.value);
     const k=n($('bobK')?.value)/100;
     const re=n($('bobRe')?.value), ri=n($('bobRi')?.value);
@@ -131,17 +133,18 @@
     const target=n($('bobTarget')?.value);
     const incluiTubete=!!$('bobTargetTotal')?.checked;
 
-    ['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado','bobTipoUsado','bobLargCalc'].forEach(id=>set(id,'—'));
+    ['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado','bobTipoUsado','bobLargFis','bobLargEquiv'].forEach(id=>set(id,'—'));
 
-    if(!(w.base>0&&L>0&&M>0&&D>0&&k>0&&ri>=0)){
+    if(!(Lfis>0&&Leq>0&&M>0&&D>0&&k>0&&ri>=0)){
       setMsg('Confira largura, micra, densidade, raio do tubete e fator de aperto.','bad');
       return;
     }
 
-    const gMetro=(L*M*D)/100;
+    const gMetro=(Leq*M*D)/100;
     set('bobGm',fmt(gMetro,2)+' g/m');
     set('bobTipoUsado',w.tipo==='sanfonada'?'Sanfonada':'Normal');
-    set('bobLargCalc',fmt(L,2)+' cm');
+    set('bobLargFis',fmt(Lfis,2)+' cm');
+    set('bobLargEquiv',fmt(Leq,2)+' cm');
     let ok=false;
 
     if(re>0){
@@ -149,7 +152,7 @@
         setMsg('O raio externo precisa ser maior que o raio do tubete.','bad');
       }else{
         const area=PI*(re*re-ri*ri);
-        const volPlastico=area*L*k;
+        const volPlastico=area*Lfis*k;
         const kgPlastico=(volPlastico*D)/1000;
         const metros=(kgPlastico*1000)/gMetro;
         const kgTotal=kgPlastico+core;
@@ -166,7 +169,7 @@
       if(plasticoDesejado<=0){
         set('bobRaioNec','Peso menor que o tubete');
       }else{
-        const reNec=Math.sqrt(ri*ri+(plasticoDesejado*1000)/(PI*L*D*k));
+        const reNec=Math.sqrt(ri*ri+(plasticoDesejado*1000)/(PI*Lfis*D*k));
         const metrosPeso=(plasticoDesejado*1000)/gMetro;
         set('bobRaioNec',fmt(reNec,2)+' cm');
         set('bobDiamNec',fmt(reNec*2,2)+' cm');
@@ -178,7 +181,7 @@
     }
 
     if(ok){
-      const extra=w.tipo==='sanfonada'?' Sanfona considerada na largura de cálculo.':'';
+      const extra=w.tipo==='sanfonada'?' Sanfonada corrigida: raio/peso pela largura física e metragem pela largura equivalente.':'';
       setMsg('Cálculo pronto. Resultado aproximado pelo volume da bobina e fator de aperto.'+extra,'ok');
     }else setMsg('Preencha o raio externo para saber o peso ou digite o peso desejado para saber o raio.','warn');
   }
