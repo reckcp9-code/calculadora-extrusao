@@ -1,6 +1,6 @@
 {
-  "version": "1.0.56",
+  "version": "1.0.57",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "A aba Custo agora calcula custo fabril, impostos, comissão, lucro bruto, lucro líquido e também permite informar diretamente o preço de venda por sacola, rolo ou kg.",
-  "updatedAt": "2026-09-06T19:05:00-03:00"
+  "message": "A aba Custo agora destaca em um quadro principal o preço total do fardo, preço por kg e preço por unidade, e mostra o lucro em um segundo quadro separado.",
+  "updatedAt": "2026-09-06T19:23:00-03:00"
 }
