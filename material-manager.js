@@ -1,7 +1,6 @@
 (function(){
   'use strict';
 
-  const APP_VERSION='1.0.40';
   const MAT_KEY='df_formula_materiais_v2';
   const STYLE_ID='dfMaterialManagerStyle';
   const WRAP_ID='dfMaterialManager';
@@ -30,11 +29,6 @@
   function saveMats(mats){
     if(typeof window.saveMats==='function')window.saveMats(mats);
     else localStorage.setItem(MAT_KEY,JSON.stringify(mats));
-  }
-
-  function updateVersionLabel(){
-    const el=document.querySelector('.dfSystemVer');
-    if(el)el.textContent='DF EXTRUSOR PRO v'+APP_VERSION;
   }
 
   function addStyle(){
@@ -150,7 +144,6 @@
   }
 
   function mount(){
-    updateVersionLabel();
     addStyle();
     const saveBtn=document.getElementById('matSave');
     if(!saveBtn||document.getElementById(WRAP_ID))return;
