@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.41';
-  const CACHE_TAG='20260906-feedback-v41';
+  const APP_VERSION='1.0.42';
+  const CACHE_TAG='20260906-feedback-comments-v42';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -21,11 +21,7 @@
 
   function clearBrowserCaches(){
     const jobs=[];
-    try{
-      if('caches' in window){
-        jobs.push(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))));
-      }
-    }catch(e){}
+    try{if('caches' in window)jobs.push(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))))}catch(e){}
     return Promise.allSettled(jobs);
   }
 
@@ -41,93 +37,40 @@
   }
 
   async function notifyState(){
-    const btn=document.getElementById('dfSystemNotify');
-    if(!btn)return;
-
+    const btn=document.getElementById('dfSystemNotify');if(!btn)return;
     let p='unsupported';
-    try{
-      if(typeof window.dfPushStatus==='function')p=await window.dfPushStatus();
-      else p=window.dfNotificationPermission?window.dfNotificationPermission():('Notification' in window?Notification.permission:'unsupported');
-    }catch(e){}
-
+    try{if(typeof window.dfPushStatus==='function')p=await window.dfPushStatus();else p=window.dfNotificationPermission?window.dfNotificationPermission():('Notification' in window?Notification.permission:'unsupported')}catch(e){}
     btn.style.display='';
-
-    if(p==='push'){
-      btn.textContent='✓ ATUALIZAÇÕES ATIVAS';
-      btn.className='dfSystemBtn ok';
-      btn.title='Web Push ativo neste aparelho, inclusive com o app fechado';
-    }else if(p==='granted'){
-      btn.textContent='🔔 CONCLUIR ATUALIZAÇÕES';
-      btn.className='dfSystemBtn alt';
-      btn.title='Permissão liberada; falta concluir a assinatura Web Push';
-    }else if(p==='unsupported'){
-      btn.style.display='none';
-    }else{
-      btn.textContent='🔔 ATIVAR ATUALIZAÇÕES';
-      btn.className='dfSystemBtn alt';
-      btn.title='Receber avisos quando o DF EXTRUSOR PRO for atualizado';
-    }
+    if(p==='push'){btn.textContent='✓ ATUALIZAÇÕES ATIVAS';btn.className='dfSystemBtn ok';btn.title='Web Push ativo neste aparelho, inclusive com o app fechado'}
+    else if(p==='granted'){btn.textContent='🔔 CONCLUIR ATUALIZAÇÕES';btn.className='dfSystemBtn alt';btn.title='Permissão liberada; falta concluir a assinatura Web Push'}
+    else if(p==='unsupported'){btn.style.display='none'}
+    else{btn.textContent='🔔 ATIVAR ATUALIZAÇÕES';btn.className='dfSystemBtn alt';btn.title='Receber avisos quando o DF EXTRUSOR PRO for atualizado'}
   }
 
   async function enableNotify(){
-    const btn=document.getElementById('dfSystemNotify');
-    if(btn)btn.textContent='ATIVANDO...';
-    try{
-      if(typeof window.dfEnableNotifications==='function')await window.dfEnableNotifications();
-      else alert('O sistema de atualizações ainda está carregando. Tente novamente em alguns segundos.');
-    }catch(e){console.warn(e)}
+    const btn=document.getElementById('dfSystemNotify');if(btn)btn.textContent='ATIVANDO...';
+    try{if(typeof window.dfEnableNotifications==='function')await window.dfEnableNotifications();else alert('O sistema de atualizações ainda está carregando. Tente novamente em alguns segundos.')}catch(e){console.warn(e)}
     await notifyState();
   }
 
   function addBar(){
     addStyle();
-    let bar=document.getElementById('dfSystemBar');
-    if(!bar){
-      bar=document.createElement('div');
-      bar.id='dfSystemBar';
-    }
+    let bar=document.getElementById('dfSystemBar');if(!bar){bar=document.createElement('div');bar.id='dfSystemBar'}
     bar.className='dfSystemBar';
     bar.innerHTML='<span class="dfSystemVer">DF EXTRUSOR PRO v'+APP_VERSION+'</span><div class="dfSystemActions"><button id="dfSystemNotify" class="dfSystemBtn alt" type="button">🔔 ATIVAR ATUALIZAÇÕES</button><button id="dfSystemRefresh" class="dfSystemBtn" type="button">↻ ATUALIZAR</button></div>';
-
-    const app=document.getElementById('appContent');
-    const tabs=app?app.querySelector('.tabs'):document.querySelector('.tabs');
-    if(tabs&&tabs.parentNode){
-      tabs.parentNode.insertBefore(bar,tabs);
-    }else if(app){
-      app.insertBefore(bar,app.firstChild);
-    }else{
-      document.body.insertBefore(bar,document.body.firstChild);
-    }
-
-    const btn=document.getElementById('dfSystemRefresh');
-    if(btn&&!btn.dfRefreshBound){
-      btn.dfRefreshBound=true;
-      btn.addEventListener('click',refreshClean);
-    }
-    const nbtn=document.getElementById('dfSystemNotify');
-    if(nbtn&&!nbtn.dfNotifyBound){
-      nbtn.dfNotifyBound=true;
-      nbtn.addEventListener('click',enableNotify);
-    }
+    const app=document.getElementById('appContent');const tabs=app?app.querySelector('.tabs'):document.querySelector('.tabs');
+    if(tabs&&tabs.parentNode)tabs.parentNode.insertBefore(bar,tabs);else if(app)app.insertBefore(bar,app.firstChild);else document.body.insertBefore(bar,document.body.firstChild);
+    const btn=document.getElementById('dfSystemRefresh');if(btn&&!btn.dfRefreshBound){btn.dfRefreshBound=true;btn.addEventListener('click',refreshClean)}
+    const nbtn=document.getElementById('dfSystemNotify');if(nbtn&&!nbtn.dfNotifyBound){nbtn.dfNotifyBound=true;nbtn.addEventListener('click',enableNotify)}
     notifyState();
   }
 
   function loadVendedor(){
     if(document.getElementById('dfVendedorScript'))return;
-    const s=document.createElement('script');
-    s.id='dfVendedorScript';
-    s.src='./vendedor-extra.js?v=20260906-whatsapp-cadastrado-v37';
-    document.body.appendChild(s);
+    const s=document.createElement('script');s.id='dfVendedorScript';s.src='./vendedor-extra.js?v=20260906-whatsapp-cadastrado-v37';document.body.appendChild(s);
   }
 
-  function init(){
-    addBar();
-    loadVendedor();
-    setTimeout(()=>{addBar();loadVendedor();},500);
-    setTimeout(()=>{addBar();loadVendedor();},1500);
-  }
-
+  function init(){addBar();loadVendedor();setTimeout(()=>{addBar();loadVendedor()},500);setTimeout(()=>{addBar();loadVendedor()},1500)}
   window.addEventListener('df-notify-status',notifyState);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
