@@ -1,9 +1,5 @@
-# DF EXTRUSOR PRO
+# Calculadora de Extrusão
 
-Calculadoras para extrusão de filmes plásticos.
+Aplicação web para cálculo de extrusão, sacolas, custo e formulação.
 
-- Extrusão
-- Sacolas
-- Custos
-- Formulação
-- Bobina
+Uso exclusivo DF Manutenção e Consultoria.
