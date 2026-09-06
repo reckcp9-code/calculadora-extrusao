@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.33';
-  const CACHE_TAG='20260906-pdf-modelo-simples-v33';
+  const APP_VERSION='1.0.34';
+  const CACHE_TAG='20260906-pdf-simples-v34';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
