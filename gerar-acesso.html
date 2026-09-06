@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<title>DF EXTRUSOR PRO — Gerar acesso</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}.wrap{width:min(94vw,760px);margin:34px auto;padding-bottom:40px}.card{background:#0f172a;border:1px solid #334155;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 18px 45px rgba(0,0,0,.25)}h1{margin:0 0 4px;font-size:25px}.sub{color:#94a3b8;font-size:13px;line-height:1.45}.tag{display:inline-block;border:1px solid #f59e0b;color:#fbbf24;background:#251800;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-bottom:10px}label{display:block;font-size:12px;font-weight:800;margin:12px 0 6px}input,textarea,select{width:100%;border:1px solid #475569;background:#111827;color:#fff;border-radius:12px;padding:12px;font:600 14px system-ui;outline:none}textarea{min-height:150px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{width:100%;border:1px solid #16a34a;background:#064e2a;color:#bbf7d0;border-radius:12px;padding:12px;font-weight:900;cursor:pointer;margin-top:10px}.btn.alt{border-color:#f59e0b;background:#2b1d00;color:#fde68a}.btn.copy{border-color:#2563eb;background:#0b1d3a;color:#dbeafe}.status{margin-top:10px;font-size:12px;color:#94a3b8;white-space:pre-wrap}.ok{color:#86efac}.bad{color:#fca5a5}.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.count{background:#111827;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}.count b{display:block;font-size:22px}.count span{font-size:10px;color:#94a3b8}.linkbox{word-break:break-all;background:#07101f;border:1px solid #2563eb;padding:12px;border-radius:12px;margin-top:10px;color:#bfdbfe;font-weight:750}@media(max-width:560px){.grid,.counts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <span class="tag">ADMINISTRAÇÃO</span>
+    <h1>DF EXTRUSOR PRO</h1>
+    <div class="sub">Estoque de licenças e geração de links de acesso automático. A key do LicenseAuth não aparece para o cliente.</div>
+    <label>Senha administrativa</label>
+    <input id="secret" type="password" autocomplete="off" placeholder="ACCESS_ADMIN_SECRET">
+    <button class="btn copy" id="statusBtn">ATUALIZAR ESTOQUE</button>
+    <div class="counts"><div class="count"><b id="free">—</b><span>KEYS LIVRES</span></div><div class="count"><b id="reserved">—</b><span>RESERVADAS</span></div><div class="count"><b id="used">—</b><span>EM USO</span></div></div>
+    <div id="statusMsg" class="status"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Adicionar keys ao estoque</h2>
+    <div class="sub">Cole uma key por linha. Você pode colar várias de uma vez.</div>
+    <textarea id="keys" placeholder="XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY"></textarea>
+    <button class="btn" id="importBtn">ADICIONAR KEYS LIVRES</button>
+    <div id="importMsg" class="status"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Gerar link</h2>
+    <div class="grid"><div><label>Validade do link</label><select id="hours"><option value="1">1 hora</option><option value="6">6 horas</option><option value="24" selected>24 horas</option><option value="72">3 dias</option><option value="168">7 dias</option></select></div><div><label>Uso</label><input value="1 aparelho / uso único" disabled></div></div>
+    <button class="btn alt" id="generateBtn">GERAR LINK DE ACESSO</button>
+    <div id="link" class="linkbox" style="display:none"></div>
+    <button class="btn copy" id="copyBtn" style="display:none">COPIAR LINK</button>
+    <div id="generateMsg" class="status"></div>
+  </div>
+</div>
+<script>
+(function(){
+  const API='https://df-extrusor-api.reck-cp9.workers.dev';
+  const $=id=>document.getElementById(id);
+  let currentLink='';
+  async function post(path,body){
+    const secret=$('secret').value.trim();
+    if(!secret)throw new Error('Digite a senha administrativa.');
+    const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:JSON.stringify(body||{}),cache:'no-store'});
+    let j={};try{j=await r.json()}catch(e){}
+    if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
+    return j;
+  }
+  async function status(){try{const j=await post('/admin/access/status',{});$('free').textContent=j.free??0;$('reserved').textContent=j.reserved??0;$('used').textContent=j.used??0;$('statusMsg').textContent='Estoque atualizado.';$('statusMsg').className='status ok'}catch(e){$('statusMsg').textContent=e.message;$('statusMsg').className='status bad'}}
+  $('statusBtn').onclick=status;
+  $('importBtn').onclick=async()=>{try{const text=$('keys').value.trim();if(!text)throw new Error('Cole pelo menos uma key.');const j=await post('/admin/access/import',{text});$('importMsg').textContent='Adicionadas: '+j.added+' • Já existentes: '+j.ignored;$('importMsg').className='status ok';$('keys').value='';await status()}catch(e){$('importMsg').textContent=e.message;$('importMsg').className='status bad'}};
+  $('generateBtn').onclick=async()=>{try{const j=await post('/admin/access/create-link',{hours:Number($('hours').value)||24});currentLink=j.link||'';if(!currentLink)throw new Error('O servidor não retornou o link.');$('link').textContent=currentLink;$('link').style.display='block';$('copyBtn').style.display='block';$('generateMsg').textContent='Link criado. Uma key livre ficou reservada para este link.';$('generateMsg').className='status ok';await status()}catch(e){$('generateMsg').textContent=e.message;$('generateMsg').className='status bad'}};
+  $('copyBtn').onclick=async()=>{if(!currentLink)return;try{await navigator.clipboard.writeText(currentLink);$('generateMsg').textContent='Link copiado.';$('generateMsg').className='status ok'}catch(e){$('generateMsg').textContent='Selecione e copie o link acima.'}};
+})();
+</script>
+</body>
+</html>
