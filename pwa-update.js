@@ -1,6 +1,7 @@
 (function(){
   'use strict';
-  const VERSION_URL='./app-version.json';
+  const BASE=location.pathname.includes('/secure-frontend/')?'../':'./';
+  const VERSION_URL=BASE+'app-version.json';
   const LAST_VERSION='df_last_version_seen_v1';
   const LAST_NOTIFY='df_last_version_notified_v1';
   let reg=null;
@@ -9,14 +10,14 @@
     if(document.querySelector('link[rel="manifest"]'))return;
     const link=document.createElement('link');
     link.rel='manifest';
-    link.href='./manifest.webmanifest';
+    link.href=BASE+'manifest.webmanifest';
     document.head.appendChild(link);
   }
 
   async function registerSW(){
     if(!('serviceWorker' in navigator))return null;
     try{
-      reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+      reg=await navigator.serviceWorker.register(BASE+'sw.js',{scope:BASE});
       return reg;
     }catch(e){
       console.warn('DF SW:',e);
@@ -29,7 +30,7 @@
     try{
       const r=reg||await navigator.serviceWorker.ready;
       if(r&&r.showNotification){
-        await r.showNotification(title,{body,icon:'./logo.svg',badge:'./logo.svg',tag:'df-extrusor-update',renotify:true,data:{url:'./'}});
+        await r.showNotification(title,{body,icon:BASE+'logo.svg',badge:BASE+'logo.svg',tag:'df-extrusor-update',renotify:true,data:{url:BASE}});
       }
     }catch(e){console.warn(e)}
   }
