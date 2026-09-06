@@ -1,6 +1,6 @@
 {
-  "version": "1.0.41",
+  "version": "1.0.42",
   "title": "DF EXTRUSOR PRO atualizado",
-  "message": "Adicionada a nova aba FEEDBACK. Agora é possível escolher o tipo de feedback, dar uma nota de 1 a 5, escrever uma mensagem e abrir o WhatsApp da DF com o feedback já preenchido.",
-  "updatedAt": "2026-09-06T15:03:00-03:00"
+  "message": "Os comentários enviados pelo Feedback agora ficam exibidos na própria aba, com nome, nota, tipo, data e mensagem. Também é possível excluir um comentário salvo neste aparelho.",
+  "updatedAt": "2026-09-06T15:12:00-03:00"
 }
