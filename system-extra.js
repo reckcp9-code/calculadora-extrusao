@@ -1,6 +1,6 @@
 (function(){
-  const APP_VERSION='1.0.35';
-  const CACHE_TAG='20260906-pdf-total-fator-v35';
+  const APP_VERSION='1.0.36';
+  const CACHE_TAG='20260906-voltar-pdf-op-v36';
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
