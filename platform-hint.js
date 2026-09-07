@@ -2,6 +2,7 @@
   'use strict';
 
   const API_HOST='df-extrusor-api.reck-cp9.workers.dev';
+  const ACCESS_PATHS=new Set(['/access/redeem','/access/identify','/access/session']);
   const previousFetch=window.fetch.bind(window);
 
   function detectPlatform(){
@@ -21,9 +22,7 @@
       // Safari no iPhone/iPad pode se anunciar como Macintosh quando está em
       // "Solicitar Site para Computador". Macs reais normalmente não têm touch.
       const appleDesktopMask=/MacIntel|Macintosh|MacPPC|Mac68K/i.test(all)&&touches>1;
-      if(appleDesktopMask){
-        return shortSide>0&&shortSide<600?'iOS':'iPad';
-      }
+      if(appleDesktopMask)return shortSide>0&&shortSide<600?'iOS':'iPad';
 
       if(/Windows|Win32|Win64|CrOS|X11|Linux|MacIntel|Macintosh|MacPPC|Mac68K/i.test(all))return 'PC';
       return 'Outro';
@@ -38,10 +37,13 @@
   window.fetch=function(input,init){
     try{
       const u=new URL(typeof input==='string'?input:input&&input.url,location.href);
-      if(u.hostname===API_HOST){
-        const h=new Headers(init&&init.headers||{});
-        h.set('X-DF-Platform',platform);
-        init={...(init||{}),headers:h};
+      const method=String(init&&init.method||'GET').toUpperCase();
+      if(u.hostname===API_HOST&&method==='POST'&&ACCESS_PATHS.has(u.pathname)&&typeof (init&&init.body)==='string'){
+        const body=JSON.parse(init.body);
+        if(body&&typeof body==='object'&&!Array.isArray(body)){
+          body.platform=platform;
+          init={...(init||{}),body:JSON.stringify(body)};
+        }
       }
     }catch(e){}
     return previousFetch(input,init);
