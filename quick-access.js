@@ -37,9 +37,7 @@
       box.addEventListener('click',function(e){
         const b=e.target.closest('button');
         if(!b)return;
-        if(b.id==='btAj'||b.id==='btFb'){
-          box.querySelectorAll('.dfQuickBtn').forEach(x=>x.classList.toggle('on',x===b));
-        }
+        if(b.id==='btAj'||b.id==='btFb')box.querySelectorAll('.dfQuickBtn').forEach(x=>x.classList.toggle('on',x===b));
       });
     }else if(box.previousElementSibling!==brand){
       brand.insertAdjacentElement('afterend',box);
@@ -62,7 +60,7 @@
     [course,help,feedback].forEach(function(btn){
       if(!btn)return;
       btn.classList.add('dfQuickBtn');
-      box.appendChild(btn);
+      if(btn.parentNode!==box)box.appendChild(btn);
     });
 
     box.style.display=box.querySelector('button')?'grid':'none';
@@ -70,15 +68,10 @@
 
   function init(){
     organize();
-    setTimeout(organize,120);
-    setTimeout(organize,450);
-    setTimeout(organize,950);
-    setTimeout(organize,1800);
-    try{
-      const app=$('appContent')||document.documentElement;
-      const observer=new MutationObserver(function(){setTimeout(organize,30)});
-      observer.observe(app,{childList:true,subtree:true});
-    }catch(e){}
+    setTimeout(organize,180);
+    setTimeout(organize,650);
+    setTimeout(organize,1500);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(organize,30)});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
