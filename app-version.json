@@ -1,6 +1,6 @@
 {
-  "version": "1.0.77",
-  "title": "DF EXTRUSOR PRO — controle de acesso melhorado",
-  "message": "O gerador agora pode salvar a senha administrativa neste aparelho e envia aviso ao usuário quando uma key é pausada, se as notificações estiverem ativas.",
-  "updatedAt": "2026-09-07T12:18:00-03:00"
+  "version": "1.0.78",
+  "title": "DF EXTRUSOR PRO — prazo por usuário",
+  "message": "O painel de keys agora permite definir quantos dias cada usuário terá de acesso, mostra vencimento e bloqueia automaticamente quando o prazo termina.",
+  "updatedAt": "2026-09-07T12:32:00-03:00"
 }
