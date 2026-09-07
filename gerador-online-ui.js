@@ -82,6 +82,14 @@
     if(sum)sum.textContent=online+' online agora'+(total?' • '+total+' exibido'+(total===1?'':'s'):'');
   }
 
+  function scheduleClock(){
+    clearTimeout(clockTimer);
+    clockTimer=setTimeout(function(){
+      if(!document.hidden)annotate();
+      scheduleClock();
+    },10000);
+  }
+
   function schedulePoll(ms){
     clearTimeout(pollTimer);
     pollTimer=setTimeout(poll,Math.max(1000,Number(ms)||POLL_MS));
@@ -112,12 +120,11 @@
   function init(){
     addStyle();
     schedulePoll(900);
-    clearInterval(clockTimer);
-    clockTimer=setInterval(annotate,10000);
+    scheduleClock();
     const input=document.getElementById('secret');
     if(input)input.addEventListener('input',function(){schedulePoll(300)});
   }
 
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)schedulePoll(250)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){schedulePoll(250);annotate()}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
