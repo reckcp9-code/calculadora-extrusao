@@ -1,6 +1,6 @@
 {
-  "version": "1.0.68",
-  "title": "DF EXTRUSOR PRO — acesso único por aparelho",
-  "message": "Depois que um aparelho já possui acesso, a tela de identificação não pode liberar outra key nesse mesmo aparelho.",
-  "updatedAt": "2026-09-06T23:10:00-03:00"
+  "version": "1.0.71",
+  "title": "DF EXTRUSOR PRO — correção de ID no iPhone",
+  "message": "Safari e Tela de Início agora preservam o mesmo ID do aparelho durante a instalação, evitando consumir outra key.",
+  "updatedAt": "2026-09-07T00:44:00-03:00"
 }
