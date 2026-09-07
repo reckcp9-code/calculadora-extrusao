@@ -33,80 +33,29 @@
     document.head.appendChild(st);
   }
 
-  function field(label,placeholder){
-    return '<div><label>'+label+'</label><input disabled type="text" placeholder="'+placeholder+'"></div>';
-  }
+  function field(label,placeholder){return '<div><label>'+label+'</label><input disabled type="text" placeholder="'+placeholder+'"></div>'}
 
   function previewHtml(){
-    return '<div id="dfRecipePreview" hidden>'+
-      '<div class="dfRecipeWrap">'+
-        '<div class="dfRecipeTop"><button id="dfRecipeBack" class="dfRecipeBack" type="button">← VOLTAR</button><span class="dfRecipeLocked">🔒 EM DESENVOLVIMENTO</span></div>'+
-        '<div class="dfRecipeHero"><span class="tag">Receita de máquina</span><h2>⚙️ Receita da extrusora</h2><div class="dfRecipeHint">Prévia da função para salvar a regulagem completa de cada produto e repetir o setup depois. Ainda está bloqueada para os usuários.</div></div>'+
-        '<div class="dfRecipeCard"><h2>Identificação da receita</h2><div class="dfRecipeGrid">'+
-          field('Nome da máquina','Ex.: Extrusora 01')+
-          field('Produto / nome da receita','Ex.: Saco 75 x 105')+
-          field('Material / formulação','Ex.: PEAD + Linear')+
-          field('Largura do filme (cm)','Ex.: 75')+
-          field('Micra — parede dupla (µm)','Ex.: 45')+
-          field('Peso por metro (g/m)','Ex.: 48')+
-        '</div></div>'+
-        '<div class="dfRecipeCard"><h2>Regulagem da máquina</h2><div class="dfRecipeGrid">'+
-          field('RPM motor de massa','Ex.: 1000')+
-          field('RPM puxador','Ex.: 800')+
-          field('RPM anel de ar','Ex.: 1700')+
-          field('Temperatura zona 1 (°C)','Ex.: 150')+
-          field('Temperatura zona 2 (°C)','Ex.: 165')+
-          field('Temperatura zona 3 (°C)','Ex.: 175')+
-          field('Temperatura zona 4 (°C)','Ex.: 180')+
-          field('Temperatura cabeçote / matriz (°C)','Ex.: 180')+
-        '</div><label>Observações da regulagem</label><textarea disabled placeholder="Ex.: altura do balão, posição do banana, pressão, telas, comportamento do filme..."></textarea><div class="dfRecipeActions"><button disabled type="button">SALVAR RECEITA</button><button disabled type="button">ABRIR RECEITAS</button></div></div>'+
-        '<div class="dfRecipeNotice">🔒 <b>FUNÇÃO BLOQUEADA:</b> esta tela é somente uma prévia. Nenhum campo pode ser alterado e nada é salvo enquanto terminamos e conferimos juntos o funcionamento.</div>'+
-      '</div>'+
-    '</div>';
+    return '<div id="dfRecipePreview" hidden><div class="dfRecipeWrap"><div class="dfRecipeTop"><button id="dfRecipeBack" class="dfRecipeBack" type="button">← VOLTAR</button><span class="dfRecipeLocked">🔒 EM DESENVOLVIMENTO</span></div><div class="dfRecipeHero"><span class="tag">Receita de máquina</span><h2>⚙️ Receita da extrusora</h2><div class="dfRecipeHint">Prévia da função para salvar a regulagem completa de cada produto e repetir o setup depois. Ainda está bloqueada para os usuários.</div></div><div class="dfRecipeCard"><h2>Identificação da receita</h2><div class="dfRecipeGrid">'+
+      field('Nome da máquina','Ex.: Extrusora 01')+field('Produto / nome da receita','Ex.: Saco 75 x 105')+field('Material / formulação','Ex.: PEAD + Linear')+field('Largura do filme (cm)','Ex.: 75')+field('Micra — parede dupla (µm)','Ex.: 45')+field('Peso por metro (g/m)','Ex.: 48')+
+      '</div></div><div class="dfRecipeCard"><h2>Regulagem da máquina</h2><div class="dfRecipeGrid">'+
+      field('RPM motor de massa','Ex.: 1000')+field('RPM puxador','Ex.: 800')+field('RPM anel de ar','Ex.: 1700')+field('Temperatura zona 1 (°C)','Ex.: 150')+field('Temperatura zona 2 (°C)','Ex.: 165')+field('Temperatura zona 3 (°C)','Ex.: 175')+field('Temperatura zona 4 (°C)','Ex.: 180')+field('Temperatura cabeçote / matriz (°C)','Ex.: 180')+
+      '</div><label>Observações da regulagem</label><textarea disabled placeholder="Ex.: altura do balão, posição do banana, pressão, telas, comportamento do filme..."></textarea><div class="dfRecipeActions"><button disabled type="button">SALVAR RECEITA</button><button disabled type="button">ABRIR RECEITAS</button></div></div><div class="dfRecipeNotice">🔒 <b>FUNÇÃO BLOQUEADA:</b> esta tela é somente uma prévia. Nenhum campo pode ser alterado e nada é salvo enquanto terminamos e conferimos juntos o funcionamento.</div></div></div>';
   }
 
-  function closePreview(){
-    const p=$('dfRecipePreview');
-    if(p)p.hidden=true;
-    document.body.style.overflow='';
-  }
-
-  function openPreview(){
-    ensurePreview();
-    const p=$('dfRecipePreview');
-    if(!p)return;
-    p.hidden=false;
-    p.scrollTop=0;
-    document.body.style.overflow='hidden';
-  }
-
-  function ensurePreview(){
-    addStyle();
-    if($('dfRecipePreview'))return;
-    document.body.insertAdjacentHTML('beforeend',previewHtml());
-    const back=$('dfRecipeBack');
-    if(back)back.onclick=closePreview;
-  }
-
+  function closePreview(){const p=$('dfRecipePreview');if(p)p.hidden=true;document.body.style.overflow=''}
+  function openPreview(){ensurePreview();const p=$('dfRecipePreview');if(!p)return;p.hidden=false;p.scrollTop=0;document.body.style.overflow='hidden'}
+  function ensurePreview(){addStyle();if($('dfRecipePreview'))return;document.body.insertAdjacentHTML('beforeend',previewHtml());const back=$('dfRecipeBack');if(back)back.onclick=closePreview}
   function removeOldCard(){const old=$('dfMachineRecipeCard');if(old)old.remove()}
-
-  function firstExtrusaoCard(){
-    const pg=$('pgEx');
-    return pg?(pg.querySelector(':scope > .card')||null):null;
-  }
+  function firstExtrusaoCard(){const pg=$('pgEx');return pg?(pg.querySelector(':scope > .card')||null):null}
 
   function ensureRecipeButton(){
-    addStyle();
-    removeOldCard();
-    ensurePreview();
-    const card=firstExtrusaoCard();
-    if(!card)return;
-    const tag=card.querySelector('.tag');
-    if(!tag)return;
+    addStyle();removeOldCard();ensurePreview();
+    const card=firstExtrusaoCard();if(!card)return;
+    const tag=card.querySelector('.tag');if(!tag)return;
     let btn=$('dfRecipeMiniBtn');
     if(!btn){
-      btn=document.createElement('button');
-      btn.id='dfRecipeMiniBtn';btn.type='button';btn.textContent='RECEITA';btn.title='Abrir prévia da Receita da extrusora';
+      btn=document.createElement('button');btn.id='dfRecipeMiniBtn';btn.type='button';btn.textContent='RECEITA';btn.title='Abrir prévia da Receita da extrusora';
       btn.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();openPreview()});
     }
     if(tag.nextElementSibling!==btn)tag.insertAdjacentElement('afterend',btn);
@@ -114,13 +63,9 @@
 
   function init(){
     ensureRecipeButton();
-    setTimeout(ensureRecipeButton,180);setTimeout(ensureRecipeButton,650);setTimeout(ensureRecipeButton,1400);
+    setTimeout(ensureRecipeButton,220);setTimeout(ensureRecipeButton,800);setTimeout(ensureRecipeButton,1800);
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('dfRecipePreview')&&!$('dfRecipePreview').hidden)closePreview()});
-    try{
-      const root=$('appContent')||document.documentElement;
-      const observer=new MutationObserver(function(){setTimeout(ensureRecipeButton,30)});
-      observer.observe(root,{childList:true,subtree:true});
-    }catch(e){}
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(ensureRecipeButton,40)});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
