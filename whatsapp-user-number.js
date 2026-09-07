@@ -6,7 +6,6 @@
   const KEY_PDF_AUTO='df_vendedor_pdf_auto_v1';
   const KEY_PDF_PRO='df_vendedor_pdf_auto_prof_v1';
   const OLD_DEFAULT='5547992825006';
-  const MIGRATION='df_whatsapp_default_removed_v1';
 
   function $(id){return document.getElementById(id)}
   function digits(v){return String(v||'').replace(/\D/g,'')}
@@ -19,24 +18,27 @@
 
   function removeOldDefault(){
     try{
-      const current=digits(localStorage.getItem(KEY_NUM)||'');
-      if(current===OLD_DEFAULT)localStorage.removeItem(KEY_NUM);
+      if(digits(localStorage.getItem(KEY_NUM)||'')===OLD_DEFAULT)localStorage.removeItem(KEY_NUM);
       ['df_vendedor_whatsapp','df_whatsapp_vendedor','vendedorWhatsapp'].forEach(function(k){
         if(digits(localStorage.getItem(k)||'')===OLD_DEFAULT)localStorage.removeItem(k);
       });
-      localStorage.setItem(MIGRATION,'1');
     }catch(e){}
   }
 
+  function storedPhone(){
+    try{return normalize(localStorage.getItem(KEY_NUM)||'')}catch(e){return''}
+  }
+
   function disableAutoIfNoNumber(){
-    let phone='';
-    try{phone=normalize(localStorage.getItem(KEY_NUM)||'')}catch(e){}
-    if(valid(phone))return;
+    if(valid(storedPhone()))return;
     try{
       localStorage.setItem(KEY_AUTO,'0');
       localStorage.setItem(KEY_PDF_AUTO,'0');
       localStorage.setItem(KEY_PDF_PRO,'0');
     }catch(e){}
+    const a=$('foVendAuto'),p=$('foVendPdfAuto');
+    if(a)a.checked=false;
+    if(p)p.checked=false;
   }
 
   function saveNumber(showMessage){
@@ -72,28 +74,19 @@
     const input=$('foVendWhats');
     if(!input)return;
 
-    const currentStored=normalize(localStorage.getItem(KEY_NUM)||'');
-    const currentField=normalize(input.value||'');
-
-    if(currentField===OLD_DEFAULT||!valid(currentStored)){
-      if(currentField===OLD_DEFAULT||!currentStored)input.value='';
-    }else if(valid(currentStored)&&currentField!==currentStored){
-      input.value=currentStored.startsWith('55')?currentStored.slice(2):currentStored;
+    const saved=storedPhone();
+    const shown=normalize(input.value||'');
+    if(shown===OLD_DEFAULT){
+      input.value='';
+    }else if(valid(saved)){
+      const local=saved.startsWith('55')?saved.slice(2):saved;
+      if(String(input.value||'').trim()!==local)input.value=local;
+    }else if(!saved){
+      input.value='';
     }
 
     input.placeholder='Ex.: 47999999999';
     input.autocomplete='tel';
-
-    if(!input.dataset.dfUserNumberBound){
-      input.dataset.dfUserNumberBound='1';
-      input.addEventListener('input',function(){
-        const raw=String(input.value||'').trim();
-        if(!raw){try{localStorage.removeItem(KEY_NUM)}catch(e){};disableAutoIfNoNumber();return;}
-        const phone=normalize(raw);
-        if(valid(phone)){try{localStorage.setItem(KEY_NUM,phone)}catch(e){}}
-      },true);
-      input.addEventListener('change',function(){saveNumber(false)},true);
-    }
 
     if(!$('foVendSaveNumber')){
       const btn=document.createElement('button');
@@ -110,8 +103,7 @@
       input.insertAdjacentElement('afterend',btn);
     }
 
-    const hint=$('dfWhatsUserHint');
-    if(!hint){
+    if(!$('dfWhatsUserHint')){
       const div=document.createElement('div');
       div.id='dfWhatsUserHint';
       div.className='smallNote';
@@ -122,11 +114,48 @@
     }
   }
 
+  function capturePhoneEdit(ev){
+    const input=ev.target;
+    if(!input||input.id!=='foVendWhats')return;
+    ev.stopImmediatePropagation();
+    const raw=String(input.value||'').trim();
+    if(!raw){
+      try{localStorage.removeItem(KEY_NUM)}catch(e){}
+      disableAutoIfNoNumber();
+      return;
+    }
+    const phone=normalize(raw);
+    if(valid(phone)){
+      try{localStorage.setItem(KEY_NUM,phone)}catch(e){}
+    }
+  }
+
+  function captureAutoChange(ev){
+    const el=ev.target;
+    if(!el||!['foVendAuto','foVendPdfAuto'].includes(el.id))return;
+    ev.stopImmediatePropagation();
+    const phone=normalize(($('foVendWhats')&&$('foVendWhats').value)||storedPhone());
+    if(el.checked&&!valid(phone)){
+      el.checked=false;
+      alert('Digite e salve um WhatsApp com DDD antes de ativar o envio automático.');
+      const input=$('foVendWhats');if(input)input.focus();
+      return;
+    }
+    if(valid(phone))try{localStorage.setItem(KEY_NUM,phone)}catch(e){}
+    try{
+      if(el.id==='foVendAuto')localStorage.setItem(KEY_AUTO,el.checked?'1':'0');
+      if(el.id==='foVendPdfAuto'){
+        localStorage.setItem(KEY_PDF_AUTO,'0');
+        localStorage.setItem(KEY_PDF_PRO,el.checked?'1':'0');
+      }
+    }catch(e){}
+  }
+
   function guardActions(ev){
     const btn=ev.target&&ev.target.closest?ev.target.closest('#foVendTest,#foVendPdfTest'):null;
     if(!btn)return;
     const input=$('foVendWhats');
-    const phone=normalize(input&&input.value||localStorage.getItem(KEY_NUM)||'');
+    const phone=normalize((input&&input.value)||storedPhone());
     if(valid(phone)){
       try{localStorage.setItem(KEY_NUM,phone)}catch(e){}
       return;
@@ -145,6 +174,8 @@
     setTimeout(ensureUi,200);
     setTimeout(ensureUi,600);
     setTimeout(ensureUi,1200);
+    document.addEventListener('input',capturePhoneEdit,true);
+    document.addEventListener('change',function(ev){capturePhoneEdit(ev);captureAutoChange(ev)},true);
     document.addEventListener('click',guardActions,true);
     try{
       const observer=new MutationObserver(function(){setTimeout(ensureUi,20)});
