@@ -1,6 +1,6 @@
 {
-  "version": "1.0.67",
-  "title": "DF EXTRUSOR PRO — transferência para Tela de Início",
-  "message": "Ao adicionar o DF EXTRUSOR à Tela de Início no iPhone/iPad, o mesmo acesso é transferido automaticamente para o app instalado sem consumir outra key.",
-  "updatedAt": "2026-09-06T22:44:00-03:00"
+  "version": "1.0.68",
+  "title": "DF EXTRUSOR PRO — acesso único por aparelho",
+  "message": "Depois que um aparelho já possui acesso, a tela de identificação não pode liberar outra key nesse mesmo aparelho.",
+  "updatedAt": "2026-09-06T23:10:00-03:00"
 }
