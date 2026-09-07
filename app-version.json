@@ -1,6 +1,6 @@
 {
-  "version": "1.0.81",
-  "title": "DF EXTRUSOR PRO — Receita de máquina",
-  "message": "A aba Extrusão agora mostra a área Receita da extrusora, ainda bloqueada para os usuários enquanto ajustamos os campos e o funcionamento.",
-  "updatedAt": "2026-09-07T13:30:00-03:00"
+  "version": "1.0.82",
+  "title": "DF EXTRUSOR PRO — Receita no topo da Extrusão",
+  "message": "A Receita da extrusora saiu do final da aba e agora aparece como um botão RECEITA ao lado de Extrusão. A função continua bloqueada enquanto ajustamos.",
+  "updatedAt": "2026-09-07T13:36:00-03:00"
 }
