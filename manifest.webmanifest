@@ -3,7 +3,7 @@
   "name": "DF EXTRUSOR PRO",
   "short_name": "DF EXTRUSOR",
   "description": "Calculadora e ferramentas profissionais para extrusão e formulação.",
-  "start_url": "./",
+  "start_url": "./?acesso=geral",
   "scope": "./",
   "display": "standalone",
   "background_color": "#080b13",
