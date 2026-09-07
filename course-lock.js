@@ -26,50 +26,34 @@
     if(!el||el.dataset.dfCourseLocked==='1')return;
     el.dataset.dfCourseLocked='1';
     el.classList.add('dfCourseLocked');
-
     const text=String(el.textContent||'').replace(/\s+/g,' ').trim();
     if(text.toUpperCase()==='CURSO')el.textContent='🔒 CURSO';
     else if(text.toUpperCase()==='CONHECER CURSO DE EXTRUSÃO')el.textContent='🔒 CONHECER CURSO DE EXTRUSÃO';
-
-    if(el.hasAttribute('onclick')){
-      el.dataset.dfCourseOldOnclick=el.getAttribute('onclick')||'';
-      el.removeAttribute('onclick');
-    }
-    if(el.tagName==='A'&&el.hasAttribute('href')){
-      el.dataset.dfCourseOldHref=el.getAttribute('href')||'';
-      el.setAttribute('href','#');
-    }
-
+    if(el.hasAttribute('onclick')){el.dataset.dfCourseOldOnclick=el.getAttribute('onclick')||'';el.removeAttribute('onclick')}
+    if(el.tagName==='A'&&el.hasAttribute('href')){el.dataset.dfCourseOldHref=el.getAttribute('href')||'';el.setAttribute('href','#')}
     el.setAttribute('aria-disabled','true');
     el.title='Curso bloqueado temporariamente';
   }
 
   function lockAll(){
     addStyle();
-    const all=[...document.querySelectorAll('button,a')];
-    all.forEach(function(el){if(isCourseTarget(el))lockOne(el)});
+    document.querySelectorAll('button,a').forEach(function(el){if(isCourseTarget(el))lockOne(el)});
   }
 
   function blockClick(e){
     const el=e.target&&e.target.closest?e.target.closest('button,a'):null;
     if(!el||!isCourseTarget(el))return;
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
     alert('🔒 CURSO BLOQUEADO\n\nEssa área ainda está bloqueada e será liberada depois.');
   }
 
   function init(){
     lockAll();
-    setTimeout(lockAll,120);
-    setTimeout(lockAll,450);
-    setTimeout(lockAll,900);
-    setTimeout(lockAll,1700);
+    setTimeout(lockAll,180);
+    setTimeout(lockAll,650);
+    setTimeout(lockAll,1500);
     document.addEventListener('click',blockClick,true);
-    try{
-      const observer=new MutationObserver(function(){setTimeout(lockAll,20)});
-      observer.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(lockAll,30)});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
