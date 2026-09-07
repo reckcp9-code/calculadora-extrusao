@@ -22,7 +22,7 @@
   function html(){
     return '<strong>🎁 PERÍODO BETA — ACESSO GRATUITO</strong>'+ 
       '<span>Use o DF EXTRUSOR PRO normalmente enquanto estamos aperfeiçoando o sistema.</span>'+ 
-      '<small>Lançamento previsto: R$ 4,90 no primeiro mês • depois R$ 14,90/mês • opção anual R$ 149. Usuários atuais terão condição especial.</small>';
+      '<small>Usuários atuais terão condição especial quando o lançamento oficial acontecer.</small>';
   }
 
   function ensureGate(){
