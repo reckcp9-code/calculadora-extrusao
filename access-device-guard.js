@@ -126,9 +126,8 @@
 
   function init(){
     guard();
-    const obs=new MutationObserver(()=>guard());
-    obs.observe(document.documentElement,{childList:true,subtree:true});
-    setTimeout(()=>obs.disconnect(),12000);
+    // O DOM já está pronto aqui. Observar as próprias mensagens recriava
+    // o guard continuamente, bloqueando toques e repetindo a restauração.
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
