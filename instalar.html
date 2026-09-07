@@ -12,13 +12,14 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:22px}.card{width:min(94vw,470px);background:#0f172a;border:1px solid #334155;border-radius:22px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.48);text-align:center}.logo{width:74px;height:74px;border-radius:18px;object-fit:cover;margin-bottom:14px}h1{font-size:22px;margin:0 0 8px}.sub{font-size:14px;line-height:1.55;color:#cbd5e1}.steps{margin-top:16px;text-align:left;background:#07101f;border:1px solid #2563eb;border-radius:14px;padding:14px;color:#bfdbfe;font-size:14px;line-height:1.6}.ok{margin-top:14px;border:1px solid #166534;background:#052e16;color:#bbf7d0;border-radius:12px;padding:12px;font-size:12px;line-height:1.5}.bad{margin-top:14px;border:1px solid #991b1b;background:#3b0a0a;color:#fecaca;border-radius:12px;padding:12px;font-size:12px;line-height:1.5}.btn{width:100%;margin-top:14px;border:1px solid #475569;background:#111827;color:#e2e8f0;border-radius:12px;padding:12px;font-weight:900;cursor:pointer}
 </style>
+<script src="./device-identity.js?v=20260907-device-cookie-v71"></script>
 </head>
 <body>
 <div class="card">
   <img class="logo" src="./logo.jpg.jpeg" alt="DF">
   <h1 id="title">Adicionar DF EXTRUSOR à Tela de Início</h1>
   <div id="content" class="sub">Seu acesso já foi preparado para este aparelho.</div>
-  <div id="steps" class="steps"><b>1.</b> Toque em <b>Compartilhar</b> no Safari.<br><b>2.</b> Toque em <b>Adicionar à Tela de Início</b>.<br><b>3.</b> Toque em <b>Adicionar</b>.<br><br>Depois abra o DF EXTRUSOR pelo novo ícone. A mesma key será transferida automaticamente, sem consumir outra.</div>
+  <div id="steps" class="steps"><b>1.</b> Toque em <b>Compartilhar</b> no Safari.<br><b>2.</b> Toque em <b>Adicionar à Tela de Início</b>.<br><b>3.</b> Toque em <b>Adicionar</b>.<br><br>Depois abra o DF EXTRUSOR pelo novo ícone. A mesma key e o mesmo ID do Safari serão mantidos automaticamente.</div>
   <div id="msg" class="ok">Esta preparação é temporária, de uso único e vinculada ao aparelho que iniciou a instalação.</div>
   <button id="cancelBtn" class="btn">CANCELAR E VOLTAR AO APP</button>
 </div>
@@ -34,6 +35,7 @@
   const $=id=>document.getElementById(id);
 
   function deviceId(){
+    if(window.DFDeviceIdentity&&typeof window.DFDeviceIdentity.get==='function')return window.DFDeviceIdentity.get();
     let id=String(localStorage.getItem(DEVICE_KEY)||'').trim();
     if(!id){
       id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -56,16 +58,17 @@
     if(localStorage.getItem(ACCESS_KEY)){location.replace('/');return}
     if(!token){setState('Instalação inválida','A preparação da instalação não foi encontrada. Abra o DF EXTRUSOR pelo Safari e prepare novamente.','bad');$('steps').style.display='none';return}
     $('title').textContent='Transferindo acesso...';
-    $('content').textContent='Aguarde enquanto vinculamos a mesma key ao aplicativo instalado.';
+    $('content').textContent='Aguarde enquanto mantemos a mesma key e o mesmo ID do Safari no aplicativo instalado.';
     $('steps').style.display='none';$('msg').className='ok';$('msg').textContent='Não feche o aplicativo.';$('cancelBtn').style.display='none';
     try{
-      const r=await fetch(API+'/access/install-handoff/claim',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':deviceId()},body:JSON.stringify({token,deviceId:deviceId(),platformKey:platformKey()}),cache:'no-store'});
+      const dev=deviceId();
+      const r=await fetch(API+'/access/install-handoff/claim',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({token,deviceId:dev,platformKey:platformKey()}),cache:'no-store'});
       let j={};try{j=await r.json()}catch(e){}
       if(!r.ok||j.ok===false)throw new Error(j.error||'Não foi possível transferir o acesso.');
       const session=String(j.token||'').trim();const credential=String(j.accessCredential||'').trim();
       if(!session||!credential)throw new Error('O servidor não retornou o acesso completo.');
       sessionStorage.setItem(TOKEN_KEY,session);localStorage.setItem(ACCESS_KEY,credential);
-      $('title').textContent='Acesso transferido';$('content').textContent='Abrindo DF EXTRUSOR PRO...';$('msg').textContent='A mesma key foi mantida. Nenhuma key nova foi consumida.';
+      $('title').textContent='Acesso transferido';$('content').textContent='Abrindo DF EXTRUSOR PRO...';$('msg').textContent='A mesma key e o mesmo ID foram mantidos. Nenhuma key nova foi consumida.';
       setTimeout(()=>location.replace('/'),450);
     }catch(e){
       $('title').textContent='Não foi possível transferir';$('content').textContent='';$('msg').className='bad';$('msg').textContent=String(e&&e.message||e)+' Abra o DF EXTRUSOR pelo Safari e prepare a instalação novamente.';
