@@ -1,15 +1,13 @@
 (function(){
   'use strict';
 
-  const API='https://df-extrusor-api.reck-cp9.workers.dev';
-  const ONLINE_MS=130000;
-  const POLL_MS=20000;
+  const API_PATH='/admin/access/list-used';
+  const ONLINE_MS=105000;
+  const AUTO_REFRESH_MS=8000;
   const byKey=new Map();
-  const silentFetch=window.fetch.bind(window);
-  let pollTimer=0;
-  let clockTimer=0;
-  let polling=false;
-  let primed=false;
+  const originalFetch=window.fetch.bind(window);
+  let refreshTimer=0;
+  let annotateTimer=0;
 
   function addStyle(){
     if(document.getElementById('dfOnlineStyle'))return;
@@ -19,7 +17,8 @@
       '.dfOnlineBadge{display:inline-flex;align-items:center;margin-left:6px;margin-bottom:6px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:1000;letter-spacing:.02em}',
       '.dfOnlineBadge.on{color:#bbf7d0;border:1px solid #22c55e;background:#052e16}',
       '.dfOnlineBadge.off{color:#cbd5e1;border:1px solid #475569;background:#111827}',
-      '#dfOnlineSummary{margin-top:8px;font-size:11px;font-weight:900;color:#86efac}'
+      '#dfOnlineSummary{margin-top:8px;font-size:11px;font-weight:900;color:#86efac}',
+      '#dfOnlineAuto{margin-top:4px;font-size:10px;color:#93c5fd;font-weight:800}'
     ].join('');
     document.head.appendChild(st);
   }
@@ -36,17 +35,15 @@
 
   function capture(items){
     const rows=Array.isArray(items)?items:[];
+    const alive=new Set();
     rows.forEach(function(it){
       const key=String(it&&it.licenseKey||'').trim();
-      if(key)byKey.set(key,String(it&&it.presenceAt||'').trim());
+      if(!key)return;
+      alive.add(key);
+      byKey.set(key,String(it&&it.presenceAt||'').trim());
     });
-    annotate();
-    const list=document.getElementById('usedList');
-    const btn=document.getElementById('usedBtn');
-    if(!primed&&rows.length&&list&&list.querySelector('.empty')&&btn&&!btn.disabled){
-      primed=true;
-      setTimeout(function(){try{btn.click()}catch(e){}},80);
-    }
+    Array.from(byKey.keys()).forEach(function(key){if(!alive.has(key))byKey.delete(key)});
+    scheduleAnnotate();
   }
 
   function annotate(){
@@ -79,52 +76,59 @@
       sum.id='dfOnlineSummary';
       msg.insertAdjacentElement('afterend',sum);
     }
-    if(sum)sum.textContent=online+' online agora'+(total?' • '+total+' exibido'+(total===1?'':'s'):'');
-  }
-
-  function scheduleClock(){
-    clearTimeout(clockTimer);
-    clockTimer=setTimeout(function(){
-      if(!document.hidden)annotate();
-      scheduleClock();
-    },10000);
-  }
-
-  function schedulePoll(ms){
-    clearTimeout(pollTimer);
-    pollTimer=setTimeout(poll,Math.max(1000,Number(ms)||POLL_MS));
-  }
-
-  async function poll(){
-    if(document.hidden||polling){schedulePoll(POLL_MS);return}
-    const s=secret();
-    if(!s){schedulePoll(5000);return}
-    polling=true;
-    try{
-      const r=await silentFetch(API+'/admin/access/list-used',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-DF-Admin':s},
-        body:'{}',
-        cache:'no-store'
-      });
-      if(r.ok){
-        let j={};try{j=await r.json()}catch(e){}
-        if(j&&j.ok!==false)capture(j.items);
+    if(sum){
+      sum.textContent=online+' online agora'+(total?' • '+total+' exibido'+(total===1?'':'s'):'');
+      let auto=document.getElementById('dfOnlineAuto');
+      if(!auto){
+        auto=document.createElement('div');
+        auto.id='dfOnlineAuto';
+        sum.insertAdjacentElement('afterend',auto);
       }
-    }catch(e){}finally{
-      polling=false;
-      schedulePoll(POLL_MS);
+      auto.textContent='⚡ Atualização automática ativa • a cada '+Math.round(AUTO_REFRESH_MS/1000)+' s';
     }
+  }
+
+  function scheduleAnnotate(){
+    clearTimeout(annotateTimer);
+    annotateTimer=setTimeout(annotate,40);
+    setTimeout(annotate,180);
+    setTimeout(annotate,450);
+  }
+
+  window.fetch=async function(input,init){
+    const response=await originalFetch(input,init);
+    try{
+      const u=new URL(typeof input==='string'?input:input.url,location.href);
+      if(u.pathname===API_PATH&&response.ok){
+        response.clone().json().then(function(j){if(j&&j.ok!==false)capture(j.items)}).catch(function(){});
+      }
+    }catch(e){}
+    return response;
+  };
+
+  function scheduleRefresh(ms){
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(refresh,Math.max(500,Number(ms)||AUTO_REFRESH_MS));
+  }
+
+  function refresh(){
+    if(document.hidden){scheduleRefresh(AUTO_REFRESH_MS);return}
+    const btn=document.getElementById('usedBtn');
+    if(secret()&&btn&&!btn.disabled){
+      try{btn.click()}catch(e){}
+    }
+    scheduleRefresh(AUTO_REFRESH_MS);
   }
 
   function init(){
     addStyle();
-    schedulePoll(900);
-    scheduleClock();
+    scheduleRefresh(700);
+    scheduleAnnotate();
     const input=document.getElementById('secret');
-    if(input)input.addEventListener('input',function(){schedulePoll(300)});
+    if(input)input.addEventListener('input',function(){scheduleRefresh(250)});
   }
 
-  document.addEventListener('visibilitychange',function(){if(!document.hidden){schedulePoll(250);annotate()}});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){scheduleRefresh(150);scheduleAnnotate()}});
+  window.addEventListener('focus',function(){scheduleRefresh(150)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
