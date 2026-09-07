@@ -1,6 +1,6 @@
 {
-  "version": "1.0.83",
-  "title": "DF EXTRUSOR PRO — Prévia da Receita",
-  "message": "A área RECEITA agora abre uma prévia completa da Receita da Extrusora. A função continua bloqueada enquanto finalizamos e conferimos os campos.",
-  "updatedAt": "2026-09-07T14:18:00-03:00"
+  "version": "1.0.84",
+  "title": "DF EXTRUSOR PRO — Favoritos",
+  "message": "Nova aba FAVORITOS liberada para todos. Agora cada usuário pode marcar as calculadoras que mais usa e abrir direto sem ficar procurando.",
+  "updatedAt": "2026-09-07T16:05:00-03:00"
 }
