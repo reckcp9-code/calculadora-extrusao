@@ -1,5 +1,6 @@
-const DF_CACHE='df-extrusor-shell-v11';
+const DF_CACHE='df-extrusor-shell-v12';
 const STATE_CACHE='df-extrusor-state-v1';
+const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const HISTORICAL_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
 const CORE=[
   './','./index.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
@@ -20,15 +21,44 @@ async function increaseBadge(){const next=Math.min(99,(await getBadgeCount())+1)
 async function clearBadge(){await setBadge(0)}
 async function currentVersionData(){try{const u=new URL('app-version.json',self.registration.scope);u.searchParams.set('t',Date.now());const r=await fetch(u.toString(),{cache:'no-store'});return r.ok?await r.json():null}catch(e){return null}}
 
+function b64url(bytes){
+  let binary='';
+  for(const b of bytes)binary+=String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'');
+}
+async function subscriptionHash(){
+  try{
+    const sub=await self.registration.pushManager.getSubscription();
+    const endpoint=String(sub&&sub.endpoint||'');
+    if(!endpoint)return '';
+    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('DF-PUSH-MSG-v1|'+endpoint));
+    return b64url(new Uint8Array(digest));
+  }catch(e){return ''}
+}
+async function pendingPushMessage(){
+  try{
+    const hash=await subscriptionHash();
+    if(!hash)return null;
+    const u=new URL(API+'/push/message');
+    u.searchParams.set('s',hash);
+    u.searchParams.set('t',Date.now());
+    const r=await fetch(u.toString(),{cache:'no-store'});
+    if(!r.ok)return null;
+    const j=await r.json();
+    return j&&j.ok&&j.message?j.message:null;
+  }catch(e){return null}
+}
+
 async function notifyUpdate(data){
   const title=data.title||'DF EXTRUSOR PRO — Nova atualização';
+  const kind=String(data.kind||'update');
   return self.registration.showNotification(title,{
     body:data.message||data.body||'Uma nova atualização está disponível.',
     icon:new URL('logo.svg',self.registration.scope).href,
     badge:new URL('logo.svg',self.registration.scope).href,
-    tag:'df-extrusor-update',
+    tag:kind==='access-paused'?'df-extrusor-access-paused':'df-extrusor-update',
     renotify:true,
-    data:{url:data.url||self.registration.scope,version:data.version||'',kind:data.kind||'update'}
+    data:{url:data.url||self.registration.scope,version:data.version||'',kind}
   });
 }
 
@@ -83,8 +113,12 @@ self.addEventListener('push',event=>{
     let data={};
     try{data=event.data?event.data.json():{}}catch(e){data={body:event.data?event.data.text():''}}
     if(!data||(!data.title&&!data.message&&!data.body)){
-      const live=await currentVersionData();
-      if(live)data=live;
+      const direct=await pendingPushMessage();
+      if(direct)data=direct;
+      else{
+        const live=await currentVersionData();
+        if(live)data=live;
+      }
     }
     await notifyUpdate(data||{});
     await increaseBadge();
