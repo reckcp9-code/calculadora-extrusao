@@ -1,6 +1,6 @@
 {
-  "version": "1.0.65",
-  "title": "DF EXTRUSOR PRO — instalação no aparelho",
-  "message": "Novo assistente de instalação para PC e Android, com orientação para adicionar à Tela de Início no iPhone/iPad.",
-  "updatedAt": "2026-09-06T21:30:00-03:00"
+  "version": "1.0.66",
+  "title": "DF EXTRUSOR PRO — acesso pelo ícone corrigido",
+  "message": "Ao abrir o app instalado pela Tela de Início, o DF EXTRUSOR agora usa o acesso automático/identificação em vez de pedir a key.",
+  "updatedAt": "2026-09-06T21:42:00-03:00"
 }
