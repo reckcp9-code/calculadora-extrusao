@@ -4,13 +4,14 @@
   const API='https://df-extrusor-api.reck-cp9.workers.dev';
   const ACCESS_KEY='df_auto_access_credential_v1';
   const DEVICE_KEY='df_licenseauth_device_v1';
-  const PING_MS=45000;
+  const PING_MS=240000;
   const RETRY_MS=1200;
   const BOOT_RETRY_LIMIT=75;
   let timer=0;
   let busy=false;
   let bootRetries=0;
   let lastPingAt=0;
+  let supportsOffline=false;
 
   function deviceId(){
     try{return String(localStorage.getItem(DEVICE_KEY)||window.DF_DEVICE_ID||'').trim()}catch(e){return String(window.DF_DEVICE_ID||'').trim()}
@@ -20,6 +21,10 @@
     try{return String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){return ''}
   }
 
+  function payload(state){
+    return {credential:credential(),deviceId:deviceId(),platform:String(window.DF_PLATFORM_HINT||''),state:state||'online'};
+  }
+
   function schedule(ms){
     clearTimeout(timer);
     timer=setTimeout(tick,Math.max(200,Number(ms)||PING_MS));
@@ -27,24 +32,49 @@
 
   async function ping(force){
     if(busy||document.hidden||navigator.onLine===false)return false;
-    const cred=credential(),device=deviceId();
-    if(!cred||!device)return false;
+    const body=payload('online');
+    if(!body.credential||!body.deviceId)return false;
     if(!force&&lastPingAt&&Date.now()-lastPingAt<12000)return true;
     busy=true;
     try{
       const r=await fetch(API+'/access/presence',{
         method:'POST',
-        headers:{'Content-Type':'application/json','X-DF-Device':device},
-        body:JSON.stringify({credential:cred,deviceId:device,platform:String(window.DF_PLATFORM_HINT||'')}),
+        headers:{'Content-Type':'application/json','X-DF-Device':body.deviceId},
+        body:JSON.stringify(body),
         cache:'no-store'
       });
-      if(r&&r.ok)lastPingAt=Date.now();
+      if(r&&r.ok){
+        lastPingAt=Date.now();
+        try{const j=await r.clone().json();if(Number(j&&j.presenceVersion)>=2)supportsOffline=true}catch(e){}
+      }
       return !!(r&&r.ok);
     }catch(e){
       return false;
     }finally{
       busy=false;
     }
+  }
+
+  function sendOffline(){
+    clearTimeout(timer);
+    if(!supportsOffline)return;
+    const body=payload('offline');
+    if(!body.credential||!body.deviceId)return;
+    try{
+      if(navigator.sendBeacon){
+        navigator.sendBeacon(API+'/access/presence',JSON.stringify(body));
+        return;
+      }
+    }catch(e){}
+    try{
+      fetch(API+'/access/presence',{
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=UTF-8'},
+        body:JSON.stringify(body),
+        cache:'no-store',
+        keepalive:true
+      }).catch(function(){});
+    }catch(e){}
   }
 
   async function tick(){
@@ -64,12 +94,15 @@
     schedule(150);
   }
 
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)wake()});
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden)sendOffline();
+    else wake();
+  });
   window.addEventListener('focus',wake);
   window.addEventListener('pageshow',wake);
   window.addEventListener('online',wake);
   window.addEventListener('df-access-ready',wake);
-  window.addEventListener('pagehide',function(){clearTimeout(timer)});
+  window.addEventListener('pagehide',sendOffline);
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){schedule(250)});
   else schedule(250);
