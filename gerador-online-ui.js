@@ -2,8 +2,8 @@
   'use strict';
 
   const API_PATH='/admin/access/list-used';
-  const ONLINE_MS=105000;
-  const AUTO_REFRESH_MS=8000;
+  const ONLINE_MS=330000;
+  const AUTO_REFRESH_MS=15000;
   const byKey=new Map();
   const originalFetch=window.fetch.bind(window);
   let refreshTimer=0;
@@ -84,7 +84,7 @@
         auto.id='dfOnlineAuto';
         sum.insertAdjacentElement('afterend',auto);
       }
-      auto.textContent='⚡ Atualização automática ativa • a cada '+Math.round(AUTO_REFRESH_MS/1000)+' s';
+      auto.textContent='⚡ Atualização automática econômica • a cada '+Math.round(AUTO_REFRESH_MS/1000)+' s';
     }
   }
 
