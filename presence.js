@@ -11,7 +11,6 @@
   let busy=false;
   let bootRetries=0;
   let lastPingAt=0;
-  let supportsOffline=false;
 
   function deviceId(){
     try{return String(localStorage.getItem(DEVICE_KEY)||window.DF_DEVICE_ID||'').trim()}catch(e){return String(window.DF_DEVICE_ID||'').trim()}
@@ -43,10 +42,7 @@
         body:JSON.stringify(body),
         cache:'no-store'
       });
-      if(r&&r.ok){
-        lastPingAt=Date.now();
-        try{const j=await r.clone().json();if(Number(j&&j.presenceVersion)>=2)supportsOffline=true}catch(e){}
-      }
+      if(r&&r.ok)lastPingAt=Date.now();
       return !!(r&&r.ok);
     }catch(e){
       return false;
@@ -57,20 +53,20 @@
 
   function sendOffline(){
     clearTimeout(timer);
-    if(!supportsOffline)return;
     const body=payload('offline');
     if(!body.credential||!body.deviceId)return;
+    const raw=JSON.stringify(body);
     try{
       if(navigator.sendBeacon){
-        navigator.sendBeacon(API+'/access/presence',JSON.stringify(body));
-        return;
+        const blob=new Blob([raw],{type:'text/plain;charset=UTF-8'});
+        navigator.sendBeacon(API+'/access/presence',blob);
       }
     }catch(e){}
     try{
       fetch(API+'/access/presence',{
         method:'POST',
-        headers:{'Content-Type':'text/plain;charset=UTF-8'},
-        body:JSON.stringify(body),
+        headers:{'Content-Type':'text/plain;charset=UTF-8','X-DF-Device':body.deviceId},
+        body:raw,
         cache:'no-store',
         keepalive:true
       }).catch(function(){});
@@ -103,6 +99,7 @@
   window.addEventListener('online',wake);
   window.addEventListener('df-access-ready',wake);
   window.addEventListener('pagehide',sendOffline);
+  window.addEventListener('beforeunload',sendOffline);
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){schedule(250)});
   else schedule(250);
