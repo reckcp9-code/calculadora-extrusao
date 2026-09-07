@@ -59,14 +59,10 @@
 
   function init(){
     ensure();
-    setTimeout(ensure,120);
-    setTimeout(ensure,450);
-    setTimeout(ensure,1000);
-    setTimeout(ensure,1800);
-    try{
-      const observer=new MutationObserver(function(){setTimeout(ensure,20)});
-      observer.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
+    setTimeout(ensure,180);
+    setTimeout(ensure,650);
+    setTimeout(ensure,1500);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(ensure,30)});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
