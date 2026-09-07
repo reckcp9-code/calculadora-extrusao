@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Teste Favoritos — DF EXTRUSOR PRO</title>
+</head>
+<body style="margin:0;background:#080b13;color:#fff;font-family:system-ui;text-align:center;padding:48px 20px">
+<p>Ativando teste privado de Favoritos...</p>
+<script>
+try{localStorage.setItem('df_favoritos_test_v1','1')}catch(e){}
+const saved=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+location.replace(saved?'/?favoritosTeste=1#favoritos':'/?acesso=geral&favoritosTeste=1#favoritos');
+</script>
+</body>
+</html>
