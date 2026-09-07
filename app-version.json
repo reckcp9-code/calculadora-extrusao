@@ -1,6 +1,6 @@
 {
-  "version": "1.0.71",
-  "title": "DF EXTRUSOR PRO — correção de ID no iPhone",
-  "message": "Safari e Tela de Início agora preservam o mesmo ID do aparelho durante a instalação, evitando consumir outra key.",
-  "updatedAt": "2026-09-07T00:44:00-03:00"
+  "version": "1.0.72",
+  "title": "DF EXTRUSOR PRO — usuário automático",
+  "message": "O acesso geral agora cria e salva automaticamente um usuário no formato DF-XX-XX, sem precisar digitar nome, WhatsApp ou identificação.",
+  "updatedAt": "2026-09-07T00:50:00-03:00"
 }
