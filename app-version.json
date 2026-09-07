@@ -1,6 +1,6 @@
 {
-  "version": "1.0.75",
-  "title": "DF EXTRUSOR PRO — acesso rápido organizado",
-  "message": "Curso, Ajuda e Feedback foram movidos para um espaço separado logo abaixo do cabeçalho, deixando as abas principais mais limpas.",
-  "updatedAt": "2026-09-07T01:56:00-03:00"
+  "version": "1.0.76",
+  "title": "DF EXTRUSOR PRO — controle de pausa",
+  "message": "O painel administrativo agora permite pausar e reativar acessos sem perder a key nem o vínculo do aparelho.",
+  "updatedAt": "2026-09-07T12:12:00-03:00"
 }
