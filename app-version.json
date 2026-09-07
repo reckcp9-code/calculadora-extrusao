@@ -1,6 +1,6 @@
 {
-  "version": "1.0.78",
-  "title": "DF EXTRUSOR PRO — prazo por usuário",
-  "message": "O painel de keys agora permite definir quantos dias cada usuário terá de acesso, mostra vencimento e bloqueia automaticamente quando o prazo termina.",
-  "updatedAt": "2026-09-07T12:32:00-03:00"
+  "version": "1.0.79",
+  "title": "DF EXTRUSOR PRO — prazo padrão e nomes",
+  "message": "Agora você define uma vez o prazo padrão dos novos usuários e pode dar um nome personalizado para cada usuário no painel de keys.",
+  "updatedAt": "2026-09-07T13:01:55-03:00"
 }
