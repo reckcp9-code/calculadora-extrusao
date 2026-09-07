@@ -1,6 +1,6 @@
 {
-  "version": "1.0.76",
-  "title": "DF EXTRUSOR PRO — controle de pausa",
-  "message": "O painel administrativo agora permite pausar e reativar acessos sem perder a key nem o vínculo do aparelho.",
-  "updatedAt": "2026-09-07T12:12:00-03:00"
+  "version": "1.0.77",
+  "title": "DF EXTRUSOR PRO — controle de acesso melhorado",
+  "message": "O gerador agora pode salvar a senha administrativa neste aparelho e envia aviso ao usuário quando uma key é pausada, se as notificações estiverem ativas.",
+  "updatedAt": "2026-09-07T12:18:00-03:00"
 }
