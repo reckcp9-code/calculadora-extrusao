@@ -1,246 +1,81 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080b13">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080b13">
 <title>DF EXTRUSOR PRO — Gerar acesso</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}.wrap{width:min(94vw,860px);margin:34px auto;padding-bottom:40px}.card{background:#0f172a;border:1px solid #334155;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 18px 45px rgba(0,0,0,.25)}h1{margin:0 0 4px;font-size:25px}h2{margin:0 0 8px}.sub{color:#94a3b8;font-size:13px;line-height:1.45}.tag{display:inline-block;border:1px solid #f59e0b;color:#fbbf24;background:#251800;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-bottom:10px}label{display:block;font-size:12px;font-weight:800;margin:12px 0 6px}input,textarea{width:100%;border:1px solid #475569;background:#111827;color:#fff;border-radius:12px;padding:12px;font:600 14px system-ui;outline:none}textarea{min-height:150px;resize:vertical}.btn{width:100%;border:1px solid #16a34a;background:#064e2a;color:#bbf7d0;border-radius:12px;padding:12px;font-weight:900;cursor:pointer;margin-top:10px}.btn.alt{border-color:#f59e0b;background:#2b1d00;color:#fde68a}.btn.copy{border-color:#2563eb;background:#0b1d3a;color:#dbeafe}.btn:disabled{opacity:.6;cursor:wait}.status{margin-top:10px;font-size:12px;color:#94a3b8;white-space:pre-wrap}.ok{color:#86efac}.bad{color:#fca5a5}.counts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.count{background:#111827;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}.count b{display:block;font-size:22px}.count span{font-size:10px;color:#94a3b8}.linkbox{word-break:break-all;background:#07101f;border:1px solid #2563eb;padding:14px;border-radius:12px;margin-top:10px;color:#bfdbfe;font:800 13px ui-monospace,SFMono-Regular,Consolas,monospace}.info{margin-top:10px;border:1px solid #166534;background:#052e16;color:#bbf7d0;border-radius:12px;padding:12px;font-size:12px;line-height:1.5}.usedList{display:grid;gap:8px;margin-top:12px}.usedItem{background:#111827;border:1px solid #334155;border-radius:12px;padding:12px}.usedTop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.usedKey{font:800 13px ui-monospace,SFMono-Regular,Consolas,monospace;color:#e2e8f0;word-break:break-all}.usedMeta{font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.55}.usedActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.miniBtn{border:1px solid #2563eb;background:#0b1d3a;color:#dbeafe;border-radius:8px;padding:6px 9px;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}.miniBtn.reset{border-color:#dc2626;background:#3b0a0a;color:#fecaca}.miniBtn.delete{border-color:#ef4444;background:#450a0a;color:#fee2e2}.miniBtn.pause{border-color:#f59e0b;background:#2b1d00;color:#fde68a}.miniBtn.resume{border-color:#22c55e;background:#052e16;color:#bbf7d0}.rememberSecret{display:flex;align-items:center;gap:9px;margin:9px 0 0;font-size:12px;font-weight:800;color:#cbd5e1;cursor:pointer}.rememberSecret input{width:18px;height:18px;margin:0;accent-color:#f59e0b}.bulkBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border:1px solid #334155;background:#0b1220;border-radius:12px}.bulkSelect{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:900;margin:0;cursor:pointer}.bulkSelect input,.stockSelect input{width:20px;height:20px;margin:0;accent-color:#16a34a}.bulkCount{font-size:11px;color:#94a3b8;font-weight:800}.bulkActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.btn.danger{border-color:#ef4444;background:#450a0a;color:#fee2e2}.stockSelect{display:inline-flex;align-items:center;gap:8px;margin:0 0 9px;font-size:11px;font-weight:900;color:#cbd5e1;cursor:pointer}.pill.free{color:#86efac;border-color:#166534;background:#052e16}.pill.reserved{color:#fde68a;border-color:#a16207;background:#2b1d00}.pill.paused{color:#fde68a;border-color:#f59e0b;background:#2b1d00}.pill.revoked{color:#fca5a5;border-color:#991b1b;background:#3b0a0a}.miniBtn:disabled{opacity:.6;cursor:wait}.empty{padding:14px;text-align:center;color:#94a3b8;border:1px dashed #334155;border-radius:12px}.pill{display:inline-block;font-size:10px;font-weight:900;color:#86efac;border:1px solid #166534;background:#052e16;border-radius:999px;padding:3px 7px;margin-bottom:6px}.pill.wait{color:#fde68a;border-color:#a16207;background:#2b1d00}@media(max-width:700px){.counts{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.usedTop{display:block}.usedActions{margin-top:8px;display:grid;grid-template-columns:1fr 1fr}.miniBtn{width:100%}.bulkBar{align-items:flex-start;flex-direction:column}.bulkActions{grid-template-columns:1fr}}
-</style>
 </head>
-<body>
-<div class="wrap">
-  <div class="card">
-    <span class="tag">ADMINISTRAÇÃO</span>
-    <h1>DF EXTRUSOR PRO</h1>
-    <div class="sub">Estoque de licenças, pausa de acesso e controle de aparelho.</div>
-    <label>Senha administrativa</label>
-    <input id="secret" type="password" autocomplete="current-password" placeholder="ACCESS_ADMIN_SECRET">
-    <label class="rememberSecret"><input id="rememberSecret" type="checkbox"> Salvar senha neste aparelho</label>
-    <div class="sub" style="margin-top:6px">Marque somente no seu celular ou computador pessoal.</div>
-    <button class="btn copy" id="statusBtn">ATUALIZAR ESTOQUE</button>
-    <div class="counts">
-      <div class="count"><b id="free">—</b><span>KEYS LIVRES</span></div>
-      <div class="count"><b id="reserved">—</b><span>RESERVADAS</span></div>
-      <div class="count"><b id="used">—</b><span>EM USO</span></div>
-      <div class="count"><b id="paused">—</b><span>PAUSADAS</span></div>
-      <div class="count"><b id="revoked">—</b><span>BLOQUEADAS</span></div>
-    </div>
-    <div id="statusMsg" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h2>Link geral para o grupo</h2>
-    <div class="sub">Mande sempre este mesmo link. Cada aparelho recebe uma identificação automática e somente 1 key.</div>
-    <div id="generalLink" class="linkbox">https://app.dfextrusor.com.br/acessar.html</div>
-    <button class="btn alt" id="copyGeneralBtn">COPIAR LINK GERAL</button>
-    <div class="info"><b>Pausa segura:</b> ao tocar em <b>PAUSAR</b>, o acesso daquele aparelho é cortado imediatamente, mas a key continua presa ao mesmo usuário. Ao tocar em <b>REATIVAR</b>, o sistema confirma a key no LicenseAuth antes de liberar novamente.</div>
-    <div id="generalMsg" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h2>Adicionar keys ao estoque</h2>
-    <div class="sub">Cole uma key por linha. Você pode colar várias de uma vez.</div>
-    <textarea id="keys" placeholder="XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY"></textarea>
-    <button class="btn" id="importBtn">ADICIONAR KEYS LIVRES</button>
-    <div id="importMsg" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h2>Lista do estoque</h2>
-    <div class="sub">Mostra keys livres, reservadas, em uso, pausadas ou bloqueadas.</div>
-    <button class="btn copy" id="stockBtn">PUXAR LISTA DO ESTOQUE</button>
-    <div class="bulkBar" id="stockBulkBar" style="display:none">
-      <label class="bulkSelect"><input id="stockSelectAll" type="checkbox"> SELECIONAR TODAS</label>
-      <span class="bulkCount" id="stockSelectedCount">0 MARCADAS</span>
-    </div>
-    <div class="bulkActions" id="stockBulkActions" style="display:none">
-      <button class="btn danger" id="deleteSelectedBtn" disabled>APAGAR MARCADAS</button>
-      <button class="btn danger" id="deleteAllBtn">APAGAR TODAS</button>
-    </div>
-    <div id="stockMsg" class="status"></div>
-    <div id="stockList" class="usedList"><div class="empty">Clique em PUXAR LISTA DO ESTOQUE.</div></div>
-  </div>
-
-  <div class="card">
-    <h2>Acessos ativos e pausados</h2>
-    <div class="sub">Aqui você pode PAUSAR, REATIVAR, RESETAR APARELHO ou EXCLUIR ACESSO. Excluir devolve a key para LIVRE.</div>
-    <button class="btn copy" id="usedBtn">ATUALIZAR ACESSOS</button>
-    <div id="usedMsg" class="status"></div>
-    <div id="usedList" class="usedList"><div class="empty">Clique em ATUALIZAR ACESSOS.</div></div>
-  </div>
-</div>
+<body style="margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
 <script>
-(function(){
-  const API='https://df-extrusor-api.reck-cp9.workers.dev';
-  const GENERAL_LINK='https://app.dfextrusor.com.br/acessar.html';
-  const $=id=>document.getElementById(id);
-  const ADMIN_SECRET_KEY='df_access_admin_secret_saved_v1';
-  let usedItems=[];
-  let stockItems=[];
-  const selectedStock=new Set();
-
-  async function post(path,body){
-    const secret=$('secret').value.trim();
-    if(!secret)throw new Error('Digite a senha administrativa.');
-    const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:JSON.stringify(body||{}),cache:'no-store'});
-    let j={};try{j=await r.json()}catch(e){}
-    if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
-    try{if($('rememberSecret')&&$('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,secret)}catch(e){}
-    return j;
+(async()=>{
+  try{
+    const BASE='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/5dcfb9a96e3d3385db5e75e71cc49e021902a920/gerar-acesso.html';
+    const r=await fetch(BASE,{cache:'no-store'});if(!r.ok)throw new Error('Falha ao carregar painel');
+    let h=await r.text();
+    h=h.replace('grid-template-columns:repeat(5,1fr)','grid-template-columns:repeat(6,1fr)');
+    h=h.replace('.pill.paused{color:#fde68a;border-color:#f59e0b;background:#2b1d00}', '.pill.paused{color:#fde68a;border-color:#f59e0b;background:#2b1d00}.pill.expired{color:#fecaca;border-color:#ef4444;background:#450a0a}.daysControl{display:grid;grid-template-columns:minmax(90px,130px) auto;gap:7px;align-items:center;margin-top:10px}.daysControl input{min-width:0;padding:8px 9px;border-radius:8px;font-size:12px}.daysHelp{grid-column:1/-1;font-size:10px;color:#94a3b8}.daysBtn{border-color:#8b5cf6!important;background:#24123f!important;color:#e9d5ff!important}');
+    h=h.replace('<div class="count"><b id="paused">—</b><span>PAUSADAS</span></div>\n      <div class="count"><b id="revoked">—</b><span>BLOQUEADAS</span></div>','<div class="count"><b id="paused">—</b><span>PAUSADAS</span></div>\n      <div class="count"><b id="expired">—</b><span>VENCIDAS</span></div>\n      <div class="count"><b id="revoked">—</b><span>BLOQUEADAS</span></div>');
+    h=h.replace('<h2>Acessos ativos e pausados</h2>\n    <div class="sub">Aqui você pode PAUSAR, REATIVAR, RESETAR APARELHO ou EXCLUIR ACESSO. Excluir devolve a key para LIVRE.</div>','<h2>Acessos e prazo por usuário</h2>\n    <div class="sub">Defina quantos dias cada usuário poderá usar. O prazo começa a contar no momento em que você salvar. Use 0 para deixar sem prazo.</div>');
+    h=h.replace("$('free').textContent=j.free??0;$('reserved').textContent=j.reserved??0;$('used').textContent=j.used??0;$('paused').textContent=j.paused??0;$('revoked').textContent=j.revoked??0;","$('free').textContent=j.free??0;$('reserved').textContent=j.reserved??0;$('used').textContent=j.used??0;$('paused').textContent=j.paused??0;$('expired').textContent=j.expired??0;$('revoked').textContent=j.revoked??0;");
+    h=h.replace("  function shortDevice(v){const s=String(v||'');return s.length>28?s.slice(0,14)+'…'+s.slice(-10):s||'—'}\n\n  async function status",`  function shortDevice(v){const s=String(v||'');return s.length>28?s.slice(0,14)+'…'+s.slice(-10):s||'—'}
+  function expiryInfo(it){
+    const raw=String(it&&it.expiresAt||'').trim();
+    if(!raw)return{expired:false,text:'SEM PRAZO DEFINIDO',cls:'wait'};
+    const d=new Date(raw);if(Number.isNaN(d.getTime()))return{expired:false,text:'Prazo inválido',cls:'wait'};
+    const ms=d.getTime()-Date.now();
+    if(ms<=0)return{expired:true,text:'VENCIDO em '+datePt(raw),cls:'expired'};
+    const days=Math.ceil(ms/86400000);
+    return{expired:false,text:'Vence em '+datePt(raw)+' • '+days+' dia'+(days===1?'':'s')+' restante'+(days===1?'':'s'),cls:''};
   }
-
-  function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-  function datePt(v){if(!v)return '—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('pt-BR')}
-  function shortDevice(v){const s=String(v||'');return s.length>28?s.slice(0,14)+'…'+s.slice(-10):s||'—'}
-
-  async function status(loadUsed=false){
-    try{
-      const j=await post('/admin/access/status',{});
-      $('free').textContent=j.free??0;$('reserved').textContent=j.reserved??0;$('used').textContent=j.used??0;$('paused').textContent=j.paused??0;$('revoked').textContent=j.revoked??0;
-      $('statusMsg').textContent='Estoque atualizado.';$('statusMsg').className='status ok';
-      if(loadUsed)await loadUsedKeys();
-    }catch(e){$('statusMsg').textContent=e.message;$('statusMsg').className='status bad'}
-  }
-
-  function statusLabel(status){
-    const s=String(status||'');
-    if(s==='free')return['LIVRE','free'];
-    if(s==='reserved')return['RESERVADA','reserved'];
-    if(s==='used')return['EM USO',''];
-    if(s==='paused')return['PAUSADA','paused'];
-    if(s==='revoked')return['BLOQUEADA','revoked'];
-    return[s.toUpperCase()||'DESCONHECIDA','wait'];
-  }
-
-  async function reloadAll(targetMsg,message){
-    if(targetMsg){$(targetMsg).textContent=message||'Atualizado.';$(targetMsg).className='status ok'}
-    await loadStock();await loadUsedKeys();await status(false);
-  }
-
-  async function toggleAccess(it,action,targetMsg,btn){
-    if(!it||!it.id)return;
-    const pausing=action==='pause';
-    const nome=it.identity||'este acesso';
-    const question=pausing
-      ?'Pausar o acesso de '+nome+'?\n\nO aparelho será bloqueado imediatamente. A key continuará reservada para o mesmo usuário.'
-      :'Reativar o acesso de '+nome+'?\n\nO Worker vai confirmar a key no LicenseAuth antes de liberar.';
-    if(!confirm(question))return;
-    if(btn){btn.disabled=true;btn.textContent=pausing?'PAUSANDO...':'REATIVANDO...'}
-    try{
-      const j=await post('/admin/access/'+action,{keyId:it.id});
-      await reloadAll(targetMsg,j.message||(pausing?'Acesso pausado.':'Acesso reativado.'));
-    }catch(e){if(targetMsg){$(targetMsg).textContent=e.message;$(targetMsg).className='status bad'}if(btn){btn.disabled=false;btn.textContent=pausing?'PAUSAR':'REATIVAR'}}
-  }
-
-  function updateStockSelection(){
-    const total=stockItems.length;
-    const selected=selectedStock.size;
-    $('stockSelectedCount').textContent=selected+' MARCADA'+(selected===1?'':'S');
-    $('deleteSelectedBtn').disabled=selected===0;
-    const all=$('stockSelectAll');
-    if(all){all.checked=total>0&&selected===total;all.indeterminate=selected>0&&selected<total}
-  }
-
-  function renderStock(){
-    const has=stockItems.length>0;
-    $('stockBulkBar').style.display=has?'flex':'none';
-    $('stockBulkActions').style.display=has?'grid':'none';
-    if(!has){$('stockList').innerHTML='<div class="empty">Nenhuma key cadastrada no estoque.</div>';selectedStock.clear();updateStockSelection();return}
-    $('stockList').innerHTML=stockItems.map((it,i)=>{
-      const st=statusLabel(it.status),checked=selectedStock.has(Number(it.id))?' checked':'';
-      const control=it.status==='used'?'<button class="miniBtn pause" data-stock-pause="'+i+'">PAUSAR</button>':it.status==='paused'?'<button class="miniBtn resume" data-stock-resume="'+i+'">REATIVAR</button>':'';
-      const del=(it.status==='used'||it.status==='paused')?'<button class="miniBtn delete" data-stock-delete="'+i+'">EXCLUIR ACESSO</button>':'';
-      return '<div class="usedItem"><label class="stockSelect"><input type="checkbox" data-stock-check="'+i+'"'+checked+'> MARCAR</label><br><span class="pill '+st[1]+'">'+st[0]+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'—')+'<br>Cadastrada: '+esc(datePt(it.createdAt))+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Aparelho: '+esc(shortDevice(it.deviceId))+'</div></div><div class="usedActions"><button class="miniBtn" data-stock-copy="'+i+'">COPIAR KEY</button>'+control+del+'</div></div></div>';
-    }).join('');
-    $('stockList').querySelectorAll('[data-stock-check]').forEach(c=>c.onchange=()=>{const it=stockItems[Number(c.dataset.stockCheck)];if(!it)return;const id=Number(it.id);if(c.checked)selectedStock.add(id);else selectedStock.delete(id);updateStockSelection()});
-    $('stockList').querySelectorAll('[data-stock-copy]').forEach(b=>b.onclick=async()=>{const it=stockItems[Number(b.dataset.stockCopy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
-    $('stockList').querySelectorAll('[data-stock-pause]').forEach(b=>b.onclick=()=>toggleAccess(stockItems[Number(b.dataset.stockPause)],'pause','stockMsg',b));
-    $('stockList').querySelectorAll('[data-stock-resume]').forEach(b=>b.onclick=()=>toggleAccess(stockItems[Number(b.dataset.stockResume)],'resume','stockMsg',b));
-    $('stockList').querySelectorAll('[data-stock-delete]').forEach(b=>b.onclick=async()=>{
-      const it=stockItems[Number(b.dataset.stockDelete)];if(!it||!it.id)return;
-      const nome=it.identity||'este acesso';
-      if(!confirm('Excluir o acesso de '+nome+'?\n\nO acesso será cortado imediatamente e a key VOLTARÁ para LIVRE no estoque.'))return;
-      b.disabled=true;b.textContent='EXCLUINDO...';
-      try{const j=await post('/admin/access/delete-access',{keyId:it.id});await reloadAll('stockMsg',j.message||'Acesso excluído e key devolvida ao estoque.')}catch(e){$('stockMsg').textContent=e.message;$('stockMsg').className='status bad';b.disabled=false;b.textContent='EXCLUIR ACESSO'}
-    });
-    updateStockSelection();
-  }
-
-  async function loadStock(){
-    const btn=$('stockBtn');btn.disabled=true;$('stockMsg').textContent='Carregando estoque...';$('stockMsg').className='status';
-    try{const j=await post('/admin/access/list-stock',{});stockItems=Array.isArray(j.items)?j.items:[];selectedStock.clear();$('stockMsg').textContent=stockItems.length+' key(s) no estoque.';$('stockMsg').className='status ok';renderStock()}catch(e){$('stockMsg').textContent=e.message;$('stockMsg').className='status bad'}finally{btn.disabled=false}
-  }
-
-  async function deleteStockItems(all){
-    const ids=all?[]:[...selectedStock];if(!all&&!ids.length)return;
-    const qtd=all?stockItems.length:ids.length;
-    const msg=all?'APAGAR TODAS AS '+qtd+' KEYS DO ESTOQUE?\n\nIsso remove as keys do painel e corta qualquer acesso ligado a elas. Essa ação não pode ser desfeita pelo painel.':'Apagar '+qtd+' key(s) marcada(s) do estoque?\n\nSe alguma estiver em uso ou pausada, o acesso também será cortado.';
+  async function setDays(it,input,btn){
+    if(!it||!it.id||!input)return;
+    const days=Number(input.value);
+    if(!Number.isInteger(days)||days<0||days>3650){alert('Digite um número de dias entre 0 e 3650. Use 0 para deixar sem prazo.');input.focus();return}
+    const nome=it.identity||'este usuário';
+    const msg=days===0?'Deixar '+nome+' sem prazo de vencimento?':'Definir '+days+' dia(s) de acesso para '+nome+' a partir de agora?';
     if(!confirm(msg))return;
-    const btn=all?$('deleteAllBtn'):$('deleteSelectedBtn');btn.disabled=true;btn.textContent=all?'APAGANDO TODAS...':'APAGANDO...';
-    try{const j=await post('/admin/access/delete-stock',all?{all:true}:{ids});$('stockMsg').textContent=(j.deleted||0)+' key(s) apagada(s) do estoque.';$('stockMsg').className='status ok';selectedStock.clear();await loadStock();await loadUsedKeys();await status(false)}catch(e){$('stockMsg').textContent=e.message;$('stockMsg').className='status bad'}finally{btn.disabled=false;btn.textContent=all?'APAGAR TODAS':'APAGAR MARCADAS';updateStockSelection()}
+    btn.disabled=true;btn.textContent='SALVANDO...';
+    try{const j=await post('/admin/access/set-days',{keyId:it.id,days});await reloadAll('usedMsg',j.message||'Prazo atualizado.')}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad';btn.disabled=false;btn.textContent='DEFINIR DIAS'}
   }
 
-  function renderUsed(){
+  async function status`);
+    h=h.replace("+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Aparelho: '+esc(shortDevice(it.deviceId))+'</div>","+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Prazo: '+esc(expiryInfo(it).text)+'<br>Aparelho: '+esc(shortDevice(it.deviceId))+'</div>");
+    const a=h.indexOf('  function renderUsed(){'),b=h.indexOf('  async function loadUsedKeys(){',a);
+    if(a<0||b<0)throw new Error('Estrutura do painel incompatível');
+    const render=`  function renderUsed(){
     if(!usedItems.length){$('usedList').innerHTML='<div class="empty">Nenhum acesso ativo ou pausado.</div>';return}
     $('usedList').innerHTML=usedItems.map((it,i)=>{
-      const paused=String(it.status||'')==='paused',pending=!!it.resetPending;
-      const badge=paused?'PAUSADA':pending?'AGUARDANDO NOVO APARELHO':'EM USO';
-      const cls=paused?'paused':pending?'wait':'';
-      const toggle=paused?'<button class="miniBtn resume" data-resume="'+i+'">REATIVAR</button>':'<button class="miniBtn pause" data-pause="'+i+'">PAUSAR</button>';
-      const reset=(!paused&&it.identity)?'<button class="miniBtn reset" data-reset="'+i+'" '+(pending?'disabled':'')+'>'+(pending?'RESETADO':'RESETAR APARELHO')+'</button>':'';
-      return '<div class="usedItem"><span class="pill '+cls+'">'+badge+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'Acesso antigo')+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Último uso: '+esc(datePt(it.lastUsedAt||it.usedAt))+'<br>Aparelho: '+esc(pending?'LIBERADO PELO ADMINISTRADOR':shortDevice(it.deviceId))+'</div></div><div class="usedActions"><button class="miniBtn" data-copy="'+i+'">COPIAR KEY</button>'+toggle+reset+'<button class="miniBtn delete" data-delete="'+i+'">EXCLUIR ACESSO</button></div></div></div>';
+      const paused=String(it.status||'')==='paused',pending=!!it.resetPending,exp=expiryInfo(it);
+      const badge=exp.expired?(paused?'PAUSADA • VENCIDA':'VENCIDA'):(paused?'PAUSADA':pending?'AGUARDANDO NOVO APARELHO':'EM USO');
+      const cls=exp.expired?'expired':paused?'paused':pending?'wait':'';
+      const toggle=exp.expired?'':paused?'<button class="miniBtn resume" data-resume="'+i+'">REATIVAR</button>':'<button class="miniBtn pause" data-pause="'+i+'">PAUSAR</button>';
+      const reset=(!paused&&!exp.expired&&it.identity)?'<button class="miniBtn reset" data-reset="'+i+'" '+(pending?'disabled':'')+'>'+(pending?'RESETADO':'RESETAR APARELHO')+'</button>':'';
+      const prazo='<div class="daysControl"><input type="number" min="0" max="3650" step="1" inputmode="numeric" placeholder="Dias" data-days-input="'+i+'"><button class="miniBtn daysBtn" data-days-save="'+i+'">DEFINIR DIAS</button><div class="daysHelp">'+esc(exp.text)+' • 0 = sem prazo</div></div>';
+      return '<div class="usedItem"><span class="pill '+cls+'">'+badge+'</span><div class="usedTop"><div style="min-width:0;flex:1"><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'Acesso antigo')+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Último uso: '+esc(datePt(it.lastUsedAt||it.usedAt))+'<br><b>Prazo:</b> '+esc(exp.text)+'<br>Aparelho: '+esc(pending?'LIBERADO PELO ADMINISTRADOR':shortDevice(it.deviceId))+'</div>'+prazo+'</div><div class="usedActions"><button class="miniBtn" data-copy="'+i+'">COPIAR KEY</button>'+toggle+reset+'<button class="miniBtn delete" data-delete="'+i+'">EXCLUIR ACESSO</button></div></div></div>';
     }).join('');
     $('usedList').querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const it=usedItems[Number(b.dataset.copy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
+    $('usedList').querySelectorAll('[data-days-save]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.daysSave),input=$('usedList').querySelector('[data-days-input="'+i+'"]');setDays(usedItems[i],input,b)});
+    $('usedList').querySelectorAll('[data-days-input]').forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const i=Number(input.dataset.daysInput),b=$('usedList').querySelector('[data-days-save="'+i+'"]');if(b)setDays(usedItems[i],input,b)}}));
     $('usedList').querySelectorAll('[data-pause]').forEach(b=>b.onclick=()=>toggleAccess(usedItems[Number(b.dataset.pause)],'pause','usedMsg',b));
     $('usedList').querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>toggleAccess(usedItems[Number(b.dataset.resume)],'resume','usedMsg',b));
     $('usedList').querySelectorAll('[data-reset]').forEach(b=>b.onclick=async()=>{
       const it=usedItems[Number(b.dataset.reset)];if(!it||!it.id)return;const nome=it.identity||'essa identificação';
-      if(!confirm('Resetar o aparelho de '+nome+'?\n\nO aparelho atual perderá o acesso. A mesma key será usada no próximo aparelho. Nenhuma key nova será consumida.'))return;
+      if(!confirm('Resetar o aparelho de '+nome+'?\\n\\nO aparelho atual perderá o acesso. A mesma key será usada no próximo aparelho. Nenhuma key nova será consumida.'))return;
       b.disabled=true;b.textContent='RESETANDO...';
       try{const j=await post('/admin/access/reset-device',{keyId:it.id});await reloadAll('usedMsg',j.message||'Aparelho resetado.')}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad';b.disabled=false;b.textContent='RESETAR APARELHO'}
     });
     $('usedList').querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{
       const it=usedItems[Number(b.dataset.delete)];if(!it||!it.id)return;const nome=it.identity||'este acesso';
-      if(!confirm('Excluir o acesso de '+nome+'?\n\nO acesso será cortado imediatamente e a key VOLTARÁ para LIVRE no estoque.'))return;
+      if(!confirm('Excluir o acesso de '+nome+'?\\n\\nO acesso será cortado imediatamente e a key VOLTARÁ para LIVRE no estoque.'))return;
       b.disabled=true;b.textContent='EXCLUINDO...';
       try{const j=await post('/admin/access/delete-access',{keyId:it.id});await reloadAll('usedMsg',j.message||'Acesso excluído e key devolvida ao estoque.')}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad';b.disabled=false;b.textContent='EXCLUIR ACESSO'}
     });
   }
 
-  async function loadUsedKeys(){
-    const btn=$('usedBtn');btn.disabled=true;$('usedMsg').textContent='Carregando...';$('usedMsg').className='status';
-    try{const j=await post('/admin/access/list-used',{});usedItems=Array.isArray(j.items)?j.items:[];$('usedMsg').textContent=usedItems.length+' acesso(s) ativo(s) ou pausado(s).';$('usedMsg').className='status ok';renderUsed()}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad'}finally{btn.disabled=false}
-  }
-
-  try{
-    const savedSecret=String(localStorage.getItem(ADMIN_SECRET_KEY)||'').trim();
-    if(savedSecret){$('secret').value=savedSecret;$('rememberSecret').checked=true}
-  }catch(e){}
-  $('rememberSecret').onchange=()=>{
-    try{
-      if($('rememberSecret').checked){
-        const value=$('secret').value.trim();
-        if(value)localStorage.setItem(ADMIN_SECRET_KEY,value);
-      }else{
-        localStorage.removeItem(ADMIN_SECRET_KEY);
-      }
-    }catch(e){}
-  };
-  $('secret').addEventListener('input',()=>{
-    try{if($('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,$('secret').value.trim())}catch(e){}
-  });
-
-  $('statusBtn').onclick=()=>status(true);
-  $('usedBtn').onclick=loadUsedKeys;
-  $('stockBtn').onclick=loadStock;
-  $('stockSelectAll').onchange=()=>{if($('stockSelectAll').checked)stockItems.forEach(it=>selectedStock.add(Number(it.id)));else selectedStock.clear();renderStock()};
-  $('deleteSelectedBtn').onclick=()=>deleteStockItems(false);
-  $('deleteAllBtn').onclick=()=>deleteStockItems(true);
-  $('copyGeneralBtn').onclick=async()=>{try{await navigator.clipboard.writeText(GENERAL_LINK);$('generalMsg').textContent='Link geral copiado.';$('generalMsg').className='status ok'}catch(e){$('generalMsg').textContent='Selecione e copie o link acima.';$('generalMsg').className='status bad'}};
-  $('importBtn').onclick=async()=>{try{const text=$('keys').value.trim();if(!text)throw new Error('Cole pelo menos uma key.');const j=await post('/admin/access/import',{text});$('importMsg').textContent='Adicionadas: '+(j.added||0)+(j.repaired?' • Recuperadas: '+j.repaired:'')+' • Já existentes: '+(j.ignored||0);$('importMsg').className='status ok';$('keys').value='';await status(false);if(stockItems.length)await loadStock()}catch(e){$('importMsg').textContent=e.message;$('importMsg').className='status bad'}};
+`;
+    h=h.slice(0,a)+render+h.slice(b);
+    h=h.replace("usedItems.length+' acesso(s) ativo(s) ou pausado(s).'","usedItems.length+' usuário(s) com acesso cadastrado.'");
+    document.open();document.write(h);document.close();
+  }catch(e){document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:20px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar o painel. Atualize e tente novamente.</p></div>'}
 })();
 </script>
-</body>
-</html>
+</body></html>
