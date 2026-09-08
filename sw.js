@@ -1,10 +1,10 @@
-const DF_CACHE='df-extrusor-shell-v14';
+const DF_CACHE='df-extrusor-shell-v15';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const HISTORICAL_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
 const CORE=[
   './','./index.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './device-identity.js','./offline-auth-shim.js','./install-handoff.js','./auto-access.js','./auto-user.js','./access-device-guard.js','./login-recovery.js','./safe-core.js','./sacola-peso-quantidade.js','./material-manager.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
+  './device-identity.js','./offline-auth-shim.js','./install-handoff.js','./auto-access.js','./auto-user.js','./access-device-guard.js','./presence-lite.js','./login-recovery.js','./safe-core.js','./sacola-peso-quantidade.js','./material-manager.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
   './bobina-safe.js','./contact-extra.js','./pwa-update.js','./system-extra.js','./offline-mode.js','./cloud-backup.js','./feedback-extra.js',
   './op-single-safe.js','./formula-share-safe.js','./pdf-button-safe.js','./formula-view-safe.js',
   './vendedor-pdf-profissional.js','./vendedor-extra.js','./cost-unit-stable.js','./cost-explanations.js','./cost-summary-boxes.js',HISTORICAL_APP
@@ -24,7 +24,7 @@ async function currentVersionData(){try{const u=new URL('app-version.json',self.
 function b64url(bytes){let binary='';for(const b of bytes)binary+=String.fromCharCode(b);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'')}
 async function subscriptionHash(){try{const sub=await self.registration.pushManager.getSubscription();const endpoint=String(sub&&sub.endpoint||'');if(!endpoint)return '';const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('DF-PUSH-MSG-v1|'+endpoint));return b64url(new Uint8Array(digest))}catch(e){return ''}}
 async function pendingPushMessage(){try{const hash=await subscriptionHash();if(!hash)return null;const u=new URL(API+'/push/message');u.searchParams.set('s',hash);u.searchParams.set('t',Date.now());const r=await fetch(u.toString(),{cache:'no-store'});if(!r.ok)return null;const j=await r.json();return j&&j.ok&&j.message?j.message:null}catch(e){return null}}
-async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — Nova atualização';const kind=String(data.kind||'update');return self.registration.showNotification(title,{body:data.message||data.body||'Uma nova atualização está disponível.',icon:new URL('logo.svg',self.registration.scope).href,badge:new URL('logo.svg',self.registration.scope).href,tag:kind==='access-paused'?'df-extrusor-access-paused':'df-extrusor-update',renotify:true,data:{url:data.url||self.registration.scope,version:data.version||'',kind}})}
+async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — Nova atualização';const kind=String(data.kind||'update');const tag=kind==='access-paused'?'df-extrusor-access-paused':kind==='user-online'?'df-extrusor-user-online':'df-extrusor-update';return self.registration.showNotification(title,{body:data.message||data.body||'Uma nova atualização está disponível.',icon:new URL('logo.svg',self.registration.scope).href,badge:new URL('logo.svg',self.registration.scope).href,tag,renotify:true,data:{url:data.url||self.registration.scope,version:data.version||'',kind}})}
 
 async function precache(){const cache=await caches.open(DF_CACHE);await Promise.allSettled(CORE.map(async url=>{try{const req=new Request(url,{cache:'reload'});const res=await fetch(req,{cache:'no-store'});if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone())}catch(e){}}))}
 async function cached(req){const cache=await caches.open(DF_CACHE);return cache.match(req,{ignoreSearch:true})}
