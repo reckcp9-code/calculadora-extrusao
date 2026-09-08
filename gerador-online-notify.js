@@ -29,9 +29,7 @@
   async function subscription(create){
     const r=await registration();
     let sub=await r.pushManager.getSubscription();
-    if(!sub&&create){
-      sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
-    }
+    if(!sub&&create)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(VAPID_PUBLIC_KEY)});
     return sub;
   }
 
@@ -46,8 +44,12 @@
     try{
       const sub=await subscription(false);
       if(!sub){setUi(false,'Notificações de entrada ainda não ativadas.');return}
-      const j=await post('/admin/push/online-status',{endpoint:sub.endpoint});
-      setUi(!!j.enabled,j.enabled?'Você receberá um aviso quando um usuário entrar no app.':'Notificações de entrada ainda não ativadas.');
+      let j=await post('/admin/push/online-status',{endpoint:sub.endpoint});
+      if(!j.enabled&&'Notification' in window&&Notification.permission==='granted'){
+        await post('/admin/push/online-subscribe',{subscription:sub.toJSON()});
+        j={enabled:true};
+      }
+      setUi(!!j.enabled,j.enabled?'Você receberá um aviso quando um usuário entrar e ficar online.':'Notificações de entrada ainda não ativadas.');
     }catch(e){setUi(false,String(e&&e.message||e),true)}
   }
 
@@ -56,18 +58,11 @@
     try{
       if(isIos()&&!standalone())throw new Error('No iPhone/iPad, abra este painel pelo app instalado na Tela de Início para ativar notificações.');
       if(!('Notification' in window)||!('PushManager' in window))throw new Error('Este navegador não oferece Web Push.');
-      const current=await subscription(false);
-      const enabled=b&&b.dataset.enabled==='1';
-      if(enabled){
-        if(current)await post('/admin/push/online-unsubscribe',{endpoint:current.endpoint});
-        setUi(false,'Avisos de entrada desativados.');
-        return;
-      }
-      const permission=await Notification.requestPermission();
-      if(permission!=='granted')throw new Error('Permita notificações nas configurações do aparelho.');
-      const sub=current||await subscription(true);
-      await post('/admin/push/online-subscribe',{subscription:sub.toJSON()});
-      setUi(true,'Pronto. Você será avisado quando cada usuário entrar no DF EXTRUSOR PRO.');
+      const current=await subscription(false),enabled=b&&b.dataset.enabled==='1';
+      if(enabled){if(current)await post('/admin/push/online-unsubscribe',{endpoint:current.endpoint});setUi(false,'Avisos de entrada desativados.');return}
+      const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('Permita notificações nas configurações do aparelho.');
+      const sub=current||await subscription(true);await post('/admin/push/online-subscribe',{subscription:sub.toJSON()});
+      setUi(true,'Pronto. Você será avisado quando cada usuário entrar e ficar online.');
     }catch(e){setUi(false,String(e&&e.message||e),true)}finally{if(b)b.disabled=false}
   }
 
@@ -75,12 +70,14 @@
     if($('dfOnlineNotifyCard'))return;
     const first=document.querySelector('.wrap .card');if(!first)return;
     const card=document.createElement('div');card.className='card';card.id='dfOnlineNotifyCard';
-    card.innerHTML='<h2>🔔 Aviso quando usuário entrar</h2><div class="sub">Receba uma notificação no seu aparelho somente quando um usuário ficar ONLINE no DF EXTRUSOR PRO.</div><button class="btn alt" id="dfOnlineNotifyBtn" type="button" data-enabled="0">🔕 ATIVAR AVISOS DE ONLINE</button><div id="dfOnlineNotifyMsg" class="status">Digite sua senha administrativa e ative uma vez neste aparelho.</div>';
+    card.innerHTML='<h2>🔔 Aviso quando usuário entrar</h2><div class="sub">Receba uma notificação no seu aparelho quando um usuário ficar ONLINE no DF EXTRUSOR PRO.</div><button class="btn alt" id="dfOnlineNotifyBtn" type="button" data-enabled="0">🔕 ATIVAR AVISOS DE ONLINE</button><div id="dfOnlineNotifyMsg" class="status">Digite sua senha administrativa e ative uma vez neste aparelho.</div>';
     first.insertAdjacentElement('afterend',card);
     $('dfOnlineNotifyBtn').onclick=toggle;
-    const sec=$('secret');if(sec)sec.addEventListener('input',function(){setTimeout(refreshStatus,250)});
-    setTimeout(refreshStatus,500);
+    const sec=$('secret');if(sec)sec.addEventListener('input',function(){setTimeout(refreshStatus,220)});
+    setTimeout(refreshStatus,350);
   }
 
+  window.addEventListener('focus',function(){setTimeout(refreshStatus,150)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(refreshStatus,150)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
