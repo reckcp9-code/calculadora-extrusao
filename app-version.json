@@ -1,6 +1,6 @@
 {
-  "version": "1.0.93",
-  "title": "DF EXTRUSOR PRO — Extrusão modo limpo",
-  "message": "A aba Extrusão agora abre em modo limpo, sem banner, sem aviso e com os tópicos internos em abas: Extrusão, Bobina, Corrigir Micra, Puxador/Massa e Produção +%.",
-  "updatedAt": "2026-09-08T19:31:00-03:00"
+  "version": "1.0.94",
+  "title": "DF EXTRUSOR PRO — Extrusão com seta de menu",
+  "message": "A aba Extrusão agora fica isolada em modo limpo e mostra apenas uma seta para voltar ao menu principal.",
+  "updatedAt": "2026-09-08T19:38:00-03:00"
 }
