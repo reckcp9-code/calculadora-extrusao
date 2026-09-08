@@ -68,12 +68,11 @@
 
   function init(){
     organize();
-    setTimeout(organize,180);
-    setTimeout(organize,650);
-    setTimeout(organize,1500);
-    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(organize,30)});
+    requestAnimationFrame(organize);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)organize()});
+    window.addEventListener('df-ui-ready',organize);
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
