@@ -79,8 +79,20 @@
   }
 
   async function enableNotify(){
-    const btn=document.getElementById('dfSystemNotify');if(btn)btn.textContent='ATIVANDO...';
-    try{if(typeof window.dfEnableNotifications==='function')await window.dfEnableNotifications();else alert('O sistema de atualizações ainda está carregando. Tente novamente em alguns segundos.')}catch(e){console.warn(e)}
+    const btn=document.getElementById('dfSystemNotify');
+    try{
+      if(typeof window.dfPushStatus==='function'){
+        const state=await window.dfPushStatus();
+        if(state==='push'){
+          if(typeof window.dfClearAppBadge==='function')await window.dfClearAppBadge();
+          await notifyState();
+          return;
+        }
+      }
+      if(btn)btn.textContent='ATIVANDO...';
+      if(typeof window.dfEnableNotifications==='function')await window.dfEnableNotifications();
+      else alert('O sistema de atualizações ainda está carregando. Tente novamente em alguns segundos.');
+    }catch(e){console.warn(e)}
     await notifyState();
   }
 
