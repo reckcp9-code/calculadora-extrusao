@@ -5,22 +5,76 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080b13">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>DF EXTRUSOR PRO — Atualização</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.card{width:min(560px,100%);background:#101522;border:1px solid #252d3d;border-radius:24px;padding:34px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)}.badge{display:inline-flex;align-items:center;gap:8px;background:#241b08;color:#fbbf24;border:1px solid #5c4510;border-radius:999px;padding:8px 14px;font-weight:800;font-size:13px;letter-spacing:.4px}.icon{font-size:54px;margin:22px 0 10px}h1{margin:0 0 12px;font-size:28px;line-height:1.1}p{margin:0 auto;color:#cbd5e1;font-size:17px;line-height:1.55;max-width:460px}.safe{margin-top:20px;padding:14px 16px;background:#0c1c17;border:1px solid #164e3d;border-radius:14px;color:#86efac;font-weight:700}.time{margin-top:16px;color:#94a3b8;font-size:14px}.brand{margin-top:26px;color:#64748b;font-size:13px;font-weight:700;letter-spacing:.8px}
-</style>
+<title>DF EXTRUSOR PRO</title>
+<script src="./device-identity.js?v=20260907-device-cookie-v71"></script>
 </head>
-<body>
-<main class="card">
-  <div class="badge">⚙️ ATUALIZAÇÃO EM ANDAMENTO</div>
-  <div class="icon">🛠️</div>
-  <h1>DF EXTRUSOR PRO</h1>
-  <p>Estamos fazendo uma atualização temporária no sistema. O acesso será liberado novamente assim que a manutenção terminar.</p>
-  <div class="safe">✅ Seus dados e seu acesso continuam seguros.</div>
-  <div class="time">Não é necessário reinstalar o aplicativo. Tente novamente mais tarde.</div>
-  <div class="brand">DF EXTRUSOR PRO</div>
-</main>
+<body style="margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
+<script>
+(async()=>{
+  try{
+    const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches===true)||navigator.standalone===true;
+    const u0=new URL(location.href);
+    const savedAccess=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+    if(standalone&&!savedAccess&&!u0.searchParams.get('acesso')&&!u0.searchParams.get('instalar')){
+      u0.searchParams.set('acesso','geral');
+      location.replace(u0.pathname+'?'+u0.searchParams.toString());
+      return;
+    }
+
+    const r=await fetch('https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html',{cache:'no-store'});
+    if(!r.ok) throw new Error('Falha ao carregar aplicativo');
+    let h=await r.text();
+    const closeScript='</scr'+'ipt>';
+    const openScript='<scr'+'ipt>';
+    const p=h.lastIndexOf(openScript);
+    if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
+
+    h=h.replace('</body>',
+      '<script src="./offline-auth-shim.js?v=20260906-offline-backup-v39"></scr'+'ipt>'+
+      '<script src="./platform-hint.js?v=20260907-platform-v86b"></scr'+'ipt>'+
+      '<script src="./install-handoff.js?v=20260906-install-handoff-v68"></scr'+'ipt>'+
+      '<script src="./auto-access.js?v=20260906-auto-access-v63"></scr'+'ipt>'+
+      '<script src="./presence.js?v=20260907-online-reliable-v90"></scr'+'ipt>'+
+      '<script src="./auto-user.js?v=20260907-auto-user-v72"></scr'+'ipt>'+
+      '<script src="./beta-launch.js?v=20260907-beta-lite-v90"></scr'+'ipt>'+
+      '<script src="./access-device-guard.js?v=20260907-device-guard-v70"></scr'+'ipt>'+
+      '<script src="./safe-core.js?v=20260906-safe-core-3"></scr'+'ipt>'+
+      '<script src="./sacola-peso-quantidade.js?v=20260906-sacola-peso-qtd-v45"></scr'+'ipt>'+
+      '<script src="./material-manager.js?v=20260906-version-fix-v48"></scr'+'ipt>'+
+      '<script src="./cost-safe.js?v=20260906-custo-completo-v56"></scr'+'ipt>'+
+      '<script src="./cost-unit-stable.js?v=20260906-custo-completo-v56"></scr'+'ipt>'+
+      '<script src="./cost-explanations.js?v=20260906-custo-completo-v56"></scr'+'ipt>'+
+      '<script src="./formula-unlock.js?v=20260905-unlock-all-v14"></scr'+'ipt>'+
+      '<script src="./help-extra.js?v=20260905-help-reader-v17"></scr'+'ipt>'+
+      '<script src="./back-extra.js?v=20260905-back-v16"></scr'+'ipt>'+
+      '<script src="./bobina-safe.js?v=20260906-bobina-safe-3"></scr'+'ipt>'+
+      '<script src="./contact-extra.js?v=20260907-remove-contact-v74"></scr'+'ipt>'+
+      '<script src="./update-notify-policy.js?v=20260907-notify-policy-v83"></scr'+'ipt>'+
+      '<script src="./pwa-update.js?v=20260906-version-sync-v47"></scr'+'ipt>'+
+      '<script src="./install-app.js?v=20260906-install-v65"></scr'+'ipt>'+
+      '<script src="./system-extra.js?v=20260906-version-sync-v47"></scr'+'ipt>'+
+      '<script src="./offline-mode.js?v=20260906-offline-backup-v39"></scr'+'ipt>'+
+      '<script src="./op-single-safe.js?v=20260906-op-single-safe-2"></scr'+'ipt>'+
+      '<script src="./formula-share-safe.js?v=20260906-pdf-total-fator-v35"></scr'+'ipt>'+
+      '<script src="./pdf-button-safe.js?v=20260906-voltar-pdf-op-v36"></scr'+'ipt>'+
+      '<script src="./formula-view-safe.js?v=20260906-formula-view-safe-2"></scr'+'ipt>'+
+      '<script src="./whatsapp-user-number.js?v=20260907-whatsapp-lite-v90"></scr'+'ipt>'+
+      '<script src="./vendedor-pdf-profissional.js?v=20260906-whatsapp-cadastrado-v37"></scr'+'ipt>'+
+      '<script src="./cloud-backup-auto.js?v=20260907-auto-backup-v88"></scr'+'ipt>'+
+      '<script src="./backup-status-fix.js?v=20260906-backup-status-v51"></scr'+'ipt>'+
+      '<script src="./feedback-extra.js?v=20260906-feedback-cloud-v43"></scr'+'ipt>'+
+      '<script src="./nav-separation-fix.js?v=20260907-nav-fix-v91"></scr'+'ipt>'+
+      '<script src="./quick-access.js?v=20260907-quick-lite-v90"></scr'+'ipt>'+
+      '<script src="./favoritos.js?v=20260907-favoritos-v93"></scr'+'ipt>'+
+      '<script src="./course-lock.js?v=20260907-course-lite-v90"></scr'+'ipt>'+
+      '<script src="./formula-bottom-order.js?v=20260907-formula-bottom-lite-v90"></scr'+'ipt>'+
+      '<script src="./machine-recipe.js?v=20260907-recipe-lite-v90"></scr'+'ipt>'+
+      '</body>');
+    document.open();document.write(h);document.close();
+  }catch(e){
+    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora. Atualize e tente novamente.</p></div>';
+  }
+})();
+</script>
 </body>
 </html>
