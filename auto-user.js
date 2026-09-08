@@ -4,7 +4,7 @@
   const USER_KEY='df_auto_user_code_v1';
   const USER_COOKIE='df_auto_user_code_v1';
   const DEVICE_KEY='df_licenseauth_device_v1';
-  const COOKIE_MAX_AGE=315360000; // 10 anos
+  const COOKIE_MAX_AGE=315360000;
   const initialUrl=new URL(location.href);
   const generalMode=String(initialUrl.searchParams.get('acesso')||'').trim().toLowerCase()==='geral';
   let started=false;
@@ -71,12 +71,12 @@
   }
 
   function run(){
-    if(!generalMode||started)return;
+    if(!generalMode||started)return false;
     const input=document.getElementById('dfAccessIdentity');
     const wrap=document.getElementById('dfAccessIdentityWrap');
     const key=document.getElementById('licenseKey');
     const btn=document.getElementById('licenseBtn');
-    if(!input||!btn)return;
+    if(!input||!btn)return false;
 
     started=true;
     const code=automaticUser();
@@ -92,25 +92,23 @@
     btn.textContent='ENTRANDO...';
     setMessage('Usuário automático: '+code+' • liberando acesso...',true);
 
-    setTimeout(()=>{
+    queueMicrotask(()=>{
       try{btn.click()}catch(e){
         started=false;
         setMessage('Não foi possível entrar automaticamente. Toque em ACESSAR.',false);
         btn.disabled=false;
         btn.textContent='ACESSAR';
       }
-    },120);
+    });
+    return true;
   }
 
   function boot(){
     automaticUser();
-    let tries=0;
-    const timer=setInterval(()=>{
-      run();
-      tries++;
-      if(started||tries>30)clearInterval(timer);
-    },100);
+    run();
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+  window.addEventListener('df-access-gate-ready',run);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
 })();
