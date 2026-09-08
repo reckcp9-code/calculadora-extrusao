@@ -17,6 +17,7 @@
   let booted=false;
 
   function savedCredential(){try{return String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){return ''}}
+  function isOffline(){return navigator.onLine===false}
   function deviceId(){
     let id='';
     try{id=String(localStorage.getItem(DEVICE_KEY)||'').trim()}catch(e){}
@@ -30,11 +31,34 @@
   function headersWith(init,newToken){const h=new Headers(init&&init.headers||{});if(newToken)h.set('Authorization','Bearer '+newToken);h.set('X-DF-Device',deviceId());return h}
   function setMessage(text,ok){const e=document.getElementById('licenseMsg');if(!e)return;e.textContent=text;e.className='licenseMsg '+(ok?'ok':'err')}
   function unlock(){try{if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}}catch(e){}}
+  function lockToGate(){
+    try{
+      const style=document.getElementById('dfSavedAccessBoot');if(style)style.remove();
+      const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');
+      if(g)g.style.display='flex';
+      if(a)a.style.display='none';
+    }catch(e){}
+  }
   function cleanAccessParam(){try{const clean=new URL(location.href);clean.searchParams.delete(ACCESS_PARAM);history.replaceState(null,'',clean.pathname+(clean.search||'')+(clean.hash||''))}catch(e){}}
   function emitGateReady(){try{window.dispatchEvent(new CustomEvent('df-access-gate-ready'))}catch(e){}}
+  function setGateText(text){
+    const title=document.querySelector('#licenseGate h1,#licenseGate h2');if(title)title.textContent='Acesso DF';
+    const sub=document.querySelector('#licenseGate .licenseSub,#licenseGate p');if(sub)sub.textContent=text;
+  }
+
+  function showOfflineGate(){
+    lockToGate();
+    setGateText('É necessário estar conectado à internet para liberar o acesso.');
+    const keyInput=document.getElementById('licenseKey');if(keyInput&&generalMode)keyInput.style.display='none';
+    const btn=document.getElementById('licenseBtn');
+    if(btn){btn.disabled=true;btn.textContent='SEM INTERNET'}
+    setMessage('📶 Conecte-se à internet para acessar o DF EXTRUSOR PRO.',false);
+    emitGateReady();
+    return true;
+  }
 
   function unlockSavedImmediately(){
-    if(!savedCredential())return false;
+    if(isOffline()||!savedCredential())return false;
     cleanAccessParam();
     setMessage('Acesso salvo restaurado.',true);
     unlock();
@@ -42,7 +66,7 @@
   }
 
   async function renewAccess(){
-    const credential=savedCredential();if(!credential)return '';
+    const credential=savedCredential();if(!credential||isOffline())return '';
     if(renewPromise)return renewPromise;
     renewPromise=(async()=>{
       try{
@@ -90,6 +114,7 @@
   }
 
   async function redeemLegacy(){
+    if(isOffline()){showOfflineGate();return false}
     if(!linkToken||generalMode)return false;
     const btn=document.getElementById('licenseBtn');
     if(btn){btn.disabled=true;btn.textContent='LIBERANDO ACESSO...'}
@@ -111,6 +136,7 @@
   }
 
   async function redeemIdentity(){
+    if(isOffline()){showOfflineGate();return false}
     const input=document.getElementById('dfAccessIdentity');
     const identity=String(input&&input.value||'').trim();
     const btn=document.getElementById('licenseBtn');
@@ -133,11 +159,6 @@
     }
   }
 
-  function setGateText(text){
-    const title=document.querySelector('#licenseGate h1,#licenseGate h2');if(title)title.textContent='Acesso DF';
-    const sub=document.querySelector('#licenseGate .licenseSub,#licenseGate p');if(sub)sub.textContent=text;
-  }
-
   function prepareGeneralGate(){
     if(!generalMode||savedCredential())return false;
     const keyInput=document.getElementById('licenseKey');
@@ -153,7 +174,7 @@
       input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();redeemIdentity()}});
       wrap.appendChild(label);wrap.appendChild(input);btn.parentNode.insertBefore(wrap,btn);
     }
-    btn.textContent='ACESSAR';
+    btn.disabled=false;btn.textContent='ACESSAR';
     if(!btn.dataset.dfAccessBound){
       btn.dataset.dfAccessBound='1';
       btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();redeemIdentity()},true);
@@ -170,7 +191,7 @@
     if(!btn)return false;
     if(input){input.value='';input.style.display='none'}
     setGateText('Seu acesso está pronto. Toque em ACESSAR para liberar este aparelho.');
-    btn.textContent='ACESSAR';
+    btn.disabled=false;btn.textContent='ACESSAR';
     if(!btn.dataset.dfAccessBound){
       btn.dataset.dfAccessBound='1';
       btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();redeemLegacy()},true);
@@ -181,16 +202,17 @@
   }
 
   async function resumeSavedAccess(){
-    if(!savedCredential())return;
-    cleanAccessParam();unlock();
+    if(!savedCredential()||isOffline())return;
+    cleanAccessParam();
     const t=await renewAccess();
     if(t){setMessage('Acesso automático restaurado.',true);unlock()}
-    else if(savedCredential()){setMessage('Acesso salvo restaurado.',true);unlock()}
+    else if(savedCredential()){setMessage('Não foi possível validar o acesso. Verifique sua internet.',false);lockToGate()}
   }
 
   function boot(){
     if(booted)return;
     booted=true;
+    if(isOffline()){showOfflineGate();return}
     const restored=unlockSavedImmediately();
     if(!restored){
       prepareGeneralGate();
@@ -198,6 +220,14 @@
     }
     if(savedCredential())resumeSavedAccess();
   }
+
+  window.addEventListener('offline',showOfflineGate);
+  window.addEventListener('online',function(){
+    const btn=document.getElementById('licenseBtn');if(btn)btn.disabled=false;
+    if(savedCredential()){setMessage('Internet conectada. Validando seu acesso...',true);resumeSavedAccess()}
+    else if(generalMode){prepareGeneralGate();setMessage('Internet conectada. Digite sua identificação para acessar.',true)}
+    else if(linkToken){prepareLegacyGate();setMessage('Internet conectada. Toque em ACESSAR.',true)}
+  });
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
