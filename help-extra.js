@@ -6,240 +6,43 @@
   let readParts=[];
 
   const sections=[
-    {
-      title:'1. Objetivo do sistema',
-      note:'O DF EXTRUSOR PRO foi desenvolvido para facilitar os cálculos do dia a dia na extrusão de filme plástico, sacolas, custo, formulação, PDF e OP de produção.',
-      kpis:[['O sistema ajuda a calcular','Peso por metro, micra, RPM, sacolas, custo, lucro, formulação e OP']]
-    },
-    {
-      title:'2. Acesso por licença',
-      note:'Ao abrir o sistema, o usuário deve digitar a chave de licença no campo Licença DF e clicar em ATIVAR / ENTRAR.',
-      kpis:[['Licença válida','Libera o sistema'],['Licença inválida','Mostra mensagem de erro']],
-      small:'Cada licença pode ser vinculada ao navegador ou aparelho usado pelo cliente.'
-    },
-    {
-      title:'3. Aba Extrusão',
-      note:'A aba Extrusão calcula o peso ideal de 1 metro de filme e auxilia na regulagem da máquina.',
-      kpis:[['Preencher','Largura, micra e densidade'],['Resultado','Peso ideal de 1 metro em gramas']],
-      small:'A densidade pode ser escolhida em opções prontas ou digitada manualmente, útil para material reciclado.'
-    },
-    {
-      title:'4. Descobrir micra real',
-      note:'Corte 1 metro de filme, pese na balança e digite o peso medido. O sistema mostra a micra real do filme.',
-      kpis:[['Serve para saber','Se o filme está fino, grosso ou correto']]
-    },
-    {
-      title:'5. Corrigir micra por peso',
-      note:'Use quando o peso real não bate com o peso ideal. Informe os RPMs atuais da máquina.',
-      kpis:[['Informar','RPM da massa, ar e puxador'],['O sistema mostra','Correção pelo puxador ou pela massa']],
-      small:'Se o filme está pesado ou grosso, normalmente aumenta o puxador ou diminui a massa. Se está leve ou fino, normalmente diminui o puxador ou aumenta a massa.'
-    },
-    {
-      title:'6. Aumentar ou diminuir produção',
-      note:'Informe os RPMs atuais e a porcentagem que deseja aumentar ou diminuir.',
-      kpis:[['Exemplo','Aumentar 20% ou diminuir 10%'],['Resultado','Novos RPMs de referência']],
-      small:'A função mantém a relação entre massa e puxador mais equilibrada para preservar a micra próxima.'
-    },
-    {
-      title:'7. Aba Sacolas',
-      note:'A aba Sacolas calcula peso do saco, peso do rolo e quantidade.',
-      kpis:[['Preencher','Largura, comprimento, micra, densidade, desconto e quantidade'],['Resultados','Peso do saco, peso do rolo, sacos por kg e peso de 1.000 sacos']],
-      small:'O desconto de alça ou recorte deve ser usado quando a embalagem perde material no corte.'
-    },
-    {
-      title:'8. Aba Custo',
-      note:'A aba Custo calcula venda, lucro, preço por rolo e preço por unidade.',
-      kpis:[['Puxa da aba Sacolas','Peso do rolo e sacolas por rolo'],['Também permite','Digitar manualmente'],['Preencher','Custo por kg, lucro desejado % e quantidade de rolos'],['Resultados','Preço por rolo, preço por unidade e lucro total']]
-    },
-    {
-      title:'9. Aba Formulação',
-      note:'A aba Formulação serve para cadastrar materiais e montar misturas por porcentagem.',
-      kpis:[['Cadastrar material','Nome do material e preço por kg opcional'],['Montar formulação','Nome, quantidade total, material e porcentagem'],['O sistema mostra','Porcentagem total, kg de cada material, custo total e custo por kg']],
-      small:'A formulação deve fechar 100%. Se faltar ou passar, o sistema avisa.'
-    },
-    {
-      title:'10. Formulações salvas',
-      note:'Depois de salvar, a formulação fica disponível em uma barra de seleção.',
-      kpis:[['ABRIR','Carrega a formulação'],['PDF','Gera relatório de formulação'],['OP','Gera ordem de produção'],['DUPLICAR','Cria uma cópia'],['EXCLUIR','Apaga a formulação selecionada']]
-    },
-    {
-      title:'11. PDF da formulação',
-      note:'O PDF mostra nome da formulação, quantidade total, materiais, porcentagem, kg de cada material, preço por kg, custo total e custo por kg final.',
-      kpis:[['Uso indicado','Conferência, orçamento e controle interno']]
-    },
-    {
-      title:'12. OP de produção',
-      note:'A OP puxa automaticamente os dados da Extrusão e da Formulação.',
-      kpis:[['Puxa automático','Nome, peso, largura, comprimento, micra, gramatura, materiais e porcentagem'],['Produção preenche','Data, operador, máquina, aparas, quantidade, paradas e bobinas']],
-      small:'A OP foi feita em A4 paisagem com os campos mais importantes destacados para facilitar a leitura na produção.'
-    },
-    {
-      title:'13. Cuidados importantes',
-      note:'Antes de usar os resultados na produção, confira se a largura está em cm, se a micra é parede dupla, se a densidade está correta, se o peso foi medido em 1 metro, se a quantidade de sacolas está correta e se a formulação fechou 100%.',
-      small:'Os cálculos servem como referência técnica. A regulagem final deve ser feita pelo operador responsável, observando estabilidade do balão, qualidade do filme e peso real na balança.'
-    },
-    {
-      title:'14. Resumo rápido',
-      note:'Resumo das funções principais do sistema.',
-      kpis:[['Extrusão','Peso por metro, micra real e correção RPM'],['Sacolas','Peso do saco, peso do rolo e quantidade'],['Custo','Preço de venda, lucro, rolo e unidade'],['Formulação','Mistura de materiais e custo por kg'],['PDF e OP','Relatório e ordem de produção']]
-    },
-    {
-      title:'15. Suporte',
-      note:'Em caso de dúvida, entre em contato com a DF Manutenção e Consultoria.',
-      kpis:[['Instagram','@Df_manutencao_consultoria']]
-    }
+    {title:'1. Objetivo do sistema',note:'O DF EXTRUSOR PRO foi desenvolvido para facilitar os cálculos do dia a dia na extrusão de filme plástico, sacolas, custo, formulação, PDF e OP de produção.',kpis:[['O sistema ajuda a calcular','Peso por metro, micra, RPM, sacolas, custo, lucro, formulação e OP']]},
+    {title:'2. Acesso por licença',note:'Ao abrir o sistema, o usuário deve digitar a chave de licença no campo Licença DF e clicar em ATIVAR / ENTRAR.',kpis:[['Licença válida','Libera o sistema'],['Licença inválida','Mostra mensagem de erro']],small:'Cada licença pode ser vinculada ao navegador ou aparelho usado pelo cliente.'},
+    {title:'3. Aba Extrusão',note:'A aba Extrusão calcula o peso ideal de 1 metro de filme e auxilia na regulagem da máquina.',kpis:[['Preencher','Largura, micra e densidade'],['Resultado','Peso ideal de 1 metro em gramas']],small:'A densidade pode ser escolhida em opções prontas ou digitada manualmente, útil para material reciclado.'},
+    {title:'4. Descobrir micra real',note:'Corte 1 metro de filme, pese na balança e digite o peso medido. O sistema mostra a micra real do filme.',kpis:[['Serve para saber','Se o filme está fino, grosso ou correto']]},
+    {title:'5. Corrigir micra por peso',note:'Use quando o peso real não bate com o peso ideal. Informe os RPMs atuais da máquina.',kpis:[['Informar','RPM da massa, ar e puxador'],['O sistema mostra','Correção pelo puxador ou pela massa']],small:'Se o filme está pesado ou grosso, normalmente aumenta o puxador ou diminui a massa. Se está leve ou fino, normalmente diminui o puxador ou aumenta a massa.'},
+    {title:'6. Aumentar ou diminuir produção',note:'Informe os RPMs atuais e a porcentagem que deseja aumentar ou diminuir.',kpis:[['Exemplo','Aumentar 20% ou diminuir 10%'],['Resultado','Novos RPMs de referência']],small:'A função mantém a relação entre massa e puxador mais equilibrada para preservar a micra próxima.'},
+    {title:'7. Aba Sacolas',note:'A aba Sacolas calcula peso do saco, peso do rolo e quantidade.',kpis:[['Preencher','Largura, comprimento, micra, densidade, desconto e quantidade'],['Resultados','Peso do saco, peso do rolo, sacos por kg e peso de 1.000 sacos']],small:'O desconto de alça ou recorte deve ser usado quando a embalagem perde material no corte.'},
+    {title:'8. Aba Custo',note:'A aba Custo calcula venda, lucro, preço por rolo e preço por unidade.',kpis:[['Puxa da aba Sacolas','Peso do rolo e sacolas por rolo'],['Também permite','Digitar manualmente'],['Preencher','Custo por kg, lucro desejado % e quantidade de rolos'],['Resultados','Preço por rolo, preço por unidade e lucro total']]},
+    {title:'9. Aba Formulação',note:'A aba Formulação serve para cadastrar materiais e montar misturas por porcentagem.',kpis:[['Cadastrar material','Nome do material e preço por kg opcional'],['Montar formulação','Nome, quantidade total, material e porcentagem'],['O sistema mostra','Porcentagem total, kg de cada material, custo total e custo por kg']],small:'A formulação deve fechar 100%. Se faltar ou passar, o sistema avisa.'},
+    {title:'10. Formulações salvas',note:'Depois de salvar, a formulação fica disponível em uma barra de seleção.',kpis:[['ABRIR','Carrega a formulação'],['PDF','Gera relatório de formulação'],['OP','Gera ordem de produção'],['DUPLICAR','Cria uma cópia'],['EXCLUIR','Apaga a formulação selecionada']]},
+    {title:'11. PDF da formulação',note:'O PDF mostra nome da formulação, quantidade total, materiais, porcentagem, kg de cada material, preço por kg, custo total e custo por kg final.',kpis:[['Uso indicado','Conferência, orçamento e controle interno']]},
+    {title:'12. OP de produção',note:'A OP puxa automaticamente os dados da Extrusão e da Formulação.',kpis:[['Puxa automático','Nome, peso, largura, comprimento, micra, gramatura, materiais e porcentagem'],['Produção preenche','Data, operador, máquina, aparas, quantidade, paradas e bobinas']],small:'A OP foi feita em A4 paisagem com os campos mais importantes destacados para facilitar a leitura na produção.'},
+    {title:'13. Cuidados importantes',note:'Antes de usar os resultados na produção, confira se a largura está em cm, se a micra é parede dupla, se a densidade está correta, se o peso foi medido em 1 metro, se a quantidade de sacolas está correta e se a formulação fechou 100%.',small:'Os cálculos servem como referência técnica. A regulagem final deve ser feita pelo operador responsável, observando estabilidade do balão, qualidade do filme e peso real na balança.'},
+    {title:'14. Resumo rápido',note:'Resumo das funções principais do sistema.',kpis:[['Extrusão','Peso por metro, micra real e correção RPM'],['Sacolas','Peso do saco, peso do rolo e quantidade'],['Custo','Preço de venda, lucro, rolo e unidade'],['Formulação','Mistura de materiais e custo por kg'],['PDF e OP','Relatório e ordem de produção']]},
+    {title:'15. Suporte',note:'Em caso de dúvida, entre em contato com a DF Manutenção e Consultoria.',kpis:[['Instagram','@Df_manutencao_consultoria']]}
   ];
 
   function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function kpisHtml(kpis){return (kpis||[]).map(k=>'<div class="kpi"><span>'+esc(k[0])+'</span><b>'+esc(k[1])+'</b></div>').join('')}
-  function cardsHtml(){
-    return sections.map(s=>'<div class="card"><h2>'+esc(s.title)+'</h2><div class="formNote">'+esc(s.note)+'</div>'+kpisHtml(s.kpis)+(s.small?'<div class="smallNote">'+esc(s.small)+'</div>':'')+'</div>').join('');
-  }
-  function readTextParts(){
-    const first='Manual de operação do DF EXTRUSOR PRO. Agora o assistente vai ler a ajuda da calculadora.';
-    return [first].concat(sections.map(s=>{
-      let t=s.title+'. '+s.note+'. ';
-      (s.kpis||[]).forEach(k=>{t+=k[0]+': '+k[1]+'. '});
-      if(s.small)t+=s.small+'. ';
-      return t;
-    }));
-  }
+  function cardsHtml(){return sections.map(s=>'<div class="card"><h2>'+esc(s.title)+'</h2><div class="formNote">'+esc(s.note)+'</div>'+kpisHtml(s.kpis)+(s.small?'<div class="smallNote">'+esc(s.small)+'</div>':'')+'</div>').join('')}
+  function readTextParts(){const first='Manual de operação do DF EXTRUSOR PRO. Agora o assistente vai ler a ajuda da calculadora.';return [first].concat(sections.map(s=>{let t=s.title+'. '+s.note+'. ';(s.kpis||[]).forEach(k=>{t+=k[0]+': '+k[1]+'. '});if(s.small)t+=s.small+'. ';return t}))}
+  function manualHtml(){return `<section id="pgAj" class="page"><div class="card"><span class="tag">Ajuda</span><h2>Manual de operação — DF EXTRUSOR PRO</h2><div class="hint">Este manual explica cada função do sistema para operador, encarregado, produção e cliente.</div></div><div class="card" id="dfHelpAssistant"><span class="tag">Assistente</span><h2>🤖 Assistente de leitura</h2><div class="hint">Clique em <b>ASSISTENTE LER</b> para o celular ou computador ler a ajuda em voz alta.</div><div class="dfHelpActions"><button id="dfHelpRead" class="calcBtn" type="button">🔊 ASSISTENTE LER</button><button id="dfHelpStop" class="calcBtn danger" type="button">⏹ PARAR LEITURA</button></div><div id="dfHelpMsg" class="status">Pronto para ler a ajuda.</div><div class="smallNote">A voz usa o próprio navegador do aparelho. No iPhone ou Android, toque no botão e mantenha a tela aberta durante a leitura.</div></div><div id="dfHelpReadText">${cardsHtml()}</div></section>`}
 
-  function manualHtml(){return `
-  <section id="pgAj" class="page">
-    <div class="card">
-      <span class="tag">Ajuda</span>
-      <h2>Manual de operação — DF EXTRUSOR PRO</h2>
-      <div class="hint">Este manual explica cada função do sistema para operador, encarregado, produção e cliente.</div>
-    </div>
+  function addStyle(){if($('dfHelpStyle'))return;const st=document.createElement('style');st.id='dfHelpStyle';st.textContent='.dfHelpActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}@media(max-width:560px){.tabs{grid-template-columns:repeat(3,1fr)!important}.dfHelpActions{grid-template-columns:1fr}.tab{font-size:10px!important}}@media(min-width:561px){.tabs{grid-template-columns:repeat(6,1fr)!important}}';document.head.appendChild(st)}
+  function addHelpTab(){addStyle();const tabs=document.querySelector('.tabs');if(!tabs||$('btAj'))return;const btn=document.createElement('button');btn.id='btAj';btn.className='tab';btn.type='button';btn.textContent='AJUDA';btn.addEventListener('click',showHelp);const curso=tabs.querySelector('button:last-child');if(curso)tabs.insertBefore(btn,curso);else tabs.appendChild(btn)}
+  function addHelpPage(){if($('pgAj'))return;const wrap=$('appContent')||document.querySelector('.w');if(!wrap)return;wrap.insertAdjacentHTML('beforeend',manualHtml());const read=$('dfHelpRead'),stop=$('dfHelpStop');if(read)read.addEventListener('click',startRead);if(stop)stop.addEventListener('click',()=>stopRead(true))}
+  function markTab(on){['btEx','btSa','btCu','btFo','btAj'].forEach(id=>{const b=$(id);if(b)b.classList.toggle('on',id==='btAj'&&on)})}
+  function basicShow(p){['Ex','Sa','Cu','Fo','Aj'].forEach(k=>{const pg=$('pg'+k),bt=$('bt'+k);if(pg)pg.classList.toggle('on',k.toLowerCase()===String(p).toLowerCase());if(bt)bt.classList.toggle('on',k.toLowerCase()===String(p).toLowerCase())})}
+  function showHelp(){addHelpTab();addHelpPage();['pgEx','pgSa','pgCu','pgFo'].forEach(id=>{const p=$(id);if(p)p.classList.remove('on')});const p=$('pgAj');if(p)p.classList.add('on');markTab(true);const h=$('heroTitle'),s=$('heroSub');if(h)h.textContent='DF EXTRUSOR PRO';if(s)s.textContent='MANUAL DE OPERAÇÃO • AJUDA • ASSISTENTE DE VOZ';try{history.replaceState(null,'','./#ajuda')}catch(e){}try{scrollTo(0,0)}catch(e){}}
+  function setMsg(txt,cls){const m=$('dfHelpMsg');if(!m)return;m.textContent=txt;m.className='status '+(cls||'')}
+  function pickVoice(){try{const voices=speechSynthesis.getVoices()||[];return voices.find(v=>/pt-BR/i.test(v.lang))||voices.find(v=>/^pt/i.test(v.lang))||null}catch(e){return null}}
+  function speakNext(){if(!reading)return;if(readIndex>=readParts.length){reading=false;setMsg('Leitura finalizada.','ok');return}const u=new SpeechSynthesisUtterance(readParts[readIndex]);u.lang='pt-BR';u.rate=.92;u.pitch=1;const voice=pickVoice();if(voice)u.voice=voice;u.onstart=()=>setMsg('Assistente lendo '+(readIndex+1)+' de '+readParts.length+'...','ok');u.onend=()=>{readIndex++;setTimeout(speakNext,180)};u.onerror=()=>{reading=false;setMsg('Não consegui continuar a leitura neste aparelho. Tente tocar em Assistente ler de novo.','bad')};try{speechSynthesis.speak(u);setTimeout(()=>{try{speechSynthesis.resume()}catch(e){}},250)}catch(e){reading=false;setMsg('Este navegador não liberou a leitura em voz alta.','bad')}}
+  function startRead(){if(!canSpeak()){setMsg('Este aparelho ou navegador não suporta leitura em voz alta.','bad');return}try{speechSynthesis.cancel()}catch(e){}readParts=readTextParts();readIndex=0;reading=true;setMsg('Preparando assistente de leitura...','warn');setTimeout(speakNext,120)}
+  function stopRead(show){reading=false;try{if(canSpeak())speechSynthesis.cancel()}catch(e){}if(show)setMsg('Leitura parada.','warn')}
+  function init(){addHelpTab();addHelpPage();const oldShow=window.show;if(!window.dfHelpShowWrapped){window.dfHelpShowWrapped=true;window.show=function(p){if(p==='aj'||p==='ajuda')return showHelp();stopRead(false);if(oldShow)oldShow(p);else basicShow(p);const pg=$('pgAj');if(pg)pg.classList.remove('on');const b=$('btAj');if(b)b.classList.remove('on')}}if(location.hash==='#ajuda')showHelp();try{if(canSpeak())speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
 
-    <div class="card" id="dfHelpAssistant">
-      <span class="tag">Assistente</span>
-      <h2>🤖 Assistente de leitura</h2>
-      <div class="hint">Clique em <b>ASSISTENTE LER</b> para o celular ou computador ler a ajuda em voz alta.</div>
-      <div class="dfHelpActions">
-        <button id="dfHelpRead" class="calcBtn" type="button">🔊 ASSISTENTE LER</button>
-        <button id="dfHelpStop" class="calcBtn danger" type="button">⏹ PARAR LEITURA</button>
-      </div>
-      <div id="dfHelpMsg" class="status">Pronto para ler a ajuda.</div>
-      <div class="smallNote">A voz usa o próprio navegador do aparelho. No iPhone ou Android, toque no botão e mantenha a tela aberta durante a leitura.</div>
-    </div>
-
-    <div id="dfHelpReadText">${cardsHtml()}</div>
-  </section>`}
-
-  function addStyle(){
-    if($('dfHelpStyle'))return;
-    const st=document.createElement('style');
-    st.id='dfHelpStyle';
-    st.textContent='.dfHelpActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}@media(max-width:560px){.tabs{grid-template-columns:repeat(3,1fr)!important}.dfHelpActions{grid-template-columns:1fr}.tab{font-size:10px!important}}@media(min-width:561px){.tabs{grid-template-columns:repeat(6,1fr)!important}}';
-    document.head.appendChild(st);
-  }
-
-  function addHelpTab(){
-    addStyle();
-    const tabs=document.querySelector('.tabs');
-    if(!tabs||$('btAj'))return;
-    const btn=document.createElement('button');
-    btn.id='btAj';
-    btn.className='tab';
-    btn.type='button';
-    btn.textContent='AJUDA';
-    btn.addEventListener('click',function(){showHelp()});
-    const curso=tabs.querySelector('button:last-child');
-    if(curso)tabs.insertBefore(btn,curso);else tabs.appendChild(btn);
-  }
-
-  function addHelpPage(){
-    if($('pgAj'))return;
-    const wrap=$('appContent')||document.querySelector('.w');
-    if(!wrap)return;
-    wrap.insertAdjacentHTML('beforeend',manualHtml());
-    const read=$('dfHelpRead'),stop=$('dfHelpStop');
-    if(read)read.addEventListener('click',startRead);
-    if(stop)stop.addEventListener('click',function(){stopRead(true)});
-  }
-
-  function markTab(on){
-    ['btEx','btSa','btCu','btFo','btAj'].forEach(id=>{const b=$(id);if(b)b.classList.toggle('on',id==='btAj'&&on)});
-  }
-
-  function basicShow(p){
-    ['Ex','Sa','Cu','Fo','Aj'].forEach(k=>{const pg=$('pg'+k),bt=$('bt'+k);if(pg)pg.classList.toggle('on',k.toLowerCase()===String(p).toLowerCase());if(bt)bt.classList.toggle('on',k.toLowerCase()===String(p).toLowerCase())});
-  }
-
-  function showHelp(){
-    addHelpTab();addHelpPage();
-    ['pgEx','pgSa','pgCu','pgFo'].forEach(id=>{const p=$(id);if(p)p.classList.remove('on')});
-    const p=$('pgAj');if(p)p.classList.add('on');
-    markTab(true);
-    const h=$('heroTitle'),s=$('heroSub');
-    if(h)h.textContent='DF EXTRUSOR PRO';
-    if(s)s.textContent='MANUAL DE OPERAÇÃO • AJUDA • ASSISTENTE DE VOZ';
-    try{history.replaceState(null,'','./#ajuda')}catch(e){}
-    try{scrollTo(0,0)}catch(e){}
-  }
-
-  function setMsg(txt,cls){
-    const m=$('dfHelpMsg');
-    if(!m)return;
-    m.textContent=txt;
-    m.className='status '+(cls||'');
-  }
-  function pickVoice(){
-    try{
-      const voices=speechSynthesis.getVoices()||[];
-      return voices.find(v=>/pt-BR/i.test(v.lang))||voices.find(v=>/^pt/i.test(v.lang))||null;
-    }catch(e){return null}
-  }
-  function speakNext(){
-    if(!reading)return;
-    if(readIndex>=readParts.length){reading=false;setMsg('Leitura finalizada.','ok');return;}
-    const u=new SpeechSynthesisUtterance(readParts[readIndex]);
-    u.lang='pt-BR';
-    u.rate=0.92;
-    u.pitch=1;
-    const voice=pickVoice();
-    if(voice)u.voice=voice;
-    u.onstart=function(){setMsg('Assistente lendo '+(readIndex+1)+' de '+readParts.length+'...','ok')};
-    u.onend=function(){readIndex++;setTimeout(speakNext,180)};
-    u.onerror=function(){reading=false;setMsg('Não consegui continuar a leitura neste aparelho. Tente tocar em Assistente ler de novo.','bad')};
-    try{speechSynthesis.speak(u);setTimeout(()=>{try{speechSynthesis.resume()}catch(e){}},250)}catch(e){reading=false;setMsg('Este navegador não liberou a leitura em voz alta.','bad')}
-  }
-  function startRead(){
-    if(!canSpeak()){setMsg('Este aparelho ou navegador não suporta leitura em voz alta.','bad');return;}
-    try{speechSynthesis.cancel()}catch(e){}
-    readParts=readTextParts();
-    readIndex=0;
-    reading=true;
-    setMsg('Preparando assistente de leitura...','warn');
-    setTimeout(speakNext,120);
-  }
-  function stopRead(show){
-    reading=false;
-    try{if(canSpeak())speechSynthesis.cancel()}catch(e){}
-    if(show)setMsg('Leitura parada.','warn');
-  }
-
-  function init(){
-    addHelpTab();addHelpPage();
-    const oldShow=window.show;
-    if(!window.dfHelpShowWrapped){
-      window.dfHelpShowWrapped=true;
-      window.show=function(p){
-        if(p==='aj'||p==='ajuda')return showHelp();
-        stopRead(false);
-        if(oldShow)oldShow(p);else basicShow(p);
-        const pg=$('pgAj');if(pg)pg.classList.remove('on');
-        const b=$('btAj');if(b)b.classList.remove('on');
-      };
-    }
-    if(location.hash==='#ajuda')setTimeout(showHelp,80);
-    try{if(canSpeak())speechSynthesis.onvoiceschanged=function(){pickVoice()}}catch(e){}
-  }
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,250));
-  else setTimeout(init,250);
-  setTimeout(init,900);
-  setTimeout(init,1800);
+  // O script é carregado no fim do body, então a interface já existe.
+  // Inicializa imediatamente para evitar o "pisca" em que o botão AJUDA aparecia depois.
+  init();
 })();
