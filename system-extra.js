@@ -1,8 +1,9 @@
 (function(){
   const APP_VERSION='1.0.47';
-  const CACHE_TAG='20260906-version-sync-v47';
+  const CACHE_TAG='20260908-boot-stable-v97';
   const BASE=location.pathname.includes('/secure-frontend/')?'../':'./';
   const VERSION_URL=BASE+'app-version.json';
+  let versionTimer=0;
 
   function addStyle(){
     if(document.getElementById('dfSystemStyle'))return;
@@ -36,6 +37,7 @@
   }
 
   async function syncVersionLabel(){
+    if(document.hidden)return;
     const data=await latestVersionData();
     setVersionLabel(data&&data.version?data.version:APP_VERSION);
   }
@@ -98,28 +100,47 @@
 
   function addBar(){
     addStyle();
-    let bar=document.getElementById('dfSystemBar');if(!bar){bar=document.createElement('div');bar.id='dfSystemBar'}
-    bar.className='dfSystemBar';
-    bar.innerHTML='<span class="dfSystemVer">DF EXTRUSOR PRO v'+APP_VERSION+'</span><div class="dfSystemActions"><button id="dfSystemNotify" class="dfSystemBtn alt" type="button">🔔 ATIVAR ATUALIZAÇÕES</button><button id="dfSystemRefresh" class="dfSystemBtn" type="button">↻ ATUALIZAR</button></div>';
-    const app=document.getElementById('appContent');const tabs=app?app.querySelector('.tabs'):document.querySelector('.tabs');
-    if(tabs&&tabs.parentNode)tabs.parentNode.insertBefore(bar,tabs);else if(app)app.insertBefore(bar,app.firstChild);else document.body.insertBefore(bar,document.body.firstChild);
-    const btn=document.getElementById('dfSystemRefresh');if(btn&&!btn.dfRefreshBound){btn.dfRefreshBound=true;btn.addEventListener('click',refreshClean)}
-    const nbtn=document.getElementById('dfSystemNotify');if(nbtn&&!nbtn.dfNotifyBound){nbtn.dfNotifyBound=true;nbtn.addEventListener('click',enableNotify)}
+    let bar=document.getElementById('dfSystemBar');
+    if(!bar){
+      bar=document.createElement('div');
+      bar.id='dfSystemBar';
+      bar.className='dfSystemBar';
+      bar.innerHTML='<span class="dfSystemVer">DF EXTRUSOR PRO v'+APP_VERSION+'</span><div class="dfSystemActions"><button id="dfSystemNotify" class="dfSystemBtn alt" type="button">🔔 ATIVAR ATUALIZAÇÕES</button><button id="dfSystemRefresh" class="dfSystemBtn" type="button">↻ ATUALIZAR</button></div>';
+      const app=document.getElementById('appContent');
+      const tabs=app?app.querySelector('.tabs'):document.querySelector('.tabs');
+      if(tabs&&tabs.parentNode)tabs.parentNode.insertBefore(bar,tabs);
+      else if(app)app.insertBefore(bar,app.firstChild);
+      else document.body.insertBefore(bar,document.body.firstChild);
+    }
+    const btn=document.getElementById('dfSystemRefresh');
+    if(btn&&!btn.dfRefreshBound){btn.dfRefreshBound=true;btn.addEventListener('click',refreshClean)}
+    const nbtn=document.getElementById('dfSystemNotify');
+    if(nbtn&&!nbtn.dfNotifyBound){nbtn.dfNotifyBound=true;nbtn.addEventListener('click',enableNotify)}
     notifyState();
     syncVersionLabel();
   }
 
   function loadVendedor(){
     if(document.getElementById('dfVendedorScript'))return;
-    const s=document.createElement('script');s.id='dfVendedorScript';s.src='./vendedor-extra.js?v=20260906-whatsapp-cadastrado-v37';document.body.appendChild(s);
+    const s=document.createElement('script');
+    s.id='dfVendedorScript';
+    s.src='./vendedor-extra.js?v=20260908-boot-stable-v97';
+    document.body.appendChild(s);
+  }
+
+  function scheduleVersionSync(){
+    clearInterval(versionTimer);
+    versionTimer=setInterval(function(){if(!document.hidden)syncVersionLabel()},5*60*1000);
   }
 
   function init(){
-    addBar();loadVendedor();
-    setTimeout(()=>{addBar();loadVendedor();syncVersionLabel()},500);
-    setTimeout(()=>{addBar();loadVendedor();syncVersionLabel()},1500);
-    setInterval(syncVersionLabel,60*1000);
+    addBar();
+    loadVendedor();
+    scheduleVersionSync();
   }
+
   window.addEventListener('df-notify-status',notifyState);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  window.addEventListener('df-ui-ready',addBar);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){notifyState();syncVersionLabel()}});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
