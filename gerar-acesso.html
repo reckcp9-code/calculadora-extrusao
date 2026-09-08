@@ -18,7 +18,7 @@
     let src=await r.text();
     const marker='    document.open();document.write(h);document.close();';
     if(!src.includes(marker))throw new Error('Estrutura do painel incompatível');
-    const patched="    h=h.replace('</body>','<script src=\"./gerador-online-ui.js?v=20260907-online-economy-v89\"></scr'+'ipt><script src=\"./gerador-fast-ui.js?v=20260907-fast-v93\"></scr'+'ipt><script src=\"./gerador-platform-ui.js?v=20260907-platform-v94\"></scr'+'ipt><script src=\"./gerador-online-notify.js?v=20260907-admin-online-push-v89\"></scr'+'ipt></body>');\n"+marker;
+    const patched="    h=h.replace('</body>','<script src=\"./gerador-online-ui.js?v=20260908-visible-only-v95\"></scr'+'ipt><script src=\"./gerador-fast-ui.js?v=20260907-fast-v93\"></scr'+'ipt><script src=\"./gerador-platform-ui.js?v=20260907-platform-v94\"></scr'+'ipt><script src=\"./gerador-online-notify.js?v=20260907-admin-online-push-v89\"></scr'+'ipt></body>');\n"+marker;
     src=src.replace(marker,patched);
     document.open();document.write(src);document.close();
   }catch(e){
