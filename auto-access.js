@@ -243,17 +243,26 @@
     if(linkToken)return;
     const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim();
     if(!credential)return;
+
+    // Quem já possui acesso salvo não fica bloqueado se o D1/Worker estiver
+    // temporariamente indisponível. Tentamos renovar normalmente; se falhar por
+    // erro operacional, mantemos a entrada local. Erros reais de licença (401/403)
+    // continuam removendo o acesso dentro de renewAccess().
     const t=await renewAccess();
     if(t){
       setMessage('Acesso automático restaurado.',true);
-      setTimeout(unlock,120);setTimeout(unlock,700);
+    }else if(localStorage.getItem(ACCESS_KEY)){
+      setMessage('Acesso salvo restaurado. Sincronização temporariamente indisponível.',true);
+    }else{
+      return;
     }
+    setTimeout(unlock,80);setTimeout(unlock,450);setTimeout(unlock,900);
   }
 
   function boot(){
     setTimeout(prepareGeneralGate,80);setTimeout(prepareGeneralGate,450);
     setTimeout(prepareLegacyGate,80);setTimeout(prepareLegacyGate,450);
-    setTimeout(resumeSavedAccess,240);
+    setTimeout(resumeSavedAccess,120);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
