@@ -12,9 +12,8 @@
 <script>
 (async()=>{
   try{
-    // Limpeza única das versões antigas do PWA. Não apaga licença, credencial ou dados do usuário.
     try{
-      const RESET='df_mobile_cache_reset_v1';
+      const RESET='df_mobile_cache_reset_v2';
       if(localStorage.getItem(RESET)!=='1'){
         if('caches' in window){
           const ks=await caches.keys();
@@ -49,7 +48,7 @@
       '<script src="./offline-auth-shim.js?v=20260906-offline-backup-v39"></scr'+'ipt>'+
       '<script src="./platform-hint.js?v=20260907-platform-v86b"></scr'+'ipt>'+
       '<script src="./install-handoff.js?v=20260906-install-handoff-v68"></scr'+'ipt>'+
-      '<script src="./auto-access.js?v=20260907-auto-access-emergency-v65"></scr'+'ipt>'+
+      '<script src="./auto-access.js?v=20260907-auto-access-mobile-v66"></scr'+'ipt>'+
       '<script src="./auto-user.js?v=20260907-auto-user-v72"></scr'+'ipt>'+
       '<script src="./beta-launch.js?v=20260907-beta-lite-v90"></scr'+'ipt>'+
       '<script src="./access-device-guard.js?v=20260907-device-guard-v70"></scr'+'ipt>'+
