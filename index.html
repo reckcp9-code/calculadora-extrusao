@@ -40,9 +40,6 @@
     if(!r.ok) throw new Error('Falha ao carregar aplicativo');
     let h=await r.text();
 
-    // Evita o flash da tela antiga "Licença DF" no iPhone/PWA.
-    // Se este aparelho já possui credencial salva, a interface principal nasce visível
-    // desde o primeiro frame; a renovação de sessão continua acontecendo em segundo plano.
     if(savedAccess){
       h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
     }
@@ -74,7 +71,7 @@
       '<script src="./update-notify-policy.js?v=20260907-notify-policy-v83"></scr'+'ipt>'+
       '<script src="./pwa-update.js?v=20260906-version-sync-v47"></scr'+'ipt>'+
       '<script src="./install-app.js?v=20260906-install-v65"></scr'+'ipt>'+
-      '<script src="./system-extra.js?v=20260906-version-sync-v47"></scr'+'ipt>'+
+      '<script src="./system-extra.js?v=20260908-push-repeat-fix-v95"></scr'+'ipt>'+
       '<script src="./offline-mode.js?v=20260906-offline-backup-v39"></scr'+'ipt>'+
       '<script src="./op-single-safe.js?v=20260906-op-single-safe-2"></scr'+'ipt>'+
       '<script src="./formula-share-safe.js?v=20260906-pdf-total-fator-v35"></scr'+'ipt>'+
