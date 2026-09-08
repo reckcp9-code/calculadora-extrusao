@@ -1,6 +1,6 @@
 {
-  "version": "1.0.85",
-  "title": "DF EXTRUSOR PRO — Correção geral",
-  "message": "Atualização de estabilidade liberada: corrigimos carregamento, acesso automático e vários bugs internos do app.",
-  "updatedAt": "2026-09-08T01:15:00-03:00"
+  "version": "1.0.86",
+  "title": "DF EXTRUSOR PRO — OP em A4 deitado",
+  "message": "Atualização da Ordem de Produção: impressão em A4 deitado preenchendo melhor a folha.",
+  "updatedAt": "2026-09-08T14:20:00-03:00"
 }
