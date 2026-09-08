@@ -1,6 +1,6 @@
 {
-  "version": "1.0.86",
-  "title": "DF EXTRUSOR PRO — OP em A4 deitado",
-  "message": "Atualização da Ordem de Produção: impressão em A4 deitado preenchendo melhor a folha.",
-  "updatedAt": "2026-09-08T14:20:00-03:00"
+  "version": "1.0.87",
+  "title": "DF EXTRUSOR PRO — OP em 1 folha",
+  "message": "Correção da Ordem de Produção: agora a impressão A4 deitada foi ajustada para caber em apenas 1 folha.",
+  "updatedAt": "2026-09-08T14:40:00-03:00"
 }
