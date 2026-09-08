@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const q=id=>document.getElementById(id);
-  const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
   const fm=(v,d=2)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'};
   const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
 
@@ -50,14 +50,15 @@
       @media(max-width:900px){.sheet{width:297mm;transform-origin:top left;transform:scale(calc((100vw - 14px) / 1123));margin-left:7px;margin-right:0}}
       @media print{
         @page{size:A4 landscape;margin:0}
-        html,body{background:#fff!important;width:297mm!important;height:210mm!important;min-width:297mm!important;min-height:210mm!important;max-width:297mm!important;max-height:210mm!important;margin:0!important;padding:0!important;overflow:hidden!important}
-        body{position:relative!important}
+        html{background:#fff!important;width:297mm!important;height:1mm!important;min-height:1mm!important;max-height:1mm!important;margin:0!important;padding:0!important;overflow:visible!important}
+        body{background:#fff!important;width:297mm!important;height:1mm!important;min-height:1mm!important;max-height:1mm!important;margin:0!important;padding:0!important;overflow:visible!important;position:relative!important}
         .toolbar{display:none!important}
-        .sheet{position:absolute!important;left:0!important;top:0!important;width:297mm!important;height:210mm!important;min-height:210mm!important;max-height:210mm!important;margin:0!important;padding:4mm!important;box-shadow:none!important;transform:none!important;overflow:hidden!important;page-break-before:avoid!important;page-break-after:avoid!important;page-break-inside:avoid!important;break-before:avoid-page!important;break-after:avoid-page!important;break-inside:avoid-page!important}
-        .op{font-size:8.7px!important;line-height:.95!important;break-inside:avoid-page!important;page-break-inside:avoid!important}
-        .op td,.op th{height:4.5mm!important;padding:.5mm .8mm!important}
-        .top td{height:5.5mm!important}.mat td,.mat th{height:4.5mm!important}.prod td,.prod th{height:4.65mm!important}.codes td,.codes th{height:3.4mm!important}.obs{height:6mm!important}.sectionGap{height:.35mm!important}.logo{font-size:15px!important}.xbig{font-size:15px!important}.big{font-size:12.5px!important}.value{font-size:11.5px!important}.miniTitle{font-size:7px!important}
+        .sheet{position:fixed!important;left:2.5mm!important;top:2.5mm!important;width:292mm!important;height:202mm!important;min-height:0!important;max-height:202mm!important;margin:0!important;padding:3mm!important;box-shadow:none!important;transform:none!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;page-break-before:avoid!important;page-break-after:avoid!important;page-break-inside:avoid!important;break-before:avoid-page!important;break-after:avoid-page!important;break-inside:avoid-page!important}
+        .op{font-size:8.9px!important;line-height:.98!important;break-inside:avoid-page!important;page-break-inside:avoid!important;flex:0 0 auto!important}
+        .op td,.op th{height:4.65mm!important;padding:.55mm .8mm!important}
+        .top td{height:5.7mm!important}.mat td,.mat th{height:4.65mm!important}.prod td,.prod th{height:4.75mm!important}.codes td,.codes th{height:3.5mm!important}.obs{height:6.3mm!important}.sectionGap{height:.4mm!important;flex:0 0 .4mm!important}.logo{font-size:15px!important}.xbig{font-size:15px!important}.big{font-size:12.5px!important}.value{font-size:11.5px!important}.miniTitle{font-size:7px!important}
         .sheet,.sheet *{page-break-before:avoid!important;page-break-after:avoid!important;break-before:avoid-page!important;break-after:avoid-page!important}
+        html::after,body::after,.sheet::after{content:none!important;display:none!important}
       }`;
 
     const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OP '+esc(nome)+'</title><style>'+style+'</style></head><body><div class="toolbar"><button class="back" onclick="try{if(window.opener&&!window.opener.closed)window.opener.focus()}catch(e){};window.close()">← VOLTAR PARA FORMULAÇÃO</button><button class="print" onclick="window.print()">IMPRIMIR / SALVAR PDF</button><span class="hint">OP em A4 deitado — 1 folha</span></div><div class="sheet">'+
