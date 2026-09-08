@@ -12,6 +12,22 @@
 <script>
 (async()=>{
   try{
+    // Limpeza única das versões antigas do PWA. Não apaga licença, credencial ou dados do usuário.
+    try{
+      const RESET='df_mobile_cache_reset_v1';
+      if(localStorage.getItem(RESET)!=='1'){
+        if('caches' in window){
+          const ks=await caches.keys();
+          await Promise.all(ks.filter(k=>k.startsWith('df-extrusor-shell-')).map(k=>caches.delete(k)));
+        }
+        if('serviceWorker' in navigator){
+          const regs=await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r=>r.update().catch(()=>{})));
+        }
+        localStorage.setItem(RESET,'1');
+      }
+    }catch(e){}
+
     const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches===true)||navigator.standalone===true;
     const u0=new URL(location.href);
     const savedAccess=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
@@ -71,7 +87,7 @@
       '</body>');
     document.open();document.write(h);document.close();
   }catch(e){
-    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora. Atualize e tente novamente.</p></div>';
+    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora. Feche o app totalmente e abra novamente.</p></div>';
   }
 })();
 </script>
