@@ -28,6 +28,15 @@
     return reg;
   }
 
+  async function clearBadge(){
+    try{if('clearAppBadge' in navigator)await navigator.clearAppBadge()}catch(e){}
+    try{
+      const r=reg||await registration();
+      const target=r.active||r.waiting||r.installing;
+      if(target)target.postMessage({type:'DF_CLEAR_BADGE'});
+    }catch(e){}
+  }
+
   async function subscription(create){
     const r=await registration();
     let sub=await r.pushManager.getSubscription();
@@ -72,6 +81,7 @@
   }
 
   function mount(){
+    clearBadge();
     if($('dfOnlineNotifyCard'))return;
     const first=document.querySelector('.wrap .card');if(!first)return;
     const card=document.createElement('div');card.className='card';card.id='dfOnlineNotifyCard';
@@ -83,8 +93,8 @@
     setTimeout(refreshStatus,900);
   }
 
-  window.addEventListener('focus',function(){setTimeout(refreshStatus,100)});
-  window.addEventListener('pageshow',function(){setTimeout(refreshStatus,100)});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(refreshStatus,100)});
+  window.addEventListener('focus',function(){clearBadge();setTimeout(refreshStatus,100)});
+  window.addEventListener('pageshow',function(){clearBadge();setTimeout(refreshStatus,100)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){clearBadge();setTimeout(refreshStatus,100)}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
