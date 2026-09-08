@@ -84,7 +84,9 @@
         auto.id='dfOnlineAuto';
         sum.insertAdjacentElement('afterend',auto);
       }
-      auto.textContent='⚡ Atualização automática econômica • a cada '+Math.round(AUTO_REFRESH_MS/1000)+' s';
+      auto.textContent=document.hidden
+        ? '⏸ Atualização automática pausada'
+        : '⚡ Atualização automática econômica • somente com o painel aberto • a cada '+Math.round(AUTO_REFRESH_MS/1000)+' s';
     }
   }
 
@@ -106,13 +108,23 @@
     return response;
   };
 
-  function scheduleRefresh(ms){
+  function stopRefresh(){
     clearTimeout(refreshTimer);
+    refreshTimer=0;
+  }
+
+  function scheduleRefresh(ms){
+    stopRefresh();
+    if(document.hidden)return;
     refreshTimer=setTimeout(refresh,Math.max(500,Number(ms)||AUTO_REFRESH_MS));
   }
 
   function refresh(){
-    if(document.hidden){scheduleRefresh(AUTO_REFRESH_MS);return}
+    if(document.hidden){
+      stopRefresh();
+      annotate();
+      return;
+    }
     const btn=document.getElementById('usedBtn');
     if(secret()&&btn&&!btn.disabled){
       try{btn.click()}catch(e){}
@@ -122,13 +134,22 @@
 
   function init(){
     addStyle();
-    scheduleRefresh(700);
+    if(!document.hidden)scheduleRefresh(700);
     scheduleAnnotate();
     const input=document.getElementById('secret');
-    if(input)input.addEventListener('input',function(){scheduleRefresh(250)});
+    if(input)input.addEventListener('input',function(){if(!document.hidden)scheduleRefresh(250)});
   }
 
-  document.addEventListener('visibilitychange',function(){if(!document.hidden){scheduleRefresh(150);scheduleAnnotate()}});
-  window.addEventListener('focus',function(){scheduleRefresh(150)});
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){
+      stopRefresh();
+      annotate();
+      return;
+    }
+    scheduleRefresh(150);
+    scheduleAnnotate();
+  });
+  window.addEventListener('focus',function(){if(!document.hidden)scheduleRefresh(150)});
+  window.addEventListener('pagehide',stopRefresh);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
