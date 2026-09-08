@@ -2,9 +2,11 @@
   'use strict';
   const KEY='df_private_polish_v1';
   let active=false;
+  let abrir='';
   try{
     const u=new URL(location.href);
     const mode=String(u.searchParams.get('visual')||'').toLowerCase();
+    abrir=String(u.searchParams.get('abrir')||'').toLowerCase();
     active=mode==='privado'||localStorage.getItem(KEY)==='1';
   }catch(e){}
   if(!active)return;
@@ -12,6 +14,7 @@
   let focused=false;
   let currentPage='';
   const map={btEx:'pgEx',btSa:'pgSa',btCu:'pgCu',btFo:'pgFo'};
+  const direct={ex:'pgEx',sa:'pgSa',cu:'pgCu',fo:'pgFo'};
 
   function addStyle(){
     if(document.getElementById('dfSectionFocusStyle'))return;
@@ -46,6 +49,7 @@
     b.type='button';
     b.innerHTML='<span class="arr">←</span><span>VOLTAR</span>';
     b.addEventListener('click',function(){
+      if(abrir){location.href='./teste-dashboard.html';return;}
       try{history.back();}catch(e){exit();}
     });
     app.insertBefore(b,app.firstChild);
@@ -55,7 +59,7 @@
     document.querySelectorAll('#appContent>.page.df-current-section').forEach(function(p){p.classList.remove('df-current-section')});
   }
 
-  function enter(pageId){
+  function enter(pageId,push){
     const page=document.getElementById(pageId);
     if(!page)return;
     addStyle();
@@ -65,7 +69,7 @@
     currentPage=pageId;
     focused=true;
     document.body.classList.add('df-section-focus');
-    try{history.pushState({dfSectionFocus:pageId},'',location.pathname+location.search+'#'+pageId.replace('pg','').toLowerCase());}catch(e){}
+    if(push!==false){try{history.pushState({dfSectionFocus:pageId},'',location.pathname+location.search+'#'+pageId.replace('pg','').toLowerCase());}catch(e){}}
     setTimeout(function(){window.scrollTo(0,0)},0);
   }
 
@@ -81,19 +85,26 @@
     const btn=document.getElementById(btnId);
     if(!btn||btn.dataset.dfSectionFocusBound==='1')return;
     btn.dataset.dfSectionFocusBound='1';
-    btn.addEventListener('click',function(){setTimeout(function(){enter(pageId)},0)});
+    btn.addEventListener('click',function(){setTimeout(function(){enter(pageId,true)},0)});
   }
 
   function bind(){Object.keys(map).forEach(function(id){bindOne(id,map[id])});}
   window.addEventListener('popstate',function(){if(focused)exit()});
 
+  function maybeOpenDirect(){
+    if(!abrir||!direct[abrir])return false;
+    if(document.getElementById(direct[abrir])){enter(direct[abrir],false);return true;}
+    return false;
+  }
+
   function init(){
     addStyle();
     ensureBack();
     bind();
-    setTimeout(function(){ensureBack();bind()},220);
-    setTimeout(function(){ensureBack();bind()},800);
-    setTimeout(function(){ensureBack();bind()},1600);
+    maybeOpenDirect();
+    setTimeout(function(){ensureBack();bind();maybeOpenDirect()},220);
+    setTimeout(function(){ensureBack();bind();maybeOpenDirect()},800);
+    setTimeout(function(){ensureBack();bind();maybeOpenDirect()},1600);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
