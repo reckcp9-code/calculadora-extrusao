@@ -38,20 +38,20 @@
   }
 
   function cardHtml(){return `<div class="card dfBobinaCard" id="dfBobinaCard">
-    <div class="dfBobinaTop"><div><span class="tag">Bobina</span><h2>Peso da bobina pela altura</h2></div><label class="dfBobinaCheck"><input id="bobAuto" type="checkbox" checked> Puxar largura, micra e densidade da Extrusão</label></div>
-    <div class="hint">Calcula <b>altura enrolada → peso</b> e também <b>peso → altura enrolada</b>. Meça somente a camada de plástico: do lado de fora do tubete até a borda da bobina.</div>
+    <div class="dfBobinaTop"><div><span class="tag">Bobina</span><h2>Peso da bobina pelo raio</h2></div><label class="dfBobinaCheck"><input id="bobAuto" type="checkbox" checked> Puxar largura, micra e densidade da Extrusão</label></div>
+    <div class="hint">Cálculo geométrico pelo anel da bobina: usa o <b>raio do tubete ao quadrado</b> e o <b>raio externo ao quadrado</b>. Você pode informar a altura de plástico enrolado ou o peso desejado.</div>
     <button id="bobPull" class="calcBtn alt dfBobinaMini" type="button">PUXAR DADOS DA EXTRUSÃO AGORA</button>
     <div class="grid">
       <div><label>Largura física da bobina / boca fechada (cm)</label><input id="bobL" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
       <div><label>Micra parede dupla (µm)</label><input id="bobM" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
       <div><label>Densidade</label><input id="bobD" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
-      <div><label>Fator de aperto normal (%)</label><input id="bobK" inputmode="decimal" value="92" placeholder="Ex.: 92"></div>
+      <div><label>Fator de compactação / calibração (%)</label><input id="bobK" inputmode="decimal" value="100" placeholder="100 = geometria pura"></div>
       <div><label>Tipo da bobina</label><select id="bobTipo"><option value="normal">Normal</option><option value="sanfonada">Sanfonada</option></select></div>
       <div id="bobSanfonaBox" class="dfBobinaBox"><label>Sanfona de cada lado (cm)</label><input id="bobSanfona" inputmode="decimal" placeholder="Ex.: 5"></div>
     </div>
-    <div class="smallNote">Na sanfonada, a largura equivalente aumenta e o fator usado no raio é corrigido automaticamente. Para deixar 100% certo na sua máquina, use a calibração pela balança.</div>
+    <div class="smallNote"><b>Regra sanfonada:</b> no cálculo físico do raio/peso usa metade da largura informada (ex.: 80 cm → 40 cm). O peso por metro continua usando a largura equivalente do filme: largura + 2 × sanfona. O padrão matemático é 100%; para compensar ar/pressão do enrolamento, calibre pela balança.</div>
     <div class="grid">
-      <div><label>Altura enrolada da bobina (cm)</label><input id="bobRe" class="main" inputmode="decimal" placeholder="Do tubete até a borda"></div>
+      <div><label>Altura de plástico enrolado (cm)</label><input id="bobRe" class="main" inputmode="decimal" placeholder="Do lado de fora do tubete até a borda"></div>
       <div><label>Diâmetro do tubete / núcleo (cm)</label><input id="bobRi" class="main" inputmode="decimal" value="7,6" placeholder="Ex.: 7,6 ou 10"></div>
       <div><label>Peso do tubete (kg)</label><input id="bobCore" inputmode="decimal" placeholder="Opcional"></div>
       <div><label>Peso desejado da bobina (kg)</label><input id="bobTarget" class="main" inputmode="decimal" placeholder="Para calcular a altura"></div>
@@ -61,9 +61,10 @@
     <div class="result"><span>ALTURA → PESO DA BOBINA</span><b id="bobPesoTotal">—</b></div>
     <div class="dfBobinaResults">
       <div class="kpi"><span>Tipo usado</span><b id="bobTipoUsado">—</b></div>
-      <div class="kpi"><span>Largura física do rolo</span><b id="bobLargFis">—</b></div>
-      <div class="kpi"><span>Largura equivalente</span><b id="bobLargEquiv">—</b></div>
-      <div class="kpi"><span>Fator usado no raio</span><b id="bobFatorRaio">—</b></div>
+      <div class="kpi"><span>Largura informada</span><b id="bobLargFis">—</b></div>
+      <div class="kpi"><span>Largura usada no raio</span><b id="bobLargRaio">—</b></div>
+      <div class="kpi"><span>Largura equivalente do filme</span><b id="bobLargEquiv">—</b></div>
+      <div class="kpi"><span>Fator aplicado</span><b id="bobFatorRaio">—</b></div>
       <div class="kpi"><span>Peso do plástico</span><b id="bobPesoPlastico">—</b></div>
       <div class="kpi"><span>Metros aproximados</span><b id="bobMetros">—</b></div>
       <div class="kpi"><span>Diâmetro externo</span><b id="bobDiametro">—</b></div>
@@ -78,7 +79,7 @@
     </div>
     <div class="dfCalBox">
       <h3>Calibrar bobina pela balança</h3>
-      <div class="hint">Use uma bobina real: informe o peso da balança e a altura enrolada medida do tubete até a borda. O sistema ajusta o fator para bater com a sua máquina/material.</div>
+      <div class="hint">Para máxima precisão na sua máquina, use uma bobina real. Informe o peso da balança e a altura enrolada medida. O sistema calcula o fator de compactação real do seu enrolamento.</div>
       <div class="grid"><div><label>Peso real na balança (kg)</label><input id="bobCalPeso" inputmode="decimal" placeholder="Ex.: 100"></div><div><label>O peso da balança inclui tubete?</label><select id="bobCalTipo"><option value="total">Sim, inclui tubete</option><option value="plastico">Não, só plástico</option></select></div></div>
       <button id="bobCalBtn" class="calcBtn alt dfBobinaMini" type="button">CALIBRAR FATOR PELA BALANÇA</button>
       <div class="smallNote" id="bobCalRes">Para calibrar, preencha também altura enrolada, diâmetro do tubete, largura, densidade e tipo da bobina.</div>
@@ -90,40 +91,46 @@
   function schedule(){clearTimeout(timer);timer=setTimeout(calc,120)}
   function sync(force){const a=$('bobAuto');if(!force&&a&&!a.checked)return;const l=val('exL'),m=val('exM'),d=densEx();if(l>0&&$('bobL'))$('bobL').value=fmtInp(l);if(m>0&&$('bobM'))$('bobM').value=fmtInp(m);if(d>0&&$('bobD'))$('bobD').value=fmtInp(d,3);schedule()}
   function updateTipo(){const box=$('bobSanfonaBox');if(box)box.classList.toggle('on',$('bobTipo')?.value==='sanfonada');schedule()}
-  function limpar(){['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado','bobTipoUsado','bobLargFis','bobLargEquiv','bobFatorRaio'].forEach(id=>set(id,'—'))}
+  function limpar(){['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado','bobTipoUsado','bobLargFis','bobLargRaio','bobLargEquiv','bobFatorRaio'].forEach(id=>set(id,'—'))}
+
   function medidas(){
     const tipo=$('bobTipo')?.value||'normal';
     const fisica=val('bobL');
     const sanfona=tipo==='sanfonada'?Math.max(0,val('bobSanfona')):0;
     const equivalente=fisica+(tipo==='sanfonada'?sanfona*2:0);
+    const larguraRaio=tipo==='sanfonada'?fisica/2:fisica;
     const diametroTubete=val('bobRi');
     const raioNucleo=diametroTubete/2;
     const altura=val('bobRe');
     const raioExterno=altura>0&&raioNucleo>0?raioNucleo+altura:0;
     const fatorBase=val('bobK')/100;
-    const ajusteSanfona=(tipo==='sanfonada'&&equivalente>fisica)?fisica/equivalente:1;
-    const fatorRaio=fatorBase*ajusteSanfona;
-    return {tipo,fisica,sanfona,equivalente,diametroTubete,raioNucleo,altura,raioExterno,fatorBase,ajusteSanfona,fatorRaio};
+    const fatorRaio=fatorBase;
+    return {tipo,fisica,sanfona,equivalente,larguraRaio,diametroTubete,raioNucleo,altura,raioExterno,fatorBase,fatorRaio};
   }
+
   function resultadoBase(){
     const w=medidas(), micra=val('bobM'), dens=val('bobD');
     const pesoMetroG=(w.equivalente*micra*dens)/100;
     return {w,micra,dens,pesoMetroG,core:val('bobCore'),target:val('bobTarget'),incluiTubete:!!$('bobTargetTotal')?.checked};
   }
+
   function validar(b){
-    if(!(b.w.fisica>0&&b.w.equivalente>0&&b.micra>0&&b.dens>0&&b.w.fatorBase>0&&b.w.fatorRaio>0&&b.w.raioNucleo>0)){
-      setMsg('Confira largura, micra, densidade, diâmetro do tubete e fator de aperto.','bad');
+    if(!(b.w.fisica>0&&b.w.larguraRaio>0&&b.w.equivalente>0&&b.micra>0&&b.dens>0&&b.w.fatorBase>0&&b.w.raioNucleo>0)){
+      setMsg('Confira largura, micra, densidade, diâmetro do tubete e fator de compactação.','bad');
       return false;
     }
     return true;
   }
+
   function preencherFixos(b){
-    set('bobTipoUsado',b.w.tipo==='sanfonada'?'Sanfonada':'Normal');
+    set('bobTipoUsado',b.w.tipo==='sanfonada'?'Sanfonada — metade da largura no raio':'Normal');
     set('bobLargFis',fmt(b.w.fisica,2)+' cm');
+    set('bobLargRaio',fmt(b.w.larguraRaio,2)+' cm');
     set('bobLargEquiv',fmt(b.w.equivalente,2)+' cm');
     set('bobFatorRaio',fmt(b.w.fatorRaio*100,1)+'%');
     set('bobGm',fmt(b.pesoMetroG,2)+' g/m');
   }
+
   function calc(){
     limpar();
     const b=resultadoBase();
@@ -134,9 +141,9 @@
     if(b.w.altura>0){
       if(!(b.w.raioExterno>b.w.raioNucleo)){setMsg('A altura enrolada precisa ser maior que zero.','bad')}
       else{
-        const area=PI*(b.w.raioExterno*b.w.raioExterno-b.w.raioNucleo*b.w.raioNucleo);
-        const vol=area*b.w.fisica*b.w.fatorRaio;
-        const kgPlastico=(vol*b.dens)/1000;
+        const areaAnel=PI*((b.w.raioExterno*b.w.raioExterno)-(b.w.raioNucleo*b.w.raioNucleo));
+        const volumePlastico=areaAnel*b.w.larguraRaio*b.w.fatorRaio;
+        const kgPlastico=(volumePlastico*b.dens)/1000;
         const metros=b.pesoMetroG>0?(kgPlastico*1000)/b.pesoMetroG:0;
         const kgTotal=kgPlastico+b.core;
         set('bobPesoTotal',fmt(kgTotal,3)+' kg total');
@@ -151,11 +158,14 @@
       const kgPlasticoDesejado=b.incluiTubete?b.target-b.core:b.target;
       if(kgPlasticoDesejado<=0){set('bobRaioNec','Peso menor que o tubete')}
       else{
-        const reNec=Math.sqrt((b.w.raioNucleo*b.w.raioNucleo)+(kgPlasticoDesejado*1000)/(PI*b.w.fisica*b.dens*b.w.fatorRaio));
-        const alturaNec=Math.max(0,reNec-b.w.raioNucleo);
+        const raioExternoNec=Math.sqrt(
+          (b.w.raioNucleo*b.w.raioNucleo)+
+          (kgPlasticoDesejado*1000)/(PI*b.w.larguraRaio*b.dens*b.w.fatorRaio)
+        );
+        const alturaNec=Math.max(0,raioExternoNec-b.w.raioNucleo);
         const metrosPeso=b.pesoMetroG>0?(kgPlasticoDesejado*1000)/b.pesoMetroG:0;
         set('bobRaioNec',fmt(alturaNec,2)+' cm');
-        set('bobDiamNec',fmt(reNec*2,2)+' cm');
+        set('bobDiamNec',fmt(raioExternoNec*2,2)+' cm');
         set('bobMetrosPeso',fmt(metrosPeso,1)+' m');
         set('bobPesoUsado',fmt(kgPlasticoDesejado,3)+' kg');
         set('bobTubeteUsado',fmt(b.incluiTubete?b.core:0,3)+' kg');
@@ -164,10 +174,11 @@
     }
 
     if(ok){
-      const extra=b.w.tipo==='sanfonada'?' Sanfonada corrigida pela largura equivalente; calibre pela balança para ficar cravado.':'';
-      setMsg('Cálculo pronto. A altura é somente a camada enrolada, sem contar o raio do tubete.'+extra,'ok');
+      const extra=b.w.tipo==='sanfonada'?' Na sanfonada foi usada metade da largura no cálculo do raio, conforme sua regra de produção.':'';
+      setMsg('Cálculo pelo anel da bobina pronto. O tubete entra pelo raio ao quadrado e a altura informada é somente a camada de plástico.'+extra,'ok');
     }else setMsg('Preencha a altura enrolada para saber o peso ou digite o peso desejado para saber a altura.','warn');
   }
+
   function calibrar(){
     const b=resultadoBase(), box=$('bobCalRes');
     const pesoReal=val('bobCalPeso'), inclui=($('bobCalTipo')?.value||'total')==='total';
@@ -179,27 +190,28 @@
     }
     const kgPlastico=inclui?pesoReal-b.core:pesoReal;
     if(!(kgPlastico>0)){r('Peso plástico ficou menor ou igual a zero. Confira o peso do tubete.');return}
-    const area=PI*(b.w.raioExterno*b.w.raioExterno-b.w.raioNucleo*b.w.raioNucleo);
-    const fatorEfetivo=(kgPlastico*1000)/(area*b.w.fisica*b.dens);
-    const fatorBase=fatorEfetivo/(b.w.ajusteSanfona||1);
-    if(!(fatorBase>0&&Number.isFinite(fatorBase))){r('Não consegui calcular o fator. Confira as medidas.');return}
-    if($('bobK'))$('bobK').value=fmtInp(fatorBase*100,1);
-    r('Fator calibrado: '+fmt(fatorBase*100,1)+'%. Fator usado no raio: '+fmt(fatorEfetivo*100,1)+'%. Agora essa bobina bate com a balança.');
-    setMsg('Calibração feita pela balança. O fator foi ajustado para sua bobina real.','ok');
+    const areaAnel=PI*((b.w.raioExterno*b.w.raioExterno)-(b.w.raioNucleo*b.w.raioNucleo));
+    const fatorEfetivo=(kgPlastico*1000)/(areaAnel*b.w.larguraRaio*b.dens);
+    if(!(fatorEfetivo>0&&Number.isFinite(fatorEfetivo))){r('Não consegui calcular o fator. Confira as medidas.');return}
+    if($('bobK'))$('bobK').value=fmtInp(fatorEfetivo*100,1);
+    r('Fator calibrado: '+fmt(fatorEfetivo*100,1)+'%. Agora o cálculo de raio/peso fica ajustado à bobina real medida na balança.');
+    setMsg('Calibração feita pela balança. O fator foi ajustado para o seu enrolamento real.','ok');
     schedule();
   }
+
   function bind(){
     const pull=$('bobPull'),auto=$('bobAuto'),tipo=$('bobTipo'),cal=$('bobCalBtn');
     if(pull&&!pull.dfBound){pull.dfBound=true;pull.addEventListener('click',()=>{if(auto)auto.checked=true;sync(true)})}
     if(auto&&!auto.dfBound){auto.dfBound=true;auto.addEventListener('change',()=>sync(false))}
     if(tipo&&!tipo.dfBound){tipo.dfBound=true;tipo.addEventListener('change',updateTipo)}
     if(cal&&!cal.dfBound){cal.dfBound=true;cal.addEventListener('click',calibrar)}
-    if(!window.dfBobinaMigratedV3){window.dfBobinaMigratedV3=true;const e=$('bobRi');if(e&&String(e.value).replace(',','.')==='3.8')e.value='7,6'}
+    if(!window.dfBobinaMigratedV4){window.dfBobinaMigratedV4=true;const e=$('bobRi');if(e&&String(e.value).replace(',','.')==='3.8')e.value='7,6'}
     ['bobL','bobM','bobD'].forEach(id=>{const e=$(id);if(e&&!e.dfBound){e.dfBound=true;e.addEventListener('input',()=>{if(auto)auto.checked=false;schedule()})}});
     ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal','bobSanfona'].forEach(id=>{const e=$(id);if(e&&!e.dfBound){e.dfBound=true;e.addEventListener('input',schedule);e.addEventListener('change',schedule)}});
     ['exL','exM','exDm','exDs'].forEach(id=>{const e=$(id);if(e&&!e.dfBobBound){e.dfBobBound=true;e.addEventListener('input',()=>sync(false));e.addEventListener('change',()=>sync(false))}});
     updateTipo();sync(false);
   }
+
   function add(){addStyle();const pg=$('pgEx');if(!pg||$('dfBobinaCard'))return;const contact=$('dfContact_pgEx');if(contact)contact.insertAdjacentHTML('beforebegin',cardHtml());else pg.insertAdjacentHTML('beforeend',cardHtml());bind()}
   function init(){add();setTimeout(()=>{add();bind()},300);setTimeout(()=>{add();bind()},900)}
   window.dfBobinaCalc=calc;
