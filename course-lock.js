@@ -49,13 +49,12 @@
 
   function init(){
     lockAll();
-    setTimeout(lockAll,180);
-    setTimeout(lockAll,650);
-    setTimeout(lockAll,1500);
+    requestAnimationFrame(lockAll);
     document.addEventListener('click',blockClick,true);
-    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(lockAll,30)});
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)lockAll()});
+    window.addEventListener('df-ui-ready',lockAll);
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
