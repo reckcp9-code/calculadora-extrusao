@@ -1,6 +1,6 @@
 {
-  "version": "1.0.89",
-  "title": "DF EXTRUSOR PRO — OP 1 folha no iPhone",
-  "message": "Correção da Ordem de Produção: ajuste fino para não puxar segunda folha no iPhone/iOS, mantendo A4 deitado.",
-  "updatedAt": "2026-09-08T15:57:00-03:00"
+  "version": "1.0.90",
+  "title": "DF EXTRUSOR PRO — OP sem página 2",
+  "message": "Correção da Ordem de Produção no iPhone/iOS: removido o espaço que criava uma segunda página em branco na impressão.",
+  "updatedAt": "2026-09-08T16:02:00-03:00"
 }
