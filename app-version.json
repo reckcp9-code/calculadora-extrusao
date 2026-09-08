@@ -1,6 +1,6 @@
 {
-  "version": "1.0.84",
-  "title": "DF EXTRUSOR PRO — Favoritos",
-  "message": "Nova aba FAVORITOS liberada para todos. Agora cada usuário pode marcar as calculadoras que mais usa e abrir direto sem ficar procurando.",
-  "updatedAt": "2026-09-07T16:05:00-03:00"
+  "version": "1.0.85",
+  "title": "DF EXTRUSOR PRO — Correção geral",
+  "message": "Atualização de estabilidade liberada: corrigimos carregamento, acesso automático e vários bugs internos do app.",
+  "updatedAt": "2026-09-08T01:15:00-03:00"
 }
