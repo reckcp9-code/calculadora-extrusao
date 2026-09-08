@@ -4,6 +4,7 @@
   const VERSION_URL='./app-version.json';
   const LAST_VERSION='df_last_version_seen_v1';
   const LAST_NOTIFY='df_last_version_notified_v1';
+  let syncing=false;
 
   function patchServiceWorkerRegister(){
     try{
@@ -42,26 +43,27 @@
   }
 
   async function syncPolicy(){
-    const version=await currentVersion();
-    if(!version)return;
-    const notify=await shouldNotify(version);
-    if(notify)return;
+    if(syncing||document.hidden)return;
+    syncing=true;
     try{
-      localStorage.setItem(LAST_VERSION,version);
-      localStorage.setItem(LAST_NOTIFY,version);
-    }catch(e){}
-    try{
-      const reg=await navigator.serviceWorker.ready;
-      const target=reg.active||reg.waiting||reg.installing;
-      if(target)target.postMessage({type:'DF_SET_VERSION',version});
-    }catch(e){}
+      const version=await currentVersion();
+      if(!version)return;
+      const notify=await shouldNotify(version);
+      if(notify)return;
+      try{
+        localStorage.setItem(LAST_VERSION,version);
+        localStorage.setItem(LAST_NOTIFY,version);
+      }catch(e){}
+      try{
+        const reg=await navigator.serviceWorker.ready;
+        const target=reg.active||reg.waiting||reg.installing;
+        if(target)target.postMessage({type:'DF_SET_VERSION',version});
+      }catch(e){}
+    }finally{syncing=false}
   }
 
   patchServiceWorkerRegister();
-  setTimeout(syncPolicy,50);
-  setTimeout(syncPolicy,450);
-  setTimeout(syncPolicy,1000);
-  setInterval(syncPolicy,60000);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncPolicy,{once:true});
+  else syncPolicy();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncPolicy()});
-  window.addEventListener('focus',syncPolicy);
 })();
