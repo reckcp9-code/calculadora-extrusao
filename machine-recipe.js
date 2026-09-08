@@ -63,10 +63,11 @@
 
   function init(){
     ensureRecipeButton();
-    setTimeout(ensureRecipeButton,220);setTimeout(ensureRecipeButton,800);setTimeout(ensureRecipeButton,1800);
+    requestAnimationFrame(ensureRecipeButton);
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('dfRecipePreview')&&!$('dfRecipePreview').hidden)closePreview()});
-    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(ensureRecipeButton,40)});
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)ensureRecipeButton()});
+    window.addEventListener('df-ui-ready',ensureRecipeButton);
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
