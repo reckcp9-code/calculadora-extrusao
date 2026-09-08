@@ -13,7 +13,7 @@
 (async()=>{
   try{
     try{
-      const RESET='df_mobile_cache_reset_v2';
+      const RESET='df_mobile_cache_reset_v3';
       if(localStorage.getItem(RESET)!=='1'){
         if('caches' in window){
           const ks=await caches.keys();
@@ -39,6 +39,10 @@
     const r=await fetch('https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html',{cache:'no-store'});
     if(!r.ok) throw new Error('Falha ao carregar aplicativo');
     let h=await r.text();
+
+    // A interface fica invisível durante a montagem para o iPhone não exibir
+    // a base antiga e os complementos entrando em etapas.
+    h=h.replace('</head>','<style id="dfBootReadyStyle">html{background:#080b13!important}body{opacity:0!important;background:#080b13!important}body.dfBootReady{opacity:1!important}</style></head>');
 
     if(savedAccess){
       h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
@@ -88,6 +92,7 @@
       '<script src="./course-lock.js?v=20260907-course-lite-v90"></scr'+'ipt>'+
       '<script src="./formula-bottom-order.js?v=20260907-formula-bottom-lite-v90"></scr'+'ipt>'+
       '<script src="./machine-recipe.js?v=20260907-recipe-lite-v90"></scr'+'ipt>'+
+      '<scr'+'ipt>(function(){var done=false;function reveal(){if(done)return;done=true;try{document.body.classList.add("dfBootReady")}catch(e){}}function ready(){setTimeout(reveal,420)}if(document.readyState==="complete")ready();else window.addEventListener("load",ready,{once:true});setTimeout(reveal,1800)})();</scr'+'ipt>'+
       '</body>');
     document.open();document.write(h);document.close();
   }catch(e){
