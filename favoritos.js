@@ -91,9 +91,9 @@
   function openItem(key){
     const item=ITEMS[key];if(!item)return;
     try{if(typeof window.show==='function')window.show(item.page)}catch(e){}
-    setTimeout(function(){
+    requestAnimationFrame(function(){
       const card=item.find();if(card){try{card.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){card.scrollIntoView()}}
-    },100);
+    });
   }
 
   function render(){
@@ -117,6 +117,12 @@
   }
 
   function ensure(){addStyle();ensurePage();ensureButton();ensureStars();render()}
-  function init(){ensure();setTimeout(ensure,350);setTimeout(ensure,1100);document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(ensure,30)});if(location.hash==='#favoritos')setTimeout(showFavorites,500)}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  function init(){
+    ensure();
+    requestAnimationFrame(ensure);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)ensure()});
+    window.addEventListener('df-ui-ready',ensure);
+    if(location.hash==='#favoritos')showFavorites();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
