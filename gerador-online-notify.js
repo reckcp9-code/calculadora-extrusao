@@ -4,6 +4,7 @@
   const API='https://df-extrusor-api.reck-cp9.workers.dev';
   const VAPID_PUBLIC_KEY='BCeh5o1hAKV598vbnKqDfoIMcsGZaxKmfW8fVmR3FdGoAOOUWeBoeikXc_s07eb47M-6Kwl991u4w0MFuv4-rGU';
   let reg=null;
+  let refreshing=false;
 
   function $(id){return document.getElementById(id)}
   function secret(){const el=$('secret');return String(el&&el.value||'').trim()}
@@ -23,6 +24,7 @@
     if(!('serviceWorker' in navigator))throw new Error('Este navegador não oferece notificações push.');
     reg=reg||await navigator.serviceWorker.register('./sw.js',{scope:'./'});
     await navigator.serviceWorker.ready;
+    try{await reg.update()}catch(e){}
     return reg;
   }
 
@@ -40,17 +42,20 @@
   }
 
   async function refreshStatus(){
-    if(!secret())return;
+    if(refreshing||!secret())return;
+    refreshing=true;
     try{
-      const sub=await subscription(false);
+      if(!('Notification' in window)||!('PushManager' in window)){setUi(false,'Este navegador não oferece Web Push.',true);return}
+      const granted=Notification.permission==='granted';
+      let sub=await subscription(granted);
       if(!sub){setUi(false,'Notificações de entrada ainda não ativadas.');return}
       let j=await post('/admin/push/online-status',{endpoint:sub.endpoint});
-      if(!j.enabled&&'Notification' in window&&Notification.permission==='granted'){
+      if(!j.enabled&&granted){
         await post('/admin/push/online-subscribe',{subscription:sub.toJSON()});
         j={enabled:true};
       }
       setUi(!!j.enabled,j.enabled?'Você receberá um aviso quando um usuário entrar e ficar online.':'Notificações de entrada ainda não ativadas.');
-    }catch(e){setUi(false,String(e&&e.message||e),true)}
+    }catch(e){setUi(false,String(e&&e.message||e),true)}finally{refreshing=false}
   }
 
   async function toggle(){
@@ -73,11 +78,13 @@
     card.innerHTML='<h2>🔔 Aviso quando usuário entrar</h2><div class="sub">Receba uma notificação no seu aparelho quando um usuário ficar ONLINE no DF EXTRUSOR PRO.</div><button class="btn alt" id="dfOnlineNotifyBtn" type="button" data-enabled="0">🔕 ATIVAR AVISOS DE ONLINE</button><div id="dfOnlineNotifyMsg" class="status">Digite sua senha administrativa e ative uma vez neste aparelho.</div>';
     first.insertAdjacentElement('afterend',card);
     $('dfOnlineNotifyBtn').onclick=toggle;
-    const sec=$('secret');if(sec)sec.addEventListener('input',function(){setTimeout(refreshStatus,220)});
-    setTimeout(refreshStatus,350);
+    const sec=$('secret');if(sec){sec.addEventListener('input',function(){setTimeout(refreshStatus,180)});sec.addEventListener('change',function(){setTimeout(refreshStatus,80)})}
+    setTimeout(refreshStatus,250);
+    setTimeout(refreshStatus,900);
   }
 
-  window.addEventListener('focus',function(){setTimeout(refreshStatus,150)});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(refreshStatus,150)});
+  window.addEventListener('focus',function(){setTimeout(refreshStatus,100)});
+  window.addEventListener('pageshow',function(){setTimeout(refreshStatus,100)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(refreshStatus,100)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
