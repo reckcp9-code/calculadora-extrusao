@@ -22,20 +22,65 @@
     st.id='dfSectionFocusStyle';
     st.textContent=`
       body.df-section-focus{background:#080b13!important}
-      body.df-section-focus #appContent{display:block!important;max-width:820px!important;padding:10px 10px 34px!important;margin:0 auto!important}
+      body.df-section-focus #appContent{display:block!important;max-width:980px!important;padding:8px 10px 24px!important;margin:0 auto!important}
       body.df-section-focus #appContent>:not(.page):not(#dfSectionBack){display:none!important}
       body.df-section-focus #appContent>.page{display:none!important}
       body.df-section-focus #appContent>.page.df-current-section{display:block!important;margin:0!important;padding:0!important}
-      body.df-section-focus #appContent>.page.df-current-section>.card{margin:0 0 12px!important;border-radius:16px!important}
+
+      body.df-section-focus #appContent>.page.df-current-section>.card{margin:0 0 8px!important;border-radius:13px!important;padding:12px 13px!important}
       body.df-section-focus #appContent>.page.df-current-section>.card:first-child{margin-top:0!important}
       body.df-section-focus #appContent>.page.df-current-section>.card:last-child{margin-bottom:0!important}
-      #dfSectionBack{display:none;align-items:center;gap:8px;width:max-content;max-width:100%;margin:2px 0 10px;padding:10px 14px;border:1px solid #34445b;border-radius:12px;background:#0d1522;color:#f8fafc;font:900 13px system-ui;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+      body.df-section-focus #appContent>.page.df-current-section h2{font-size:18px!important;margin:2px 0 9px!important;line-height:1.1!important}
+      body.df-section-focus #appContent>.page.df-current-section .tag{padding:4px 8px!important;font-size:9px!important;margin-top:0!important}
+      body.df-section-focus #appContent>.page.df-current-section .grid{gap:8px!important}
+      body.df-section-focus #appContent>.page.df-current-section label{font-size:11px!important;margin:6px 0 4px!important;line-height:1.2!important}
+      body.df-section-focus #appContent>.page.df-current-section input,
+      body.df-section-focus #appContent>.page.df-current-section select,
+      body.df-section-focus #appContent>.page.df-current-section textarea{min-height:39px!important;padding:9px 10px!important;font-size:15px!important;border-radius:9px!important}
+      body.df-section-focus #appContent>.page.df-current-section .main{font-size:16px!important}
+      body.df-section-focus #appContent>.page.df-current-section .manual{margin-top:6px!important}
+      body.df-section-focus #appContent>.page.df-current-section .hint,
+      body.df-section-focus #appContent>.page.df-current-section .smallNote,
+      body.df-section-focus #appContent>.page.df-current-section .formNote,
+      body.df-section-focus #appContent>.page.df-current-section .licenseTiny{font-size:10px!important;line-height:1.35!important;margin-top:7px!important}
+      body.df-section-focus #appContent>.page.df-current-section .calcBtn{min-height:40px!important;padding:9px 8px!important;margin-top:7px!important;font-size:12px!important;border-radius:9px!important}
+      body.df-section-focus #appContent>.page.df-current-section .result{margin-top:8px!important;padding:10px 11px!important;border-radius:11px!important}
+      body.df-section-focus #appContent>.page.df-current-section .result span{font-size:10px!important}
+      body.df-section-focus #appContent>.page.df-current-section .result b{font-size:23px!important;margin-top:2px!important;line-height:1.15!important}
+      body.df-section-focus #appContent>.page.df-current-section .result b.smallRes,
+      body.df-section-focus #appContent>.page.df-current-section .result b.midRes{font-size:18px!important}
+      body.df-section-focus #appContent>.page.df-current-section .status{font-size:10px!important;margin-top:4px!important;line-height:1.25!important}
+      body.df-section-focus #appContent>.page.df-current-section .kpi{padding:8px 10px!important;margin-top:6px!important;border-radius:9px!important;font-size:11px!important;gap:8px!important}
+      body.df-section-focus #appContent>.page.df-current-section .formRow,
+      body.df-section-focus #appContent>.page.df-current-section .savedItem{padding:9px 10px!important;margin-top:7px!important;border-radius:10px!important}
+      body.df-section-focus #appContent>.page.df-current-section .rowTitle{font-size:12px!important}
+      body.df-section-focus #appContent>.page.df-current-section .delBtn,
+      body.df-section-focus #appContent>.page.df-current-section .miniBtn{padding:7px 8px!important;font-size:10px!important;border-radius:8px!important}
+      body.df-section-focus #appContent>.page.df-current-section .savedBtns{gap:5px!important;margin-top:6px!important}
+      body.df-section-focus #appContent>.page.df-current-section .savedBtns button{padding:7px 4px!important;font-size:10px!important}
+      body.df-section-focus #appContent>.page.df-current-section .pill{padding:3px 6px!important;font-size:9px!important;margin:3px 3px 0 0!important}
+      body.df-section-focus #appContent>.page.df-current-section .lockBox{padding:9px 10px!important;font-size:11px!important;border-radius:10px!important}
+
+      #dfSectionBack{display:none;align-items:center;gap:7px;width:max-content;max-width:100%;margin:0 0 7px;padding:7px 11px;border:1px solid #34445b;border-radius:10px;background:#0d1522;color:#f8fafc;font:900 11px system-ui;box-shadow:0 5px 14px rgba(0,0,0,.16)}
       body.df-section-focus #dfSectionBack{display:flex!important}
-      #dfSectionBack .arr{font-size:20px;line-height:1;color:#ffd36a}
+      #dfSectionBack .arr{font-size:17px;line-height:1;color:#ffd36a}
+
+      @media(min-width:640px){
+        body.df-section-focus #appContent>.page.df-current-section .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      }
       @media(max-width:560px){
-        body.df-section-focus #appContent{padding:8px 8px 26px!important}
-        body.df-section-focus #appContent>.page.df-current-section>.card{padding:15px!important;margin-bottom:10px!important}
-        #dfSectionBack{margin:0 0 8px;padding:9px 12px}
+        body.df-section-focus #appContent{padding:6px 6px 20px!important}
+        body.df-section-focus #appContent>.page.df-current-section>.card{padding:10px!important;margin-bottom:7px!important}
+        body.df-section-focus #appContent>.page.df-current-section h2{font-size:16px!important;margin-bottom:7px!important}
+        body.df-section-focus #appContent>.page.df-current-section .grid{gap:6px!important}
+        body.df-section-focus #appContent>.page.df-current-section label{font-size:10px!important;margin:5px 0 3px!important}
+        body.df-section-focus #appContent>.page.df-current-section input,
+        body.df-section-focus #appContent>.page.df-current-section select,
+        body.df-section-focus #appContent>.page.df-current-section textarea{min-height:36px!important;padding:8px 9px!important;font-size:14px!important}
+        body.df-section-focus #appContent>.page.df-current-section .result{margin-top:6px!important;padding:9px!important}
+        body.df-section-focus #appContent>.page.df-current-section .result b{font-size:21px!important}
+        body.df-section-focus #appContent>.page.df-current-section .calcBtn{min-height:38px!important;padding:8px!important;font-size:11px!important}
+        #dfSectionBack{margin:0 0 6px;padding:7px 10px}
       }
     `;
     document.head.appendChild(st);
