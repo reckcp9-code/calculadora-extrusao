@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070b">
+<title>Teste Extrusão Limpa</title>
+<style>
+:root{--bg:#05070b;--card:#08111c;--card2:#0b1725;--line:#29405a;--text:#f8fafc;--muted:#a8b3c2;--accent:#ffb000;--accent2:#ffd24a;--danger:#ef4444;--ok:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#0b1725 0,#05070b 55%,#020305 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100svh}.wrap{max-width:520px;margin:0 auto;padding:16px 12px 28px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.title{font-size:22px;font-weight:950;letter-spacing:.5px}.pill{font-size:11px;color:var(--accent2);border:1px solid rgba(255,176,0,.45);padding:6px 9px;border-radius:999px;background:rgba(255,176,0,.08);font-weight:900}.tabs{display:flex;gap:7px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:0 0 auto;border:1px solid var(--line);background:linear-gradient(180deg,#0c1b2c,#07111d);color:#e5eef8;border-radius:10px;padding:12px 10px;font-size:11px;font-weight:950;letter-spacing:.2px;text-transform:uppercase;min-width:84px}.tab.active{border-color:var(--accent);color:#111;background:linear-gradient(180deg,#ffc43b,#f59e0b);box-shadow:0 0 0 1px rgba(255,176,0,.25),0 8px 26px rgba(255,176,0,.15)}.screen{display:none}.screen.active{display:block}.card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(12,28,46,.96),rgba(6,14,24,.96));padding:16px;box-shadow:0 18px 45px rgba(0,0,0,.28)}h1{font-size:24px;line-height:1.1;margin:0 0 18px}label{display:block;color:#e2e8f0;font-size:13px;margin:14px 0 7px}.hint{color:var(--muted);font-size:12px;line-height:1.35;margin-top:8px}input,select{width:100%;border:1px solid #36516c;background:#07111d;color:#fff;border-radius:12px;padding:14px 13px;font-size:18px;font-weight:800;outline:none}input::placeholder{color:#8c96a6}.grid{display:grid;grid-template-columns:1fr;gap:0}.btn{width:100%;border:0;background:linear-gradient(180deg,#ffbe22,#f59e0b);color:#111;border-radius:12px;padding:15px 12px;margin-top:16px;font-weight:950;letter-spacing:.3px}.result{border:1px solid var(--accent);background:linear-gradient(180deg,rgba(255,176,0,.13),rgba(255,176,0,.04));border-radius:14px;padding:15px 12px;margin-top:16px;text-align:center}.result span{display:block;color:#ffd24a;font-size:12px;font-weight:950;letter-spacing:.4px}.result b{display:block;font-size:34px;color:#ffd24a;margin-top:5px}.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.kpi{border:1px solid #293f57;background:#07111d;border-radius:12px;padding:12px;text-align:center}.kpi span{display:block;color:#aeb8c7;font-size:11px}.kpi b{display:block;margin-top:3px;font-size:17px;color:#fff}.rowBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.small{font-size:13px!important}.hide{display:none!important}@media(min-width:700px){.wrap{max-width:1120px}.screens{max-width:430px}.desktop{display:grid;grid-template-columns:420px 1fr;gap:16px}.preview{display:block}.grid.two{grid-template-columns:1fr 1fr;gap:10px}.tabs{overflow:visible}.tab{flex:1}.previewBox{border:1px solid #1e334b;border-radius:18px;min-height:540px;background:#06101b;padding:22px}.previewBox h2{margin:0 0 10px;color:#ffb000}.previewBox p{color:#cbd5e1;line-height:1.5}}@media(max-width:699px){.preview{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="title">EXTRUSÃO</div><div class="pill">TESTE LIMPO</div></div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="ex">Extrusão</button>
+    <button class="tab" data-tab="bob">Bobina</button>
+    <button class="tab" data-tab="micra">Corrigir<br>Micra</button>
+    <button class="tab" data-tab="rpm">Puxador<br>/ Massa</button>
+    <button class="tab" data-tab="prod">Produção<br>+%</button>
+  </div>
+  <div class="desktop">
+  <div class="screens">
+    <section id="ex" class="screen active card">
+      <h1>Peso ideal por metro</h1>
+      <label>Largura do filme fechado (cm)</label><input id="exL" inputmode="decimal" placeholder="Ex.: 100">
+      <label>Comprimento final / saco (cm)</label><input id="exC" inputmode="decimal" placeholder="Ex.: 105">
+      <div class="hint">Usado somente para puxar o tamanho final na OP. Não entra na conta de g/m.</div>
+      <label>Micra desejada — parede dupla (µm)</label><input id="exM" inputmode="decimal" placeholder="Ex.: 27">
+      <label>Densidade</label><select id="exD"><option value="0.922">0,922 — PE referência</option><option value="0.95">0,950 — PEAD</option><option value="0.918">0,918 — PELBD</option><option value="0.91">0,910 — PP</option></select>
+      <div class="result"><span>PESO IDEAL DE 1 METRO</span><b id="exOut">0,00 g/m</b></div>
+    </section>
+    <section id="bob" class="screen card">
+      <h1>Peso da bobina</h1>
+      <label>Peso por metro (g/m)</label><input id="bobG" inputmode="decimal" placeholder="Ex.: 33">
+      <label>Metros da bobina (m)</label><input id="bobM" inputmode="decimal" placeholder="Ex.: 2000">
+      <label>Largura do filme fechado (cm)</label><input id="bobL" inputmode="decimal" placeholder="Ex.: 100">
+      <div class="result"><span>PESO DA BOBINA</span><b id="bobOut">0,00 kg</b></div>
+    </section>
+    <section id="micra" class="screen card">
+      <h1>Corrigir micra pelo peso de 1 metro</h1>
+      <label>Peso medido de 1 metro (g)</label><input id="miP" inputmode="decimal" placeholder="Ex.: 48">
+      <label>Largura do filme fechado (cm)</label><input id="miL" inputmode="decimal" placeholder="Ex.: 100">
+      <label>Densidade</label><select id="miD"><option value="0.922">0,922 — PE referência</option><option value="0.95">0,950 — PEAD</option><option value="0.918">0,918 — PELBD</option><option value="0.91">0,910 — PP</option></select>
+      <div class="result"><span>MICRA CALCULADA</span><b id="miOut">0,00 µm</b></div>
+    </section>
+    <section id="rpm" class="screen card">
+      <h1>Correção pelo puxador ou massa</h1>
+      <label>Micra atual (µm)</label><input id="rpA" inputmode="decimal" placeholder="Ex.: 30">
+      <label>Micra desejada (µm)</label><input id="rpD" inputmode="decimal" placeholder="Ex.: 27">
+      <label>RPM motor / massa</label><input id="rpM" inputmode="decimal" placeholder="Ex.: 1000">
+      <label>RPM anel de ar</label><input id="rpAr" inputmode="decimal" placeholder="Ex.: 1700">
+      <label>RPM puxador</label><input id="rpP" inputmode="decimal" placeholder="Ex.: 800">
+      <div class="rowBtns"><button class="btn small" id="btnPux">Corrigir pelo puxador</button><button class="btn small" id="btnMas">Corrigir pela massa</button></div>
+      <div class="result"><span>NOVOS VALORES</span><b id="rpOut" class="small">Motor/Massa: 0 rpm<br>Anel de ar: 0 rpm<br>Puxador: 0 rpm</b></div>
+    </section>
+    <section id="prod" class="screen card">
+      <h1>Aumentar produção</h1>
+      <label>Produção atual (kg/h)</label><input id="prKg" inputmode="decimal" placeholder="Ex.: 50">
+      <label>Aumento desejado (%)</label><input id="prPct" inputmode="decimal" placeholder="Ex.: 20">
+      <label>RPM motor / massa</label><input id="prM" inputmode="decimal" placeholder="Ex.: 1000">
+      <label>RPM anel de ar</label><input id="prAr" inputmode="decimal" placeholder="Ex.: 1700">
+      <label>RPM puxador</label><input id="prP" inputmode="decimal" placeholder="Ex.: 800">
+      <button class="btn" id="btnProd">Calcular novos valores</button>
+      <div class="result"><span>NOVOS VALORES</span><b id="prOut" class="small">Motor/Massa: 0 rpm<br>Anel de ar: 0 rpm<br>Puxador: 0 rpm<br>Nova produção: 0,00 kg/h</b></div>
+    </section>
+  </div>
+  <aside class="preview previewBox">
+    <h2>Modelo limpo</h2>
+    <p>Esse teste mostra a aba Extrusão sem logo grande, sem banner, sem aviso e sem notificação.</p>
+    <p>Os tópicos ficam em cima, um do lado do outro. Ao clicar, aparece somente uma tela por vez.</p>
+  </aside>
+  </div>
+</div>
+<script>
+const q=id=>document.getElementById(id);const pn=v=>{let s=String(v||'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');return parseFloat(s)||0};const fmt=(v,d=2)=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});function fillPair(l,m,d){if(l&&q('bobL'))q('bobL').value=l;if(q('bobG'))q('bobG').value=fmt(m,2);if(q('miL'))q('miL').value=l;if(q('miD'))q('miD').value=d}function calcEx(){const l=pn(q('exL').value),m=pn(q('exM').value),d=pn(q('exD').value);const g=l*m*d*0.01;q('exOut').textContent=fmt(g,2)+' g/m';fillPair(q('exL').value,g,d)}function calcBob(){const g=pn(q('bobG').value),m=pn(q('bobM').value);q('bobOut').textContent=fmt(g*m/1000,2)+' kg'}function calcMi(){const p=pn(q('miP').value),l=pn(q('miL').value),d=pn(q('miD').value);q('miOut').textContent=fmt(l&&d?p/(l*d*0.01):0,2)+' µm'}function calcRp(mode){const a=pn(q('rpA').value),des=pn(q('rpD').value),mas=pn(q('rpM').value),ar=pn(q('rpAr').value),pux=pn(q('rpP').value);let nm=mas,np=pux;if(a&&des){if(mode==='pux')np=pux*(a/des);else nm=mas*(des/a)}q('rpOut').innerHTML='Motor/Massa: '+fmt(nm,0)+' rpm<br>Anel de ar: '+fmt(ar,0)+' rpm<br>Puxador: '+fmt(np,0)+' rpm'}function calcProd(){const kg=pn(q('prKg').value),pct=pn(q('prPct').value),m=pn(q('prM').value),ar=pn(q('prAr').value),p=pn(q('prP').value),f=1+pct/100;q('prOut').innerHTML='Motor/Massa: '+fmt(m*f,0)+' rpm<br>Anel de ar: '+fmt(ar*f,0)+' rpm<br>Puxador: '+fmt(p*f,0)+' rpm<br>Nova produção: '+fmt(kg*f,2)+' kg/h'}document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));b.classList.add('active');q(b.dataset.tab).classList.add('active')});document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',()=>{calcEx();calcBob();calcMi()}));q('btnPux').onclick=()=>calcRp('pux');q('btnMas').onclick=()=>calcRp('mas');q('btnProd').onclick=calcProd;calcEx();calcBob();calcMi();
+</script>
+</body>
+</html>
