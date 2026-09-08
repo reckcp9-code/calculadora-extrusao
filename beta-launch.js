@@ -59,12 +59,9 @@
 
   function init(){
     ensure();
-    setTimeout(ensure,180);
-    setTimeout(ensure,650);
-    setTimeout(ensure,1500);
-    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(ensure,30)});
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)ensure()});
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
