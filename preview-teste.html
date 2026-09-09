@@ -23,12 +23,8 @@
     const idx=await idxRes.text();
     let h=await appRes.text();
 
-    h=h.replace('</head>','<style id="dfBootReadyStyle">html{background:#080b13!important}body{visibility:hidden!important;opacity:0!important;background:#080b13!important}body.dfBootReady{visibility:visible!important;opacity:1!important}</style></head>');
-
-    const savedAccess=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
-    if(savedAccess&&navigator.onLine!==false){
-      h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
-    }
+    // PREVIEW TESTE: nunca esconder a interface e nunca pedir licença.
+    h=h.replace('</head>','<style id="dfPreviewForceOpen">html{background:#080b13!important}body{visibility:visible!important;opacity:1!important;background:#080b13!important}#licenseGate{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}#appContent{display:block!important;visibility:visible!important;opacity:1!important}</style></head>');
 
     const closeScript='</scr'+'ipt>';
     const openScript='<scr'+'ipt>';
@@ -54,10 +50,12 @@
     }));
 
     const tags=codes.map(c=>'<scr'+'ipt>'+escScript(c)+'</scr'+'ipt>').join('');
-    const ready='<scr'+'ipt>(function(){var started=false;function finish(){if(started)return;started=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}requestAnimationFrame(function(){requestAnimationFrame(function(){try{document.body.classList.add("dfBootReady")}catch(e){}})})}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(function(){if(!document.body.classList.contains("dfBootReady")){try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}document.body.classList.add("dfBootReady")}},1600)})();</scr'+'ipt>';
+    const ready='<scr'+'ipt>(function(){var started=false;function finish(){if(started)return;started=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}try{document.body.classList.add("dfBootReady","dfPreviewUnlocked")}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,1000)})();</scr'+'ipt>';
     h=h.replace('</body>',tags+ready+'</body>');
     document.open();document.write(h);document.close();
   }catch(e){
+    document.body.style.visibility='visible';
+    document.body.style.opacity='1';
     document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO — TESTE</h2><p>Não foi possível carregar a versão de teste.</p><p style="color:#fca5a5;font-size:12px">'+String(e&&e.message||e)+'</p></div>';
   }
 })();
