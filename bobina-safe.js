@@ -28,8 +28,6 @@
       '.dfBobinaMini{font-size:12px!important;padding:10px 8px!important;margin-top:8px!important}',
       '.dfBobinaResults{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}',
       '.dfBobinaResults .kpi{margin-top:0}',
-      '.dfBobinaBox{display:none}',
-      '.dfBobinaBox.on{display:block}',
       '.dfCalBox{margin-top:14px;padding:14px;border:1px solid #334155;border-radius:16px;background:#0b1220}',
       '.dfCalBox h3{margin:0 0 8px;font-size:16px;color:#facc15}',
       '@media(max-width:560px){.dfBobinaResults{grid-template-columns:1fr}.dfBobinaTop{align-items:stretch}.dfBobinaCheck{width:100%}}'
@@ -47,9 +45,8 @@
       <div><label>Densidade</label><input id="bobD" inputmode="decimal" placeholder="Puxa da Extrusão"></div>
       <div><label>Fator de compactação / calibração (%)</label><input id="bobK" inputmode="decimal" value="100" placeholder="100 = geometria pura"></div>
       <div><label>Tipo da bobina</label><select id="bobTipo"><option value="normal">Normal</option><option value="sanfonada">Sanfonada</option></select></div>
-      <div id="bobSanfonaBox" class="dfBobinaBox"><label>Sanfona de cada lado (cm)</label><input id="bobSanfona" inputmode="decimal" placeholder="Ex.: 5"></div>
     </div>
-    <div class="smallNote"><b>Regra sanfonada:</b> no cálculo físico do raio/peso usa metade da largura informada (ex.: 80 cm → 40 cm). O peso por metro continua usando a largura equivalente do filme: largura + 2 × sanfona. O padrão matemático é 100%; para compensar ar/pressão do enrolamento, calibre pela balança.</div>
+    <div class="smallNote"><b>Regra sanfonada:</b> no cálculo físico do raio/peso usa metade da largura informada (ex.: 80 cm → 40 cm). Não precisa informar a sanfona de cada lado. O peso por metro usa a largura informada do filme. O padrão matemático é 100%; para compensar ar/pressão do enrolamento, calibre pela balança.</div>
     <div class="grid">
       <div><label>Altura de plástico enrolado (cm)</label><input id="bobRe" class="main" inputmode="decimal" placeholder="Do lado de fora do tubete até a borda"></div>
       <div><label>Diâmetro do tubete / núcleo (cm)</label><input id="bobRi" class="main" inputmode="decimal" value="7,6" placeholder="Ex.: 7,6 ou 10"></div>
@@ -63,7 +60,7 @@
       <div class="kpi"><span>Tipo usado</span><b id="bobTipoUsado">—</b></div>
       <div class="kpi"><span>Largura informada</span><b id="bobLargFis">—</b></div>
       <div class="kpi"><span>Largura usada no raio</span><b id="bobLargRaio">—</b></div>
-      <div class="kpi"><span>Largura equivalente do filme</span><b id="bobLargEquiv">—</b></div>
+      <div class="kpi"><span>Largura usada no peso por metro</span><b id="bobLargEquiv">—</b></div>
       <div class="kpi"><span>Fator aplicado</span><b id="bobFatorRaio">—</b></div>
       <div class="kpi"><span>Peso do plástico</span><b id="bobPesoPlastico">—</b></div>
       <div class="kpi"><span>Metros aproximados</span><b id="bobMetros">—</b></div>
@@ -90,14 +87,13 @@
   function densEx(){const s=$('exDs');if(!s)return 0;return s.value==='manual'?val('exDm'):pn(s.value)}
   function schedule(){clearTimeout(timer);timer=setTimeout(calc,120)}
   function sync(force){const a=$('bobAuto');if(!force&&a&&!a.checked)return;const l=val('exL'),m=val('exM'),d=densEx();if(l>0&&$('bobL'))$('bobL').value=fmtInp(l);if(m>0&&$('bobM'))$('bobM').value=fmtInp(m);if(d>0&&$('bobD'))$('bobD').value=fmtInp(d,3);schedule()}
-  function updateTipo(){const box=$('bobSanfonaBox');if(box)box.classList.toggle('on',$('bobTipo')?.value==='sanfonada');schedule()}
+  function updateTipo(){schedule()}
   function limpar(){['bobPesoTotal','bobPesoPlastico','bobMetros','bobDiametro','bobGm','bobRaioNec','bobDiamNec','bobMetrosPeso','bobPesoUsado','bobTubeteUsado','bobTipoUsado','bobLargFis','bobLargRaio','bobLargEquiv','bobFatorRaio'].forEach(id=>set(id,'—'))}
 
   function medidas(){
     const tipo=$('bobTipo')?.value||'normal';
     const fisica=val('bobL');
-    const sanfona=tipo==='sanfonada'?Math.max(0,val('bobSanfona')):0;
-    const equivalente=fisica+(tipo==='sanfonada'?sanfona*2:0);
+    const equivalente=fisica;
     const larguraRaio=tipo==='sanfonada'?fisica/2:fisica;
     const diametroTubete=val('bobRi');
     const raioNucleo=diametroTubete/2;
@@ -105,7 +101,7 @@
     const raioExterno=altura>0&&raioNucleo>0?raioNucleo+altura:0;
     const fatorBase=val('bobK')/100;
     const fatorRaio=fatorBase;
-    return {tipo,fisica,sanfona,equivalente,larguraRaio,diametroTubete,raioNucleo,altura,raioExterno,fatorBase,fatorRaio};
+    return {tipo,fisica,equivalente,larguraRaio,diametroTubete,raioNucleo,altura,raioExterno,fatorBase,fatorRaio};
   }
 
   function resultadoBase(){
@@ -205,9 +201,9 @@
     if(auto&&!auto.dfBound){auto.dfBound=true;auto.addEventListener('change',()=>sync(false))}
     if(tipo&&!tipo.dfBound){tipo.dfBound=true;tipo.addEventListener('change',updateTipo)}
     if(cal&&!cal.dfBound){cal.dfBound=true;cal.addEventListener('click',calibrar)}
-    if(!window.dfBobinaMigratedV4){window.dfBobinaMigratedV4=true;const e=$('bobRi');if(e&&String(e.value).replace(',','.')==='3.8')e.value='7,6'}
+    if(!window.dfBobinaMigratedV5){window.dfBobinaMigratedV5=true;const e=$('bobRi');if(e&&String(e.value).replace(',','.')==='3.8')e.value='7,6'}
     ['bobL','bobM','bobD'].forEach(id=>{const e=$(id);if(e&&!e.dfBound){e.dfBound=true;e.addEventListener('input',()=>{if(auto)auto.checked=false;schedule()})}});
-    ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal','bobSanfona'].forEach(id=>{const e=$(id);if(e&&!e.dfBound){e.dfBound=true;e.addEventListener('input',schedule);e.addEventListener('change',schedule)}});
+    ['bobK','bobRe','bobRi','bobCore','bobTarget','bobTargetTotal'].forEach(id=>{const e=$(id);if(e&&!e.dfBound){e.dfBound=true;e.addEventListener('input',schedule);e.addEventListener('change',schedule)}});
     ['exL','exM','exDm','exDs'].forEach(id=>{const e=$(id);if(e&&!e.dfBobBound){e.dfBobBound=true;e.addEventListener('input',()=>sync(false));e.addEventListener('change',()=>sync(false))}});
     updateTipo();sync(false);
   }
