@@ -2,7 +2,7 @@
   'use strict';
   if(document.getElementById('dfProfessionalPhotoFix'))return;
 
-  const IMG='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/teste/df-industrial-bg.jpg?v=4';
+  const IMG='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/teste/df-industrial-bg.webp?v=5';
 
   const s=document.createElement('style');
   s.id='dfProfessionalPhotoFix';
@@ -11,7 +11,7 @@
       min-height:100%!important;
       background-color:#03070c!important;
       background-image:
-        linear-gradient(180deg,rgba(2,6,10,.18),rgba(3,8,14,.40) 45%,rgba(3,7,12,.72) 100%),
+        linear-gradient(180deg,rgba(2,6,10,.14),rgba(3,8,14,.34) 45%,rgba(3,7,12,.68) 100%),
         url("${IMG}")!important;
       background-position:center top!important;
       background-size:cover!important;
@@ -36,7 +36,7 @@
   function force(){
     try{
       document.documentElement.style.setProperty('background-color','#03070c','important');
-      document.documentElement.style.setProperty('background-image','linear-gradient(180deg,rgba(2,6,10,.18),rgba(3,8,14,.40) 45%,rgba(3,7,12,.72) 100%), url("'+IMG+'")','important');
+      document.documentElement.style.setProperty('background-image','linear-gradient(180deg,rgba(2,6,10,.14),rgba(3,8,14,.34) 45%,rgba(3,7,12,.68) 100%), url("'+IMG+'")','important');
       document.documentElement.style.setProperty('background-position','center top','important');
       document.documentElement.style.setProperty('background-repeat','no-repeat','important');
       document.documentElement.style.setProperty('background-size',matchMedia('(max-width:650px)').matches?'auto 100vh':'cover','important');
@@ -46,15 +46,9 @@
     }catch(e){}
   }
 
-  const preload=document.createElement('link');
-  preload.rel='preload';
-  preload.as='image';
-  preload.href=IMG;
-  document.head.appendChild(preload);
-
-  const test=new Image();
-  test.onload=force;
-  test.src=IMG;
+  const img=new Image();
+  img.onload=force;
+  img.src=IMG;
   force();
   window.addEventListener('df-ui-ready',force);
   window.addEventListener('pageshow',force);
