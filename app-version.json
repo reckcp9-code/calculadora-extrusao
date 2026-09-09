@@ -1,6 +1,6 @@
 {
-  "version": "1.0.96",
-  "title": "DF EXTRUSOR PRO — Navegação por seções",
-  "message": "Novo modo de navegação: a tela principal continua rolável e cada seção pode abrir em modo focado com seus próprios tópicos e botão voltar.",
-  "updatedAt": "2026-09-08T20:29:00-03:00"
+  "version": "1.0.97",
+  "title": "DF EXTRUSOR PRO — Bobina por raio preciso",
+  "message": "Cálculo de bobina revisado pelo raio com tubete ao quadrado, regra de sanfonada usando metade da largura, fatores separados salvos para lisa e sanfonada e remoção do campo de sanfona de cada lado.",
+  "updatedAt": "2026-09-08T21:27:00-03:00"
 }
