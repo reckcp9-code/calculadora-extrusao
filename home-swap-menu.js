@@ -12,28 +12,26 @@
     s.textContent=`
       #dfHomeMenuAnchor{display:none!important}
 
-      /* Na tela principal, os quatro acessos rápidos são o fim da página. */
-      body.dfHomeMode #dfQuickAccess ~ *{
+      /* HOME COMPACTA: Curso / Ajuda / Feedback / Favoritos são o fim da tela. */
+      body.dfHomeCompact #appContent > .page,
+      body.dfHomeCompact #appContent > .foot{
         display:none!important;
       }
-      body.dfHomeMode #dfQuickAccess{
+      body.dfHomeCompact #dfQuickAccess ~ *{
+        display:none!important;
+      }
+      body.dfHomeCompact #dfQuickAccess{
         margin-bottom:0!important;
       }
 
-      /* As calculadoras continuam existindo normalmente dentro dos módulos. */
-      body.dfHomeMode #appContent > .page,
-      body.dfHomeMode #appContent > .foot{
-        display:none!important;
-      }
-
-      body.dfHomeMode #appContent>.tabs{
+      body.dfHomeCompact #appContent>.tabs{
         margin:0 0 12px!important;
       }
-      body.dfHomeMode #dfQuickAccess{
+      body.dfHomeCompact #dfQuickAccess{
         margin-top:12px!important;
       }
 
-      /* Em qualquer módulo, a seta redonda separada some. */
+      /* Dentro dos módulos: sem a seta redonda antiga. */
       body.dfSectionMode #dfSectionBack{
         display:none!important;
       }
@@ -79,11 +77,11 @@
       }
 
       @media(max-width:560px){
-        body.dfHomeMode #appContent>.tabs{
+        body.dfHomeCompact #appContent>.tabs{
           margin:0 0 10px!important;
           gap:7px!important;
         }
-        body.dfHomeMode #dfQuickAccess{
+        body.dfHomeCompact #dfQuickAccess{
           margin-top:10px!important;
           margin-bottom:0!important;
         }
@@ -112,12 +110,56 @@
 
     const anchor=ensureAnchor(app,tabs);
 
+    /* Menu dos módulos sobe logo após a marca. */
     if(tabs.previousElementSibling!==brand){
       brand.insertAdjacentElement('afterend',tabs);
     }
 
+    /* Curso / Ajuda / Feedback / Favoritos vão para o antigo local do menu. */
     if(anchor.parentNode&&quick.nextElementSibling!==anchor){
       anchor.parentNode.insertBefore(quick,anchor);
+    }
+  }
+
+  function sectionActive(){
+    const app=$('appContent');
+    if(!app)return false;
+    return document.body.classList.contains('dfSectionMode') && !!app.querySelector(':scope > .page.dfSectionSelected');
+  }
+
+  function restoreMarked(){
+    document.querySelectorAll('[data-df-home-cut="1"]').forEach(function(el){
+      el.style.removeProperty('display');
+      delete el.dataset.dfHomeCut;
+    });
+  }
+
+  function compactHome(){
+    const app=$('appContent');
+    if(!app)return;
+    const home=!sectionActive();
+    document.body.classList.toggle('dfHomeCompact',home);
+
+    if(!home){
+      restoreMarked();
+      return;
+    }
+
+    /* Esconde as páginas mesmo se algum script antigo tentar mostrá-las. */
+    app.querySelectorAll('.page,.foot').forEach(function(el){
+      el.dataset.dfHomeCut='1';
+      el.style.setProperty('display','none','important');
+    });
+
+    /* E corta fisicamente tudo que estiver depois dos quatro acessos rápidos. */
+    const quick=$('dfQuickAccess');
+    if(quick&&quick.parentElement){
+      let el=quick.nextElementSibling;
+      while(el){
+        el.dataset.dfHomeCut='1';
+        el.style.setProperty('display','none','important');
+        el=el.nextElementSibling;
+      }
     }
   }
 
@@ -127,10 +169,11 @@
 
   function goHome(){
     const back=$('dfSectionBack');
-    if(back){back.click();return}
+    if(back){back.click();setTimeout(syncAll,60);return}
     document.body.classList.remove('dfSectionMode');
     document.body.classList.add('dfHomeMode');
     document.querySelectorAll('#appContent>.page').forEach(p=>p.classList.remove('dfSectionSelected'));
+    setTimeout(syncAll,20);
     try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
   }
 
@@ -168,8 +211,7 @@
     }
 
     const active=buttons.find(b=>b.classList.contains('on'))||first;
-    const firstIsActive=active===first;
-    const shouldBack=focused(page)&&firstIsActive;
+    const shouldBack=focused(page)&&active===first;
     const label=shouldBack?'← VOLTAR':first.dataset.dfOriginalLabel;
 
     if(String(first.textContent||'').trim()!==label)first.textContent=label;
@@ -193,16 +235,16 @@
     }
   }
 
-  function syncOthers(){
-    OTHER_IDS.forEach(id=>decorateOther($(id)));
-  }
+  function syncOthers(){OTHER_IDS.forEach(id=>decorateOther($(id)))}
 
   function syncAll(){
     if(syncing)return;
     syncing=true;
     try{
       addStyle();
+      restoreMarked();
       swapHome();
+      compactHome();
       syncOthers();
     }finally{
       syncing=false;
@@ -222,6 +264,9 @@
       const mo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
       mo.observe(app,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
     }
+
+    const bodyMo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
+    bodyMo.observe(document.body,{attributes:true,attributeFilter:['class']});
 
     window.addEventListener('df-ui-ready',function(){setTimeout(syncAll,80)});
     document.addEventListener('click',function(){setTimeout(syncAll,80)},true);
