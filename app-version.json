@@ -1,6 +1,6 @@
 {
-  "version": "1.0.102",
-  "title": "DF EXTRUSOR PRO — Correção geral de carregamento",
-  "message": "O carregamento do app foi reforçado para iPhone e 4G com múltiplas fontes de fallback, tentativas automáticas, cache local da base e tratamento seguro de falhas para evitar a tela de erro ao abrir a calculadora.",
-  "updatedAt": "2026-09-09T12:31:00-03:00"
+  "version": "1.0.103",
+  "title": "DF EXTRUSOR PRO — Estabilidade no iPhone",
+  "message": "Corrigido o comportamento ao sair e voltar ao app no iPhone: o carregamento agora prioriza a base local em cache, evita recarregamentos desnecessários e reduz notificações de entrada repetidas ao alternar entre o app e a Tela de Início.",
+  "updatedAt": "2026-09-09T12:45:00-03:00"
 }
