@@ -23,12 +23,12 @@
 
       s.textContent=`
         @media print{
-          @page{size:A4 landscape!important;margin:2mm!important}
+          @page{size:A4 landscape!important;margin:4mm!important}
           html,body{
-            width:293mm!important;
-            height:206mm!important;
-            min-height:206mm!important;
-            max-height:206mm!important;
+            width:289mm!important;
+            height:190mm!important;
+            min-height:190mm!important;
+            max-height:190mm!important;
             margin:0!important;
             padding:0!important;
             background:#fff!important;
@@ -39,14 +39,16 @@
           body{position:relative!important}
           .toolbar{display:none!important}
           .sheet{
-            display:block!important;
+            display:flex!important;
+            flex-direction:column!important;
+            justify-content:space-between!important;
             position:relative!important;
-            width:293mm!important;
-            height:204mm!important;
-            min-height:204mm!important;
-            max-height:204mm!important;
+            width:289mm!important;
+            height:184mm!important;
+            min-height:184mm!important;
+            max-height:184mm!important;
             margin:0!important;
-            padding:1mm 0 7mm!important;
+            padding:1mm!important;
             box-shadow:none!important;
             transform:none!important;
             overflow:hidden!important;
@@ -63,41 +65,37 @@
             border-collapse:collapse!important;
             table-layout:fixed!important;
             margin:0!important;
-            font-size:8.1px!important;
-            line-height:.9!important;
+            font-size:8.8px!important;
+            line-height:.94!important;
             page-break-inside:avoid!important;
             break-inside:avoid-page!important;
+            flex:0 0 auto!important;
           }
           .op td,.op th{
-            border:.30mm solid #111!important;
-            height:4.45mm!important;
+            border:.31mm solid #111!important;
+            height:5.8mm!important;
             min-height:0!important;
-            padding:.28mm .55mm!important;
+            padding:.34mm .62mm!important;
             vertical-align:middle!important;
-            line-height:.9!important;
+            line-height:.94!important;
           }
-          .top td{height:5.65mm!important}
-          .mat td,.mat th{height:4.45mm!important}
-          .prod{margin-bottom:7mm!important}
-          .prod td,.prod th{height:4.1mm!important;font-size:6.9px!important}
-          .obs{height:5.8mm!important}
-          .sectionGap{display:block!important;height:.15mm!important;min-height:0!important;flex:none!important}
-          .codes{
-            position:absolute!important;
-            left:0!important;
-            right:0!important;
-            bottom:0!important;
-            width:100%!important;
-            margin:0!important;
-          }
-          .codes td,.codes th{height:3.2mm!important;font-size:6.4px!important;padding:.18mm .4mm!important}
-          .logo{font-size:12.5px!important;line-height:1!important}
-          .title{font-size:8.2px!important}
-          .xbig{font-size:11.5px!important;line-height:1!important}
-          .big{font-size:9.8px!important;line-height:1!important}
-          .value{font-size:9.4px!important;line-height:1!important}
-          .miniTitle{font-size:6.2px!important;line-height:.92!important}
-          .stamp{padding:.6mm 1.6mm!important;font-size:6.4px!important}
+          .top td{height:6.8mm!important}
+          .mat td,.mat th{height:6.2mm!important}
+          .prod{margin:0!important}
+          .prod td,.prod th{height:6.8mm!important;font-size:7.2px!important}
+          .obs{height:8.2mm!important}
+          .sectionGap{display:block!important;height:.18mm!important;min-height:0!important;flex:0 0 .18mm!important}
+
+          /* Rodape removido: era o bloco que estava sendo jogado para a segunda pagina no Safari/iPhone. */
+          .codes{display:none!important}
+
+          .logo{font-size:13.5px!important;line-height:1!important}
+          .title{font-size:8.8px!important}
+          .xbig{font-size:12.3px!important;line-height:1!important}
+          .big{font-size:10.4px!important;line-height:1!important}
+          .value{font-size:10px!important;line-height:1!important}
+          .miniTitle{font-size:6.5px!important;line-height:.94!important}
+          .stamp{display:none!important}
           .sheet,.sheet *{
             page-break-before:avoid!important;
             page-break-after:avoid!important;
