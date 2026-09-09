@@ -2,7 +2,7 @@
   'use strict';
   if(document.getElementById('dfProfessionalPhotoFix'))return;
 
-  const IMG='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/teste/df-industrial-bg.jpg?v=6';
+  const IMG='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/teste/df-industrial-bg.webp?v=7';
 
   const s=document.createElement('style');
   s.id='dfProfessionalPhotoFix';
