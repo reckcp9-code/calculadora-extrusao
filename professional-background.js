@@ -10,9 +10,14 @@
       html{background:#03070c!important}
       body{
         min-height:100vh!important;
-        background:
+        background-color:#050a10!important;
+        background-image:
           linear-gradient(180deg,rgba(2,6,10,.26),rgba(3,8,14,.52) 42%,rgba(3,7,12,.78) 100%),
-          url('./df-industrial-bg.webp') center top/cover fixed no-repeat!important;
+          url('./df-industrial-bg.jpg?v=4')!important;
+        background-position:center top!important;
+        background-size:cover!important;
+        background-repeat:no-repeat!important;
+        background-attachment:fixed!important;
         color:#f8fafc!important;
       }
       body:before{
