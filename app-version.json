@@ -1,6 +1,6 @@
 {
-  "version": "1.0.101",
-  "title": "DF EXTRUSOR PRO — OP sem rodapé em uma folha",
-  "message": "O rodapé da OP foi removido da impressão e o conteúdo foi redistribuído para ocupar melhor uma única folha A4 horizontal, evitando a segunda página no iPhone.",
-  "updatedAt": "2026-09-09T08:44:00-03:00"
+  "version": "1.0.102",
+  "title": "DF EXTRUSOR PRO — Correção geral de carregamento",
+  "message": "O carregamento do app foi reforçado para iPhone e 4G com múltiplas fontes de fallback, tentativas automáticas, cache local da base e tratamento seguro de falhas para evitar a tela de erro ao abrir a calculadora.",
+  "updatedAt": "2026-09-09T12:31:00-03:00"
 }
