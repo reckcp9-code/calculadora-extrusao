@@ -1,6 +1,6 @@
 {
-  "version": "1.0.99",
-  "title": "DF EXTRUSOR PRO — OP ocupando melhor a folha",
-  "message": "A OP continua em uma única folha A4 horizontal, mas agora aproveita melhor a largura e a altura do papel, com conteúdo maior e melhor distribuído na página.",
-  "updatedAt": "2026-09-09T07:55:00-03:00"
+  "version": "1.0.100",
+  "title": "DF EXTRUSOR PRO — OP em uma única folha",
+  "message": "A impressão da OP foi comprimida levemente e o rodapé foi fixado dentro da própria folha para evitar a criação de uma segunda página no iPhone, mantendo o máximo de aproveitamento do A4 horizontal.",
+  "updatedAt": "2026-09-09T08:07:00-03:00"
 }
