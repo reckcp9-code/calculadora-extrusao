@@ -74,12 +74,24 @@
     if(nav){
       const first=nav.querySelector('.dfExTab[data-tab="extrusao"]');
       if(first){
-        first.textContent='← VOLTAR';
-        first.classList.add('dfExBackTab');
-        first.setAttribute('aria-label','Voltar para a tela principal');
+        const onExtrusao=first.classList.contains('on');
+
+        if(onExtrusao){
+          if(first.textContent!=='← VOLTAR')first.textContent='← VOLTAR';
+          first.classList.add('dfExBackTab');
+          first.setAttribute('aria-label','Voltar para a tela principal');
+          first.setAttribute('title','Voltar');
+        }else{
+          if(first.textContent!=='EXTRUSÃO')first.textContent='EXTRUSÃO';
+          first.classList.remove('dfExBackTab');
+          first.setAttribute('aria-label','Ir para Extrusão');
+          first.setAttribute('title','Extrusão');
+        }
+
         if(!first.dataset.dfBackBound){
           first.dataset.dfBackBound='1';
           first.addEventListener('click',function(e){
+            if(!first.classList.contains('on'))return;
             e.preventDefault();
             e.stopPropagation();
             const back=document.getElementById('dfSectionBack');
@@ -98,7 +110,7 @@
       root.dataset.dfExBackObserver='1';
       new MutationObserver(()=>requestAnimationFrame(decorate)).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
     }
-    document.addEventListener('click',()=>setTimeout(decorate,90),true);
+    document.addEventListener('click',()=>setTimeout(decorate,70),true);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
