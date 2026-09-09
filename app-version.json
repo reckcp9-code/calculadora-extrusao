@@ -1,6 +1,6 @@
 {
-  "version": "1.0.97",
-  "title": "DF EXTRUSOR PRO — Bobina por raio preciso",
-  "message": "Cálculo de bobina revisado pelo raio com tubete ao quadrado, regra de sanfonada usando metade da largura, fatores separados salvos para lisa e sanfonada e remoção do campo de sanfona de cada lado.",
-  "updatedAt": "2026-09-08T21:27:00-03:00"
+  "version": "1.0.98",
+  "title": "DF EXTRUSOR PRO — Mistura em kg e OP em uma folha",
+  "message": "A Formulação agora separa o total de produção do tamanho da mistura, calcula os kg de cada matéria-prima e leva esses valores para a OP. A impressão da OP foi ajustada para caber em uma única folha A4 horizontal.",
+  "updatedAt": "2026-09-09T07:50:00-03:00"
 }
