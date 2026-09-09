@@ -13,7 +13,7 @@
 (async()=>{
   try{
     try{
-      const RESET='df_mobile_cache_reset_v33';
+      const RESET='df_mobile_cache_reset_v34';
       if(localStorage.getItem(RESET)!=='1'){
         if('caches' in window){
           const ks=await caches.keys();
@@ -77,6 +77,7 @@
       'vendedor-extra.js?v=20260908-boot-stable-v98',
       'system-extra.js?v=20260908-boot-stable-v98',
       'offline-mode.js?v=20260908-boot-stable-v98',
+      'preview-test-bypass.js?v=20260909-preview-sem-licenca-v1',
       'formula-mix-kg.js?v=20260909-mistura-separada-v2',
       'op-single-safe.js?v=20260908-op-a4-ios-onepage-v110',
       'formula-share-safe.js?v=20260908-boot-stable-v98',
