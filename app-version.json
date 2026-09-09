@@ -1,6 +1,6 @@
 {
-  "version": "1.0.100",
-  "title": "DF EXTRUSOR PRO — OP em uma única folha",
-  "message": "A impressão da OP foi comprimida levemente e o rodapé foi fixado dentro da própria folha para evitar a criação de uma segunda página no iPhone, mantendo o máximo de aproveitamento do A4 horizontal.",
-  "updatedAt": "2026-09-09T08:07:00-03:00"
+  "version": "1.0.101",
+  "title": "DF EXTRUSOR PRO — OP sem rodapé em uma folha",
+  "message": "O rodapé da OP foi removido da impressão e o conteúdo foi redistribuído para ocupar melhor uma única folha A4 horizontal, evitando a segunda página no iPhone.",
+  "updatedAt": "2026-09-09T08:44:00-03:00"
 }
