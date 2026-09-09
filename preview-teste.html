@@ -12,18 +12,29 @@
 (async()=>{
   const RAW='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/teste/';
   const PINNED_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
-  const bust=()=>'?preview='+Date.now();
+  const bust=()=>'?preview='+Date.now()+'-'+Math.random().toString(36).slice(2);
   const escScript=s=>String(s||'').replace(/<\/script/gi,'<\\/script');
-  try{
-    const [idxRes,appRes]=await Promise.all([
-      fetch(RAW+'index.html'+bust(),{cache:'no-store'}),
-      fetch(PINNED_APP+bust(),{cache:'no-store'})
-    ]);
-    if(!idxRes.ok||!appRes.ok)throw new Error('Falha ao carregar a versão de teste.');
-    const idx=await idxRes.text();
-    let h=await appRes.text();
 
-    // PREVIEW TESTE: nunca esconder a interface e nunca pedir licença.
+  async function fetchText(url,tries=3){
+    let last;
+    for(let i=0;i<tries;i++){
+      try{
+        const r=await fetch(url+bust(),{cache:'no-store'});
+        if(r.ok)return await r.text();
+        last=new Error('HTTP '+r.status);
+      }catch(e){last=e}
+      await new Promise(res=>setTimeout(res,180*(i+1)));
+    }
+    throw last||new Error('Falha ao carregar');
+  }
+
+  try{
+    const [idx,app]=await Promise.all([
+      fetchText(RAW+'index.html'),
+      fetchText(PINNED_APP)
+    ]);
+    let h=app;
+
     h=h.replace('</head>','<style id="dfPreviewForceOpen">html{background:#080b13!important}body{visibility:visible!important;opacity:1!important;background:#080b13!important}#licenseGate{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}#appContent{display:block!important;visibility:visible!important;opacity:1!important}</style></head>');
 
     const closeScript='</scr'+'ipt>';
@@ -42,21 +53,28 @@
     }
     if(!files.length)throw new Error('Não encontrei os scripts da branch teste.');
 
-    const codes=await Promise.all(files.map(async f=>{
-      const file=f.split('?')[0];
-      const r=await fetch(RAW+file+bust(),{cache:'no-store'});
-      if(!r.ok)throw new Error('Falha ao carregar '+file);
-      return await r.text();
-    }));
+    const codes=[];
+    const failed=[];
+    const batch=6;
+    for(let i=0;i<files.length;i+=batch){
+      const chunk=files.slice(i,i+batch);
+      const results=await Promise.all(chunk.map(async f=>{
+        const file=f.split('?')[0];
+        try{return{file,code:await fetchText(RAW+file,2)}}
+        catch(e){return{file,error:e}}
+      }));
+      results.forEach(x=>{if(x.code!=null)codes.push(x.code);else failed.push(x.file)});
+    }
 
     const tags=codes.map(c=>'<scr'+'ipt>'+escScript(c)+'</scr'+'ipt>').join('');
-    const ready='<scr'+'ipt>(function(){var started=false;function finish(){if(started)return;started=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}try{document.body.classList.add("dfBootReady","dfPreviewUnlocked")}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,1000)})();</scr'+'ipt>';
-    h=h.replace('</body>',tags+ready+'</body>');
+    const ready='<scr'+'ipt>(function(){function finish(){try{document.body.style.visibility="visible";document.body.style.opacity="1";document.body.classList.add("dfBootReady","dfPreviewUnlocked");var g=document.getElementById("licenseGate");if(g)g.style.setProperty("display","none","important");var a=document.getElementById("appContent");if(a)a.style.setProperty("display","block","important");window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,300);setTimeout(finish,1200)})();</scr'+'ipt>';
+    const warn=failed.length?'<scr'+'ipt>console.warn("Preview teste: scripts que falharam ao carregar:",'+JSON.stringify(failed)+');</scr'+'ipt>':'';
+    h=h.replace('</body>',tags+warn+ready+'</body>');
     document.open();document.write(h);document.close();
   }catch(e){
     document.body.style.visibility='visible';
     document.body.style.opacity='1';
-    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO — TESTE</h2><p>Não foi possível carregar a versão de teste.</p><p style="color:#fca5a5;font-size:12px">'+String(e&&e.message||e)+'</p></div>';
+    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO — TESTE</h2><p>Não foi possível carregar a versão de teste.</p><button onclick="location.reload()" style="margin-top:12px;padding:12px 18px;border-radius:10px;border:0;font-weight:800">TENTAR NOVAMENTE</button><p style="color:#fca5a5;font-size:12px">'+String(e&&e.message||e)+'</p></div>';
   }
 })();
 </script>
