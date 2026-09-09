@@ -9,12 +9,97 @@
 <script src="./device-identity.js?v=20260908-boot-stable-v98"></script>
 </head>
 <body style="margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
+<div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc">
+  <h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2>
+  <p style="color:#94a3b8">Carregando calculadora...</p>
+</div>
 <script>
 (async()=>{
+  const COMMIT='3e570fc08be61679377cd81eb4e90bc45216f4c2';
+  const RAW='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/'+COMMIT+'/app.html';
+  const CDN='https://cdn.jsdelivr.net/gh/reckcp9-code/calculadora-extrusao@'+COMMIT+'/app.html';
+  const API='https://api.github.com/repos/reckcp9-code/calculadora-extrusao/contents/app.html?ref='+COMMIT;
+  const SHELL_CACHE='df-app-shell-source-v1';
+  const SHELL_KEY='./__df_base_shell__.html';
+
+  const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
+  const safeSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+
+  async function fetchText(url,timeout=8000){
+    let ctrl=null,timer=null;
+    try{
+      if('AbortController' in window){
+        ctrl=new AbortController();
+        timer=setTimeout(()=>ctrl.abort(),timeout);
+      }
+      const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const txt=await r.text();
+      if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');
+      return txt;
+    }finally{if(timer)clearTimeout(timer)}
+  }
+
+  async function fetchApiShell(){
+    let ctrl=null,timer=null;
+    try{
+      if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),8000)}
+      const r=await fetch(API,{cache:'no-store',headers:{'Accept':'application/vnd.github+json'},signal:ctrl?ctrl.signal:undefined});
+      if(!r.ok)throw new Error('GitHub API HTTP '+r.status);
+      const j=await r.json();
+      const b64=String(j&&j.content||'').replace(/\s/g,'');
+      if(!b64)throw new Error('GitHub API sem conteúdo');
+      const bin=atob(b64);
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      const txt=('TextDecoder' in window)?new TextDecoder('utf-8').decode(bytes):decodeURIComponent(escape(bin));
+      if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');
+      return txt;
+    }finally{if(timer)clearTimeout(timer)}
+  }
+
+  async function readCachedShell(){
+    try{
+      if(!('caches' in window))return '';
+      const c=await caches.open(SHELL_CACHE);
+      const r=await c.match(SHELL_KEY);
+      return r?await r.text():'';
+    }catch(e){return ''}
+  }
+
+  async function saveCachedShell(txt){
+    try{
+      if(!('caches' in window)||!txt)return;
+      const c=await caches.open(SHELL_CACHE);
+      await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));
+    }catch(e){}
+  }
+
+  async function loadShell(){
+    const sources=[RAW,CDN];
+    for(const src of sources){
+      for(let attempt=0;attempt<2;attempt++){
+        try{
+          const txt=await fetchText(src,attempt===0?7000:10000);
+          await saveCachedShell(txt);
+          return txt;
+        }catch(e){if(attempt===0)await new Promise(r=>setTimeout(r,350))}
+      }
+    }
+    try{
+      const txt=await fetchApiShell();
+      await saveCachedShell(txt);
+      return txt;
+    }catch(e){}
+    const cached=await readCachedShell();
+    if(cached&&cached.indexOf('<!doctype html')>=0)return cached;
+    throw new Error('Falha ao carregar a base da calculadora');
+  }
+
   try{
     try{
-      const RESET='df_mobile_cache_reset_v26';
-      if(localStorage.getItem(RESET)!=='1'){
+      const RESET='df_mobile_cache_reset_v27';
+      if(safeGet(RESET)!=='1'){
         if('caches' in window){
           const ks=await caches.keys();
           await Promise.all(ks.filter(k=>k.startsWith('df-extrusor-shell-')).map(k=>caches.delete(k)));
@@ -23,22 +108,20 @@
           const regs=await navigator.serviceWorker.getRegistrations();
           await Promise.all(regs.map(r=>r.update().catch(()=>{})));
         }
-        localStorage.setItem(RESET,'1');
+        safeSet(RESET,'1');
       }
     }catch(e){}
 
     const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches===true)||navigator.standalone===true;
     const u0=new URL(location.href);
-    const savedAccess=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+    const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
     if(standalone&&!savedAccess&&!u0.searchParams.get('acesso')&&!u0.searchParams.get('instalar')){
       u0.searchParams.set('acesso','geral');
       location.replace(u0.pathname+'?'+u0.searchParams.toString());
       return;
     }
 
-    const r=await fetch('https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html',{cache:'no-store'});
-    if(!r.ok)throw new Error('Falha ao carregar aplicativo');
-    let h=await r.text();
+    let h=await loadShell();
 
     h=h.replace('</head>','<style id="dfBootReadyStyle">html{background:#080b13!important}body{visibility:hidden!important;opacity:0!important;background:#080b13!important}body.dfBootReady{visibility:visible!important;opacity:1!important}</style></head>');
     if(savedAccess&&navigator.onLine!==false){
@@ -103,7 +186,7 @@
   }catch(e){
     document.body.style.visibility='visible';
     document.body.style.opacity='1';
-    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora. Feche o app totalmente e abra novamente.</p></div>';
+    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><p style="color:#94a3b8">Verifique sua internet e tente novamente.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>';
   }
 })();
 </script>
