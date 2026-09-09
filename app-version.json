@@ -1,6 +1,6 @@
 {
-  "version": "1.0.98",
-  "title": "DF EXTRUSOR PRO — Mistura em kg e OP em uma folha",
-  "message": "A Formulação agora separa o total de produção do tamanho da mistura, calcula os kg de cada matéria-prima e leva esses valores para a OP. A impressão da OP foi ajustada para caber em uma única folha A4 horizontal.",
-  "updatedAt": "2026-09-09T07:50:00-03:00"
+  "version": "1.0.99",
+  "title": "DF EXTRUSOR PRO — OP ocupando melhor a folha",
+  "message": "A OP continua em uma única folha A4 horizontal, mas agora aproveita melhor a largura e a altura do papel, com conteúdo maior e melhor distribuído na página.",
+  "updatedAt": "2026-09-09T07:55:00-03:00"
 }
