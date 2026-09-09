@@ -12,7 +12,15 @@
     s.textContent=`
       #dfHomeMenuAnchor{display:none!important}
 
-      /* Tela principal limpa: nada de calculadoras abaixo do menu. */
+      /* Na tela principal, os quatro acessos rápidos são o fim da página. */
+      body.dfHomeMode #dfQuickAccess ~ *{
+        display:none!important;
+      }
+      body.dfHomeMode #dfQuickAccess{
+        margin-bottom:0!important;
+      }
+
+      /* As calculadoras continuam existindo normalmente dentro dos módulos. */
       body.dfHomeMode #appContent > .page,
       body.dfHomeMode #appContent > .foot{
         display:none!important;
@@ -22,7 +30,7 @@
         margin:0 0 12px!important;
       }
       body.dfHomeMode #dfQuickAccess{
-        margin:12px 0 10px!important;
+        margin-top:12px!important;
       }
 
       /* Em qualquer módulo, a seta redonda separada some. */
@@ -76,7 +84,8 @@
           gap:7px!important;
         }
         body.dfHomeMode #dfQuickAccess{
-          margin:10px 0 9px!important;
+          margin-top:10px!important;
+          margin-bottom:0!important;
         }
       }
     `;
