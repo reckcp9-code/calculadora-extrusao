@@ -4,10 +4,12 @@
   const API='https://df-extrusor-api.reck-cp9.workers.dev';
   const ACCESS_KEY='df_auto_access_credential_v1';
   const DEVICE_KEY='df_licenseauth_device_v1';
-  const HEARTBEAT_MS=4*60*1000;
+  const LAST_KEY='df_presence_last_online_v103';
+  const HEARTBEAT_MS=5*60*1000;
+  const ENTRY_THROTTLE_MS=10*60*1000;
+
   let timer=0;
   let sending=false;
-  let queuedState='';
   let retries=0;
 
   function credential(){try{return String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){return''}}
@@ -18,7 +20,7 @@
     }catch(e){}
     return '';
   }
-  function deviceCandidates(){
+  function devices(){
     const a=storedDevice(),b=canonicalDevice(),out=[];
     if(a)out.push(a);
     if(b&&!out.includes(b))out.push(b);
@@ -32,68 +34,74 @@
     if(/Macintosh|Mac OS X/i.test(ua))return 'macOS';
     return 'Web';
   }
+  function lastOnline(){try{return Number(localStorage.getItem(LAST_KEY)||0)||0}catch(e){return 0}}
+  function markOnline(){try{localStorage.setItem(LAST_KEY,String(Date.now()))}catch(e){}}
   function stop(){if(timer){clearTimeout(timer);timer=0}}
-  function schedule(ms){stop();if(document.hidden)return;timer=setTimeout(()=>send('online'),Math.max(1000,Number(ms)||HEARTBEAT_MS))}
+  function schedule(ms){
+    stop();
+    if(document.hidden)return;
+    timer=setTimeout(function(){sendOnline(true)},Math.max(1500,Number(ms)||HEARTBEAT_MS));
+  }
 
-  async function postPresence(state,dev,keepalive){
+  async function postOnline(dev){
     const cred=credential();
     if(!cred||!dev)return null;
     try{
       return await fetch(API+'/access/presence',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':dev},
-        body:JSON.stringify({credential:cred,deviceId:dev,state:state,platform:platform()}),
-        cache:'no-store',
-        keepalive:!!keepalive
+        body:JSON.stringify({credential:cred,deviceId:dev,state:'online',platform:platform()}),
+        cache:'no-store'
       });
     }catch(e){return null}
   }
 
-  async function send(state){
-    if(sending){queuedState=state;return false}
-    const cred=credential(),devices=deviceCandidates();
-    if(!cred||!devices.length){
-      if(state==='online'&&retries<60){retries++;schedule(1000)}
+  async function sendOnline(heartbeat){
+    if(document.hidden||sending)return false;
+
+    const cred=credential(),list=devices();
+    if(!cred||!list.length){
+      if(retries<20){retries++;schedule(1500)}
       return false;
     }
+
+    const age=Date.now()-lastOnline();
+    if(!heartbeat&&age>=0&&age<ENTRY_THROTTLE_MS){
+      schedule(Math.max(30000,HEARTBEAT_MS));
+      return true;
+    }
+
     sending=true;
     let ok=false;
     try{
-      for(const dev of devices){
-        const r=await postPresence(state,dev,state==='offline');
+      for(const dev of list){
+        const r=await postOnline(dev);
         if(r&&r.ok){ok=true;break}
         if(r&&r.status!==401)break;
       }
-      if(ok)retries=0;
+      if(ok){markOnline();retries=0}
       return ok;
     }finally{
       sending=false;
-      const next=queuedState;queuedState='';
-      if(next)send(next);
-      else if(state==='online'&&!document.hidden)schedule(HEARTBEAT_MS);
+      schedule(HEARTBEAT_MS);
     }
   }
 
-  function sendOfflineFast(){
-    stop();
-    const cred=credential(),dev=storedDevice()||canonicalDevice();
-    if(!cred||!dev)return;
-    const body=JSON.stringify({credential:cred,deviceId:dev,state:'offline',platform:platform()});
-    try{fetch(API+'/access/presence',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body,cache:'no-store',keepalive:true}).catch(()=>{})}catch(e){}
+  function resume(){
+    if(document.hidden){stop();return}
+    const age=Date.now()-lastOnline();
+    if(age>=ENTRY_THROTTLE_MS)sendOnline(false);
+    else schedule(HEARTBEAT_MS);
   }
 
-  function onlineNow(){if(document.hidden)return;send('online')}
-  function init(){onlineNow();window.addEventListener('df-ui-ready',onlineNow,{once:true})}
+  function init(){sendOnline(false)}
 
-  document.addEventListener('visibilitychange',function(){
-    if(document.hidden){sendOfflineFast();return}
-    onlineNow();
-  });
-  window.addEventListener('focus',onlineNow);
-  window.addEventListener('online',onlineNow);
-  window.addEventListener('pageshow',onlineNow);
-  window.addEventListener('pagehide',sendOfflineFast);
-  window.addEventListener('beforeunload',sendOfflineFast);
+  // No iPhone, sair momentaneamente para a Tela de Início não significa logout.
+  // Por isso não enviamos "offline" em visibilitychange/pagehide/beforeunload.
+  document.addEventListener('visibilitychange',resume);
+  window.addEventListener('online',resume);
+  window.addEventListener('pageshow',resume);
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
 })();
