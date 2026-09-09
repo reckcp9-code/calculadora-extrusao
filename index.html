@@ -4,11 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080b13">
+<meta name="color-scheme" content="dark">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO</title>
+<style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
 <script src="./device-identity.js?v=20260908-boot-stable-v98"></script>
 </head>
-<body style="margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial">
+<body>
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc">
   <h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2>
   <p style="color:#94a3b8">Carregando calculadora...</p>
@@ -23,9 +25,8 @@
   const SHELL_KEY='./__df_base_shell__.html';
 
   const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
-  const safeSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 
-  async function fetchText(url,timeout=8000){
+  async function fetchText(url,timeout=7000){
     let ctrl=null,timer=null;
     try{
       if('AbortController' in window){
@@ -43,7 +44,7 @@
   async function fetchApiShell(){
     let ctrl=null,timer=null;
     try{
-      if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),8000)}
+      if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),7000)}
       const r=await fetch(API,{cache:'no-store',headers:{'Accept':'application/vnd.github+json'},signal:ctrl?ctrl.signal:undefined});
       if(!r.ok)throw new Error('GitHub API HTTP '+r.status);
       const j=await r.json();
@@ -63,7 +64,8 @@
       if(!('caches' in window))return '';
       const c=await caches.open(SHELL_CACHE);
       const r=await c.match(SHELL_KEY);
-      return r?await r.text():'';
+      const txt=r?await r.text():'';
+      return txt&&txt.indexOf('<!doctype html')>=0?txt:'';
     }catch(e){return ''}
   }
 
@@ -75,55 +77,45 @@
     }catch(e){}
   }
 
+  async function refreshShellInBackground(){
+    try{
+      const txt=await fetchText(RAW,7000);
+      await saveCachedShell(txt);
+    }catch(e){}
+  }
+
   async function loadShell(){
-    const sources=[RAW,CDN];
-    for(const src of sources){
-      for(let attempt=0;attempt<2;attempt++){
-        try{
-          const txt=await fetchText(src,attempt===0?7000:10000);
-          await saveCachedShell(txt);
-          return txt;
-        }catch(e){if(attempt===0)await new Promise(r=>setTimeout(r,350))}
-      }
+    // A base é presa a um commit imutável. Se já existe no aparelho,
+    // abre imediatamente do cache e atualiza silenciosamente ao fundo.
+    const cached=await readCachedShell();
+    if(cached){
+      setTimeout(refreshShellInBackground,1200);
+      return cached;
     }
+
+    for(const src of [RAW,CDN]){
+      try{
+        const txt=await fetchText(src,7000);
+        await saveCachedShell(txt);
+        return txt;
+      }catch(e){}
+    }
+
     try{
       const txt=await fetchApiShell();
       await saveCachedShell(txt);
       return txt;
     }catch(e){}
-    const cached=await readCachedShell();
-    if(cached&&cached.indexOf('<!doctype html')>=0)return cached;
+
     throw new Error('Falha ao carregar a base da calculadora');
   }
 
   try{
-    try{
-      const RESET='df_mobile_cache_reset_v27';
-      if(safeGet(RESET)!=='1'){
-        if('caches' in window){
-          const ks=await caches.keys();
-          await Promise.all(ks.filter(k=>k.startsWith('df-extrusor-shell-')).map(k=>caches.delete(k)));
-        }
-        if('serviceWorker' in navigator){
-          const regs=await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map(r=>r.update().catch(()=>{})));
-        }
-        safeSet(RESET,'1');
-      }
-    }catch(e){}
-
-    const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches===true)||navigator.standalone===true;
-    const u0=new URL(location.href);
     const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
-    if(standalone&&!savedAccess&&!u0.searchParams.get('acesso')&&!u0.searchParams.get('instalar')){
-      u0.searchParams.set('acesso','geral');
-      location.replace(u0.pathname+'?'+u0.searchParams.toString());
-      return;
-    }
-
     let h=await loadShell();
 
-    h=h.replace('</head>','<style id="dfBootReadyStyle">html{background:#080b13!important}body{visibility:hidden!important;opacity:0!important;background:#080b13!important}body.dfBootReady{visibility:visible!important;opacity:1!important}</style></head>');
+    // Mantém o fundo escuro durante toda a troca de documento para evitar flash branco.
+    h=h.replace('</head>','<style id="dfStableBoot">html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}</style></head>');
     if(savedAccess&&navigator.onLine!==false){
       h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
     }
@@ -141,7 +133,7 @@
       'auto-user.js?v=20260908-boot-stable-v98',
       'beta-launch.js?v=20260908-boot-stable-v98',
       'access-device-guard.js?v=20260908-boot-stable-v98',
-      'presence-lite.js?v=20260908-presence-lite-v98',
+      'presence-lite.js?v=20260909-presence-stable-v103',
       'safe-core.js?v=20260908-boot-stable-v98',
       'sacola-peso-quantidade.js?v=20260908-boot-stable-v98',
       'material-manager.js?v=20260908-boot-stable-v98',
@@ -179,13 +171,18 @@
       'machine-recipe.js?v=20260908-boot-stable-v98',
       'extrusao-tabs.js?v=20260908-section-mode-v8'
     ];
+
     const tags=scripts.map(s=>'<scr'+'ipt src="./'+s+'"></scr'+'ipt>').join('');
-    const ready='<scr'+'ipt>(function(){var started=false;function finish(){if(started)return;started=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}requestAnimationFrame(function(){requestAnimationFrame(function(){try{document.body.classList.add("dfBootReady")}catch(e){}})})}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(function(){if(!document.body.classList.contains("dfBootReady")){try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}document.body.classList.add("dfBootReady")}},1600)})();</scr'+'ipt>';
+    const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,900)})();</scr'+'ipt>';
     h=h.replace('</body>',tags+ready+'</body>');
-    document.open();document.write(h);document.close();
+
+    document.open();
+    document.write(h);
+    document.close();
   }catch(e){
     document.body.style.visibility='visible';
     document.body.style.opacity='1';
+    document.body.style.background='#080b13';
     document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><p style="color:#94a3b8">Verifique sua internet e tente novamente.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>';
   }
 })();
