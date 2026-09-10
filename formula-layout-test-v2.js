@@ -13,13 +13,24 @@
     s.textContent=`
       #${PAGE_ID} #foLocked{display:none!important}
       #${PAGE_ID} #dfFormulaSubnav{display:none!important}
+
+      /* Cada aba mostra somente o conteúdo dela. */
       #${PAGE_ID}[data-df-layout-test-mode="formula"] > .card,
       #${PAGE_ID}[data-df-layout-test-mode="ops"] > .card{display:none!important}
-      #${PAGE_ID} .dfAutoTopic[data-df-layout-test="formula"],
-      #${PAGE_ID} .dfAutoTopic[data-df-layout-test="ops"]{min-width:112px!important}
+      #${PAGE_ID}[data-df-layout-test-mode="formula"] #dfVendedorCard,
+      #${PAGE_ID}[data-df-layout-test-mode="ops"] #dfVendedorCard{display:none!important}
 
-      /* TESTE: WhatsApp custom limpo — só número, salvar, mensagem e PDF. */
-      #${PAGE_ID} #dfVendedorCard.dfWhatsCompactTest{padding:16px!important}
+      /* WHATSAPP CUSTOM: deixa dentro da aba somente o cartão do vendedor. */
+      #${PAGE_ID}[data-df-layout-test-mode="whats"] > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}
+      #${PAGE_ID}[data-df-layout-test-mode="whats"] > .dfAutoTopics{display:flex!important}
+      #${PAGE_ID}[data-df-layout-test-mode="whats"] > #dfVendedorCard{display:block!important}
+
+      #${PAGE_ID} .dfAutoTopic[data-df-layout-test="formula"],
+      #${PAGE_ID} .dfAutoTopic[data-df-layout-test="ops"],
+      #${PAGE_ID} .dfAutoTopic[data-df-layout-test="whats"]{min-width:112px!important}
+
+      /* Conteúdo enxuto pedido para o WhatsApp custom. */
+      #${PAGE_ID} #dfVendedorCard.dfWhatsCompactTest{padding:16px!important;margin-top:8px!important}
       #${PAGE_ID} #dfVendedorCard.dfWhatsCompactTest > *:not(#dfWhatsCompactTest){display:none!important}
       #dfWhatsCompactTest{display:block!important}
       #dfWhatsCompactTest .dfWhatsCompactField label{display:block!important;margin:0 0 7px!important;color:#cbd5e1!important;font-size:13px!important}
@@ -54,6 +65,16 @@
     setActive('ops');
   }
 
+  function showWhats(){
+    const page=$(PAGE_ID);if(!page)return;
+    simplifyWhatsApp();
+    page.dataset.dfLayoutTestMode='whats';
+    const core=$('dfFormulaCore');if(core)core.style.display='none';
+    const ops=$('dfFormulaOps');if(ops)ops.classList.remove('on');
+    const card=$('dfVendedorCard');if(card)card.style.display='block';
+    setActive('whats');
+  }
+
   function prepareTopTabs(){
     const n=nav();if(!n)return false;
     const topics=Array.from(n.querySelectorAll(':scope > .dfAutoTopic'));
@@ -73,23 +94,32 @@
     }
     if(ops){ops.textContent='🤖 OPS';ops.setAttribute('aria-label','Abrir OPs')}
 
-    const whats=topics.find(b=>/WHATSAPP/i.test(String(b.textContent||''))||b.dataset.dfWhatsTestLabel==='1');
+    let whats=topics.find(b=>b.dataset.dfLayoutTest==='whats'||/WHATSAPP/i.test(String(b.textContent||''))||b.dataset.dfWhatsTestLabel==='1');
     if(whats){
+      whats.dataset.dfLayoutTest='whats';
       whats.dataset.dfWhatsTestLabel='1';
       whats.textContent='💬 WHATSAPP CUSTOM';
       whats.setAttribute('aria-label','Abrir WhatsApp custom');
     }
 
-    return !!(formula&&ops);
+    return !!(formula&&ops&&whats);
   }
 
   function simplifyWhatsApp(){
+    const page=$(PAGE_ID);
     const card=$('dfVendedorCard');
     const input=$('foVendWhats');
     const send=$('foVendTest');
     const pdf=$('foVendPdfTest');
     const save=$('foVendSaveNumber');
-    if(!card||!input||!send||!pdf||!save)return false;
+    if(!page||!card||!input||!send||!pdf||!save)return false;
+
+    /* Move o cartão para ser conteúdo exclusivo da aba WhatsApp Custom. */
+    const n=nav();
+    if(card.parentNode!==page){
+      if(n&&n.nextSibling)page.insertBefore(card,n.nextSibling);
+      else page.appendChild(card);
+    }
 
     card.classList.add('dfWhatsCompactTest');
     let box=$('dfWhatsCompactTest');
@@ -137,11 +167,18 @@
     page.addEventListener('click',function(e){
       const b=e.target&&e.target.closest?e.target.closest('.dfAutoTopic'):null;if(!b)return;
       const mode=b.dataset.dfLayoutTest;
-      if(mode==='formula'){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();showFormula();return}
-      if(mode==='ops'){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();showOps();return}
-      page.removeAttribute('data-df-layout-test-mode');
-      const core=$('dfFormulaCore');if(core)core.style.display='block';
-      const ops=$('dfFormulaOps');if(ops)ops.classList.remove('on');
+      if(mode==='formula'){
+        e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+        showFormula();return;
+      }
+      if(mode==='ops'){
+        e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+        showOps();return;
+      }
+      if(mode==='whats'){
+        e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+        showWhats();return;
+      }
     },true);
   }
 
