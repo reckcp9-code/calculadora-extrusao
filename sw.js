@@ -1,9 +1,11 @@
-const DF_CACHE='df-extrusor-shell-v20';
+const DF_CACHE='df-extrusor-shell-v21';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
   './','./index.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './device-identity.js','./app-bundle.js'
+  './device-identity.js','./performance-guard-v1.js','./op-qr-hook.js','./app-bundle.js','./local-calculations.js',
+  './formula-material-collapse.js','./formula-op-relatorio.js','./op-photo-source.js','./op-manual-confirm.js',
+  './op-sync-lite-v2.js','./op-cloud-team-v2.js','./op-team-notify-v2.js','./runtime-stability-v3.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
