@@ -7,11 +7,11 @@
 <meta name="color-scheme" content="dark">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO</title>
-<link rel="manifest" href="./manifest.webmanifest?v=20260910-audit-v114">
+<link rel="manifest" href="./manifest.webmanifest?v=20260910-audit-v115">
 <link rel="apple-touch-icon" href="./logo.jpg.jpeg">
 <link rel="preconnect" href="https://df-extrusor-api.reck-cp9.workers.dev" crossorigin>
 <style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
-<script src="./device-identity.js?v=20260910-audit-v114"></script>
+<script src="./device-identity.js?v=20260910-audit-v115"></script>
 </head>
 <body>
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc">
@@ -20,10 +20,10 @@
 </div>
 <script>
 (async()=>{
-  const BUILD='20260910-audit-v114';
+  const BUILD='20260910-audit-v115';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
   const SHELL_CACHE='df-app-shell-source-v3';
-  const SHELL_KEY='./__df_base_shell_v114__.html';
+  const SHELL_KEY='./__df_base_shell__.html';
 
   const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
 
@@ -57,6 +57,9 @@
       if(!('caches' in window)||!txt)return;
       const c=await caches.open(SHELL_CACHE);
       await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));
+      const keep=new URL(SHELL_KEY,location.href).href;
+      const keys=await c.keys();
+      await Promise.all(keys.filter(req=>req.url!==keep).map(req=>c.delete(req)));
       caches.delete('df-app-shell-source-v2').catch(()=>{});
     }catch(e){}
   }
