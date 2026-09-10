@@ -1,6 +1,6 @@
 {
-  "version": "1.0.113",
-  "title": "DF EXTRUSOR PRO — OP manual rápida + nuvem",
-  "message": "Fluxo de OP otimizado para iPhone: removido OCR pesado do uso normal, mantida sincronização leve dos dados, fotos da equipe na nuvem, status de envio, correção de data local e avisos de equipe. Também foram atualizados textos antigos do fluxo de OP.",
-  "updatedAt": "2026-09-10T18:30:00-03:00"
+  "version": "1.0.114",
+  "title": "DF EXTRUSOR PRO — estabilidade + nuvem",
+  "message": "Varredura completa de estabilidade: digitação mais leve no iPhone, OCR legado fora do caminho normal, OP salva sem recarregar o app inteiro, sincronização de fotos somente quando necessário, correção da disputa entre backups, cache antigo eliminado e cálculos protegidos contra valores inválidos.",
+  "updatedAt": "2026-09-10T18:50:00-03:00"
 }
