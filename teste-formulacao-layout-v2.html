@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>DF EXTRUSOR PRO — Teste Formulação</title>
+<link rel="manifest" href="./manifest.webmanifest?v=20260910-layout-test-v2">
+<link rel="apple-touch-icon" href="./logo.jpg.jpeg">
+<link rel="preconnect" href="https://df-extrusor-api.reck-cp9.workers.dev" crossorigin>
+<style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
+<script src="./device-identity.js?v=20260910-layout-test-v2"></script>
+</head>
+<body>
+<div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc">
+  <h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2>
+  <p style="color:#94a3b8">Abrindo teste da Formulação...</p>
+</div>
+<script>
+(async()=>{
+  const BUILD='20260910-layout-test-v2';
+  const LOCAL_SHELL='./app-shell.html?v='+BUILD;
+  const SHELL_CACHE='df-app-shell-formula-layout-test-v2';
+  const SHELL_KEY='./__df_formula_layout_test_v2__.html';
+
+  const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
+
+  async function fetchText(url,timeout=5000){
+    let ctrl=null,timer=null;
+    try{
+      if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),timeout)}
+      const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const txt=await r.text();
+      if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');
+      return txt;
+    }finally{if(timer)clearTimeout(timer)}
+  }
+
+  async function readCachedShell(){
+    try{if(!('caches' in window))return '';const c=await caches.open(SHELL_CACHE);const r=await c.match(SHELL_KEY);const txt=r?await r.text():'';return txt&&txt.indexOf('<!doctype html')>=0?txt:''}catch(e){return ''}
+  }
+
+  async function saveCachedShell(txt){
+    try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}))}catch(e){}
+  }
+
+  async function loadShell(){
+    if(navigator.onLine!==false){try{const fresh=await fetchText(LOCAL_SHELL,4500);await saveCachedShell(fresh);return fresh}catch(e){}}
+    const cached=await readCachedShell();if(cached)return cached;
+    const fresh=await fetchText(LOCAL_SHELL,5000);await saveCachedShell(fresh);return fresh;
+  }
+
+  try{
+    const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
+    let h=await loadShell();
+
+    h=h.replace('</head>','<style id="dfStableBoot">html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}</style></head>');
+    if(savedAccess)h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
+
+    const closeScript='</scr'+'ipt>',openScript='<scr'+'ipt>';
+    const p=h.lastIndexOf(openScript);if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
+
+    const scripts=[
+      'error-monitor-v1.js?v='+BUILD,
+      'performance-guard-v1.js?v='+BUILD,
+      'app-bundle.js?v='+BUILD,
+      'local-calculations.js?v='+BUILD,
+      'op-qr-hook.js?v='+BUILD,
+      'formula-material-collapse.js?v='+BUILD,
+      'formula-op-relatorio.js?v='+BUILD,
+      'op-photo-source.js?v='+BUILD,
+      'op-manual-confirm.js?v='+BUILD,
+      'op-sync-lite-v2.js?v='+BUILD,
+      'op-cloud-team-v2.js?v='+BUILD,
+      'op-team-notify-v2.js?v='+BUILD,
+      'runtime-stability-v3.js?v='+BUILD,
+      'formula-layout-test-v1.js?v='+BUILD
+    ];
+    const external='<scr'+'ipt defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></scr'+'ipt>';
+    const tags=scripts.slice(0,4).map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('')+external+scripts.slice(4).map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
+    const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,700)})();</scr'+'ipt>';
+    h=h.replace('</body>',tags+ready+'</body>');
+
+    document.open();document.write(h);document.close();
+  }catch(e){
+    document.body.style.visibility='visible';document.body.style.opacity='1';document.body.style.background='#080b13';
+    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível abrir o teste.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>';
+  }
+})();
+</script>
+</body>
+</html>
