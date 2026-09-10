@@ -13,7 +13,7 @@
 (async()=>{
   try{
     try{
-      const RESET='df_mobile_cache_reset_v50';
+      const RESET='df_mobile_cache_reset_v51';
       if(localStorage.getItem(RESET)!=='1'){
         if('caches' in window){
           const ks=await caches.keys();
@@ -93,6 +93,7 @@
       'quick-access.js?v=20260908-boot-stable-v98',
       'favoritos.js?v=20260908-boot-stable-v98',
       'home-swap-menu.js?v=20260909-home-swap-v5',
+      'help-inline-assistant.js?v=20260909-ajuda-voz-inline-v1',
       'course-lock.js?v=20260908-boot-stable-v98',
       'formula-bottom-order.js?v=20260908-boot-stable-v98',
       'machine-recipe.js?v=20260908-boot-stable-v98',
