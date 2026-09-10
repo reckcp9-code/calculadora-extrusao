@@ -1,6 +1,6 @@
 {
-  "version": "1.0.114",
-  "title": "DF EXTRUSOR PRO — estabilidade + nuvem",
-  "message": "Varredura completa de estabilidade: digitação mais leve no iPhone, OCR legado fora do caminho normal, OP salva sem recarregar o app inteiro, sincronização de fotos somente quando necessário, correção da disputa entre backups, cache antigo eliminado e cálculos protegidos contra valores inválidos.",
-  "updatedAt": "2026-09-10T18:50:00-03:00"
+  "version": "1.0.115",
+  "title": "DF EXTRUSOR PRO — diagnóstico automático",
+  "message": "Adicionado sistema automático de diagnóstico: erros JavaScript, falhas de carregamento, promessas não tratadas e travamentos longos recebem um código simples como DF-OP-123. O app guarda até 30 ocorrências localmente, protege dados sensíveis e permite copiar o código ou o diagnóstico para suporte.",
+  "updatedAt": "2026-09-10T19:05:00-03:00"
 }
