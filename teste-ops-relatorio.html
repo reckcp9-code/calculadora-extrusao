@@ -21,8 +21,10 @@
     h=h.replace('</head>','<style>html,body{background:#080b13!important}#licenseGate{display:none!important}#appContent{display:block!important}#foLocked{display:none!important}#foDevArea{display:block!important}</style></head>');
     const close='</scr'+'ipt>',open='<scr'+'ipt>';
     const p=h.lastIndexOf(open);if(p>=0){const e=h.indexOf(close,p);if(e>=0)h=h.slice(0,p)+h.slice(e+close.length)}
-    const tags='<scr'+'ipt defer src="./op-qr-hook.js?v=20260910-op-auto-v3"></scr'+'ipt>'+
+    const tags='<scr'+'ipt defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></scr'+'ipt>'+
+      '<scr'+'ipt defer src="./op-qr-hook.js?v=20260910-op-auto-v3"></scr'+'ipt>'+
       '<scr'+'ipt defer src="./app-bundle.js?v=20260909-op-pdf-landscape-v111"></scr'+'ipt>'+
+      '<scr'+'ipt defer src="./op-landscape-pdf.js?v=20260910-qr-pdf-v1"></scr'+'ipt>'+
       '<scr'+'ipt defer src="./formula-material-collapse.js?v=20260909-material-collapse-v1"></scr'+'ipt>'+
       '<scr'+'ipt defer src="./formula-op-relatorio.js?v=20260910-op-auto-v2"></scr'+'ipt>'+
       '<scr'+'ipt>(function(){function go(){try{var b=document.getElementById("btFo");if(b)b.click()}catch(e){}try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}setTimeout(function(){try{var t=document.getElementById("dfFormTabOps");if(t)t.click()}catch(e){}},500)}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(go,1000)},{once:true});else setTimeout(go,1000);setTimeout(go,1800)})();</scr'+'ipt>';
