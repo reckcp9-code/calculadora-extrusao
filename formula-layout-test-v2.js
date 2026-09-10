@@ -18,20 +18,15 @@
       #${PAGE_ID} .dfAutoTopic[data-df-layout-test="formula"],
       #${PAGE_ID} .dfAutoTopic[data-df-layout-test="ops"]{min-width:112px!important}
 
-      /* TESTE: mantém o envio real da formulação pelo WhatsApp/PDF e o salvar número. */
+      /* TESTE: WhatsApp custom limpo — só número, salvar, mensagem e PDF. */
       #${PAGE_ID} #dfVendedorCard.dfWhatsCompactTest{padding:16px!important}
       #${PAGE_ID} #dfVendedorCard.dfWhatsCompactTest > *:not(#dfWhatsCompactTest){display:none!important}
       #dfWhatsCompactTest{display:block!important}
-      #dfWhatsCompactTest .dfWhatsCompactTitle{margin:0 0 5px!important;font-size:22px!important;font-weight:950!important;color:#f8fafc!important}
-      #dfWhatsCompactTest .dfWhatsCompactHint{margin:0 0 14px!important;color:#94a3b8!important;font-size:12px!important;line-height:1.4!important}
       #dfWhatsCompactTest .dfWhatsCompactField label{display:block!important;margin:0 0 7px!important;color:#cbd5e1!important;font-size:13px!important}
       #dfWhatsCompactTest #foVendWhats{display:block!important;width:100%!important;margin:0!important}
-      #dfWhatsCompactTest .dfWhatsCompactActions{display:grid!important;grid-template-columns:1.45fr .75fr .75fr!important;gap:8px!important;margin-top:12px!important}
-      #dfWhatsCompactTest .dfWhatsCompactActions button{display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:12px 5px!important;font-size:10.5px!important;font-weight:950!important;white-space:normal!important;line-height:1.15!important}
-      @media(max-width:390px){
-        #dfWhatsCompactTest .dfWhatsCompactActions{gap:6px!important;grid-template-columns:1.4fr .7fr .7fr!important}
-        #dfWhatsCompactTest .dfWhatsCompactActions button{font-size:9.5px!important;padding:11px 3px!important}
-      }
+      #dfWhatsCompactTest .dfWhatsCompactActions{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;margin-top:12px!important}
+      #dfWhatsCompactTest .dfWhatsCompactActions button{display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:14px 10px!important;font-size:14px!important;font-weight:950!important;white-space:normal!important;line-height:1.15!important}
+      #dfWhatsCompactTest #foVendPdfTest{border-color:#22c55e!important;background:#0c321c!important;color:#bbf7d0!important}
     `;
     document.head.appendChild(s);
   }
@@ -67,17 +62,23 @@
     let formula=topics.find(b=>b.dataset.dfLayoutTest==='formula');
     if(!formula){
       formula=topics.find(b=>/^TÓPICO\s*1$/i.test(String(b.textContent||'').trim()))||topics[0];
-      if(formula){formula.dataset.dfLayoutTest='formula';formula.textContent='🧪 FORMULAÇÃO';formula.setAttribute('aria-label','Abrir Formulação')}
+      if(formula)formula.dataset.dfLayoutTest='formula';
     }
+    if(formula){formula.textContent='🧪 FORMULAÇÃO';formula.setAttribute('aria-label','Abrir Formulação')}
 
     let ops=topics.find(b=>b.dataset.dfLayoutTest==='ops');
     if(!ops){
       ops=topics.find(b=>/BACKUP\s+NA\s+NUVEM/i.test(String(b.textContent||'')));
-      if(ops){ops.dataset.dfLayoutTest='ops';ops.textContent='🤖 OPS';ops.setAttribute('aria-label','Abrir OPs')}
+      if(ops)ops.dataset.dfLayoutTest='ops';
     }
+    if(ops){ops.textContent='🤖 OPS';ops.setAttribute('aria-label','Abrir OPs')}
 
-    const whats=topics.find(b=>/WHATSAPP/i.test(String(b.textContent||'')));
-    if(whats&&!whats.dataset.dfWhatsTestLabel){whats.dataset.dfWhatsTestLabel='1';whats.textContent='💬 WHATSAPP';whats.setAttribute('aria-label','Abrir WhatsApp')}
+    const whats=topics.find(b=>/WHATSAPP/i.test(String(b.textContent||''))||b.dataset.dfWhatsTestLabel==='1');
+    if(whats){
+      whats.dataset.dfWhatsTestLabel='1';
+      whats.textContent='💬 WHATSAPP CUSTOM';
+      whats.setAttribute('aria-label','Abrir WhatsApp custom');
+    }
 
     return !!(formula&&ops);
   }
@@ -95,7 +96,7 @@
     if(!box){
       box=document.createElement('div');
       box.id='dfWhatsCompactTest';
-      box.innerHTML='<h2 class="dfWhatsCompactTitle">Enviar formulação pelo WhatsApp</h2><div class="dfWhatsCompactHint">Envia a última formulação salva, com os materiais e quantidades.</div><div class="dfWhatsCompactField"><label>WhatsApp com DDD</label><div id="dfWhatsCompactInput"></div></div><div class="dfWhatsCompactActions" id="dfWhatsCompactActions"></div>';
+      box.innerHTML='<div class="dfWhatsCompactField"><label>WhatsApp do vendedor com DDD</label><div id="dfWhatsCompactInput"></div></div><div class="dfWhatsCompactActions" id="dfWhatsCompactActions"></div>';
       card.insertBefore(box,card.firstChild);
     }
 
@@ -103,17 +104,17 @@
     const actions=$('dfWhatsCompactActions');
     if(inputSlot&&input.parentNode!==inputSlot)inputSlot.appendChild(input);
     if(actions){
+      if(save.parentNode!==actions)actions.appendChild(save);
       if(send.parentNode!==actions)actions.appendChild(send);
       if(pdf.parentNode!==actions)actions.appendChild(pdf);
-      if(save.parentNode!==actions)actions.appendChild(save);
     }
 
-    send.textContent='ENVIAR FORMULAÇÃO';
-    pdf.textContent='PDF';
-    save.textContent='SALVAR';
-    send.setAttribute('aria-label','Enviar última formulação pelo WhatsApp');
-    pdf.setAttribute('aria-label','Gerar PDF da última formulação');
+    save.textContent='SALVAR NÚMERO';
+    send.textContent='ENVIAR MSG DA ÚLTIMA';
+    pdf.textContent='ENVIAR PDF DA ÚLTIMA';
     save.setAttribute('aria-label','Salvar número do WhatsApp');
+    send.setAttribute('aria-label','Enviar mensagem da última formulação pelo WhatsApp');
+    pdf.setAttribute('aria-label','Enviar PDF da última formulação');
 
     return true;
   }
