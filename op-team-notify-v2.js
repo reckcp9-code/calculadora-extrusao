@@ -1,0 +1,37 @@
+(function(){
+  'use strict';
+  if(window.DFOpTeamNotifyV2)return;
+  window.DFOpTeamNotifyV2=true;
+
+  const API='https://df-extrusor-api.reck-cp9.workers.dev';
+  const TOKEN_KEY='df_secure_token_v2';
+  const DEVICE_KEY='df_licenseauth_device_v1';
+  const ACCESS_KEY='df_auto_access_credential_v1';
+  const TEAM_KEY='df_op_team_v1';
+  const OWNER_SEEN_KEY='df_op_team_members_seen_v2';
+  const JOIN_ACK_KEY='df_op_team_join_ack_v2';
+  let polling=false,lastRender='',retryAfter=0;
+
+  const $=id=>document.getElementById(id);
+  const loadJson=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k)||'');return v??f}catch(e){return f}};
+  const saveJson=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  function teamNow(){try{if(window.DFOpCloud&&typeof window.DFOpCloud.team==='function'){const t=window.DFOpCloud.team();if(t&&t.teamId)return t}}catch(e){}return loadJson(TEAM_KEY,null)}
+  function deviceId(){try{if(window.DFDeviceIdentity&&typeof window.DFDeviceIdentity.get==='function')return String(window.DFDeviceIdentity.get()||'').trim()}catch(e){}return String(localStorage.getItem(DEVICE_KEY)||'').trim()}
+  function tokenPayload(token){try{let s=String(token||'').split('.')[0]||'';s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(Array.from(atob(s)).map(c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')))}catch(e){return null}}
+  async function renewSession(force){let token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim(),p=tokenPayload(token);if(token&&!force&&p&&p.owner)return token;const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();if(!credential||!dev)throw new Error('acesso indisponível');const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||'sessão indisponível');token=String(j.token||'').trim();if(!token)throw new Error('sessão vazia');sessionStorage.setItem(TOKEN_KEY,token);return token}
+  async function apiPost(path,body,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body||{}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if((!r.ok||j.ok===false)&&r.status===401&&retry!==false){await renewSession(true);return apiPost(path,body,false)}if(!r.ok||j.ok===false){const er=new Error(j.error||('HTTP '+r.status));er.status=r.status;throw er}return j}
+
+  function style(){if($('dfTeamNotifyStyle'))return;const s=document.createElement('style');s.id='dfTeamNotifyStyle';s.textContent='#dfTeamToastWrap{position:fixed;z-index:2147483646;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(92vw,430px);pointer-events:none}.dfTeamToast{pointer-events:auto;background:#07111f;border:1px solid #22c55e;box-shadow:0 16px 40px #000a;border-radius:15px;padding:13px 14px;color:#f8fafc;margin-bottom:8px}.dfTeamToast b{display:block;color:#86efac;font-size:14px;margin-bottom:4px}.dfTeamToast span{display:block;color:#cbd5e1;font-size:12px;line-height:1.45}#dfTeamMembersStatus{margin-top:8px;border:1px solid #334155;background:#0a1628;border-radius:10px;padding:9px 10px;color:#cbd5e1;font-size:11px;line-height:1.45}#dfTeamMembersStatus b{color:#86efac}';document.head.appendChild(s)}
+  function toast(title,message,ms){style();let wrap=$('dfTeamToastWrap');if(!wrap){wrap=document.createElement('div');wrap.id='dfTeamToastWrap';document.body.appendChild(wrap)}const t=document.createElement('div');t.className='dfTeamToast';const b=document.createElement('b');b.textContent=title;const s=document.createElement('span');s.textContent=message;t.append(b,s);wrap.appendChild(t);try{navigator.vibrate&&navigator.vibrate([70,40,70])}catch(e){}setTimeout(()=>t.remove(),ms||6500)}
+  function relative(iso){const ts=Date.parse(String(iso||''));if(!Number.isFinite(ts))return'';const sec=Math.max(0,Math.floor((Date.now()-ts)/1000));if(sec<60)return'agora';const min=Math.floor(sec/60);if(min<60)return'há '+min+' min';const h=Math.floor(min/60);if(h<24)return'há '+h+' h';const d=Math.floor(h/24);return'há '+d+' dia'+(d===1?'':'s')}
+
+  function renderOwner(data){const t=teamNow();if(!t||t.role!=='owner')return;const box=$('dfOpTeamCloud');if(!box)return;const total=Number(data.memberCount||0),operators=Math.max(0,total-1),members=Array.isArray(data.members)?data.members:[],last=members.filter(m=>m.role!=='owner').sort((a,b)=>String(b.lastActivity||'').localeCompare(String(a.lastActivity||'')))[0],when=last?relative(last.lastActivity||last.joinedAt):'';const text='👥 '+total+' acesso'+(total===1?'':'s')+' conectado'+(total===1?'':'s')+' • '+operators+' operador'+(operators===1?'':'es')+(when?' • última atividade '+when:'');if(text===lastRender)return;lastRender=text;let st=$('dfTeamMembersStatus');if(!st){st=document.createElement('div');st.id='dfTeamMembersStatus';box.appendChild(st)}const sep=text.indexOf(' • ');st.innerHTML=sep>=0?'<b>'+text.slice(0,sep)+'</b>'+text.slice(sep):'<b>'+text+'</b>'}
+
+  function operatorAck(force){const t=teamNow();if(!t||t.role!=='operator'||!t.teamId)return;const ack=String(localStorage.getItem(JOIN_ACK_KEY)||'');if(!force&&ack===String(t.teamId))return;try{localStorage.setItem(JOIN_ACK_KEY,String(t.teamId))}catch(e){}toast('✅ VOCÊ ENTROU NA EQUIPE','Equipe '+String(t.name||'DF EXTRUSOR')+' conectada. As fotos das OPs salvas serão compartilhadas com o responsável.',8000)}
+
+  async function poll(){if(polling||document.hidden||navigator.onLine===false||Date.now()<retryAfter)return;const t=teamNow();if(!t||!t.teamId||t.role!=='owner')return;polling=true;try{const j=await apiPost('/op/team/members',{teamId:t.teamId});renderOwner(j);const members=(Array.isArray(j.members)?j.members:[]).filter(m=>m&&m.role!=='owner'&&m.id);const state=loadJson(OWNER_SEEN_KEY,{teamId:'',ids:[]}),same=String(state.teamId||'')===String(t.teamId),seen=new Set(same&&Array.isArray(state.ids)?state.ids:[]),fresh=members.filter(m=>!seen.has(String(m.id)));if(fresh.length){const total=Number(j.memberCount||members.length+1);toast('🔔 NOVO OPERADOR CONECTADO',fresh.length===1?'Um operador entrou na sua equipe. Total conectado: '+total+'.':fresh.length+' operadores entraram na sua equipe. Total conectado: '+total+'.',8500)}saveJson(OWNER_SEEN_KEY,{teamId:String(t.teamId),ids:members.map(m=>String(m.id)),updatedAt:new Date().toISOString()})}catch(e){if(e&&e.status===404)retryAfter=Date.now()+5*60*1000}finally{polling=false}}
+
+  function boot(){style();setTimeout(()=>{operatorAck(false);poll()},900);window.addEventListener('df-team-joined',()=>{operatorAck(true);setTimeout(poll,300)});window.addEventListener('df-team-changed',()=>setTimeout(poll,350));window.addEventListener('online',()=>setTimeout(poll,500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(poll,300)});setInterval(poll,20000)}
+  window.DFOpTeamNotify={refresh:poll};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
