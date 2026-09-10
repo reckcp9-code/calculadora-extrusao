@@ -6,14 +6,27 @@
     const s=document.createElement('style');
     s.id='dfExBackTabStyle';
     s.textContent=`
-      #dfExTabs .dfExBackTab{
-        border-color:#f5a000!important;
+      #dfExTabs .dfPersistentMenuBtn{
+        position:sticky!important;
+        left:0!important;
+        z-index:20!important;
+        flex:0 0 auto!important;
+        min-width:92px!important;
+        min-height:46px!important;
+        padding:0 12px!important;
+        border:1px solid #f5a000!important;
+        border-radius:12px!important;
         background:#211400!important;
         color:#ffd36a!important;
-        box-shadow:none!important;
+        box-shadow:10px 0 16px rgba(8,11,19,.92)!important;
+        font-weight:950!important;
+        font-size:10.5px!important;
+        line-height:1.1!important;
+        white-space:nowrap!important;
+        text-transform:uppercase!important;
       }
-      #dfExTabs .dfExBackTab:active{
-        transform:scale(.96);
+      #dfExTabs .dfPersistentMenuBtn:active{
+        transform:scale(.96)!important;
         background:#342000!important;
       }
 
@@ -37,9 +50,7 @@
           -webkit-backdrop-filter:none!important;
           backdrop-filter:none!important;
         }
-        body.dfSectionMode.dfExBackInTabs #dfSectionBack{
-          display:none!important;
-        }
+        body.dfSectionMode.dfExBackInTabs #dfSectionBack{display:none!important}
         body.dfSectionMode.dfExBackInTabs #dfSectionTitle{
           display:block!important;
           width:100%!important;
@@ -51,9 +62,8 @@
           font-weight:950!important;
           color:#fff!important;
         }
-        body.dfSectionMode.dfExBackInTabs #dfExTabs{
-          margin-top:0!important;
-        }
+        body.dfSectionMode.dfExBackInTabs #dfExTabs{margin-top:0!important}
+        #dfExTabs .dfPersistentMenuBtn{min-width:88px!important;padding:0 10px!important;font-size:10px!important}
       }
     `;
     document.head.appendChild(s);
@@ -64,43 +74,52 @@
     return !!(pg&&document.body.classList.contains('dfSectionMode')&&pg.classList.contains('dfSectionSelected'));
   }
 
-  function syncBodyClass(){
-    document.body.classList.toggle('dfExBackInTabs',focusedExtrusao());
+  function goHome(){
+    const back=document.getElementById('dfSectionBack');
+    if(back){back.click();return}
+    document.body.classList.remove('dfSectionMode');
+    document.body.classList.add('dfHomeMode');
+    document.querySelectorAll('#appContent>.page').forEach(p=>p.classList.remove('dfSectionSelected'));
+    try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
+  }
+
+  function makeMenuButton(){
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='dfPersistentMenuBtn';
+    b.dataset.dfPersistentMenu='1';
+    b.textContent='← MENU';
+    b.setAttribute('aria-label','Voltar para a tela principal');
+    b.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      goHome();
+    });
+    return b;
   }
 
   function decorate(){
     addStyle();
+    const focused=focusedExtrusao();
     const nav=document.getElementById('dfExTabs');
+
     if(nav){
       const first=nav.querySelector('.dfExTab[data-tab="extrusao"]');
       if(first){
-        const onExtrusao=first.classList.contains('on');
-
-        if(onExtrusao){
-          if(first.textContent!=='← VOLTAR')first.textContent='← VOLTAR';
-          first.classList.add('dfExBackTab');
-          first.setAttribute('aria-label','Voltar para a tela principal');
-          first.setAttribute('title','Voltar');
-        }else{
-          if(first.textContent!=='EXTRUSÃO')first.textContent='EXTRUSÃO';
-          first.classList.remove('dfExBackTab');
-          first.setAttribute('aria-label','Ir para Extrusão');
-          first.setAttribute('title','Extrusão');
-        }
-
-        if(!first.dataset.dfBackBound){
-          first.dataset.dfBackBound='1';
-          first.addEventListener('click',function(e){
-            if(!first.classList.contains('on'))return;
-            e.preventDefault();
-            e.stopPropagation();
-            const back=document.getElementById('dfSectionBack');
-            if(back)back.click();
-          });
-        }
+        if(String(first.textContent||'').trim().toUpperCase().includes('VOLTAR'))first.textContent='EXTRUSÃO';
+        first.classList.remove('dfExBackTab');
+        first.setAttribute('aria-label','Ir para Extrusão');
+        first.setAttribute('title','Extrusão');
       }
+
+      let menu=nav.querySelector(':scope > .dfPersistentMenuBtn');
+      if(focused){
+        if(!menu){menu=makeMenuButton();nav.insertBefore(menu,nav.firstChild)}
+        else if(nav.firstElementChild!==menu)nav.insertBefore(menu,nav.firstChild);
+      }else if(menu){menu.remove()}
     }
-    syncBodyClass();
+
+    document.body.classList.toggle('dfExBackInTabs',focused);
   }
 
   function init(){

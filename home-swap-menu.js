@@ -12,79 +12,47 @@
     s.textContent=`
       #dfHomeMenuAnchor{display:none!important}
 
-      /* HOME COMPACTA: Curso / Ajuda / Feedback / Favoritos são o fim da tela. */
+      /* HOME COMPACTA: Curso / Ajuda / Feedback / Favoritos sao o fim da tela. */
       body.dfHomeCompact #appContent > .page,
-      body.dfHomeCompact #appContent > .foot{
-        display:none!important;
-      }
-      body.dfHomeCompact #dfQuickAccess ~ *{
-        display:none!important;
-      }
-      body.dfHomeCompact #dfQuickAccess{
-        margin-bottom:0!important;
-      }
+      body.dfHomeCompact #appContent > .foot{display:none!important}
+      body.dfHomeCompact #dfQuickAccess ~ *{display:none!important}
+      body.dfHomeCompact #dfQuickAccess{margin-bottom:0!important}
+      body.dfHomeCompact #appContent>.tabs{margin:0 0 12px!important}
+      body.dfHomeCompact #dfQuickAccess{margin-top:12px!important}
 
-      body.dfHomeCompact #appContent>.tabs{
-        margin:0 0 12px!important;
-      }
-      body.dfHomeCompact #dfQuickAccess{
-        margin-top:12px!important;
-      }
+      /* Dentro dos modulos: sem a seta redonda antiga. */
+      body.dfSectionMode #dfSectionBack{display:none!important}
+      body.dfSectionMode #dfSectionHeader{justify-content:center!important;gap:0!important}
+      body.dfSectionMode #dfSectionTitle{width:100%!important;margin:0!important;text-align:center!important}
 
-      /* Dentro dos módulos: sem a seta redonda antiga. */
-      body.dfSectionMode #dfSectionBack{
-        display:none!important;
-      }
-      body.dfSectionMode #dfSectionHeader{
-        justify-content:center!important;
-        gap:0!important;
-      }
-      body.dfSectionMode #dfSectionTitle{
-        width:100%!important;
-        margin:0!important;
-        text-align:center!important;
-      }
-
-      .dfOtherBackTab{
-        border-color:#f5a000!important;
+      /* MENU fica sempre visivel no primeiro lugar da barra interna. */
+      .dfPersistentMenuBtn{
+        position:sticky!important;
+        left:0!important;
+        z-index:20!important;
+        flex:0 0 auto!important;
+        min-width:92px!important;
+        min-height:46px!important;
+        padding:0 12px!important;
+        border:1px solid #f5a000!important;
+        border-radius:12px!important;
         background:#211400!important;
         color:#ffd36a!important;
-        box-shadow:none!important;
+        box-shadow:10px 0 16px rgba(8,11,19,.92)!important;
+        font-weight:950!important;
+        font-size:10.5px!important;
+        line-height:1.1!important;
+        white-space:nowrap!important;
+        text-transform:uppercase!important;
       }
-      .dfOtherBackTab:active{
-        transform:scale(.96)!important;
-        background:#342000!important;
-      }
+      .dfPersistentMenuBtn:active{transform:scale(.96)!important;background:#342000!important}
 
-      .dfOtherSoloNav{
-        display:flex!important;
-        gap:7px;
-        overflow-x:auto;
-        margin:0 0 14px;
-        padding:3px 1px 10px;
-      }
-      .dfOtherSoloBack{
-        flex:0 0 auto;
-        min-width:92px;
-        min-height:46px;
-        padding:0 12px;
-        border:1px solid #f5a000;
-        border-radius:12px;
-        background:#211400;
-        color:#ffd36a;
-        font-weight:950;
-        font-size:10.5px;
-      }
+      .dfOtherSoloNav{display:flex!important;gap:7px;overflow-x:auto;margin:0 0 14px;padding:3px 1px 10px}
 
       @media(max-width:560px){
-        body.dfHomeCompact #appContent>.tabs{
-          margin:0 0 10px!important;
-          gap:7px!important;
-        }
-        body.dfHomeCompact #dfQuickAccess{
-          margin-top:10px!important;
-          margin-bottom:0!important;
-        }
+        body.dfHomeCompact #appContent>.tabs{margin:0 0 10px!important;gap:7px!important}
+        body.dfHomeCompact #dfQuickAccess{margin-top:10px!important;margin-bottom:0!important}
+        .dfPersistentMenuBtn{min-width:88px!important;padding:0 10px!important;font-size:10px!important}
       }
     `;
     document.head.appendChild(s);
@@ -109,16 +77,8 @@
     if(!brand||!tabs||!quick)return;
 
     const anchor=ensureAnchor(app,tabs);
-
-    /* Menu dos módulos sobe logo após a marca. */
-    if(tabs.previousElementSibling!==brand){
-      brand.insertAdjacentElement('afterend',tabs);
-    }
-
-    /* Curso / Ajuda / Feedback / Favoritos vão para o antigo local do menu. */
-    if(anchor.parentNode&&quick.nextElementSibling!==anchor){
-      anchor.parentNode.insertBefore(quick,anchor);
-    }
+    if(tabs.previousElementSibling!==brand)brand.insertAdjacentElement('afterend',tabs);
+    if(anchor.parentNode&&quick.nextElementSibling!==anchor)anchor.parentNode.insertBefore(quick,anchor);
   }
 
   function sectionActive(){
@@ -140,18 +100,13 @@
     const home=!sectionActive();
     document.body.classList.toggle('dfHomeCompact',home);
 
-    if(!home){
-      restoreMarked();
-      return;
-    }
+    if(!home){restoreMarked();return}
 
-    /* Esconde as páginas mesmo se algum script antigo tentar mostrá-las. */
     app.querySelectorAll('.page,.foot').forEach(function(el){
       el.dataset.dfHomeCut='1';
       el.style.setProperty('display','none','important');
     });
 
-    /* E corta fisicamente tudo que estiver depois dos quatro acessos rápidos. */
     const quick=$('dfQuickAccess');
     if(quick&&quick.parentElement){
       let el=quick.nextElementSibling;
@@ -177,65 +132,62 @@
     try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
   }
 
-  function ensureSolo(page){
-    let solo=page.querySelector(':scope > .dfOtherSoloNav');
-    if(!focused(page)){
-      if(solo)solo.remove();
-      return;
-    }
-    if(!solo){
-      solo=document.createElement('div');
-      solo.className='dfOtherSoloNav';
-      solo.innerHTML='<button type="button" class="dfOtherSoloBack">← VOLTAR</button>';
-      page.insertBefore(solo,page.firstChild);
-      solo.querySelector('button').addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();goHome();
-      });
-    }
+  function makeMenuButton(){
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='dfPersistentMenuBtn';
+    b.dataset.dfPersistentMenu='1';
+    b.textContent='← MENU';
+    b.setAttribute('aria-label','Voltar para a tela principal');
+    b.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      goHome();
+    });
+    return b;
   }
 
-  function decorateOther(page){
+  function restoreLegacyFirst(nav){
+    if(!nav)return;
+    const firstTopic=nav.querySelector('.dfAutoTopic');
+    if(!firstTopic)return;
+    const original=firstTopic.dataset.dfOriginalLabel||firstTopic.dataset.dfModuleOriginalLabel||'';
+    if(original&&String(firstTopic.textContent||'').trim().toUpperCase().includes('VOLTAR'))firstTopic.textContent=original;
+    firstTopic.classList.remove('dfOtherBackTab','dfModuleBackTab');
+    if(original)firstTopic.setAttribute('aria-label',original);
+  }
+
+  function ensureMenu(page){
     if(!page)return;
     const nav=page.querySelector(':scope > .dfAutoTopics');
-    if(!nav){ensureSolo(page);return}
+    const oldSolo=page.querySelector(':scope > .dfOtherSoloNav');
 
-    const solo=page.querySelector(':scope > .dfOtherSoloNav');
-    if(solo)solo.remove();
-
-    const buttons=Array.from(nav.querySelectorAll('.dfAutoTopic'));
-    if(!buttons.length){ensureSolo(page);return}
-
-    const first=buttons[0];
-    if(!first.dataset.dfOriginalLabel){
-      first.dataset.dfOriginalLabel=String(first.textContent||'').trim();
+    if(!focused(page)){
+      if(oldSolo)oldSolo.remove();
+      if(nav)nav.querySelectorAll(':scope > .dfPersistentMenuBtn').forEach(b=>b.remove());
+      return;
     }
 
-    const active=buttons.find(b=>b.classList.contains('on'))||first;
-    const shouldBack=focused(page)&&active===first;
-    const label=shouldBack?'← VOLTAR':first.dataset.dfOriginalLabel;
-
-    if(String(first.textContent||'').trim()!==label)first.textContent=label;
-    first.classList.toggle('dfOtherBackTab',shouldBack);
-    first.setAttribute('aria-label',shouldBack?'Voltar para a tela principal':first.dataset.dfOriginalLabel);
-
-    if(!first.dataset.dfOtherBackBound){
-      first.dataset.dfOtherBackBound='1';
-      first.addEventListener('click',function(e){
-        if(this.classList.contains('dfOtherBackTab')){
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          goHome();
-        }
-      },true);
+    if(!nav){
+      let solo=oldSolo;
+      if(!solo){
+        solo=document.createElement('div');
+        solo.className='dfOtherSoloNav';
+        solo.appendChild(makeMenuButton());
+        page.insertBefore(solo,page.firstChild);
+      }
+      return;
     }
 
-    if(!nav.dataset.dfOtherBackBound){
-      nav.dataset.dfOtherBackBound='1';
-      nav.addEventListener('click',function(){setTimeout(syncAll,50)},true);
-    }
+    if(oldSolo)oldSolo.remove();
+    restoreLegacyFirst(nav);
+
+    let menu=nav.querySelector(':scope > .dfPersistentMenuBtn');
+    if(!menu){menu=makeMenuButton();nav.insertBefore(menu,nav.firstChild)}
+    else if(nav.firstElementChild!==menu)nav.insertBefore(menu,nav.firstChild);
   }
 
-  function syncOthers(){OTHER_IDS.forEach(id=>decorateOther($(id)))}
+  function syncOthers(){OTHER_IDS.forEach(id=>ensureMenu($(id)))}
 
   function syncAll(){
     if(syncing)return;
@@ -246,9 +198,7 @@
       swapHome();
       compactHome();
       syncOthers();
-    }finally{
-      syncing=false;
-    }
+    }finally{syncing=false}
   }
 
   function init(){
