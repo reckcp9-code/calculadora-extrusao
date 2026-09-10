@@ -2,7 +2,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   let current='extrusao';
-  let tries=0;
+  let scheduled=false;
   const groups=[
     {id:'extrusao',label:'EXTRUSÃO'},
     {id:'bobina',label:'BOBINA'},
@@ -73,22 +73,27 @@
     try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
   }
   function mount(){
+    scheduled=false;
     const pg=$('pgEx');if(!pg)return;
     style();
     try{const saved=sessionStorage.getItem('df_ex_tab_v8');if(groups.some(g=>g.id===saved))current=saved}catch(e){}
     apply(pg);
   }
+  function scheduleMount(){
+    if(scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(mount);
+  }
   function resetExtrusao(){current='extrusao';const pg=$('pgEx');if(pg)apply(pg)}
   function init(){
     mount();
     const pg=$('pgEx');
-    if(pg&&!pg.dfExTabsObserver){pg.dfExTabsObserver=true;const mo=new MutationObserver(()=>requestAnimationFrame(mount));mo.observe(pg,{childList:true,subtree:false})}
+    if(pg&&!pg.dfExTabsObserver){pg.dfExTabsObserver=true;new MutationObserver(scheduleMount).observe(pg,{childList:true,subtree:false})}
     const bt=$('btEx');
-    if(bt&&!bt.dfExTabsBound){bt.dfExTabsBound=true;bt.addEventListener('click',()=>setTimeout(resetExtrusao,40))}
-    const iv=setInterval(()=>{tries++;mount();if(tries>25)clearInterval(iv)},300);
+    if(bt&&!bt.dfExTabsBound){bt.dfExTabsBound=true;bt.addEventListener('click',()=>setTimeout(resetExtrusao,20))}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-  window.addEventListener('df-ui-ready',()=>setTimeout(init,80));
+  window.addEventListener('df-ui-ready',scheduleMount);
 })();
 
 (function(){
@@ -113,8 +118,6 @@
       #dfSectionHeader{display:none;align-items:center;gap:11px;margin:2px 0 13px;padding:1px 0 3px}
       #dfSectionBack{flex:0 0 46px;width:46px;height:46px;border:1px solid #f5a000;border-radius:999px;background:#211400;color:#ffd36a;font-size:27px;font-weight:950;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
       #dfSectionTitle{font-size:27px;line-height:1;font-weight:950;letter-spacing:.3px;color:#fff}
-
-      /* TELA PRINCIPAL: mantém o aplicativo original inteiro e rolável. */
       body.dfHomeMode #dfSectionHeader{display:none!important}
       body.dfHomeMode #appContent>#pgEx,
       body.dfHomeMode #appContent>#pgSa,
@@ -123,8 +126,6 @@
       body.dfHomeMode.dfFormulaLocked #appContent>#pgFo{display:none!important}
       body.dfHomeMode .dfAutoTopics{display:none!important}
       body.dfHomeMode .page>.card{display:block!important}
-
-      /* MODO FOCADO: ao tocar no menu, mostra somente a seção escolhida. */
       body.dfSectionMode #appContent>*{display:none!important}
       body.dfSectionMode #appContent>#dfSectionHeader{display:flex!important}
       body.dfSectionMode #appContent>.page.dfSectionSelected{display:block!important}
@@ -137,7 +138,6 @@
       body.dfSectionMode .notification,
       body.dfSectionMode .installBanner,
       body.dfSectionMode .pwaInstall{display:none!important}
-
       .dfAutoTopics{display:none;gap:7px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 14px;padding:3px 1px 10px}
       body.dfSectionMode .page.dfSectionSelected>.dfAutoTopics{display:flex!important}
       .dfAutoTopics::-webkit-scrollbar{display:none}
@@ -145,7 +145,6 @@
       .dfAutoTopic.on{border-color:#f59e0b;background:linear-gradient(180deg,#ffc43b,#f59e0b);color:#111;box-shadow:0 0 0 1px rgba(245,158,11,.35) inset}
       body.dfSectionMode .page.dfTopicReady>.card[data-df-topic]{display:none!important}
       body.dfSectionMode .page.dfTopicReady>.card[data-df-topic].dfTopicVisible{display:block!important}
-
       @media(max-width:560px){
         body.dfSectionMode .w{padding:8px 10px 28px!important}
         #dfSectionBack{width:43px;height:43px;flex-basis:43px;font-size:25px}
@@ -254,7 +253,7 @@
         const b=ev.target?.closest?.('#btEx,#btSa,#btCu,#btFo');
         if(!b)return;
         const key=keyForButton(b);if(!key)return;
-        setTimeout(()=>enterSection(key),70);
+        setTimeout(()=>enterSection(key),30);
       },true);
     }
     Object.values(sections).forEach(cfg=>{
@@ -279,7 +278,5 @@
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-  window.addEventListener('df-ui-ready',()=>setTimeout(init,100));
-  setTimeout(init,500);
-  setTimeout(init,1200);
+  window.addEventListener('df-ui-ready',init);
 })();
