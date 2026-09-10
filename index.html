@@ -103,7 +103,8 @@
       'formula-op-relatorio.js?v=20260910-op-auto-v2',
       'op-photo-source.js?v=20260910-photo-source-v1',
       'op-auto-quality.js?v=20260910-qualitycloud-v1',
-      'op-manual-confirm.js?v=20260910-manual-confirm-v1'
+      'op-manual-confirm.js?v=20260910-manual-confirm-v1',
+      'op-cloud-team.js?v=20260910-op-cloud-team-v1'
     ];
     const tags=externalTags+scripts.map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
     const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,900)})();</scr'+'ipt>';
