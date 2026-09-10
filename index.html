@@ -65,8 +65,6 @@
   }
 
   async function loadShell(){
-    // A base é presa a um commit imutável. Se já existe no aparelho,
-    // abre imediatamente do cache e atualiza silenciosamente ao fundo.
     const cached=await readCachedShell();
     if(cached){
       setTimeout(refreshShellInBackground,1200);
@@ -86,7 +84,6 @@
     const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
     let h=await loadShell();
 
-    // Mantém o fundo escuro durante toda a troca de documento para evitar flash branco.
     h=h.replace('</head>','<style id="dfStableBoot">html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}</style></head>');
     if(savedAccess&&navigator.onLine!==false){
       h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
@@ -97,11 +94,17 @@
     const p=h.lastIndexOf(openScript);
     if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
 
+    const externalTags='<scr'+'ipt defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></scr'+'ipt>';
     const scripts=[
+      'op-qr-hook.js?v=20260910-op-auto-v3',
       'app-bundle.js?v=20260909-op-pdf-landscape-v111',
-      'formula-material-collapse.js?v=20260910-material-collapse-v1'
+      'op-landscape-pdf.js?v=20260910-qr-pdf-v1',
+      'formula-material-collapse.js?v=20260910-material-collapse-v1',
+      'formula-op-relatorio.js?v=20260910-op-auto-v2',
+      'op-photo-source.js?v=20260910-photo-source-v1',
+      'op-auto-quality.js?v=20260910-qualitycloud-v1'
     ];
-    const tags=scripts.map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
+    const tags=externalTags+scripts.map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
     const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,900)})();</scr'+'ipt>';
     h=h.replace('</body>',tags+ready+'</body>');
 
