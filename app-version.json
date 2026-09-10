@@ -1,6 +1,6 @@
 {
-  "version": "1.0.114",
-  "title": "DF EXTRUSOR PRO — estabilidade + nuvem",
-  "message": "Varredura completa de estabilidade: digitação mais leve no iPhone, OCR legado fora do caminho normal, OP salva sem recarregar o app inteiro, sincronização de fotos somente quando necessário, correção da disputa entre backups, cache antigo eliminado e cálculos protegidos contra valores inválidos.",
-  "updatedAt": "2026-09-10T18:50:00-03:00"
+  "version": "1.0.115",
+  "title": "DF EXTRUSOR PRO — cache limpo + atualização segura",
+  "message": "Revisão de estabilidade: o PWA não acumula mais cópias por parâmetros de versão, o shell substitui a versão anterior automaticamente e a checagem de atualização sempre consulta a versão mais nova sem prender o iPhone em cache antigo.",
+  "updatedAt": "2026-09-10T22:10:00Z"
 }
