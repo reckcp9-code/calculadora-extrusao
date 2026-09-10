@@ -27,6 +27,8 @@
     const st=document.createElement('style');
     st.id='dfVendedorStyle';
     st.textContent=[
+      '#pgFo > *:not(#dfVendedorCard){display:none!important}',
+      '#pgFo > #dfVendedorCard{display:block!important}',
       '.dfVendedorCard{border-color:#14532d!important;background:linear-gradient(180deg,#101827,#07130d)!important}',
       '.dfVendedorGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
       '.dfVendedorCheck{display:flex;align-items:center;gap:8px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:11px 12px;color:#cbd5e1;font-size:13px;font-weight:900;margin-top:12px}',
