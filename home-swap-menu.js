@@ -4,6 +4,7 @@
   function $(id){return document.getElementById(id)}
   const OTHER_IDS=['pgSa','pgCu','pgFo'];
   let syncing=false;
+  let scheduled=false;
 
   function addStyle(){
     if($('dfHomeSwapMenuStyle'))return;
@@ -12,41 +13,28 @@
     s.textContent=`
       #dfHomeMenuAnchor{display:none!important}
 
-      /* HOME COMPACTA: Curso / Ajuda / Feedback / Favoritos sao o fim da tela. */
+      /* HOME COMPACTA: os quatro acessos rapidos sao o fim da tela. */
       body.dfHomeCompact #appContent > .page,
       body.dfHomeCompact #appContent > .foot{display:none!important}
       body.dfHomeCompact #dfQuickAccess ~ *{display:none!important}
-      body.dfHomeCompact #dfQuickAccess{margin-bottom:0!important}
+      body.dfHomeCompact #dfQuickAccess{margin-top:12px!important;margin-bottom:0!important}
       body.dfHomeCompact #appContent>.tabs{margin:0 0 12px!important}
-      body.dfHomeCompact #dfQuickAccess{margin-top:12px!important}
 
       /* Dentro dos modulos: sem a seta redonda antiga. */
       body.dfSectionMode #dfSectionBack{display:none!important}
       body.dfSectionMode #dfSectionHeader{justify-content:center!important;gap:0!important}
       body.dfSectionMode #dfSectionTitle{width:100%!important;margin:0!important;text-align:center!important}
 
-      /* MENU fica sempre visivel no primeiro lugar da barra interna. */
       .dfPersistentMenuBtn{
-        position:sticky!important;
-        left:0!important;
-        z-index:20!important;
-        flex:0 0 auto!important;
-        min-width:92px!important;
-        min-height:46px!important;
-        padding:0 12px!important;
-        border:1px solid #f5a000!important;
-        border-radius:12px!important;
-        background:#211400!important;
-        color:#ffd36a!important;
+        position:sticky!important;left:0!important;z-index:20!important;
+        flex:0 0 auto!important;min-width:92px!important;min-height:46px!important;
+        padding:0 12px!important;border:1px solid #f5a000!important;border-radius:12px!important;
+        background:#211400!important;color:#ffd36a!important;
         box-shadow:10px 0 16px rgba(8,11,19,.92)!important;
-        font-weight:950!important;
-        font-size:10.5px!important;
-        line-height:1.1!important;
-        white-space:nowrap!important;
-        text-transform:uppercase!important;
+        font-weight:950!important;font-size:10.5px!important;line-height:1.1!important;
+        white-space:nowrap!important;text-transform:uppercase!important;
       }
       .dfPersistentMenuBtn:active{transform:scale(.96)!important;background:#342000!important}
-
       .dfOtherSoloNav{display:flex!important;gap:7px;overflow-x:auto;margin:0 0 14px;padding:3px 1px 10px}
 
       @media(max-width:560px){
@@ -87,35 +75,8 @@
     return document.body.classList.contains('dfSectionMode') && !!app.querySelector(':scope > .page.dfSectionSelected');
   }
 
-  function restoreMarked(){
-    document.querySelectorAll('[data-df-home-cut="1"]').forEach(function(el){
-      el.style.removeProperty('display');
-      delete el.dataset.dfHomeCut;
-    });
-  }
-
   function compactHome(){
-    const app=$('appContent');
-    if(!app)return;
-    const home=!sectionActive();
-    document.body.classList.toggle('dfHomeCompact',home);
-
-    if(!home){restoreMarked();return}
-
-    app.querySelectorAll('.page,.foot').forEach(function(el){
-      el.dataset.dfHomeCut='1';
-      el.style.setProperty('display','none','important');
-    });
-
-    const quick=$('dfQuickAccess');
-    if(quick&&quick.parentElement){
-      let el=quick.nextElementSibling;
-      while(el){
-        el.dataset.dfHomeCut='1';
-        el.style.setProperty('display','none','important');
-        el=el.nextElementSibling;
-      }
-    }
+    document.body.classList.toggle('dfHomeCompact',!sectionActive());
   }
 
   function focused(page){
@@ -124,11 +85,11 @@
 
   function goHome(){
     const back=$('dfSectionBack');
-    if(back){back.click();setTimeout(syncAll,60);return}
+    if(back){back.click();scheduleSync();return}
     document.body.classList.remove('dfSectionMode');
     document.body.classList.add('dfHomeMode');
     document.querySelectorAll('#appContent>.page').forEach(p=>p.classList.remove('dfSectionSelected'));
-    setTimeout(syncAll,20);
+    scheduleSync();
     try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
   }
 
@@ -139,11 +100,7 @@
     b.dataset.dfPersistentMenu='1';
     b.textContent='← MENU';
     b.setAttribute('aria-label','Voltar para a tela principal');
-    b.addEventListener('click',function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      goHome();
-    });
+    b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();goHome()});
     return b;
   }
 
@@ -164,14 +121,13 @@
 
     if(!focused(page)){
       if(oldSolo)oldSolo.remove();
-      if(nav)nav.querySelectorAll(':scope > .dfPersistentMenuBtn').forEach(b=>b.remove());
+      if(nav){const menu=nav.querySelector(':scope > .dfPersistentMenuBtn');if(menu)menu.remove()}
       return;
     }
 
     if(!nav){
-      let solo=oldSolo;
-      if(!solo){
-        solo=document.createElement('div');
+      if(!oldSolo){
+        const solo=document.createElement('div');
         solo.className='dfOtherSoloNav';
         solo.appendChild(makeMenuButton());
         page.insertBefore(solo,page.firstChild);
@@ -181,7 +137,6 @@
 
     if(oldSolo)oldSolo.remove();
     restoreLegacyFirst(nav);
-
     let menu=nav.querySelector(':scope > .dfPersistentMenuBtn');
     if(!menu){menu=makeMenuButton();nav.insertBefore(menu,nav.firstChild)}
     else if(nav.firstElementChild!==menu)nav.insertBefore(menu,nav.firstChild);
@@ -190,37 +145,46 @@
   function syncOthers(){OTHER_IDS.forEach(id=>ensureMenu($(id)))}
 
   function syncAll(){
+    scheduled=false;
     if(syncing)return;
     syncing=true;
-    try{
-      addStyle();
-      restoreMarked();
-      swapHome();
-      compactHome();
-      syncOthers();
-    }finally{syncing=false}
+    try{addStyle();swapHome();compactHome();syncOthers()}
+    finally{syncing=false}
+  }
+
+  function scheduleSync(){
+    if(scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(syncAll);
+  }
+
+  function observeLight(){
+    const app=$('appContent');
+    if(app&&!app.dataset.dfHomeSwapObserverV2){
+      app.dataset.dfHomeSwapObserverV2='1';
+      new MutationObserver(scheduleSync).observe(app,{childList:true,subtree:false});
+    }
+
+    OTHER_IDS.forEach(function(id){
+      const page=$(id);
+      if(page&&!page.dataset.dfHomeSwapPageObserverV2){
+        page.dataset.dfHomeSwapPageObserverV2='1';
+        new MutationObserver(scheduleSync).observe(page,{childList:true,subtree:false});
+      }
+    });
+
+    if(!document.body.dataset.dfHomeSwapBodyObserverV2){
+      document.body.dataset.dfHomeSwapBodyObserverV2='1';
+      new MutationObserver(scheduleSync).observe(document.body,{attributes:true,attributeFilter:['class']});
+    }
   }
 
   function init(){
     syncAll();
-    requestAnimationFrame(syncAll);
-    setTimeout(syncAll,120);
-    setTimeout(syncAll,500);
-    setTimeout(syncAll,1200);
-
-    const app=$('appContent')||document.body;
-    if(app&&!app.dataset.dfHomeSwapObserver){
-      app.dataset.dfHomeSwapObserver='1';
-      const mo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
-      mo.observe(app,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-    }
-
-    const bodyMo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
-    bodyMo.observe(document.body,{attributes:true,attributeFilter:['class']});
-
-    window.addEventListener('df-ui-ready',function(){setTimeout(syncAll,80)});
-    document.addEventListener('click',function(){setTimeout(syncAll,80)},true);
-    document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(syncAll,80)});
+    observeLight();
+    window.addEventListener('df-ui-ready',scheduleSync);
+    window.addEventListener('pageshow',scheduleSync);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)scheduleSync()});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
