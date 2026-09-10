@@ -12,10 +12,10 @@
     }
   }
 
-  const obs=new MutationObserver(fixStatus);
   function start(){
     fixStatus();
-    obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+    setTimeout(fixStatus,700);
+    setTimeout(fixStatus,2200);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);

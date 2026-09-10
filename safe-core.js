@@ -20,10 +20,19 @@
   function n(id){const e=$(id);return parseNum(e?e.value:0)}
   function fmt(v,d=2){const x=Number(v);return Number.isFinite(x)?x.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
   function rs(v){return 'R$ '+fmt(Number(v)||0,2)}
-  function set(id,t){const e=$(id);if(e)e.textContent=t}
+  function set(id,t){const e=$(id);if(e&&e.textContent!==String(t))e.textContent=t}
   function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function safeLower(t){return String(t||'').trim().toLocaleLowerCase('pt-BR')}
-  function debounce(name,fn,ms=320){clearTimeout(timers.get(name));timers.set(name,setTimeout(fn,ms))}
+  function debounce(name,fn,ms=0){
+    const pending=timers.get(name);
+    if(pending){
+      if(pending.kind==='frame')cancelAnimationFrame(pending.id);
+      else clearTimeout(pending.id);
+    }
+    const run=()=>{timers.delete(name);fn()};
+    if(ms>0)timers.set(name,{kind:'timer',id:setTimeout(run,ms)});
+    else timers.set(name,{kind:'frame',id:requestAnimationFrame(run)});
+  }
 
   function deviceId(){let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem(DEVICE_KEY,id)}return id}
   function dfMsg(t,ok=false){const e=$('licenseMsg');if(!e)return;e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}

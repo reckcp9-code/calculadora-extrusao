@@ -146,12 +146,6 @@
     setTimeout(sync,500);
     setTimeout(sync,1200);
 
-    const app=$('appContent')||document.body;
-    if(app&&!app.dataset.dfContactFeedbackObserver){
-      app.dataset.dfContactFeedbackObserver='1';
-      new MutationObserver(function(){requestAnimationFrame(sync)}).observe(app,{childList:true,subtree:true});
-    }
-
     document.addEventListener('click',function(e){
       const help=e.target.closest&&e.target.closest('#btAj');
       if(help)closeFeedback();

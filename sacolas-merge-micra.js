@@ -127,7 +127,7 @@
     const root=document.getElementById('pgSa');
     if(root&&!root.dataset.dfSaMergeObserver){
       root.dataset.dfSaMergeObserver='1';
-      new MutationObserver(()=>requestAnimationFrame(merge)).observe(root,{childList:true,subtree:true});
+      new MutationObserver(()=>requestAnimationFrame(merge)).observe(root,{childList:true,subtree:false});
     }
 
     window.addEventListener('df-ui-ready',()=>setTimeout(merge,80));

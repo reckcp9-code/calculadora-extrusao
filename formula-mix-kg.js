@@ -182,8 +182,6 @@
   function mount(){addMixBox();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
   window.addEventListener('df-ui-ready',()=>setTimeout(mount,120));
-  const mo=new MutationObserver(()=>{if(!q('dfMixKgBox'))addMixBox();});
-  mo.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(mount,500);
   setTimeout(mount,1300);
 })();

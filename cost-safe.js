@@ -21,7 +21,14 @@
   const CONFIG_KEY='df_custo_config_v1';
   let timer=null;
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(calc,170)}
+  function costVisible(){
+    const pg=$('pgCu');
+    return !!(pg&&(pg.classList.contains('on')||pg.classList.contains('dfSectionSelected')||location.hash==='#custo'));
+  }
+  function schedule(force=false){
+    if(!force&&!costVisible())return;
+    clearTimeout(timer);timer=setTimeout(calc,60);
+  }
   function densSacola(){const s=$('saDs');if(!s)return 0;return s.value==='manual'?get('saDm'):num(s.value)}
   function sacolaInput(quantidade){return{largura:get('saL'),comprimento:get('saC'),micra:get('saM'),densidade:densSacola(),descontoPct:get('saDes'),quantidade:Number(quantidade)||0}}
   function lucroModo(){return $('cuLucroModo')?.value||localStorage.getItem(MODE_KEY)||'markup'}
@@ -342,7 +349,8 @@
       const e=$(id);e?.addEventListener('input',schedule);e?.addEventListener('change',schedule);
     });
 
-    window.addEventListener('hashchange',()=>{if(location.hash==='#custo')schedule()});
+    document.addEventListener('click',ev=>{if(ev.target?.closest?.('#btCu'))setTimeout(()=>schedule(true),90)},true);
+    window.addEventListener('hashchange',()=>{if(location.hash==='#custo')schedule(true)});
     window.addEventListener('focus',schedule);
     window.calcCu=calc;
     fillFromSacolas(true).then(calc);

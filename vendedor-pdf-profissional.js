@@ -161,5 +161,5 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initLast();setTimeout(ajustarAuto,500)});
   else{initLast();setTimeout(ajustarAuto,500)}
-  setInterval(watchNew,700);
+  setInterval(watchNew,5000);
 })();

@@ -212,11 +212,8 @@
     if(app&&!app.dataset.dfHomeSwapObserver){
       app.dataset.dfHomeSwapObserver='1';
       const mo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
-      mo.observe(app,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+      mo.observe(app,{childList:true,subtree:false});
     }
-
-    const bodyMo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
-    bodyMo.observe(document.body,{attributes:true,attributeFilter:['class']});
 
     window.addEventListener('df-ui-ready',function(){setTimeout(syncAll,80)});
     document.addEventListener('click',function(){setTimeout(syncAll,80)},true);

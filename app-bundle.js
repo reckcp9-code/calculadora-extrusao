@@ -1,5 +1,5 @@
-/* DF EXTRUSOR PRO - pacote de scripts v1.0.109
-   Cálculos locais para funcionamento sem internet. */
+/* DF EXTRUSOR PRO - pacote de scripts v1.0.110
+   Digitação otimizada e cálculos locais. */
 
 /* ---- offline-auth-shim.js ---- */
 (function(){
@@ -9,7 +9,6 @@
   // Mantemos este arquivo apenas para compatibilidade com versões antigas do shell.
   try{localStorage.removeItem('df_offline_auth_v1')}catch(e){}
 })();
-
 
 /* ---- platform-hint.js ---- */
 (function(){
@@ -63,7 +62,6 @@
     return previousFetch(input,init);
   };
 })();
-
 
 /* ---- install-handoff.js ---- */
 (function(){
@@ -134,22 +132,24 @@
   }
 
   function hookIosInstallButton(){
-    if(!isIos()||isStandalone())return;
+    if(!isIos()||isStandalone())return true;
     const b=document.getElementById('dfInstallNow');
-    if(!b||b.dataset.dfHandoffHook==='1')return;
+    if(!b)return false;
+    if(b.dataset.dfHandoffHook==='1')return true;
     b.dataset.dfHandoffHook='1';
     b.textContent='PREPARAR INSTALAÇÃO';
     b.onclick=()=>prepareIosHandoff(b);
+    return true;
   }
 
   if(isIos()&&!isStandalone()){
-    const obs=new MutationObserver(()=>hookIosInstallButton());
+    const obs=new MutationObserver(()=>{if(hookIosInstallButton())obs.disconnect()});
     if(document.documentElement)obs.observe(document.documentElement,{childList:true,subtree:true});
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hookIosInstallButton);
-    else hookIosInstallButton();
+    const hook=()=>{if(hookIosInstallButton())obs.disconnect()};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hook,{once:true});
+    else hook();
   }
 })();
-
 
 /* ---- auto-access.js ---- */
 (function(){
@@ -254,7 +254,6 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-
 
 /* ---- auto-user.js ---- */
 (function(){
@@ -372,7 +371,6 @@
   else boot();
 })();
 
-
 /* ---- beta-launch.js ---- */
 (function(){
   'use strict';
@@ -441,7 +439,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
-
 
 /* ---- access-device-guard.js ---- */
 (function(){
@@ -517,7 +514,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',guard,{once:true});
   else guard();
 })();
-
 
 /* ---- presence-lite.js ---- */
 (function(){
@@ -628,7 +624,6 @@
   else init();
 })();
 
-
 /* ---- local-calculations.js ---- */
 (function(root){
   'use strict';
@@ -692,7 +687,6 @@
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
 
-
 /* ---- safe-core.js ---- */
 (() => {
   'use strict';
@@ -716,10 +710,19 @@
   function n(id){const e=$(id);return parseNum(e?e.value:0)}
   function fmt(v,d=2){const x=Number(v);return Number.isFinite(x)?x.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
   function rs(v){return 'R$ '+fmt(Number(v)||0,2)}
-  function set(id,t){const e=$(id);if(e)e.textContent=t}
+  function set(id,t){const e=$(id);if(e&&e.textContent!==String(t))e.textContent=t}
   function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function safeLower(t){return String(t||'').trim().toLocaleLowerCase('pt-BR')}
-  function debounce(name,fn,ms=320){clearTimeout(timers.get(name));timers.set(name,setTimeout(fn,ms))}
+  function debounce(name,fn,ms=0){
+    const pending=timers.get(name);
+    if(pending){
+      if(pending.kind==='frame')cancelAnimationFrame(pending.id);
+      else clearTimeout(pending.id);
+    }
+    const run=()=>{timers.delete(name);fn()};
+    if(ms>0)timers.set(name,{kind:'timer',id:setTimeout(run,ms)});
+    else timers.set(name,{kind:'frame',id:requestAnimationFrame(run)});
+  }
 
   function deviceId(){let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem(DEVICE_KEY,id)}return id}
   function dfMsg(t,ok=false){const e=$('licenseMsg');if(!e)return;e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}
@@ -782,7 +785,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
 
-
 /* ---- sacola-peso-quantidade.js ---- */
 (function(){
   'use strict';
@@ -807,8 +809,11 @@
     return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
   }
 
-  let timer=0;
-  function debounce(){clearTimeout(timer);timer=setTimeout(calcular,180)}
+  let frame=0;
+  function schedule(){
+    if(frame)cancelAnimationFrame(frame);
+    frame=requestAnimationFrame(()=>{frame=0;calcular()});
+  }
 
   async function calcular(){
     const pesoAlvo=val('saPesoAlvo');
@@ -817,13 +822,13 @@
     if(!out)return;
 
     if(!(pesoAlvo>0)){
-      out.textContent='—';
-      if(st)st.textContent='';
+      if(out.textContent!=='—')out.textContent='—';
+      if(st&&st.textContent)st.textContent='';
       return;
     }
 
     if(typeof window.dfCalc!=='function'){
-      out.textContent='—';
+      if(out.textContent!=='—')out.textContent='—';
       if(st){st.textContent='A calculadora ainda está carregando.';st.className='status warn'}
       return;
     }
@@ -839,14 +844,15 @@
       });
       const pesoUnidade=Number(r&&r.pesoUnidade)||0;
       if(!(pesoUnidade>0)){
-        out.textContent='—';
+        if(out.textContent!=='—')out.textContent='—';
         if(st){st.textContent='Preencha largura, comprimento, micra e densidade.';st.className='status warn'}
         return;
       }
 
       const qtd=Math.max(1,Math.round((pesoAlvo*1000)/pesoUnidade));
       const pesoEstimado=(qtd*pesoUnidade)/1000;
-      out.textContent=fmt(qtd,0)+' sacos';
+      const result=fmt(qtd,0)+' sacos';
+      if(out.textContent!==result)out.textContent=result;
       if(st){
         st.textContent='Peso estimado com '+fmt(qtd,0)+' sacos: '+fmt(pesoEstimado,3)+' kg';
         st.className='status ok';
@@ -875,9 +881,9 @@
       </div>';
     card.appendChild(box);
 
-    $('saPesoAlvo')?.addEventListener('input',debounce);
-    ['saL','saC','saM','saDes','saDm'].forEach(id=>$(id)?.addEventListener('input',debounce));
-    $('saDs')?.addEventListener('change',debounce);
+    $('saPesoAlvo')?.addEventListener('input',schedule);
+    ['saL','saC','saM','saDes','saDm'].forEach(id=>$(id)?.addEventListener('input',schedule));
+    $('saDs')?.addEventListener('change',schedule);
   }
 
   function init(){
@@ -888,7 +894,6 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
-
 
 /* ---- material-manager.js ---- */
 (function(){
@@ -1065,7 +1070,6 @@
   else init();
 })();
 
-
 /* ---- cost-safe.js ---- */
 (function(){
   'use strict';
@@ -1090,7 +1094,14 @@
   const CONFIG_KEY='df_custo_config_v1';
   let timer=null;
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(calc,170)}
+  function costVisible(){
+    const pg=$('pgCu');
+    return !!(pg&&(pg.classList.contains('on')||pg.classList.contains('dfSectionSelected')||location.hash==='#custo'));
+  }
+  function schedule(force=false){
+    if(!force&&!costVisible())return;
+    clearTimeout(timer);timer=setTimeout(calc,60);
+  }
   function densSacola(){const s=$('saDs');if(!s)return 0;return s.value==='manual'?get('saDm'):num(s.value)}
   function sacolaInput(quantidade){return{largura:get('saL'),comprimento:get('saC'),micra:get('saM'),densidade:densSacola(),descontoPct:get('saDes'),quantidade:Number(quantidade)||0}}
   function lucroModo(){return $('cuLucroModo')?.value||localStorage.getItem(MODE_KEY)||'markup'}
@@ -1411,7 +1422,8 @@
       const e=$(id);e?.addEventListener('input',schedule);e?.addEventListener('change',schedule);
     });
 
-    window.addEventListener('hashchange',()=>{if(location.hash==='#custo')schedule()});
+    document.addEventListener('click',ev=>{if(ev.target?.closest?.('#btCu'))setTimeout(()=>schedule(true),90)},true);
+    window.addEventListener('hashchange',()=>{if(location.hash==='#custo')schedule(true)});
     window.addEventListener('focus',schedule);
     window.calcCu=calc;
     fillFromSacolas(true).then(calc);
@@ -1421,32 +1433,36 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,200));else setTimeout(init,200);
 })();
 
-
 /* ---- cost-unit-stable.js ---- */
 (function(){
   'use strict';
   let timer=0,bound=false;
-  function schedule(){
+  function costVisible(){
+    const pg=document.getElementById('pgCu');
+    return !!(pg&&(pg.classList.contains('on')||pg.classList.contains('dfSectionSelected')||location.hash==='#custo'));
+  }
+  function schedule(force=false){
+    if(!force&&!costVisible())return;
     clearTimeout(timer);
-    timer=setTimeout(()=>{try{if(typeof window.calcCu==='function')window.calcCu()}catch(e){}},220);
+    timer=setTimeout(()=>{try{if(typeof window.calcCu==='function')window.calcCu()}catch(e){}},80);
   }
   function bind(){
     if(bound)return;
     const pg=document.getElementById('pgCu');
     if(!pg){setTimeout(bind,300);return}
     bound=true;
-    ['cuKg','cuLucroPct','cuLucroModo','cuPrecoModo','cuVendaTipo','cuVendaAlvo','cuEnergiaKg','cuMaoKg','cuReprocessoKg','cuOutrosKg','cuEmbalagemRolo','cuFreteRolo','cuImpostoPct','cuComissaoPct','cuAuto','saL','saC','saM','saDes','saDm','saPesoAlvo','saQ'].forEach(id=>{
+    ['cuKg','cuLucroPct','cuLucroModo','cuPrecoModo','cuVendaTipo','cuVendaAlvo','cuEnergiaKg','cuMaoKg','cuReprocessoKg','cuOutrosKg','cuEmbalagemRolo','cuFreteRolo','cuImpostoPct','cuComissaoPct','cuAuto'].forEach(id=>{
       const e=document.getElementById(id);
       e?.addEventListener('input',schedule);
       e?.addEventListener('change',schedule);
     });
-    window.addEventListener('hashchange',schedule);
-    window.addEventListener('focus',schedule);
-    schedule();
+    document.addEventListener('click',ev=>{if(ev.target?.closest?.('#btCu'))setTimeout(()=>schedule(true),100)},true);
+    window.addEventListener('hashchange',()=>schedule(true));
+    window.addEventListener('focus',()=>schedule(true));
+    schedule(true);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
-
 
 /* ---- cost-explanations.js ---- */
 (function(){
@@ -1506,7 +1522,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
   window.addEventListener('df-ui-ready',aplicar);
 })();
-
 
 /* ---- formula-unlock.js ---- */
 (function(){
@@ -1588,7 +1603,6 @@
   // Inicializa imediatamente para evitar o "pisca" em que o botão AJUDA aparecia depois.
   init();
 })();
-
 
 /* ---- back-extra.js ---- */
 (function(){
@@ -1678,7 +1692,6 @@
   setTimeout(init,800);
   setTimeout(init,1600);
 })();
-
 
 /* ---- bobina-safe.js ---- */
 (function(){
@@ -1897,7 +1910,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
-
 /* ---- bobina-factor-profiles.js ---- */
 (function(){
   'use strict';
@@ -1988,12 +2000,11 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,250),{once:true});else setTimeout(mount,250);
   window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));
-  const mo=new MutationObserver(()=>{if(!mounted||!$('dfBobinaPerfis'))requestAnimationFrame(mount)});
+  const mo=new MutationObserver(()=>{if(mounted&&$('dfBobinaPerfis')){mo.disconnect();return}requestAnimationFrame(mount)});
   mo.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(mount,700);
   setTimeout(mount,1400);
 })();
-
 
 /* ---- contact-extra.js ---- */
 (function(){
@@ -2013,16 +2024,11 @@
     setTimeout(removeSupportCards,500);
     setTimeout(removeSupportCards,1200);
 
-    try{
-      const observer=new MutationObserver(function(){removeSupportCards()});
-      observer.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
   else init();
 })();
-
 
 /* ---- update-notify-policy.js ---- */
 (function(){
@@ -2516,7 +2522,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
-
 /* ---- vendedor-extra.js ---- */
 (function(){
   const KEY_NUM='df_vendedor_whats_num_v1';
@@ -2963,7 +2968,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(ensure,350);setTimeout(ensure,1200)});else{setTimeout(ensure,350);setTimeout(ensure,1200)}
 })();
 
-
 /* ---- formula-mix-kg.js ---- */
 (function(){
   'use strict';
@@ -3149,12 +3153,9 @@
   function mount(){addMixBox();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
   window.addEventListener('df-ui-ready',()=>setTimeout(mount,120));
-  const mo=new MutationObserver(()=>{if(!q('dfMixKgBox'))addMixBox();});
-  mo.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(mount,500);
   setTimeout(mount,1300);
 })();
-
 
 /* ---- op-page-maximize.js ---- */
 (function(){
@@ -3289,7 +3290,6 @@
   };
 })();
 
-
 /* ---- op-single-safe.js ---- */
 (function(){
   'use strict';
@@ -3372,7 +3372,6 @@
     openOP(f);
   },true);
 })();
-
 
 /* ---- formula-share-safe.js ---- */
 (function(){
@@ -3474,7 +3473,6 @@
   window.dfPdfResinasProfissional=pdfResinas;
 })();
 
-
 /* ---- pdf-button-safe.js ---- */
 (function(){
   'use strict';
@@ -3544,7 +3542,6 @@
     abrirPdf(selected());
   },true);
 })();
-
 
 /* ---- formula-view-safe.js ---- */
 (function(){
@@ -3665,7 +3662,6 @@
   document.addEventListener('click',()=>setTimeout(()=>{if(q('foSaved')&&!q('foSavedSelect'))force();},120),true);
 })();
 
-
 /* ---- whatsapp-user-number.js ---- */
 (function(){
   'use strict';
@@ -3762,7 +3758,6 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
-
 
 /* ---- vendedor-pdf-profissional.js ---- */
 (function(){
@@ -3928,9 +3923,8 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initLast();setTimeout(ajustarAuto,500)});
   else{initLast();setTimeout(ajustarAuto,500)}
-  setInterval(watchNew,700);
+  setInterval(watchNew,5000);
 })();
-
 
 /* ---- cloud-backup-auto.js ---- */
 (function(){
@@ -4207,7 +4201,6 @@
   setInterval(detectChanges,12000);setInterval(sync,60000);
 })();
 
-
 /* ---- backup-status-fix.js ---- */
 (function(){
   'use strict';
@@ -4223,16 +4216,15 @@
     }
   }
 
-  const obs=new MutationObserver(fixStatus);
   function start(){
     fixStatus();
-    obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+    setTimeout(fixStatus,700);
+    setTimeout(fixStatus,2200);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);
   else start();
 })();
-
 
 /* ---- feedback-extra.js ---- */
 (function(){
@@ -4388,7 +4380,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
-
 /* ---- nav-separation-fix.js ---- */
 (function(){
   'use strict';
@@ -4436,7 +4427,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncHash);
   else syncHash();
 })();
-
 
 /* ---- quick-access.js ---- */
 (function(){
@@ -4517,7 +4507,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
-
 
 /* ---- favoritos.js ---- */
 (function(){
@@ -4648,7 +4637,6 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
-
 
 /* ---- home-swap-menu.js ---- */
 (function(){
@@ -4865,11 +4853,8 @@
     if(app&&!app.dataset.dfHomeSwapObserver){
       app.dataset.dfHomeSwapObserver='1';
       const mo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
-      mo.observe(app,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+      mo.observe(app,{childList:true,subtree:false});
     }
-
-    const bodyMo=new MutationObserver(function(){requestAnimationFrame(syncAll)});
-    bodyMo.observe(document.body,{attributes:true,attributeFilter:['class']});
 
     window.addEventListener('df-ui-ready',function(){setTimeout(syncAll,80)});
     document.addEventListener('click',function(){setTimeout(syncAll,80)},true);
@@ -5140,7 +5125,6 @@
   else init();
 })();
 
-
 /* ---- home-whatsapp-feedback-inline.js ---- */
 (function(){
   'use strict';
@@ -5290,12 +5274,6 @@
     setTimeout(sync,500);
     setTimeout(sync,1200);
 
-    const app=$('appContent')||document.body;
-    if(app&&!app.dataset.dfContactFeedbackObserver){
-      app.dataset.dfContactFeedbackObserver='1';
-      new MutationObserver(function(){requestAnimationFrame(sync)}).observe(app,{childList:true,subtree:true});
-    }
-
     document.addEventListener('click',function(e){
       const help=e.target.closest&&e.target.closest('#btAj');
       if(help)closeFeedback();
@@ -5307,7 +5285,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
-
 
 /* ---- course-lock.js ---- */
 (function(){
@@ -5371,7 +5348,6 @@
   else init();
 })();
 
-
 /* ---- formula-bottom-order.js ---- */
 (function(){
   'use strict';
@@ -5420,7 +5396,6 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
-
 
 /* ---- machine-recipe.js ---- */
 (function(){
@@ -5496,7 +5471,6 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
-
 
 /* ---- extrusao-tabs.js ---- */
 (function(){
@@ -5785,7 +5759,6 @@
   setTimeout(init,1200);
 })();
 
-
 /* ---- sacolas-merge-micra.js ---- */
 (function(){
   'use strict';
@@ -5916,7 +5889,7 @@
     const root=document.getElementById('pgSa');
     if(root&&!root.dataset.dfSaMergeObserver){
       root.dataset.dfSaMergeObserver='1';
-      new MutationObserver(()=>requestAnimationFrame(merge)).observe(root,{childList:true,subtree:true});
+      new MutationObserver(()=>requestAnimationFrame(merge)).observe(root,{childList:true,subtree:false});
     }
 
     window.addEventListener('df-ui-ready',()=>setTimeout(merge,80));
@@ -5926,7 +5899,6 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 })();
-
 
 /* ---- mobile-back-position.js ---- */
 (function(){
@@ -6131,7 +6103,7 @@
     const root=document.getElementById('appContent')||document.body;
     if(root&&!root.dataset.dfExBackObserver){
       root.dataset.dfExBackObserver='1';
-      new MutationObserver(()=>requestAnimationFrame(decorate)).observe(root,{childList:true,subtree:true});
+      new MutationObserver(()=>requestAnimationFrame(decorate)).observe(root,{childList:true,subtree:false});
     }
     document.addEventListener('click',()=>setTimeout(decorate,70),true);
   }
@@ -6141,7 +6113,6 @@
   window.addEventListener('df-ui-ready',()=>setTimeout(init,100));
   setTimeout(decorate,500);
 })();
-
 
 /* ---- extrusao-medidas-auto.js ---- */
 (function(){
@@ -6397,5 +6368,4 @@
   window.addEventListener('df-ui-ready',()=>setTimeout(init,120));
   setTimeout(init,700);
 })();
-
 

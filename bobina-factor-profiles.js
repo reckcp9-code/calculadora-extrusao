@@ -87,7 +87,7 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,250),{once:true});else setTimeout(mount,250);
   window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));
-  const mo=new MutationObserver(()=>{if(!mounted||!$('dfBobinaPerfis'))requestAnimationFrame(mount)});
+  const mo=new MutationObserver(()=>{if(mounted&&$('dfBobinaPerfis')){mo.disconnect();return}requestAnimationFrame(mount)});
   mo.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(mount,700);
   setTimeout(mount,1400);

@@ -127,7 +127,7 @@
     const root=document.getElementById('appContent')||document.body;
     if(root&&!root.dataset.dfExBackObserver){
       root.dataset.dfExBackObserver='1';
-      new MutationObserver(()=>requestAnimationFrame(decorate)).observe(root,{childList:true,subtree:true});
+      new MutationObserver(()=>requestAnimationFrame(decorate)).observe(root,{childList:true,subtree:false});
     }
     document.addEventListener('click',()=>setTimeout(decorate,70),true);
   }

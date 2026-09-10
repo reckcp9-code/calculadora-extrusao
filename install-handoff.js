@@ -66,18 +66,21 @@
   }
 
   function hookIosInstallButton(){
-    if(!isIos()||isStandalone())return;
+    if(!isIos()||isStandalone())return true;
     const b=document.getElementById('dfInstallNow');
-    if(!b||b.dataset.dfHandoffHook==='1')return;
+    if(!b)return false;
+    if(b.dataset.dfHandoffHook==='1')return true;
     b.dataset.dfHandoffHook='1';
     b.textContent='PREPARAR INSTALAÇÃO';
     b.onclick=()=>prepareIosHandoff(b);
+    return true;
   }
 
   if(isIos()&&!isStandalone()){
-    const obs=new MutationObserver(()=>hookIosInstallButton());
+    const obs=new MutationObserver(()=>{if(hookIosInstallButton())obs.disconnect()});
     if(document.documentElement)obs.observe(document.documentElement,{childList:true,subtree:true});
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hookIosInstallButton);
-    else hookIosInstallButton();
+    const hook=()=>{if(hookIosInstallButton())obs.disconnect()};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hook,{once:true});
+    else hook();
   }
 })();

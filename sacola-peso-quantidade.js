@@ -21,8 +21,11 @@
     return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
   }
 
-  let timer=0;
-  function debounce(){clearTimeout(timer);timer=setTimeout(calcular,180)}
+  let frame=0;
+  function schedule(){
+    if(frame)cancelAnimationFrame(frame);
+    frame=requestAnimationFrame(()=>{frame=0;calcular()});
+  }
 
   async function calcular(){
     const pesoAlvo=val('saPesoAlvo');
@@ -31,13 +34,13 @@
     if(!out)return;
 
     if(!(pesoAlvo>0)){
-      out.textContent='—';
-      if(st)st.textContent='';
+      if(out.textContent!=='—')out.textContent='—';
+      if(st&&st.textContent)st.textContent='';
       return;
     }
 
     if(typeof window.dfCalc!=='function'){
-      out.textContent='—';
+      if(out.textContent!=='—')out.textContent='—';
       if(st){st.textContent='A calculadora ainda está carregando.';st.className='status warn'}
       return;
     }
@@ -53,14 +56,15 @@
       });
       const pesoUnidade=Number(r&&r.pesoUnidade)||0;
       if(!(pesoUnidade>0)){
-        out.textContent='—';
+        if(out.textContent!=='—')out.textContent='—';
         if(st){st.textContent='Preencha largura, comprimento, micra e densidade.';st.className='status warn'}
         return;
       }
 
       const qtd=Math.max(1,Math.round((pesoAlvo*1000)/pesoUnidade));
       const pesoEstimado=(qtd*pesoUnidade)/1000;
-      out.textContent=fmt(qtd,0)+' sacos';
+      const result=fmt(qtd,0)+' sacos';
+      if(out.textContent!==result)out.textContent=result;
       if(st){
         st.textContent='Peso estimado com '+fmt(qtd,0)+' sacos: '+fmt(pesoEstimado,3)+' kg';
         st.className='status ok';
@@ -89,9 +93,9 @@
       </div>';
     card.appendChild(box);
 
-    $('saPesoAlvo')?.addEventListener('input',debounce);
-    ['saL','saC','saM','saDes','saDm'].forEach(id=>$(id)?.addEventListener('input',debounce));
-    $('saDs')?.addEventListener('change',debounce);
+    $('saPesoAlvo')?.addEventListener('input',schedule);
+    ['saL','saC','saM','saDes','saDm'].forEach(id=>$(id)?.addEventListener('input',schedule));
+    $('saDs')?.addEventListener('change',schedule);
   }
 
   function init(){

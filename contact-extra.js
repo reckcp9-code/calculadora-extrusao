@@ -15,10 +15,6 @@
     setTimeout(removeSupportCards,500);
     setTimeout(removeSupportCards,1200);
 
-    try{
-      const observer=new MutationObserver(function(){removeSupportCards()});
-      observer.observe(document.documentElement,{childList:true,subtree:true});
-    }catch(e){}
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
