@@ -1,6 +1,6 @@
 {
-  "version": "1.0.112",
-  "title": "DF EXTRUSOR PRO — OP automática + QR",
-  "message": "Publicada a leitura automática de OP com QR, envio ou câmera, melhoria da foto, bloqueio de duplicidade, pendências e relatório mensal. Os dados das OPs tentam sincronizar com a nuvem; as fotos completas continuam salvas no aparelho nesta versão.",
-  "updatedAt": "2026-09-10T01:18:00-03:00"
+  "version": "1.0.113",
+  "title": "DF EXTRUSOR PRO — OP manual rápida + nuvem",
+  "message": "Fluxo de OP otimizado para iPhone: removido OCR pesado do uso normal, mantida sincronização leve dos dados, fotos da equipe na nuvem, status de envio, correção de data local e avisos de equipe. Também foram atualizados textos antigos do fluxo de OP.",
+  "updatedAt": "2026-09-10T18:30:00-03:00"
 }
