@@ -1,6 +1,6 @@
 {
-  "version": "1.0.103",
-  "title": "DF EXTRUSOR PRO — Estabilidade no iPhone",
-  "message": "Corrigido o comportamento ao sair e voltar ao app no iPhone: o carregamento agora prioriza a base local em cache, evita recarregamentos desnecessários e reduz notificações de entrada repetidas ao alternar entre o app e a Tela de Início.",
-  "updatedAt": "2026-09-09T12:45:00-03:00"
+  "version": "1.0.106",
+  "title": "DF EXTRUSOR PRO — Otimização de desempenho",
+  "message": "Publicada a otimização aprovada da versão teste, com carregamento mais leve e ajustes de desempenho na navegação, Extrusão, Sacolas, Ajuda e atalhos da tela principal.",
+  "updatedAt": "2026-09-09T22:25:00-03:00"
 }
