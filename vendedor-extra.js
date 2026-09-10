@@ -27,10 +27,6 @@
     const st=document.createElement('style');
     st.id='dfVendedorStyle';
     st.textContent=[
-      '#pgFo.dfVendedorOnly > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}',
-      '#pgFo.dfVendedorOnly > #dfVendedorCard{display:block!important}',
-      '#pgFo.dfFormulaAutoOnly > *:not(.dfAutoTopics):not(#foDevArea){display:none!important}',
-      '#pgFo.dfFormulaAutoOnly > #foDevArea{display:block!important}',
       '.dfVendedorCard{border-color:#14532d!important;background:linear-gradient(180deg,#101827,#07130d)!important}',
       '.dfVendedorGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
       '.dfVendedorCheck{display:flex;align-items:center;gap:8px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:11px 12px;color:#cbd5e1;font-size:13px;font-weight:900;margin-top:12px}',
@@ -76,29 +72,6 @@
     if(contact)contact.insertAdjacentHTML('beforebegin',configHtml());
     else pg.insertAdjacentHTML('afterbegin',configHtml());
     bindConfig();
-  }
-
-  function ensureFormulaAutoTopic(){
-    const pg=$('pgFo'),nav=pg&&pg.querySelector(':scope > .dfAutoTopics');
-    if(!nav||nav.querySelector('[data-topic="formula-auto"]'))return;
-    const b=document.createElement('button');
-    b.type='button';
-    b.className='dfAutoTopic';
-    b.dataset.topic='formula-auto';
-    b.textContent='FORMULAÇÃO AUTOMÁTICA';
-    const menu=nav.querySelector(':scope > .dfPersistentMenuBtn');
-    if(menu&&menu.nextSibling)nav.insertBefore(b,menu.nextSibling);
-    else if(menu)nav.appendChild(b);
-    else nav.insertBefore(b,nav.firstChild);
-  }
-
-  function syncTopicView(){
-    const pg=$('pgFo'),card=$('dfVendedorCard');
-    if(!pg||!card)return;
-    ensureFormulaAutoTopic();
-    const auto=!!pg.querySelector('.dfAutoTopic[data-topic="formula-auto"].on');
-    pg.classList.toggle('dfFormulaAutoOnly',auto);
-    pg.classList.toggle('dfVendedorOnly',!auto&&card.classList.contains('dfTopicVisible'));
   }
 
   function bindConfig(){
@@ -280,15 +253,13 @@
 
   function init(){
     addConfig();
-    ensureFormulaAutoTopic();
-    syncTopicView();
     wrapSave();
-    setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},400);
-    setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},1200);
-    setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},2500);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();},400);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();},1200);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();},2500);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
   else init();
-  document.addEventListener('click',function(){setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},200)},true);
+  document.addEventListener('click',function(){setTimeout(()=>{addConfig();bindConfig();wrapSave();},200)},true);
 })();
