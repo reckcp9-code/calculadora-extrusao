@@ -1,5 +1,5 @@
-/* DF EXTRUSOR PRO - pacote de scripts v1.0.108
-   Gerado na ordem oficial para reduzir requisicoes sem alterar as funcoes. */
+/* DF EXTRUSOR PRO - pacote de scripts v1.0.109
+   Cálculos locais para funcionamento sem internet. */
 
 /* ---- offline-auth-shim.js ---- */
 (function(){
@@ -198,6 +198,15 @@
     return true;
   }
 
+  function resumeOfflineAccess(){
+    if(!savedCredential())return showOfflineGate();
+    cleanAccessParam();
+    setMessage('Modo offline liberado neste aparelho. Os cálculos continuam funcionando.',true);
+    unlock();
+    emitGateReady();
+    return true;
+  }
+
   function unlockSavedImmediately(){if(isOffline()||!savedCredential())return false;cleanAccessParam();setMessage('Acesso salvo restaurado.',true);unlock();return true}
 
   async function renewAccess(){
@@ -238,9 +247,9 @@
 
   async function resumeSavedAccess(){if(!savedCredential()||isOffline())return;cleanAccessParam();const t=await renewAccess();if(t){setMessage('Acesso automático restaurado.',true);unlock()}else if(savedCredential()){setMessage('Não foi possível validar o acesso. Verifique sua internet.',false);lockToGate()}}
 
-  function boot(){if(booted)return;booted=true;if(isOffline()){showOfflineGate();return}const restored=unlockSavedImmediately();if(!restored){prepareGeneralGate();prepareLegacyGate()}if(savedCredential())resumeSavedAccess()}
+  function boot(){if(booted)return;booted=true;if(isOffline()){resumeOfflineAccess();return}const restored=unlockSavedImmediately();if(!restored){prepareGeneralGate();prepareLegacyGate()}if(savedCredential())resumeSavedAccess()}
 
-  window.addEventListener('offline',showOfflineGate);
+  window.addEventListener('offline',resumeOfflineAccess);
   window.addEventListener('online',function(){const btn=document.getElementById('licenseBtn');if(btn)btn.disabled=false;if(savedCredential()){setMessage('Internet conectada. Validando seu acesso...',true);resumeSavedAccess()}else if(generalMode){prepareGeneralGate();setMessage('Internet conectada. Digite sua identificação para acessar.',true)}else if(linkToken){prepareLegacyGate();setMessage('Internet conectada. Toque em ACESSAR.',true)}});
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
@@ -620,6 +629,70 @@
 })();
 
 
+/* ---- local-calculations.js ---- */
+(function(root){
+  'use strict';
+
+  const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+
+  function extrusao(input){
+    const largura=num(input.largura),micra=num(input.micra),densidade=num(input.densidade),pesoMedido=num(input.pesoMedido);
+    const pesoIdeal=largura&&micra&&densidade?largura*micra*densidade*.01:0;
+    const micraReal=largura&&pesoMedido&&densidade?pesoMedido/(largura*densidade*.01):0;
+    const diferencaMicraPct=micraReal&&micra?((micraReal-micra)/micra)*100:0;
+    return{pesoIdeal,micraReal,diferencaMicraPct};
+  }
+
+  function correcao(input){
+    const base=extrusao(input),pesoMedido=num(input.pesoMedido),massa=num(input.massa),puxador=num(input.puxador),ar=num(input.ar);
+    const pesoIdeal=base.pesoIdeal;
+    const diferencaPct=pesoIdeal&&pesoMedido?((pesoMedido-pesoIdeal)/pesoIdeal)*100:0;
+    const puxadorRecomendado=pesoIdeal&&pesoMedido&&puxador?puxador*pesoMedido/pesoIdeal:0;
+    const massaRecomendada=pesoIdeal&&pesoMedido&&massa?massa*pesoIdeal/pesoMedido:0;
+    return{pesoIdeal,pesoMedido,diferencaPct,puxadorRecomendado,massaRecomendada,deltaPuxador:puxadorRecomendado?puxadorRecomendado-puxador:0,deltaMassa:massaRecomendada?massaRecomendada-massa:0,ar};
+  }
+
+  function producao(input){
+    const massa=num(input.massa),puxador=num(input.puxador),ar=num(input.ar),percentual=num(input.percentual),fator=1+percentual/100;
+    return{massaNova:massa?massa*fator:0,puxadorNovo:puxador?puxador*fator:0,arNovo:ar?ar*fator:0,relacaoAtual:massa&&puxador?massa/puxador:0,relacaoNova:massa&&puxador?(massa*fator)/(puxador*fator):0};
+  }
+
+  function sacola(input){
+    const largura=num(input.largura),comprimento=num(input.comprimento),micra=num(input.micra),densidade=num(input.densidade),descontoPct=num(input.descontoPct),quantidade=num(input.quantidade);
+    const pesoUnidade=largura&&comprimento&&micra&&densidade?largura*comprimento*micra*densidade/10000*(1-descontoPct/100):0;
+    return{pesoUnidade,pesoQuantidadeKg:pesoUnidade&&quantidade?pesoUnidade*quantidade/1000:0,unidadesPorKg:pesoUnidade?1000/pesoUnidade:0,pesoMilKg:pesoUnidade};
+  }
+
+  function custo(input){
+    const pesoKg=num(input.pesoKg),custoKg=num(input.custoKg),vendaKg=num(input.vendaKg),quantidade=num(input.quantidade)||1;
+    const custoUnidade=pesoKg*custoKg,vendaUnidade=pesoKg*vendaKg,lucroUnidade=vendaUnidade-custoUnidade;
+    return{custoUnidade,vendaUnidade,lucroUnidade,custoTotal:custoUnidade*quantidade,vendaTotal:vendaUnidade*quantidade,lucroTotal:lucroUnidade*quantidade};
+  }
+
+  function formulacao(input){
+    const totalKg=num(input.totalKg),rows=Array.isArray(input.rows)?input.rows:[];
+    let totalPct=0,somaKg=0,custoTotal=0;
+    const itens=rows.map(row=>{const pct=num(row.pct),precoKg=num(row.precoKg),kg=totalKg*pct/100,custo=kg*precoKg;totalPct+=pct;somaKg+=kg;custoTotal+=custo;return{pct,precoKg,kg,custo}});
+    return{itens,totalPct,somaKg,custoTotal,custoKgFinal:totalKg?custoTotal/totalKg:0,diferencaPara100:100-totalPct};
+  }
+
+  function calculate(type,input){
+    const data=input||{};
+    if(type==='extrusao')return extrusao(data);
+    if(type==='correcao')return correcao(data);
+    if(type==='producao')return producao(data);
+    if(type==='sacola')return sacola(data);
+    if(type==='custo')return custo(data);
+    if(type==='formulacao')return formulacao(data);
+    throw new Error('Cálculo local não reconhecido: '+String(type||''));
+  }
+
+  const api={calculate};
+  root.DFLocalCalculations=api;
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+})(typeof window!=='undefined'?window:globalThis);
+
+
 /* ---- safe-core.js ---- */
 (() => {
   'use strict';
@@ -630,6 +703,7 @@
   const MAT_KEY='df_formula_materiais_v2';
   const FORM_KEY='df_formulacoes_v2';
   const DEV_KEY='df_formula_dev_v1';
+  const ACCESS_KEY='df_auto_access_credential_v1';
   let token=sessionStorage.getItem(TOKEN_KEY)||'';
   let FO_ROWS=[];
   let LAST_EX={};
@@ -654,7 +728,7 @@
 
   async function rawPost(path,body,useToken=true,signal){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),cache:'no-store',signal});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
   async function dfLicenseAuthLogin(key,silent=false){const k=String(key||'').trim();if(!k){dfMsg('Digite sua licença.');return false}const btn=$('licenseBtn');if(btn)btn.disabled=true;if(!silent)dfMsg('Verificando licença no LicenseAuth...');try{const j=await rawPost('/auth',{licenseKey:k,deviceId:deviceId()},false);token=j.token||'';if(!token)throw new Error('Servidor não retornou uma sessão válida.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(LICENSE_KEY,k);dfMsg('Licença válida. Acesso liberado.',true);setTimeout(dfUnlocked,120);return true}catch(e){token='';sessionStorage.removeItem(TOKEN_KEY);localStorage.removeItem(LICENSE_KEY);dfLocked();dfMsg(e.message||'Não foi possível validar a licença.');return false}finally{if(btn)btn.disabled=false}}
-  async function dfCalc(type,input,retried=false){let ctrl=calcControllers.get(type);if(!retried){if(ctrl)ctrl.abort();ctrl=('AbortController'in window)?new AbortController():null;if(ctrl)calcControllers.set(type,ctrl)}try{const j=await rawPost('/calc',{type,input},true,ctrl?ctrl.signal:undefined);return j.result||{}}catch(e){if(e.name==='AbortError')throw e;if(e.status===401&&!retried){const k=localStorage.getItem(LICENSE_KEY);if(k&&await dfLicenseAuthLogin(k,true))return dfCalc(type,input,true)}throw e}finally{if(ctrl&&calcControllers.get(type)===ctrl)calcControllers.delete(type)}}
+  async function dfCalc(type,input){if(!window.DFLocalCalculations||typeof window.DFLocalCalculations.calculate!=='function')throw new Error('Motor local de cálculos indisponível.');return window.DFLocalCalculations.calculate(type,input||{})}
   function apiError(e){if(e&&e.name==='AbortError')return;console.error('DF API:',e)}
 
   function dens(prefix){const s=$(prefix+'Ds');return s&&s.value==='manual'?n(prefix+'Dm'):s?parseNum(s.value):0}
@@ -696,7 +770,7 @@
     const inp=$('licenseKey'),btn=$('licenseBtn');
     btn?.addEventListener('click',()=>{const k=(inp?.value||'').trim();if(!k)return dfMsg('Digite sua licença.');dfLicenseAuthLogin(k)});
     inp?.addEventListener('keydown',e=>{if(e.key==='Enter')btn?.click()});
-    const saved=localStorage.getItem(LICENSE_KEY);if(saved&&inp){inp.value=saved;dfLicenseAuthLogin(saved,true)}else dfLocked();
+    const saved=localStorage.getItem(LICENSE_KEY),savedAccess=localStorage.getItem(ACCESS_KEY);if(saved&&inp){inp.value=saved;dfLicenseAuthLogin(saved,true)}else if(savedAccess)dfUnlocked();else dfLocked();
     ['exL','exM','exP','exDm'].forEach(id=>$(id)?.addEventListener('input',()=>debounce('ex',calcEx)));$('exDs')?.addEventListener('change',()=>debounce('ex',calcEx));
     ['exCorMasA','exCorArA','exCorPuxA'].forEach(id=>$(id)?.addEventListener('input',()=>debounce('cor',calcCor)));$('btnCorPux')?.addEventListener('click',calcCor);$('btnCorMas')?.addEventListener('click',calcCor);
     ['exProdMas','exProdPux','exProdAr','exProdPerc'].forEach(id=>$(id)?.addEventListener('input',()=>debounce('prod',calcProd)));$('btnProd')?.addEventListener('click',calcProd);
@@ -2871,7 +2945,7 @@
     style();
     try{if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(r=>{const t=r.active||r.waiting||r.installing;if(t)t.postMessage({type:'DF_CACHE_NOW'})}).catch(()=>{})}catch(e){}
     let b=document.getElementById('dfOfflineBanner');
-    if(!b){b=document.createElement('div');b.id='dfOfflineBanner';b.className='dfOfflineBanner';b.innerHTML='<b>MODO OFFLINE</b> — materiais e formulações salvos continuam disponíveis. OP/PDF salvos podem ser consultados; cálculos que dependem do servidor ficam pausados até a internet voltar.';const bar=document.getElementById('dfSystemBar');if(bar&&bar.parentNode)bar.parentNode.insertBefore(b,bar.nextSibling);}
+    if(!b){b=document.createElement('div');b.id='dfOfflineBanner';b.className='dfOfflineBanner';b.innerHTML='<b>MODO OFFLINE</b> — cálculos, materiais e formulações continuam funcionando neste aparelho. Backup e atualização voltam a sincronizar quando a internet retornar.';const bar=document.getElementById('dfSystemBar');if(bar&&bar.parentNode)bar.parentNode.insertBefore(b,bar.nextSibling);}
     let badge=document.getElementById('dfNetBadge');
     if(!badge){badge=document.createElement('span');badge.id='dfNetBadge';badge.className='dfNetBadge';badge.innerHTML='<span class="dfNetDot"></span><span class="dfNetTxt">ONLINE</span>';const a=document.querySelector('#dfSystemBar .dfSystemActions');if(a)a.insertBefore(badge,a.firstChild);}
     update();

@@ -10,7 +10,7 @@
     style();
     try{if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(r=>{const t=r.active||r.waiting||r.installing;if(t)t.postMessage({type:'DF_CACHE_NOW'})}).catch(()=>{})}catch(e){}
     let b=document.getElementById('dfOfflineBanner');
-    if(!b){b=document.createElement('div');b.id='dfOfflineBanner';b.className='dfOfflineBanner';b.innerHTML='<b>MODO OFFLINE</b> — materiais e formulações salvos continuam disponíveis. OP/PDF salvos podem ser consultados; cálculos que dependem do servidor ficam pausados até a internet voltar.';const bar=document.getElementById('dfSystemBar');if(bar&&bar.parentNode)bar.parentNode.insertBefore(b,bar.nextSibling);}
+    if(!b){b=document.createElement('div');b.id='dfOfflineBanner';b.className='dfOfflineBanner';b.innerHTML='<b>MODO OFFLINE</b> — cálculos, materiais e formulações continuam funcionando neste aparelho. Backup e atualização voltam a sincronizar quando a internet retornar.';const bar=document.getElementById('dfSystemBar');if(bar&&bar.parentNode)bar.parentNode.insertBefore(b,bar.nextSibling);}
     let badge=document.getElementById('dfNetBadge');
     if(!badge){badge=document.createElement('span');badge.id='dfNetBadge';badge.className='dfNetBadge';badge.innerHTML='<span class="dfNetDot"></span><span class="dfNetTxt">ONLINE</span>';const a=document.querySelector('#dfSystemBar .dfSystemActions');if(a)a.insertBefore(badge,a.firstChild);}
     update();

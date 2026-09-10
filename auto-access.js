@@ -44,6 +44,15 @@
     return true;
   }
 
+  function resumeOfflineAccess(){
+    if(!savedCredential())return showOfflineGate();
+    cleanAccessParam();
+    setMessage('Modo offline liberado neste aparelho. Os cálculos continuam funcionando.',true);
+    unlock();
+    emitGateReady();
+    return true;
+  }
+
   function unlockSavedImmediately(){if(isOffline()||!savedCredential())return false;cleanAccessParam();setMessage('Acesso salvo restaurado.',true);unlock();return true}
 
   async function renewAccess(){
@@ -84,9 +93,9 @@
 
   async function resumeSavedAccess(){if(!savedCredential()||isOffline())return;cleanAccessParam();const t=await renewAccess();if(t){setMessage('Acesso automático restaurado.',true);unlock()}else if(savedCredential()){setMessage('Não foi possível validar o acesso. Verifique sua internet.',false);lockToGate()}}
 
-  function boot(){if(booted)return;booted=true;if(isOffline()){showOfflineGate();return}const restored=unlockSavedImmediately();if(!restored){prepareGeneralGate();prepareLegacyGate()}if(savedCredential())resumeSavedAccess()}
+  function boot(){if(booted)return;booted=true;if(isOffline()){resumeOfflineAccess();return}const restored=unlockSavedImmediately();if(!restored){prepareGeneralGate();prepareLegacyGate()}if(savedCredential())resumeSavedAccess()}
 
-  window.addEventListener('offline',showOfflineGate);
+  window.addEventListener('offline',resumeOfflineAccess);
   window.addEventListener('online',function(){const btn=document.getElementById('licenseBtn');if(btn)btn.disabled=false;if(savedCredential()){setMessage('Internet conectada. Validando seu acesso...',true);resumeSavedAccess()}else if(generalMode){prepareGeneralGate();setMessage('Internet conectada. Digite sua identificação para acessar.',true)}else if(linkToken){prepareLegacyGate();setMessage('Internet conectada. Toque em ACESSAR.',true)}});
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

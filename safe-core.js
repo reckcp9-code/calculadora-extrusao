@@ -7,6 +7,7 @@
   const MAT_KEY='df_formula_materiais_v2';
   const FORM_KEY='df_formulacoes_v2';
   const DEV_KEY='df_formula_dev_v1';
+  const ACCESS_KEY='df_auto_access_credential_v1';
   let token=sessionStorage.getItem(TOKEN_KEY)||'';
   let FO_ROWS=[];
   let LAST_EX={};
@@ -31,7 +32,7 @@
 
   async function rawPost(path,body,useToken=true,signal){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),cache:'no-store',signal});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
   async function dfLicenseAuthLogin(key,silent=false){const k=String(key||'').trim();if(!k){dfMsg('Digite sua licença.');return false}const btn=$('licenseBtn');if(btn)btn.disabled=true;if(!silent)dfMsg('Verificando licença no LicenseAuth...');try{const j=await rawPost('/auth',{licenseKey:k,deviceId:deviceId()},false);token=j.token||'';if(!token)throw new Error('Servidor não retornou uma sessão válida.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(LICENSE_KEY,k);dfMsg('Licença válida. Acesso liberado.',true);setTimeout(dfUnlocked,120);return true}catch(e){token='';sessionStorage.removeItem(TOKEN_KEY);localStorage.removeItem(LICENSE_KEY);dfLocked();dfMsg(e.message||'Não foi possível validar a licença.');return false}finally{if(btn)btn.disabled=false}}
-  async function dfCalc(type,input,retried=false){let ctrl=calcControllers.get(type);if(!retried){if(ctrl)ctrl.abort();ctrl=('AbortController'in window)?new AbortController():null;if(ctrl)calcControllers.set(type,ctrl)}try{const j=await rawPost('/calc',{type,input},true,ctrl?ctrl.signal:undefined);return j.result||{}}catch(e){if(e.name==='AbortError')throw e;if(e.status===401&&!retried){const k=localStorage.getItem(LICENSE_KEY);if(k&&await dfLicenseAuthLogin(k,true))return dfCalc(type,input,true)}throw e}finally{if(ctrl&&calcControllers.get(type)===ctrl)calcControllers.delete(type)}}
+  async function dfCalc(type,input){if(!window.DFLocalCalculations||typeof window.DFLocalCalculations.calculate!=='function')throw new Error('Motor local de cálculos indisponível.');return window.DFLocalCalculations.calculate(type,input||{})}
   function apiError(e){if(e&&e.name==='AbortError')return;console.error('DF API:',e)}
 
   function dens(prefix){const s=$(prefix+'Ds');return s&&s.value==='manual'?n(prefix+'Dm'):s?parseNum(s.value):0}
@@ -73,7 +74,7 @@
     const inp=$('licenseKey'),btn=$('licenseBtn');
     btn?.addEventListener('click',()=>{const k=(inp?.value||'').trim();if(!k)return dfMsg('Digite sua licença.');dfLicenseAuthLogin(k)});
     inp?.addEventListener('keydown',e=>{if(e.key==='Enter')btn?.click()});
-    const saved=localStorage.getItem(LICENSE_KEY);if(saved&&inp){inp.value=saved;dfLicenseAuthLogin(saved,true)}else dfLocked();
+    const saved=localStorage.getItem(LICENSE_KEY),savedAccess=localStorage.getItem(ACCESS_KEY);if(saved&&inp){inp.value=saved;dfLicenseAuthLogin(saved,true)}else if(savedAccess)dfUnlocked();else dfLocked();
     ['exL','exM','exP','exDm'].forEach(id=>$(id)?.addEventListener('input',()=>debounce('ex',calcEx)));$('exDs')?.addEventListener('change',()=>debounce('ex',calcEx));
     ['exCorMasA','exCorArA','exCorPuxA'].forEach(id=>$(id)?.addEventListener('input',()=>debounce('cor',calcCor)));$('btnCorPux')?.addEventListener('click',calcCor);$('btnCorMas')?.addEventListener('click',calcCor);
     ['exProdMas','exProdPux','exProdAr','exProdPerc'].forEach(id=>$(id)?.addEventListener('input',()=>debounce('prod',calcProd)));$('btnProd')?.addEventListener('click',calcProd);
