@@ -53,5 +53,5 @@
 
   function init(){estilo();aplicar();setTimeout(aplicar,300);setTimeout(aplicar,900)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-  setInterval(aplicar,1500);
+  window.addEventListener('df-ui-ready',aplicar);
 })();

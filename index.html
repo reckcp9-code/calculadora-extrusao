@@ -17,11 +17,8 @@
 </div>
 <script>
 (async()=>{
-  const COMMIT='3e570fc08be61679377cd81eb4e90bc45216f4c2';
-  const RAW='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/'+COMMIT+'/app.html';
-  const CDN='https://cdn.jsdelivr.net/gh/reckcp9-code/calculadora-extrusao@'+COMMIT+'/app.html';
-  const API='https://api.github.com/repos/reckcp9-code/calculadora-extrusao/contents/app.html?ref='+COMMIT;
-  const SHELL_CACHE='df-app-shell-source-v1';
+  const LOCAL_SHELL='./app-shell.html?v=20260910-stable-v106';
+  const SHELL_CACHE='df-app-shell-source-v2';
   const SHELL_KEY='./__df_base_shell__.html';
 
   const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
@@ -36,24 +33,6 @@
       const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});
       if(!r.ok)throw new Error('HTTP '+r.status);
       const txt=await r.text();
-      if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');
-      return txt;
-    }finally{if(timer)clearTimeout(timer)}
-  }
-
-  async function fetchApiShell(){
-    let ctrl=null,timer=null;
-    try{
-      if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),7000)}
-      const r=await fetch(API,{cache:'no-store',headers:{'Accept':'application/vnd.github+json'},signal:ctrl?ctrl.signal:undefined});
-      if(!r.ok)throw new Error('GitHub API HTTP '+r.status);
-      const j=await r.json();
-      const b64=String(j&&j.content||'').replace(/\s/g,'');
-      if(!b64)throw new Error('GitHub API sem conteúdo');
-      const bin=atob(b64);
-      const bytes=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-      const txt=('TextDecoder' in window)?new TextDecoder('utf-8').decode(bytes):decodeURIComponent(escape(bin));
       if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');
       return txt;
     }finally{if(timer)clearTimeout(timer)}
@@ -79,28 +58,22 @@
 
   async function refreshShellInBackground(){
     try{
-      const txt=await fetchText(RAW,7000);
+      const txt=await fetchText(LOCAL_SHELL,4000);
       await saveCachedShell(txt);
     }catch(e){}
   }
 
   async function loadShell(){
+    // A base é presa a um commit imutável. Se já existe no aparelho,
+    // abre imediatamente do cache e atualiza silenciosamente ao fundo.
     const cached=await readCachedShell();
     if(cached){
       setTimeout(refreshShellInBackground,1200);
       return cached;
     }
 
-    for(const src of [RAW,CDN]){
-      try{
-        const txt=await fetchText(src,7000);
-        await saveCachedShell(txt);
-        return txt;
-      }catch(e){}
-    }
-
     try{
-      const txt=await fetchApiShell();
+      const txt=await fetchText(LOCAL_SHELL,4000);
       await saveCachedShell(txt);
       return txt;
     }catch(e){}
@@ -112,6 +85,7 @@
     const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
     let h=await loadShell();
 
+    // Mantém o fundo escuro durante toda a troca de documento para evitar flash branco.
     h=h.replace('</head>','<style id="dfStableBoot">html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}</style></head>');
     if(savedAccess&&navigator.onLine!==false){
       h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
@@ -163,20 +137,20 @@
       'nav-separation-fix.js?v=20260908-boot-stable-v98',
       'quick-access.js?v=20260908-boot-stable-v98',
       'favoritos.js?v=20260908-boot-stable-v98',
-      'home-swap-menu.js?v=20260909-performance-v1',
+      'home-swap-menu.js?v=20260909-home-swap-v5',
       'help-inline-assistant.js?v=20260909-ajuda-voz-inline-v1',
-      'home-whatsapp-feedback-inline.js?v=20260909-performance-v1',
+      'home-whatsapp-feedback-inline.js?v=20260909-whatsapp-feedback-inline-v1',
       'course-lock.js?v=20260908-boot-stable-v98',
       'formula-bottom-order.js?v=20260908-boot-stable-v98',
       'machine-recipe.js?v=20260908-boot-stable-v98',
-      'extrusao-tabs.js?v=20260909-performance-v1',
-      'sacolas-merge-micra.js?v=20260909-performance-v1',
+      'extrusao-tabs.js?v=20260908-section-mode-v8',
+      'sacolas-merge-micra.js?v=20260909-sacolas-sem-outros-v3',
       'mobile-back-position.js?v=20260909-mobile-back-v5',
-      'extrusao-back-tab.js?v=20260909-performance-v1',
+      'extrusao-back-tab.js?v=20260909-menu-fixo-v3',
       'extrusao-medidas-auto.js?v=20260909-medidas-auto-v1'
     ];
 
-    const tags=scripts.map(s=>'<scr'+'ipt src="./'+s+'"></scr'+'ipt>').join('');
+    const tags=scripts.map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
     const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,900)})();</scr'+'ipt>';
     h=h.replace('</body>',tags+ready+'</body>');
 

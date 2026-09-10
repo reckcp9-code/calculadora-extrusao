@@ -269,5 +269,5 @@
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-  setInterval(ensureCard,1500);setInterval(detectChanges,12000);setInterval(sync,60000);
+  setInterval(detectChanges,12000);setInterval(sync,60000);
 })();

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.106",
-  "title": "DF EXTRUSOR PRO — Otimização de desempenho",
-  "message": "Publicada a otimização aprovada da versão teste, com carregamento mais leve e ajustes de desempenho na navegação, Extrusão, Sacolas, Ajuda e atalhos da tela principal.",
-  "updatedAt": "2026-09-09T22:25:00-03:00"
+  "version": "1.0.107",
+  "title": "DF EXTRUSOR PRO — Desempenho e estabilidade",
+  "message": "Carregamento mais rápido, menos processamento em segundo plano e cálculos sem solicitações acumuladas.",
+  "updatedAt": "2026-09-10T01:25:00-03:00"
 }

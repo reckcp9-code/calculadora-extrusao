@@ -1,13 +1,12 @@
-const DF_CACHE='df-extrusor-shell-v15';
+const DF_CACHE='df-extrusor-shell-v16';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
-const HISTORICAL_APP='https://raw.githubusercontent.com/reckcp9-code/calculadora-extrusao/3e570fc08be61679377cd81eb4e90bc45216f4c2/app.html';
 const CORE=[
-  './','./index.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
+  './','./index.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
   './device-identity.js','./offline-auth-shim.js','./install-handoff.js','./auto-access.js','./auto-user.js','./access-device-guard.js','./presence-lite.js','./login-recovery.js','./safe-core.js','./sacola-peso-quantidade.js','./material-manager.js','./cost-safe.js','./formula-unlock.js','./help-extra.js','./back-extra.js',
   './bobina-safe.js','./contact-extra.js','./pwa-update.js','./system-extra.js','./offline-mode.js','./cloud-backup.js','./feedback-extra.js',
   './op-single-safe.js','./formula-share-safe.js','./pdf-button-safe.js','./formula-view-safe.js',
-  './vendedor-pdf-profissional.js','./vendedor-extra.js','./cost-unit-stable.js','./cost-explanations.js','./cost-summary-boxes.js',HISTORICAL_APP
+  './vendedor-pdf-profissional.js','./vendedor-extra.js','./cost-unit-stable.js','./cost-explanations.js','./cost-summary-boxes.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
@@ -32,7 +31,7 @@ async function networkFirst(req){const cache=await caches.open(DF_CACHE);try{let
 
 self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('df-extrusor-shell-')&&k!==DF_CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});
-self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url),same=url.origin===self.location.origin,historical=url.href.split('?')[0]===HISTORICAL_APP;if(!same&&!historical)return;if(same&&req.mode==='navigate'){event.respondWith((async()=>{try{return await networkFirst(req)}catch(e){return(await cached('./index.html'))||(await cached('./'))||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}})}})());return}event.respondWith(networkFirst(req))});
+self.addEventListener('fetch',event=>{const req=event.request;if(req.method!=='GET')return;const url=new URL(req.url),same=url.origin===self.location.origin;if(!same)return;if(req.mode==='navigate'){event.respondWith((async()=>{try{return await networkFirst(req)}catch(e){return(await cached('./index.html'))||(await cached('./'))||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}})}})());return}event.respondWith(networkFirst(req))});
 self.addEventListener('message',event=>{const data=event.data||{};if(data.type==='DF_SHOW_NOTIFICATION')event.waitUntil((async()=>{await notifyUpdate({title:data.title,body:data.body,message:data.body});await increaseBadge()})());if(data.type==='DF_SET_VERSION')event.waitUntil(setStoredVersion(data.version));if(data.type==='DF_CLEAR_BADGE')event.waitUntil(clearBadge());if(data.type==='DF_CACHE_NOW')event.waitUntil(precache())});
 self.addEventListener('periodicsync',event=>{if(event.tag!=='df-version-check')return;event.waitUntil((async()=>{try{const data=await currentVersionData();const current=String(data&&data.version||'').trim();if(!current)return;const previous=await getStoredVersion();if(previous&&previous!==current){await notifyUpdate(data||{});await increaseBadge()}await setStoredVersion(current)}catch(e){}})())});
 self.addEventListener('push',event=>{event.waitUntil((async()=>{let data={};try{data=event.data?event.data.json():{}}catch(e){data={body:event.data?event.data.text():''}}if(!data||(!data.title&&!data.message&&!data.body)){const direct=await pendingPushMessage();if(direct)data=direct;else{const live=await currentVersionData();if(live)data=live}}await notifyUpdate(data||{});await increaseBadge();if(data&&data.version)await setStoredVersion(String(data.version))})())});

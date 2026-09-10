@@ -16,7 +16,6 @@
   function start(){
     fixStatus();
     obs.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
-    setInterval(fixStatus,1500);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);

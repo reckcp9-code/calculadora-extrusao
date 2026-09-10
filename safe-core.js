@@ -12,6 +12,7 @@
   let LAST_EX={};
   let LAST_FO={};
   const timers=new Map();
+  const calcControllers=new Map();
 
   function $(id){return document.getElementById(id)}
   function parseNum(v){let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const x=parseFloat(s);return Number.isFinite(x)?x:0}
@@ -21,17 +22,17 @@
   function set(id,t){const e=$(id);if(e)e.textContent=t}
   function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function safeLower(t){return String(t||'').trim().toLocaleLowerCase('pt-BR')}
-  function debounce(name,fn,ms=160){clearTimeout(timers.get(name));timers.set(name,setTimeout(fn,ms))}
+  function debounce(name,fn,ms=320){clearTimeout(timers.get(name));timers.set(name,setTimeout(fn,ms))}
 
   function deviceId(){let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem(DEVICE_KEY,id)}return id}
   function dfMsg(t,ok=false){const e=$('licenseMsg');if(!e)return;e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}
   function dfLocked(){if($('licenseGate'))$('licenseGate').style.display='flex';if($('appContent'))$('appContent').style.display='none'}
   function dfUnlocked(){if($('licenseGate'))$('licenseGate').style.display='none';if($('appContent'))$('appContent').style.display='block'}
 
-  async function rawPost(path,body,useToken=true){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),cache:'no-store'});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
+  async function rawPost(path,body,useToken=true,signal){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),cache:'no-store',signal});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
   async function dfLicenseAuthLogin(key,silent=false){const k=String(key||'').trim();if(!k){dfMsg('Digite sua licença.');return false}const btn=$('licenseBtn');if(btn)btn.disabled=true;if(!silent)dfMsg('Verificando licença no LicenseAuth...');try{const j=await rawPost('/auth',{licenseKey:k,deviceId:deviceId()},false);token=j.token||'';if(!token)throw new Error('Servidor não retornou uma sessão válida.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(LICENSE_KEY,k);dfMsg('Licença válida. Acesso liberado.',true);setTimeout(dfUnlocked,120);return true}catch(e){token='';sessionStorage.removeItem(TOKEN_KEY);localStorage.removeItem(LICENSE_KEY);dfLocked();dfMsg(e.message||'Não foi possível validar a licença.');return false}finally{if(btn)btn.disabled=false}}
-  async function dfCalc(type,input,retried=false){try{const j=await rawPost('/calc',{type,input},true);return j.result||{}}catch(e){if(e.status===401&&!retried){const k=localStorage.getItem(LICENSE_KEY);if(k&&await dfLicenseAuthLogin(k,true))return dfCalc(type,input,true)}throw e}}
-  function apiError(e){console.error('DF API:',e)}
+  async function dfCalc(type,input,retried=false){let ctrl=calcControllers.get(type);if(!retried){if(ctrl)ctrl.abort();ctrl=('AbortController'in window)?new AbortController():null;if(ctrl)calcControllers.set(type,ctrl)}try{const j=await rawPost('/calc',{type,input},true,ctrl?ctrl.signal:undefined);return j.result||{}}catch(e){if(e.name==='AbortError')throw e;if(e.status===401&&!retried){const k=localStorage.getItem(LICENSE_KEY);if(k&&await dfLicenseAuthLogin(k,true))return dfCalc(type,input,true)}throw e}finally{if(ctrl&&calcControllers.get(type)===ctrl)calcControllers.delete(type)}}
+  function apiError(e){if(e&&e.name==='AbortError')return;console.error('DF API:',e)}
 
   function dens(prefix){const s=$(prefix+'Ds');return s&&s.value==='manual'?n(prefix+'Dm'):s?parseNum(s.value):0}
   function toggleManual(prefix){const s=$(prefix+'Ds'),box=$(prefix+'DmBox');if(box)box.style.display=s&&s.value==='manual'?'block':'none'}
