@@ -1,174 +1,120 @@
 (function(){
   'use strict';
+  const KEY='df_formula_ops_auto_v2';
+  const REG_KEY='df_op_qr_registry_v1';
+  const DB='df_ops_fotos_v2';
+  let selectedFile=null,working=false,stream=null,scanTimer=null;
 
-  const KEY='df_formula_ops_relatorio_v1';
-  let selectedFile=null;
-  let ocrText='';
-
-  function $(id){return document.getElementById(id)}
-  function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   function num(v){let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0}
-  function fmt(v,d=2){return Number.isFinite(v)?v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
+  const fmt=(v,d=2)=>Number.isFinite(+v)?(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+  const today=()=>new Date().toISOString().slice(0,10), monthNow=()=>today().slice(0,7);
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
-  function save(a){localStorage.setItem(KEY,JSON.stringify(a));renderSaved();renderReport()}
-  function today(){const d=new Date();return d.toISOString().slice(0,10)}
-  function monthNow(){return today().slice(0,7)}
-  function addStyle(){
-    if($('dfOpsStyle'))return;
-    const s=document.createElement('style');s.id='dfOpsStyle';s.textContent=`
-      #dfFormulaSubnav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
-      #dfFormulaSubnav button{border:1px solid #334155;background:#0f172a;color:#cbd5e1;border-radius:13px;padding:12px 8px;font-weight:950;font-size:12px}
-      #dfFormulaSubnav button.on{border-color:#f5a000;background:#211400;color:#ffd36a}
-      #dfFormulaOps{display:none}
-      #dfFormulaOps.on{display:block}
-      .dfOpsHero{border:1px solid #f5a000;background:linear-gradient(180deg,#211400,#14100a);border-radius:18px;padding:16px;margin-bottom:14px}
-      .dfOpsHero h2{margin:0 0 6px;color:#ffd36a}.dfOpsHero p{margin:0;color:#cbd5e1;line-height:1.45;font-size:13px}
-      .dfOpsCard{background:#111827;border:1px solid #263244;border-radius:18px;padding:16px;margin-bottom:14px}
-      .dfOpsCard h3{margin:0 0 12px;font-size:19px}.dfOpsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      .dfOpsGrid .full{grid-column:1/-1}.dfOpsCard label{display:block;color:#cbd5e1;font-size:12px;margin:9px 0 5px}
-      .dfOpsCard input,.dfOpsCard textarea,.dfOpsCard select{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:12px;padding:12px;font-size:16px}
-      .dfOpsCard textarea{min-height:86px;resize:vertical}.dfOpsBtn{width:100%;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:13px;padding:13px 10px;margin-top:10px;font-size:14px;font-weight:950}
-      .dfOpsBtn.alt{border-color:#f5a000;background:#241600;color:#ffd36a}.dfOpsBtn.danger{border-color:#7f1d1d;background:#230b0b;color:#fca5a5}
-      #dfOpPreview{width:100%;max-height:360px;object-fit:contain;border-radius:14px;border:1px solid #334155;background:#080b13;display:none;margin-top:10px}
-      #dfOpOcrStatus{margin-top:10px;font-size:12px;font-weight:800;color:#94a3b8}.dfOpKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.dfOpKpi{background:#0f172a;border:1px solid #263244;border-radius:13px;padding:11px}.dfOpKpi span{display:block;color:#94a3b8;font-size:11px}.dfOpKpi b{display:block;color:#f8fafc;font-size:20px;margin-top:4px}
-      .dfOpSaved{background:#0f172a;border:1px solid #263244;border-radius:14px;padding:12px;margin-top:9px}.dfOpSavedTop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.dfOpSaved strong{color:#ffd36a}.dfOpTiny{font-size:11px;color:#94a3b8;line-height:1.4}.dfOpMaterialRow{display:grid;grid-template-columns:1fr 100px 42px;gap:6px;align-items:end;margin-top:6px}.dfOpMaterialRow button{height:44px;border:1px solid #7f1d1d;background:#230b0b;color:#fca5a5;border-radius:10px;font-weight:900}
-      #dfOpReportBox{margin-top:10px}.dfOpReportTable{width:100%;border-collapse:collapse;font-size:11px}.dfOpReportTable th,.dfOpReportTable td{border-bottom:1px solid #263244;padding:7px 4px;text-align:left}.dfOpReportTable th{color:#94a3b8}.dfOpsNotice{border:1px dashed #f5a000;background:#211400;color:#fef3c7;border-radius:12px;padding:10px;font-size:11px;line-height:1.45;margin-top:10px}
-      @media(max-width:560px){.dfOpsGrid{grid-template-columns:1fr}.dfOpKpis{grid-template-columns:1fr 1fr}.dfOpMaterialRow{grid-template-columns:1fr 86px 40px}#dfFormulaSubnav button{font-size:11px;padding:11px 5px}}
-    `;document.head.appendChild(s)
+  function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}renderAll()}
+  function registry(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){return{}}}
+
+  function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+  async function photoPut(id,blob,meta={}){const d=await dbOpen();return new Promise((res,rej)=>{const tx=d.transaction('photos','readwrite');tx.objectStore('photos').put({id,blob,mime:blob.type||'image/jpeg',savedAt:new Date().toISOString(),...meta});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+  async function photoGet(id){const d=await dbOpen();return new Promise((res,rej)=>{const r=d.transaction('photos').objectStore('photos').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}
+  async function photoDelete(id){const d=await dbOpen();return new Promise((res,rej)=>{const tx=d.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+
+  function loadScript(src,check){return new Promise((resolve,reject)=>{if(check())return resolve();const s=document.createElement('script');s.src=src;s.onload=()=>resolve();s.onerror=()=>reject(new Error('Falha ao carregar biblioteca'));document.head.appendChild(s)})}
+  const loadQR=()=>loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',()=>!!window.jsQR);
+  const loadTess=()=>loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js',()=>!!window.Tesseract);
+  const loadZip=()=>loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',()=>!!window.JSZip);
+
+  function addStyle(){if($('dfOpsStyle'))return;const s=document.createElement('style');s.id='dfOpsStyle';s.textContent=`
+    #dfFormulaSubnav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}#dfFormulaSubnav button,.dfOpsTabs button{border:1px solid #334155;background:#0f172a;color:#cbd5e1;border-radius:13px;padding:12px 7px;font-weight:950;font-size:11px}#dfFormulaSubnav button.on,.dfOpsTabs button.on{border-color:#f5a000;background:#211400;color:#ffd36a}#dfFormulaOps{display:none}#dfFormulaOps.on{display:block}
+    .dfOpsHero{border:1px solid #f5a000;background:linear-gradient(180deg,#211400,#14100a);border-radius:18px;padding:16px;margin-bottom:12px}.dfOpsHero h2{margin:0 0 6px;color:#ffd36a}.dfOpsHero p{margin:0;color:#cbd5e1;line-height:1.45;font-size:13px}.dfOpsTabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}.dfOpsPane{display:none}.dfOpsPane.on{display:block}.dfOpsCard{background:#111827;border:1px solid #263244;border-radius:18px;padding:16px;margin-bottom:12px}.dfOpsCard h3{margin:0 0 11px;font-size:18px}.dfOpsBtn{width:100%;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:13px;padding:13px 10px;margin-top:9px;font-size:14px;font-weight:950}.dfOpsBtn.alt{border-color:#f5a000;background:#241600;color:#ffd36a}.dfOpsBtn.gray{border-color:#475569;background:#0f172a;color:#e2e8f0}.dfOpsBtn.danger{border-color:#7f1d1d;background:#230b0b;color:#fca5a5}.dfOpsCard input,.dfOpsCard select{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:12px;padding:12px;font-size:16px}.dfOpsTiny{color:#94a3b8;font-size:11px;line-height:1.45}.dfOpsStatus{border:1px solid #334155;background:#0f172a;border-radius:13px;padding:12px;margin-top:10px;font-size:12px;font-weight:800;line-height:1.45}.dfOpsStatus.ok{border-color:#166534;color:#86efac}.dfOpsStatus.warn{border-color:#a16207;color:#fde68a}.dfOpsStatus.bad{border-color:#7f1d1d;color:#fca5a5}#dfOpPreview{display:none;width:100%;max-height:400px;object-fit:contain;border:1px solid #334155;border-radius:14px;background:#080b13;margin-top:10px}.dfOpList{border:1px solid #263244;background:#0f172a;border-radius:14px;padding:12px;margin-top:8px}.dfOpList strong{color:#ffd36a}.dfOpBadge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:950;margin-left:5px}.dfOpBadge.ok{background:#0c321c;color:#86efac}.dfOpBadge.warn{background:#3a2605;color:#fde68a}.dfOpKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.dfOpKpi{border:1px solid #263244;background:#0f172a;border-radius:13px;padding:11px}.dfOpKpi span{display:block;color:#94a3b8;font-size:10px}.dfOpKpi b{display:block;font-size:19px;margin-top:4px}.dfOpGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfOpGrid label{display:block;color:#cbd5e1;font-size:11px;margin:7px 0 4px}.dfOpTable{width:100%;border-collapse:collapse;font-size:11px}.dfOpTable td,.dfOpTable th{padding:6px 4px;border-bottom:1px solid #263244;text-align:left}.dfOpModal{position:fixed;inset:0;z-index:999999;background:#020617eF;display:none;padding:18px;overflow:auto}.dfOpModal.on{display:block}.dfOpModalBox{max-width:720px;margin:20px auto;background:#111827;border:1px solid #334155;border-radius:18px;padding:14px}.dfOpModal img{width:100%;max-height:65vh;object-fit:contain;border-radius:12px;background:#000}.dfScanWrap video{width:100%;border-radius:14px;background:#000;max-height:58vh}.dfPendingReason{color:#fde68a;font-size:11px;margin-top:5px}.dfArchiveBtns{display:grid;grid-template-columns:1fr 1fr;gap:7px}.dfQrDemo{border:1px dashed #f5a000;border-radius:13px;padding:10px;color:#fde68a;font-size:11px;line-height:1.5;margin-top:10px}
+    @media(max-width:560px){.dfOpsTabs{grid-template-columns:1fr 1fr 1fr}.dfOpsTabs button{padding:10px 3px;font-size:10px}.dfOpGrid{grid-template-columns:1fr 1fr}.dfArchiveBtns{grid-template-columns:1fr}.dfOpKpi b{font-size:17px}}
+  `;document.head.appendChild(s)}
+
+  function build(){return `
+    <div class="dfOpsHero"><h2>🤖 OP AUTOMÁTICA + QR</h2><p>Nova OP sai com QR único. Depois é só fotografar a folha preenchida: o sistema identifica a OP, guarda a foto, lê os campos e salva sozinho. Só o que ficar duvidoso vai para Pendentes.</p></div>
+    <div class="dfOpsTabs"><button class="on" data-pane="read">📸 LER OP</button><button data-pane="ok">✅ PRONTAS</button><button data-pane="pending">⚠️ PENDENTES</button><button data-pane="month">📊 MÊS</button><button data-pane="archive">📦 FOTOS</button></div>
+    <div id="dfPaneRead" class="dfOpsPane on"><div class="dfOpsCard"><h3>Fotografar OP preenchida</h3><input id="dfOpPhoto" type="file" accept="image/*" capture="environment"><img id="dfOpPreview"><div id="dfOpStatus" class="dfOpsStatus">Escolha ou tire uma foto. Assim que selecionar, a leitura começa sozinha.</div><div class="dfQrDemo">✅ Sem conferência normal. QR identifica a OP e recupera os dados impressos originais. A foto sempre é arquivada. Se algum campo preenchido à mão não passar na validação, a OP vai sozinha para <b>PENDENTES</b>.</div></div></div>
+    <div id="dfPaneOk" class="dfOpsPane"><div class="dfOpsCard"><h3>OPs processadas automaticamente</h3><div id="dfOkList"></div></div></div>
+    <div id="dfPanePending" class="dfOpsPane"><div class="dfOpsCard"><h3>Pendências</h3><div class="dfOpsTiny">No fim do mês, aponte a câmera para o QR da OP física. O sistema abre exatamente a foto arquivada daquela OP.</div><button id="dfScanQr" class="dfOpsBtn alt">📷 APONTAR CÂMERA PARA O QR</button><input id="dfScanQrFile" type="file" accept="image/*" capture="environment" style="margin-top:8px"><div id="dfPendingList"></div></div></div>
+    <div id="dfPaneMonth" class="dfOpsPane"><div class="dfOpsCard"><h3>Fechamento automático</h3><label>Mês</label><input id="dfOpMonth" type="month"><div id="dfReport"></div><button id="dfPrintReport" class="dfOpsBtn alt">📄 GERAR RELATÓRIO PDF</button></div></div>
+    <div id="dfPaneArchive" class="dfOpsPane"><div class="dfOpsCard"><h3>Fotos arquivadas</h3><div class="dfOpsTiny">Neste teste as fotos ficam guardadas neste aparelho/navegador em armazenamento interno do app.</div><button id="dfZipMonth" class="dfOpsBtn alt">📦 BAIXAR BACKUP DAS FOTOS DO MÊS</button><div id="dfArchiveList"></div></div></div>
+    <div id="dfOpModal" class="dfOpModal"><div class="dfOpModalBox"><button id="dfCloseModal" class="dfOpsBtn gray" style="margin-top:0">FECHAR</button><div id="dfModalBody"></div></div></div>
+    <div id="dfScanModal" class="dfOpModal"><div class="dfOpModalBox dfScanWrap"><button id="dfCloseScan" class="dfOpsBtn gray" style="margin-top:0">FECHAR CÂMERA</button><video id="dfQrVideo" playsinline muted></video><canvas id="dfQrCanvas" style="display:none"></canvas><div id="dfScanStatus" class="dfOpsStatus">Procurando QR...</div></div></div>`}
+
+  function mount(){addStyle();const area=$('foDevArea');if(!area||$('dfFormulaSubnav'))return;const core=document.createElement('div');core.id='dfFormulaCore';Array.from(area.children).forEach(ch=>core.appendChild(ch));const nav=document.createElement('div');nav.id='dfFormulaSubnav';nav.innerHTML='<button id="dfFormTabCore" class="on">🧪 FORMULAÇÃO</button><button id="dfFormTabOps">🤖 OPS AUTOMÁTICAS</button>';const ops=document.createElement('div');ops.id='dfFormulaOps';ops.innerHTML=build();area.append(nav,core,ops);$('dfFormTabCore').onclick=()=>switchMain(false);$('dfFormTabOps').onclick=()=>switchMain(true);ops.querySelectorAll('[data-pane]').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));bind();renderAll();if(new URLSearchParams(location.search).get('ops')==='1')switchMain(true)}
+  function switchMain(on){$('dfFormulaCore').style.display=on?'none':'block';$('dfFormulaOps').classList.toggle('on',on);$('dfFormTabCore').classList.toggle('on',!on);$('dfFormTabOps').classList.toggle('on',on)}
+  function switchPane(name){document.querySelectorAll('.dfOpsTabs button').forEach(b=>b.classList.toggle('on',b.dataset.pane===name));document.querySelectorAll('.dfOpsPane').forEach(p=>p.classList.remove('on'));$('dfPane'+name[0].toUpperCase()+name.slice(1))?.classList.add('on');if(name==='archive')renderArchive()}
+  function bind(){$('dfOpMonth').value=monthNow();$('dfOpPhoto').onchange=photoChosen;$('dfOpMonth').onchange=renderAll;$('dfPrintReport').onclick=printReport;$('dfScanQr').onclick=startScanner;$('dfScanQrFile').onchange=scanFile;$('dfCloseScan').onclick=stopScanner;$('dfCloseModal').onclick=closeModal;$('dfZipMonth').onclick=zipMonth}
+
+  function status(t,c=''){$('dfOpStatus').className='dfOpsStatus '+c;$('dfOpStatus').innerHTML=t}
+  async function imageCanvas(file,max=2200){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Foto inválida'))};img.src=u})}
+  async function decodeQR(file){await loadQR();const c=await imageCanvas(file,1800),x=c.getContext('2d',{willReadFrequently:true}),d=x.getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});return r?.data||''}
+  function expectedFor(id){return registry()[id]?.expected||null}
+  function parseDate(v){const m=String(v||'').match(/(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?/);if(!m)return'';let y=m[3]||String(new Date().getFullYear());if(y.length===2)y='20'+y;return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')}
+  function cleanLine(s){return String(s||'').replace(/[|]/g,' ').replace(/\s+/g,' ').trim()}
+  function parseOcr(text,exp){
+    const lines=String(text||'').split(/\n+/).map(cleanLine).filter(Boolean),all=lines.join('\n');
+    const first=re=>{const m=all.match(re);return m?String(m[1]||'').trim():''};
+    let numero=first(/(?:\bOS\b|\bOP\b)\s*[:#\-]?\s*([0-9]{1,10})/i);
+    let data=parseDate(first(/(?:Data(?:\s+emiss[aã]o)?)\s*[:\-]?\s*(\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?)/i));
+    let operador='',maquina='',apara=0,produzido=0,bobinas=0,row='';
+    for(let i=0;i<lines.length;i++){
+      const l=lines[i];
+      const m=l.match(/(\d{1,2}[\/.\-]\d{1,2}(?:[\/.\-]\d{2,4})?)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ ._-]{1,22})\s+([A-Za-z0-9._-]{1,18})\s+([0-9.,]+)\s+([0-9.,]+)(?:\s+[^\s]+){0,5}\s*([0-9.,]+)?$/i);
+      if(m){data=data||parseDate(m[1]);operador=m[2].trim();maquina=m[3].trim();apara=num(m[4]);produzido=num(m[5]);bobinas=num(m[6]);row=l;break}
+    }
+    if(!produzido){
+      const header=lines.findIndex(l=>/Aparas?.*Quantidade/i.test(l));
+      const search=header>=0?lines.slice(header+1,header+10):lines;
+      for(const l of search){const nums=(l.match(/\b\d+(?:[.,]\d+)?\b/g)||[]).map(num).filter(n=>n>=0);if(nums.length>=2&&/(\d{1,2}[\/.\-]\d{1,2}|kg|extrus|maq|oper)/i.test(l)){apara=nums[Math.max(0,nums.length-2)]||0;produzido=nums[nums.length-1]||0;row=l;break}}
+    }
+    if(!operador)operador=first(/Operador\s*[:\-]?\s*([A-Za-zÀ-ÿ][^\n]{1,25})/i);
+    if(!maquina)maquina=first(/M[aá]quina\s*[:\-]?\s*([A-Za-z0-9._ -]{1,20})/i);
+    if(!apara)apara=num(first(/Aparas?\s*(?:\(kg\))?\s*[:\-]?\s*([0-9.,]+)/i));
+    if(!produzido)produzido=num(first(/(?:Quantidade|Peso produzido|Produ[cç][aã]o)\s*(?:\(kg\))?\s*[:\-]?\s*([0-9.,]+)/i));
+    return{numero,data,operador,maquina,apara,produzido,bobinas,row,product:exp?.title||'',largura:+exp?.largura||0,micra:+exp?.micra||0,gm:+exp?.gm||0}
   }
+  function validate(p,exp,qr,ocrConfidence){const reasons=[];if(!qr||!/^DFOP-/i.test(qr))reasons.push('QR da OP não foi identificado');if(!exp)reasons.push('QR não encontrado no cadastro das OPs geradas');if(!(p.produzido>0))reasons.push('quantidade produzida não foi lida com segurança');if(!p.data)reasons.push('data não foi lida');if(!p.operador)reasons.push('operador não foi lido');if(!p.maquina)reasons.push('máquina não foi lida');if(p.apara<0||p.apara>p.produzido)reasons.push('apara fora do limite');if(exp?.totalKg>0&&p.produzido>exp.totalKg*1.35)reasons.push('produção lida muito acima do peso previsto da OP');if(ocrConfidence<45)reasons.push('qualidade da leitura da foto ficou baixa');return reasons}
+  function buildMaterials(exp,produzido){return (exp?.materials||[]).map(m=>({name:m.name,pct:+m.pct||0,kg:produzido>0?produzido*(+m.pct||0)/100:0}))}
 
-  function mount(){
-    addStyle();
-    const area=$('foDevArea');if(!area||$('dfFormulaSubnav'))return;
-    const core=document.createElement('div');core.id='dfFormulaCore';
-    Array.from(area.children).forEach(ch=>core.appendChild(ch));
-    const nav=document.createElement('div');nav.id='dfFormulaSubnav';nav.innerHTML='<button id="dfFormTabCore" class="on" type="button">🧪 FORMULAÇÃO</button><button id="dfFormTabOps" type="button">📸 OPS / RELATÓRIO</button>';
-    const ops=document.createElement('div');ops.id='dfFormulaOps';ops.innerHTML=buildOpsHtml();
-    area.appendChild(nav);area.appendChild(core);area.appendChild(ops);
-    $('dfFormTabCore').onclick=()=>switchTab(false);$('dfFormTabOps').onclick=()=>switchTab(true);
-    bindOps();renderSaved();renderReport();
-    const q=new URLSearchParams(location.search);if(q.get('ops')==='1')switchTab(true);
-  }
+  async function photoChosen(e){selectedFile=e.target.files?.[0]||null;if(!selectedFile||working)return;const img=$('dfOpPreview');img.src=URL.createObjectURL(selectedFile);img.style.display='block';await processPhoto(selectedFile)}
+  async function processPhoto(file){working=true;status('📷 Foto recebida. Procurando o QR da OP...','warn');let qr='',exp=null,ocrText='',confidence=0,p={};try{
+      try{qr=await decodeQR(file)}catch(e){}exp=qr?expectedFor(qr):null;
+      const provisional=qr||('SEMQR-'+Date.now());await photoPut(provisional,file,{qr:qr||'',month:monthNow()});
+      status((qr?'✅ QR identificado: <b>'+esc(qr)+'</b><br>':'⚠️ QR ainda não identificado.<br>')+'Lendo os campos preenchidos automaticamente...','warn');
+      await loadTess();const c=await imageCanvas(file,2200);const res=await window.Tesseract.recognize(c,'por',{logger:m=>{if(m.status==='recognizing text')status('🤖 Lendo a OP... <b>'+Math.round((m.progress||0)*100)+'%</b>','warn')}});ocrText=res?.data?.text||'';confidence=+res?.data?.confidence||0;p=parseOcr(ocrText,exp);
+      const reasons=validate(p,exp,qr,confidence),id=qr||provisional,rec={id,qr:qr||'',createdAt:new Date().toISOString(),data:p.data||today(),numero:p.numero||'',operador:p.operador||'',maquina:p.maquina||'',produto:p.product||'',largura:p.largura||0,micra:p.micra||0,gm:p.gm||0,produzido:p.produzido||0,apara:p.apara||0,bobinas:p.bobinas||0,materials:buildMaterials(exp,p.produzido||0),expectedTotal:+exp?.totalKg||0,ocrConfidence:confidence,status:reasons.length?'pending':'ok',reasons,ocrText:ocrText.slice(0,15000)};
+      upsert(rec);status(reasons.length?'⚠️ Foto arquivada. A OP foi para <b>PENDENTES</b> porque: '+esc(reasons.join('; '))+'.':'✅ <b>OP salva automaticamente.</b><br>Produção: '+fmt(rec.produzido,2)+' kg • Apara: '+fmt(rec.apara,2)+' kg • Operador: '+esc(rec.operador),' '+(reasons.length?'warn':'ok'));
+      if(!reasons.length)status('✅ <b>OP salva automaticamente.</b><br>Produção: '+fmt(rec.produzido,2)+' kg • Apara: '+fmt(rec.apara,2)+' kg • Operador: '+esc(rec.operador),'ok');
+      $('dfOpPhoto').value='';selectedFile=null;
+    }catch(e){status('❌ Não consegui concluir a leitura: '+esc(e.message||e)+'. A foto foi mantida quando possível.','bad')}finally{working=false;renderAll()}}
+  function upsert(rec){const a=load(),i=a.findIndex(x=>x.id===rec.id);if(i>=0)a[i]=rec;else a.unshift(rec);save(a)}
 
-  function switchTab(ops){
-    const core=$('dfFormulaCore'),box=$('dfFormulaOps');if(!core||!box)return;
-    core.style.display=ops?'none':'block';box.classList.toggle('on',ops);
-    $('dfFormTabCore')?.classList.toggle('on',!ops);$('dfFormTabOps')?.classList.toggle('on',ops);
-  }
+  function renderAll(){renderOk();renderPending();renderReport();renderArchive()}
+  function itemHtml(o,pending){return `<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${pending?'warn':'ok'}">${pending?'PENDENTE':'OK'}</span><div class="dfOpsTiny">${esc(o.data||'')} • ${esc(o.produto||'Sem produto')} • ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div>${pending?'<div class="dfPendingReason">'+esc((o.reasons||[]).join(' • '))+'</div>':''}<button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button></div>`}
+  function bindViews(box){box?.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>openStored(b.dataset.view))}
+  function renderOk(){const b=$('dfOkList');if(!b)return;const a=load().filter(x=>x.status==='ok');b.innerHTML=a.length?a.map(o=>itemHtml(o,false)).join(''):'<div class="dfOpsTiny">Nenhuma OP concluída ainda.</div>';bindViews(b)}
+  function renderPending(){const b=$('dfPendingList');if(!b)return;const a=load().filter(x=>x.status==='pending');b.innerHTML=a.length?a.map(o=>itemHtml(o,true)).join(''):'<div class="dfOpsStatus ok">✅ Nenhuma pendência.</div>';bindViews(b)}
 
-  function buildOpsHtml(){return `
-    <div class="dfOpsHero"><h2>📸 OPs + Relatório mensal</h2><p>Envie ou tire uma foto da OP preenchida. A leitura tenta preencher os dados automaticamente. Confira antes de salvar. No fechamento do mês, o sistema soma tudo e monta o relatório.</p></div>
-    <div class="dfOpsCard"><h3>1. Foto da OP</h3><input id="dfOpPhoto" type="file" accept="image/*" capture="environment"><img id="dfOpPreview" alt="Prévia da OP"><button id="dfOpRead" class="dfOpsBtn alt" type="button">📷 LER FOTO DA OP</button><div id="dfOpOcrStatus">Nenhuma foto selecionada.</div><div class="dfOpsNotice">No teste, a leitura usa OCR no próprio navegador. A foto não fica salva: só os dados que você confirmar. A primeira leitura pode demorar um pouco.</div></div>
-    <div class="dfOpsCard"><h3>2. Conferir dados lidos</h3><div class="dfOpsGrid">
-      <div><label>Nº da OP</label><input id="dfOpNumero" placeholder="Ex.: 2451"></div>
-      <div><label>Data</label><input id="dfOpData" type="date"></div>
-      <div><label>Operador</label><input id="dfOpOperador" placeholder="Nome"></div>
-      <div><label>Máquina</label><input id="dfOpMaquina" placeholder="Ex.: Extrusora 01"></div>
-      <div class="full"><label>Produto</label><input id="dfOpProduto" placeholder="Produto / medida"></div>
-      <div class="full"><label>Formulação</label><input id="dfOpFormula" placeholder="Nome da formulação"></div>
-      <div><label>Largura (cm)</label><input id="dfOpLargura" inputmode="decimal" placeholder="Ex.: 75"></div>
-      <div><label>Espessura / micra</label><input id="dfOpMicra" inputmode="decimal" placeholder="Ex.: 45"></div>
-      <div><label>Gramas por metro (g/m)</label><input id="dfOpGM" inputmode="decimal" placeholder="Ex.: 48"></div>
-      <div><label>Peso produzido (kg)</label><input id="dfOpProduzido" inputmode="decimal" placeholder="Ex.: 601"></div>
-      <div><label>Apara / perda (kg)</label><input id="dfOpApara" inputmode="decimal" placeholder="Ex.: 20"></div>
-      <div><label>Reprocesso (kg)</label><input id="dfOpReprocesso" inputmode="decimal" placeholder="Ex.: 15"></div>
-      <div class="full"><label>Observações</label><textarea id="dfOpObs" placeholder="Observações da OP"></textarea></div>
-    </div>
-    <h3 style="margin-top:16px">Materiais usados</h3><div id="dfOpMaterials"></div><button id="dfOpAddMat" class="dfOpsBtn alt" type="button">+ ADICIONAR MATERIAL</button><button id="dfOpSave" class="dfOpsBtn" type="button">💾 SALVAR OP</button></div>
-    <div class="dfOpsCard"><h3>3. OPs salvas</h3><div id="dfOpSavedList"></div></div>
-    <div class="dfOpsCard"><h3>4. Fechamento do mês</h3><label>Mês do relatório</label><input id="dfOpMonth" type="month"><div id="dfOpReportBox"></div><button id="dfOpPrint" class="dfOpsBtn alt" type="button">📄 GERAR / SALVAR RELATÓRIO PDF</button></div>
-  `}
+  async function openStored(id){const rec=load().find(x=>x.id===id),ph=await photoGet(id);if(!rec&&!ph){alert('Foto não encontrada neste aparelho.');return}const u=ph?URL.createObjectURL(ph.blob):'';$('dfModalBody').innerHTML=`${u?'<img id="dfStoredImg" src="'+u+'">':''}<div class="dfOpsStatus ${rec?.status==='ok'?'ok':'warn'}"><b>${esc(rec?.numero?'OP '+rec.numero:id)}</b><br>${rec?.reasons?.length?esc(rec.reasons.join(' • ')):'Leitura concluída.'}</div><div class="dfOpGrid"><div><label>Operador</label><input id="fixOperador" value="${esc(rec?.operador||'')}"></div><div><label>Máquina</label><input id="fixMaquina" value="${esc(rec?.maquina||'')}"></div><div><label>Produzido kg</label><input id="fixProd" inputmode="decimal" value="${rec?.produzido||''}"></div><div><label>Apara kg</label><input id="fixApara" inputmode="decimal" value="${rec?.apara||''}"></div></div><button id="dfFixSave" class="dfOpsBtn">✅ SALVAR CORREÇÃO E CONCLUIR</button>${u?'<button id="dfPhotoDownload" class="dfOpsBtn alt">⬇️ BAIXAR FOTO</button>':''}`;$('dfOpModal').classList.add('on');$('dfFixSave').onclick=()=>fixRecord(id);if(u)$('dfPhotoDownload').onclick=()=>downloadBlob(ph.blob,(rec?.numero?'OP-'+rec.numero:id)+'.jpg')}
+  function closeModal(){$('dfOpModal').classList.remove('on');$('dfModalBody').innerHTML=''}
+  function fixRecord(id){const a=load(),i=a.findIndex(x=>x.id===id);if(i<0)return;const o=a[i];o.operador=$('fixOperador').value.trim();o.maquina=$('fixMaquina').value.trim();o.produzido=num($('fixProd').value);o.apara=num($('fixApara').value);const exp=expectedFor(o.qr);o.materials=buildMaterials(exp,o.produzido);o.reasons=validate(o,exp,o.qr,100).filter(r=>r!=='qualidade da leitura da foto ficou baixa');o.status=o.reasons.length?'pending':'ok';a[i]=o;save(a);closeModal()}
 
-  function bindOps(){
-    $('dfOpData').value=today();$('dfOpMonth').value=monthNow();addMaterialRow();
-    $('dfOpPhoto').addEventListener('change',onPhoto);
-    $('dfOpRead').addEventListener('click',readPhoto);
-    $('dfOpAddMat').addEventListener('click',()=>addMaterialRow());
-    $('dfOpSave').addEventListener('click',saveOp);
-    $('dfOpMonth').addEventListener('change',renderReport);
-    $('dfOpPrint').addEventListener('click',printReport);
-  }
+  async function startScanner(){try{await loadQR();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('dfQrVideo').srcObject=stream;await $('dfQrVideo').play();$('dfScanModal').classList.add('on');scanLoop()}catch(e){alert('Não consegui abrir a câmera: '+(e.message||e))}}
+  function stopScanner(){if(scanTimer)clearTimeout(scanTimer);scanTimer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('dfScanModal').classList.remove('on')}
+  function scanLoop(){const v=$('dfQrVideo'),c=$('dfQrCanvas');if(!stream)return;try{if(v.videoWidth>0){c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(v,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});if(r?.data){const id=r.data;stopScanner();openStored(id);return}}}catch(e){}scanTimer=setTimeout(scanLoop,220)}
+  async function scanFile(e){const f=e.target.files?.[0];if(!f)return;try{const id=await decodeQR(f);if(!id)alert('Não encontrei o QR nessa foto.');else openStored(id)}catch(err){alert('Falha ao ler QR.')}e.target.value=''}
 
-  function addMaterialRow(name='',kg=''){
-    const box=$('dfOpMaterials');if(!box)return;
-    const row=document.createElement('div');row.className='dfOpMaterialRow';row.innerHTML=`<div><label>Material</label><input class="dfMatName" value="${esc(name)}" placeholder="Ex.: Canela"></div><div><label>kg</label><input class="dfMatKg" inputmode="decimal" value="${esc(kg)}" placeholder="0"></div><button type="button">×</button>`;row.querySelector('button').onclick=()=>row.remove();box.appendChild(row)
-  }
+  function monthRecords(){const m=$('dfOpMonth')?.value||monthNow();return load().filter(o=>(o.data||'').slice(0,7)===m)}
+  function aggregate(list){const ok=list.filter(o=>o.status==='ok');let prod=0,ap=0,meters=0;const mats={},operators={},machines={};ok.forEach(o=>{prod+=+o.produzido||0;ap+=+o.apara||0;if(+o.gm>0)meters+=(+o.produzido||0)*1000/(+o.gm);if(o.operador)operators[o.operador]=(operators[o.operador]||0)+(+o.produzido||0);if(o.maquina)machines[o.maquina]=(machines[o.maquina]||0)+(+o.produzido||0);(o.materials||[]).forEach(m=>mats[m.name]=(mats[m.name]||0)+(+m.kg||0))});const liquid=Math.max(0,prod-ap),yieldPct=prod>0?liquid/prod*100:0;return{ok,pending:list.length-ok.length,prod,ap,liquid,yieldPct,meters,mats,operators,machines}}
+  function rows(obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]);return a.length?a.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)} kg</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
+  function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`}
+  function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(o.produto||'—')}</td><td>${esc(o.operador||'—')}</td><td>${esc(o.maquina||'—')}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}</style></head><body><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
+  function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
 
-  function onPhoto(e){selectedFile=e.target.files?.[0]||null;const img=$('dfOpPreview');if(!selectedFile){img.style.display='none';$('dfOpOcrStatus').textContent='Nenhuma foto selecionada.';return}img.src=URL.createObjectURL(selectedFile);img.style.display='block';$('dfOpOcrStatus').textContent='Foto pronta. Toque em LER FOTO DA OP.'}
+  async function renderArchive(){const b=$('dfArchiveList');if(!b)return;const list=monthRecords();b.innerHTML=list.length?list.map(o=>`<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${o.status==='ok'?'ok':'warn'}">${o.status==='ok'?'OK':'PENDENTE'}</span><div class="dfOpsTiny">Foto ligada ao QR ${esc(o.qr||'sem QR')}</div><div class="dfArchiveBtns"><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><button class="dfOpsBtn danger" data-delphoto="${esc(o.id)}">EXCLUIR FOTO + OP</button></div></div>`).join(''):'<div class="dfOpsTiny">Nenhuma foto neste mês.</div>';bindViews(b);b.querySelectorAll('[data-delphoto]').forEach(x=>x.onclick=async()=>{if(!confirm('Excluir esta OP e a foto arquivada?'))return;await photoDelete(x.dataset.delphoto);save(load().filter(o=>o.id!==x.dataset.delphoto))})}
+  function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+  async function zipMonth(){const list=monthRecords();if(!list.length){alert('Não há fotos neste mês.');return}try{await loadZip();const z=new JSZip();let n=0;for(const o of list){const p=await photoGet(o.id);if(p?.blob){const ext=(p.mime||'').includes('png')?'png':'jpg';z.file((o.numero?'OP-'+o.numero:o.id)+'.'+ext,p.blob);n++}}if(!n){alert('Nenhuma foto encontrada neste aparelho.');return}const blob=await z.generateAsync({type:'blob'});downloadBlob(blob,'DF-OPs-'+($('dfOpMonth').value||monthNow())+'.zip')}catch(e){alert('Falha ao gerar backup: '+(e.message||e))}}
 
-  function loadTesseract(){return new Promise((resolve,reject)=>{if(window.Tesseract)return resolve(window.Tesseract);const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=()=>resolve(window.Tesseract);s.onerror=()=>reject(new Error('Não foi possível carregar a leitura de imagem.'));document.head.appendChild(s)})}
-
-  async function prepareImage(file){return new Promise((resolve,reject)=>{const img=new Image();const u=URL.createObjectURL(file);img.onload=()=>{try{const max=1800,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);resolve(b||file)},'image/jpeg',0.88)}catch(e){URL.revokeObjectURL(u);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(u);reject(new Error('Foto inválida'))};img.src=u})}
-
-  async function readPhoto(){
-    if(!selectedFile){alert('Primeiro envie ou tire uma foto da OP.');return}
-    const st=$('dfOpOcrStatus'),btn=$('dfOpRead');btn.disabled=true;st.textContent='Preparando a foto...';
-    try{
-      const T=await loadTesseract();const input=await prepareImage(selectedFile);
-      const res=await T.recognize(input,'por',{logger:m=>{if(m.status==='recognizing text')st.textContent='Lendo OP... '+Math.round((m.progress||0)*100)+'%';else if(m.status)st.textContent='Preparando leitura: '+m.status}});
-      ocrText=res?.data?.text||'';if(!ocrText.trim())throw new Error('Não consegui encontrar texto nessa foto.');
-      applyParsed(parseOcr(ocrText));st.textContent='Leitura concluída. Confira os campos antes de salvar.';
-    }catch(e){st.textContent='Falha na leitura automática: '+(e.message||'erro desconhecido')+' Você ainda pode preencher os campos manualmente.'}finally{btn.disabled=false}
-  }
-
-  function first(re,text){const m=text.match(re);return m?String(m[1]||'').trim():''}
-  function parseDate(v){if(!v)return'';const m=v.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);if(!m)return'';let y=m[3];if(y.length===2)y='20'+y;return y.padStart(4,'0')+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')}
-  function parseOcr(text){
-    const t=text.replace(/\r/g,'\n').replace(/[ \t]+/g,' ');
-    const out={
-      numero:first(/(?:\bOP\b|ordem(?:\s+de)?\s+produ[cç][aã]o)\s*[:#\-]?\s*([0-9]{1,12})/i,t),
-      data:parseDate(first(/(?:data)\s*[:\-]?\s*(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4})/i,t)),
-      operador:first(/operador(?:\(a\))?\s*[:\-]?\s*([^\n]{2,45})/i,t),
-      maquina:first(/m[aá]quina\s*[:\-]?\s*([^\n]{2,45})/i,t),
-      produto:first(/(?:produto|descri[cç][aã]o)\s*[:\-]?\s*([^\n]{2,70})/i,t),
-      formula:first(/formula[cç][aã]o\s*[:\-]?\s*([^\n]{2,70})/i,t),
-      largura:first(/largura[^0-9]{0,15}([0-9.,]+)/i,t),
-      micra:first(/(?:micra|espessura)[^0-9]{0,15}([0-9.,]+)/i,t),
-      gm:first(/(?:g\s*\/\s*m|gramas?(?:\s+por)?\s+metro|peso(?:\s+por)?\s+metro)[^0-9]{0,15}([0-9.,]+)/i,t),
-      produzido:first(/(?:peso\s+produzido|produ[cç][aã]o|total\s+produzido)[^0-9]{0,20}([0-9.,]+)\s*kg/i,t),
-      apara:first(/(?:apara|refugo|perda)[^0-9]{0,20}([0-9.,]+)\s*kg/i,t),
-      reprocesso:first(/(?:reprocesso|reprocessado)[^0-9]{0,20}([0-9.,]+)\s*kg/i,t),
-      materials:[]
-    };
-    const ignore=/produz|apara|refugo|perda|reprocess|total|peso|largura|micra|espessura/i;
-    t.split('\n').forEach(line=>{const m=line.trim().match(/^([A-Za-zÀ-ÿ0-9 ._\-]{2,45}?)\s+([0-9.,]+)\s*kg\b/i);if(m&&!ignore.test(m[1]))out.materials.push({name:m[1].trim(),kg:m[2]})});
-    return out
-  }
-
-  function setIf(id,v){if(v&&$(id))$(id).value=v}
-  function applyParsed(p){setIf('dfOpNumero',p.numero);setIf('dfOpData',p.data);setIf('dfOpOperador',p.operador);setIf('dfOpMaquina',p.maquina);setIf('dfOpProduto',p.produto);setIf('dfOpFormula',p.formula);setIf('dfOpLargura',p.largura);setIf('dfOpMicra',p.micra);setIf('dfOpGM',p.gm);setIf('dfOpProduzido',p.produzido);setIf('dfOpApara',p.apara);setIf('dfOpReprocesso',p.reprocesso);if(p.materials?.length){$('dfOpMaterials').innerHTML='';p.materials.forEach(m=>addMaterialRow(m.name,m.kg))}}
-
-  function materialsFromForm(){return Array.from(document.querySelectorAll('#dfOpMaterials .dfOpMaterialRow')).map(r=>({name:(r.querySelector('.dfMatName')?.value||'').trim(),kg:num(r.querySelector('.dfMatKg')?.value)})).filter(m=>m.name&&m.kg>0)}
-  function val(id){return ($(id)?.value||'').trim()}
-
-  function saveOp(){
-    const op={id:Date.now(),numero:val('dfOpNumero'),data:val('dfOpData')||today(),operador:val('dfOpOperador'),maquina:val('dfOpMaquina'),produto:val('dfOpProduto'),formula:val('dfOpFormula'),largura:num(val('dfOpLargura')),micra:num(val('dfOpMicra')),gm:num(val('dfOpGM')),produzido:num(val('dfOpProduzido')),apara:num(val('dfOpApara')),reprocesso:num(val('dfOpReprocesso')),obs:val('dfOpObs'),materials:materialsFromForm(),ocr:ocrText?true:false};
-    if(!(op.numero||op.produto||op.produzido)){alert('Confira a OP: informe pelo menos número, produto ou peso produzido.');return}
-    const a=load();a.push(op);save(a);clearForm();alert('OP salva. Ela já entrou no fechamento do mês.')
-  }
-
-  function clearForm(){['dfOpNumero','dfOpOperador','dfOpMaquina','dfOpProduto','dfOpFormula','dfOpLargura','dfOpMicra','dfOpGM','dfOpProduzido','dfOpApara','dfOpReprocesso','dfOpObs'].forEach(id=>{if($(id))$(id).value=''});$('dfOpData').value=today();$('dfOpMaterials').innerHTML='';addMaterialRow();$('dfOpPhoto').value='';$('dfOpPreview').style.display='none';$('dfOpOcrStatus').textContent='Nenhuma foto selecionada.';selectedFile=null;ocrText=''}
-
-  function deleteOp(id){if(!confirm('Excluir esta OP do relatório?'))return;save(load().filter(x=>x.id!==id))}
-
-  function renderSaved(){const box=$('dfOpSavedList');if(!box)return;const a=load().slice().sort((x,y)=>(y.data||'').localeCompare(x.data||'')||y.id-x.id);if(!a.length){box.innerHTML='<div class="dfOpTiny">Nenhuma OP salva ainda.</div>';return}box.innerHTML=a.slice(0,50).map(o=>`<div class="dfOpSaved"><div class="dfOpSavedTop"><div><strong>OP ${esc(o.numero||'—')}</strong><div class="dfOpTiny">${esc(o.data||'')} • ${esc(o.produto||o.formula||'Sem produto')}</div><div class="dfOpTiny">Produzido: ${fmt(+o.produzido||0,2)} kg • Apara: ${fmt(+o.apara||0,2)} kg</div></div><button class="dfOpsBtn danger" style="width:auto;margin:0;padding:8px 10px;font-size:11px" data-del="${o.id}">EXCLUIR</button></div></div>`).join('');box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteOp(+b.dataset.del))}
-
-  function monthOps(){const m=$('dfOpMonth')?.value||monthNow();return load().filter(o=>(o.data||'').slice(0,7)===m)}
-  function aggregate(list){
-    let prod=0,ap=0,rep=0,meters=0,gms=[],mics=[];const mats={},ops={},machines={},products={};
-    list.forEach(o=>{const p=+o.produzido||0,a=+o.apara||0,r=+o.reprocesso||0;prod+=p;ap+=a;rep+=r;if(+o.gm>0&&p>0)meters+=p*1000/(+o.gm);if(+o.gm>0)gms.push(+o.gm);if(+o.micra>0)mics.push(+o.micra);if(o.operador)ops[o.operador]=(ops[o.operador]||0)+p;if(o.maquina)machines[o.maquina]=(machines[o.maquina]||0)+p;if(o.produto)products[o.produto]=(products[o.produto]||0)+p;(o.materials||[]).forEach(m=>{if(m.name)mats[m.name]=(mats[m.name]||0)+(+m.kg||0)})});
-    const bom=Math.max(0,prod-ap),rend=prod>0?bom/prod*100:0,avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
-    return{prod,ap,rep,bom,rend,meters,gm:avg(gms),micra:avg(mics),mats,ops,machines,products}
-  }
-  function mapRows(obj,suffix=' kg'){const e=Object.entries(obj).sort((a,b)=>b[1]-a[1]);return e.length?e.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)}${suffix}</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
-
-  function renderReport(){const box=$('dfOpReportBox');if(!box)return;const list=monthOps(),a=aggregate(list);box.innerHTML=`<div class="dfOpKpis"><div class="dfOpKpi"><span>OPs no mês</span><b>${list.length}</b></div><div class="dfOpKpi"><span>Produção total</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara / perda</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Produção líquida</span><b>${fmt(a.bom,2)} kg</b></div><div class="dfOpKpi"><span>Reprocesso</span><b>${fmt(a.rep,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.rend,2)}%</b></div><div class="dfOpKpi"><span>Metros estimados</span><b>${fmt(a.meters,0)} m</b></div><div class="dfOpKpi"><span>Média g/m</span><b>${a.gm?fmt(a.gm,2):'—'}</b></div></div><h3 style="margin-top:16px">Materiais consumidos</h3><table class="dfOpReportTable"><tbody>${mapRows(a.mats)}</tbody></table>`}
-
-  function reportHtml(){const list=monthOps(),a=aggregate(list),m=$('dfOpMonth')?.value||monthNow();const title=m.split('-').reverse().join('/');const rows=list.map(o=>`<tr><td>${esc(o.data||'')}</td><td>${esc(o.numero||'—')}</td><td>${esc(o.produto||o.formula||'—')}</td><td>${esc(o.operador||'—')}</td><td>${fmt(+o.produzido||0,2)}</td><td>${fmt(+o.apara||0,2)}</td><td>${+o.gm?fmt(+o.gm,2):'—'}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${esc(title)}</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;color:#111}h1{margin:0 0 4px}h2{margin-top:22px}.sub{color:#555;margin-bottom:18px}.k{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.c{border:1px solid #ccc;border-radius:8px;padding:10px}.c span{display:block;font-size:11px;color:#666}.c b{font-size:19px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}th{background:#eee}</style></head><body><h1>DF Manutenção e Consultoria</h1><div class="sub">Relatório mensal de OPs — ${esc(title)}</div><div class="k"><div class="c"><span>OPs</span><b>${list.length}</b></div><div class="c"><span>Produção total</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Produção líquida</span><b>${fmt(a.bom,2)} kg</b></div><div class="c"><span>Reprocesso</span><b>${fmt(a.rep,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.rend,2)}%</b></div><div class="c"><span>Metros estimados</span><b>${fmt(a.meters,0)} m</b></div><div class="c"><span>Média g/m</span><b>${a.gm?fmt(a.gm,2):'—'}</b></div></div><h2>OPs do mês</h2><table><thead><tr><th>Data</th><th>OP</th><th>Produto</th><th>Operador</th><th>Produzido kg</th><th>Apara kg</th><th>g/m</th></tr></thead><tbody>${rows||'<tr><td colspan="7">Nenhuma OP neste mês.</td></tr>'}</tbody></table><h2>Materiais consumidos</h2><table><thead><tr><th>Material</th><th>Total</th></tr></thead><tbody>${mapRows(a.mats)}</tbody></table><h2>Produção por operador</h2><table><tbody>${mapRows(a.ops)}</tbody></table><h2>Produção por máquina</h2><table><tbody>${mapRows(a.machines)}</tbody></table></body></html>`}
-
-  function printReport(){const w=window.open('','_blank');if(!w){alert('Permita abrir nova janela para gerar o relatório.');return}w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>{w.focus();w.print()},500)}
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);
-  window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));
-  setTimeout(mount,1200);setTimeout(mount,2200);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));setTimeout(mount,1200);setTimeout(mount,2200);
 })();
