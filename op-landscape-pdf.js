@@ -1,12 +1,12 @@
 (function(){
   'use strict';
-  if(window.DFOPLandscapePdf)return;
 
   const nativeOpen=window.open.bind(window);
   const PAGE_W=841.89;
   const PAGE_H=595.28;
   const MARGIN=18;
   const WIDTH=PAGE_W-(MARGIN*2);
+  const REG_KEY='df_op_qr_registry_v1';
 
   function clean(value){
     return String(value??'')
@@ -32,6 +32,55 @@
     const out=new Uint8Array(value.length);
     for(let i=0;i<value.length;i++)out[i]=value.charCodeAt(i)&255;
     return out;
+  }
+
+  function parseNum(value){
+    let s=String(value||'').replace(/[^0-9,.-]/g,'').trim();
+    if(!s)return 0;
+    if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(',','.');
+    const n=parseFloat(s);
+    return Number.isFinite(n)?n:0;
+  }
+
+  function makeId(){
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    return 'DFOP-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  }
+
+  function register(id,data){
+    try{
+      const reg=JSON.parse(localStorage.getItem(REG_KEY)||'{}');
+      reg[id]={
+        id,
+        createdAt:new Date().toISOString(),
+        expected:{
+          title:clean(data.name||''),
+          date:clean(data.date||''),
+          totalKg:parseNum(data.production||data.total||''),
+          largura:parseNum(data.width||''),
+          micra:parseNum(data.doubleMicra||''),
+          gm:parseNum(data.grams||''),
+          materials:(Array.isArray(data.materials)?data.materials:[]).map(function(m){
+            return {name:clean(m&&m.name||''),pct:parseNum(m&&m.pct||''),kg:parseNum(m&&m.kg||'')};
+          }).filter(function(m){return m.name||m.pct||m.kg})
+        }
+      };
+      Object.keys(reg).sort(function(a,b){return String(reg[b]?.createdAt||'').localeCompare(String(reg[a]?.createdAt||''))}).slice(500).forEach(function(k){delete reg[k]});
+      localStorage.setItem(REG_KEY,JSON.stringify(reg));
+      try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:reg[id]}))}catch(e){}
+    }catch(e){}
+  }
+
+  function qrMatrix(value){
+    try{
+      if(typeof window.QRCode!=='function')return null;
+      const holder=document.createElement('div');
+      const q=new window.QRCode(holder,{text:String(value),width:128,height:128,correctLevel:window.QRCode.CorrectLevel.M});
+      const modules=q&&q._oQRCode&&q._oQRCode.modules;
+      if(!Array.isArray(modules)||!modules.length)return null;
+      return modules.map(function(row){return row.map(Boolean)});
+    }catch(e){return null}
   }
 
   function makePdf(stream,title){
@@ -60,6 +109,8 @@
 
   function create(data){
     data=data||{};
+    const opId=clean(data.__dfOpId||makeId());
+    register(opId,data);
     const ops=[];
     let y=PAGE_H-MARGIN;
 
@@ -113,6 +164,34 @@
       y-=h;
     }
 
+    function qrCell(x,top,w,h,id){
+      rect(x,top,w,h,undefined,true);
+      const matrix=qrMatrix(id);
+      if(!matrix){
+        text('QR NAO CARREGADO',x,top-h/2+2,w,7,true,'center');
+        return false;
+      }
+      const count=matrix.length;
+      const quiet=4;
+      const box=Math.min(h-5,41);
+      const module=box/(count+(quiet*2));
+      const qrLeft=x+8;
+      const qrBottom=top-h+(h-box)/2;
+      for(let r=0;r<count;r++){
+        for(let c=0;c<count;c++){
+          if(!matrix[r][c])continue;
+          const px=qrLeft+(c+quiet)*module;
+          const py=qrBottom+(quiet+(count-1-r))*module;
+          ops.push('0 g '+px.toFixed(3)+' '+py.toFixed(3)+' '+module.toFixed(3)+' '+module.toFixed(3)+' re f');
+        }
+      }
+      const tx=qrLeft+box+7;
+      const tw=Math.max(20,w-(tx-x)-4);
+      text('QR DA OP',tx,top-15,tw,7.2,true,'left');
+      text(id,tx,top-28,tw,6.1,true,'left');
+      return true;
+    }
+
     ops.push('0.72 w 0 G 0 g');
 
     spanRow([
@@ -128,11 +207,15 @@
       {span:1,text:'OS:',size:7,bold:true,align:'center'},
       {span:2,text:'',size:8}
     ],21);
-    spanRow([
-      {span:3,lines:[{text:'TAMANHO FINAL',size:5.4},{text:data.size||'_____',size:9,bold:true}],fill:.95},
-      {span:3,text:'CODIGO DE BARRA',size:6.2,align:'center'},
-      {span:3,text:'PREVISAO ENTREGA:',size:7,bold:true}
-    ],21);
+
+    {
+      const h=46,unit=WIDTH/9;
+      cell(MARGIN,y,unit*3,h,[{text:'TAMANHO FINAL',size:5.4},{text:data.size||'_____',size:9,bold:true}],{fill:.95});
+      qrCell(MARGIN+unit*3,y,unit*3,h,opId);
+      cell(MARGIN+unit*6,y,unit*3,h,'PREVISAO ENTREGA:',{size:7,bold:true});
+      y-=h;
+    }
+
     spanRow([
       {span:3,lines:[{text:'PESO LIQUIDO / PRODUCAO',size:5.4},{text:data.production||'0 KG',size:9,bold:true}],fill:.95},
       {span:3,lines:[{text:'MISTURA CALCULADA',size:5.4},{text:data.mix||'0 KG',size:9,bold:true}],fill:.95},
@@ -194,17 +277,24 @@
     const popup=nativeOpen('','_blank');
     if(!popup){alert('O navegador bloqueou o PDF da OP. Libere pop-up.');return false;}
     try{
-      const blob=new Blob([create(data)],{type:'application/pdf'});
+      if(typeof window.QRCode!=='function'){
+        try{popup.close()}catch(_){}
+        alert('O QR Code ainda não carregou. Atualize a página do teste e gere a OP novamente.');
+        return false;
+      }
+      const opId=makeId();
+      const payload=Object.assign({},data||{},{__dfOpId:opId});
+      const blob=new Blob([create(payload)],{type:'application/pdf'});
       const url=URL.createObjectURL(blob);
       popup.location.replace(url);
       setTimeout(function(){URL.revokeObjectURL(url)},300000);
       return true;
     }catch(e){
       try{popup.close()}catch(_){}
-      alert('Não foi possível criar o PDF da OP.');
+      alert('Não foi possível criar o PDF da OP com QR.');
       return false;
     }
   }
 
-  window.DFOPLandscapePdf={create:create,open:open,page:{width:PAGE_W,height:PAGE_H}};
+  window.DFOPLandscapePdf={create:create,open:open,page:{width:PAGE_W,height:PAGE_H},qr:true};
 })();
