@@ -13,7 +13,7 @@
         btn.onclick=function(){ if(window.show) window.show('fo'); };
       }
       const locked=document.getElementById('foLocked');
-      if(locked) locked.style.display='none';
+      if(locked) locked.remove();
       const area=document.getElementById('foDevArea');
       if(area) area.style.display='block';
     }catch(e){}
