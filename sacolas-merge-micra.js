@@ -7,6 +7,29 @@
     return Array.from(pg.children).filter(el=>el.classList&&el.classList.contains('card'));
   }
 
+  function removeOutros(pg){
+    const outros=directCards(pg).find(c=>{
+      const h=norm(c.querySelector('h2')?.textContent||'');
+      const t=norm(c.textContent||'');
+      return h==='OUTROS RESULTADOS'||(t.includes('SACOS POR KG')&&t.includes('PESO DE 1.000 SACOS'));
+    });
+    if(outros)outros.remove();
+
+    const nav=pg.querySelector(':scope > .dfAutoTopics');
+    if(nav){
+      const btn=Array.from(nav.querySelectorAll('.dfAutoTopic')).find(b=>norm(b.textContent).includes('OUTROS RESULTADOS'));
+      if(btn){
+        const wasOn=btn.classList.contains('on');
+        btn.remove();
+        if(wasOn){
+          const peso=Array.from(nav.querySelectorAll('.dfAutoTopic')).find(b=>norm(b.textContent).includes('PESO DO ROLO'));
+          const first=nav.querySelector('.dfAutoTopic');
+          (peso||first)?.click();
+        }
+      }
+    }
+  }
+
   function locate(pg){
     const cards=directCards(pg);
     const medidas=cards.find(c=>norm(c.querySelector('h2')?.textContent).includes('MEDIDAS E MATERIAL'))||cards[0]||null;
@@ -23,6 +46,8 @@
   function merge(){
     const pg=document.getElementById('pgSa');
     if(!pg)return;
+
+    removeOutros(pg);
 
     const found=locate(pg);
     const medidas=found.medidas;
@@ -82,14 +107,14 @@
       }
     }
 
-    /* Micra -> Peso do saco passa a fazer parte visualmente do primeiro card.
-       Portanto aparece junto com Medidas e material e some quando outra aba é aberta. */
     if(box&&medidas.parentElement===pg){
       const navNow=pg.querySelector(':scope > .dfAutoTopics');
       const active=navNow&&navNow.querySelector('.dfAutoTopic.on');
       const firstActive=!active||String(active.dataset.topic)==='0';
       box.style.display=firstActive?'block':'none';
     }
+
+    removeOutros(pg);
   }
 
   function start(){
