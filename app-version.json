@@ -1,6 +1,6 @@
 {
-  "version": "1.0.110",
-  "title": "DF EXTRUSOR PRO — Digitação sem atraso",
-  "message": "Reduzido o processamento visual durante a digitação para os campos responderem imediatamente, inclusive no iPhone.",
-  "updatedAt": "2026-09-10T02:20:00-03:00"
+  "version": "1.0.111",
+  "title": "DF EXTRUSOR PRO — OP em A4 deitado",
+  "message": "A OP agora abre como PDF em uma única folha A4 paisagem, com largura, espessura e gramas por metro destacados para o operador.",
+  "updatedAt": "2026-09-09T23:39:20-03:00"
 }

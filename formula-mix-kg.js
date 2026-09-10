@@ -132,6 +132,31 @@
     let prodRows='';
     for(let i=0;i<8;i++)prodRows+='<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
 
+    if(window.DFOPLandscapePdf&&typeof window.DFOPLandscapePdf.open==='function'){
+      window.DFOPLandscapePdf.open({
+        name:nome,
+        date:hoje,
+        size:tamanho,
+        production:fm(totalProducao,0)+' KG',
+        mix:fm(totalMistura,0)+' KG',
+        doubleMicra:dupla,
+        wallMicra:parede,
+        grams:gram,
+        width:lb,
+        materials:rows.slice(0,8).map(function(r,i){
+          const m=r.id?(mat(r.id)||r):r;
+          const pct=Number(r.pct)||0;
+          return{
+            code:letras[i],
+            name:m.nome||r.nome||'',
+            pct:pct?fm(pct,2)+'%':'',
+            kg:pct?fm(totalMistura*pct/100,3)+' kg':''
+          };
+        })
+      });
+      return;
+    }
+
     const style=`
       @page{size:A4 landscape;margin:4mm}
       *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
