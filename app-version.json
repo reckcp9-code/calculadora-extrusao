@@ -1,6 +1,6 @@
 {
-  "version": "1.0.111",
-  "title": "DF EXTRUSOR PRO — OP em A4 deitado",
-  "message": "A OP agora abre como PDF em uma única folha A4 paisagem, com largura, espessura e gramas por metro destacados para o operador.",
-  "updatedAt": "2026-09-09T23:39:20-03:00"
+  "version": "1.0.112",
+  "title": "DF EXTRUSOR PRO — OP automática + QR",
+  "message": "Publicada a leitura automática de OP com QR, envio ou câmera, melhoria da foto, bloqueio de duplicidade, pendências e relatório mensal. Os dados das OPs tentam sincronizar com a nuvem; as fotos completas continuam salvas no aparelho nesta versão.",
+  "updatedAt": "2026-09-10T01:18:00-03:00"
 }
