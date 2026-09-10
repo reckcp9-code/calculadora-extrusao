@@ -31,17 +31,27 @@
   function register(id,expected){const r=loadReg();r[id]={id,createdAt:new Date().toISOString(),expected:expected||{}};const keys=Object.keys(r).sort((a,b)=>String(r[b]?.createdAt||'').localeCompare(String(r[a]?.createdAt||'')));keys.slice(500).forEach(k=>delete r[k]);saveReg(r);try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:r[id]}))}catch(e){}}
 
   function inject(html){
-    if(typeof html!=='string'||!/ORDEM DE PRODU(?:Ç|C)[AÃ]O/i.test(html))return html;
+    if(typeof html!=='string'||!/ORDEM\s+DE\s+PRODU(?:Ç|C)[AÃ]O/i.test(html))return html;
     const id=makeId(),expected=parseExpected(html);register(id,expected);
-    const cell='<td colspan="3" class="dfQrCell"><div class="dfQrWrap"><div id="dfQrCode"></div><div><b>QR DA OP</b><small>'+id+'</small></div></div></td>';
-    let out=html.replace(/<td colspan="3">\s*(?:c[oó]d\.?\s*de\s*barra|cod\s*de\s*barra)\s*<\/td>/i,cell);
-    if(out===html)out=out.replace(/<td colspan="3" class="b">PREVIS[AÃ]O ENTREGA:<\/td>/i,cell+'<td colspan="3" class="b">PREVISÃO ENTREGA:</td>');
-    const css='<style>.dfQrCell{padding:2px 5px!important}.dfQrWrap{display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px}.dfQrWrap #dfQrCode{width:54px;height:54px;display:grid;place-items:center}.dfQrWrap canvas,.dfQrWrap img{width:54px!important;height:54px!important}.dfQrWrap b{font-size:8px;display:block}.dfQrWrap small{font-size:5.8px;display:block;max-width:94px;word-break:break-all;line-height:1.1}</style>';
+    const makeCell=span=>'<td colspan="'+(span||3)+'" class="dfQrCell"><div class="dfQrWrap"><div id="dfQrCode"></div><div><b>QR DA OP</b><small>'+id+'</small></div></div></td>';
+    let out=html;
+    const codeCell=/<td\b([^>]*)>\s*(?:c[oó]d(?:igo|\.)?\s*(?:de\s*)?barra)\s*<\/td>/i;
+    out=out.replace(codeCell,function(_m,attrs){const cm=String(attrs||'').match(/colspan\s*=\s*["']?(\d+)/i);return makeCell(cm?cm[1]:3)});
+    if(out===html){
+      const loose=/<td\b([^>]*)>[\s\S]{0,100}?(?:c[oó]d(?:igo|\.)?\s*(?:de\s*)?barra)[\s\S]{0,100}?<\/td>/i;
+      out=out.replace(loose,function(_m,attrs){const cm=String(attrs||'').match(/colspan\s*=\s*["']?(\d+)/i);return makeCell(cm?cm[1]:3)});
+    }
+    if(out===html){
+      const delivery=/<td\b([^>]*)>\s*PREVIS[AÃ]O\s+ENTREGA:\s*<\/td>/i;
+      out=out.replace(delivery,function(m){return makeCell(3)+m});
+    }
+    if(out===html)return html;
+    const css='<style>.dfQrCell{padding:2px 5px!important}.dfQrWrap{display:flex;align-items:center;justify-content:center;gap:7px;min-height:52px}.dfQrWrap #dfQrCode{width:56px;height:56px;display:grid;place-items:center;background:#fff}.dfQrWrap canvas,.dfQrWrap img{width:56px!important;height:56px!important}.dfQrWrap b{font-size:8px;display:block;color:#111}.dfQrWrap small{font-size:5.6px;display:block;max-width:100px;word-break:break-all;line-height:1.1;color:#111}</style>';
     const lib='<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>';
     out=out.replace('</head>',css+lib+'</head>');
-    const boot='<script>(function(){var id='+JSON.stringify(id)+';function q(){try{var e=document.getElementById("dfQrCode");if(e&&window.QRCode&&!e.dataset.ok){e.dataset.ok="1";new QRCode(e,{text:id,width:108,height:108,correctLevel:QRCode.CorrectLevel.H})}}catch(x){}}var n=0,t=setInterval(function(){q();if(++n>20)clearInterval(t)},80);q()})();<\/script>';
+    const boot='<script>(function(){var id='+JSON.stringify(id)+';function q(){try{var e=document.getElementById("dfQrCode");if(e&&window.QRCode&&!e.dataset.ok){e.dataset.ok="1";new QRCode(e,{text:id,width:112,height:112,correctLevel:QRCode.CorrectLevel.H})}}catch(x){}}var n=0,t=setInterval(function(){q();if(++n>35)clearInterval(t)},100);q()})();<\/script>';
     out=out.replace('</body>',boot+'</body>');
-    out=out.replace(/setTimeout\(function\(\)\{window\.focus\(\);window\.print\(\)\},450\)/g,'setTimeout(function(){window.focus();window.print()},1800)');
+    out=out.replace(/setTimeout\(function\(\)\{window\.focus\(\);window\.print\(\)\},(?:450|500|600)\)/g,'setTimeout(function(){window.focus();window.print()},2600)');
     return out;
   }
 
