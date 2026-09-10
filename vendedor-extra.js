@@ -27,8 +27,8 @@
     const st=document.createElement('style');
     st.id='dfVendedorStyle';
     st.textContent=[
-      '#pgFo > *:not(#dfVendedorCard){display:none!important}',
-      '#pgFo > #dfVendedorCard{display:block!important}',
+      '#pgFo.dfVendedorOnly > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}',
+      '#pgFo.dfVendedorOnly > #dfVendedorCard{display:block!important}',
       '.dfVendedorCard{border-color:#14532d!important;background:linear-gradient(180deg,#101827,#07130d)!important}',
       '.dfVendedorGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
       '.dfVendedorCheck{display:flex;align-items:center;gap:8px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:11px 12px;color:#cbd5e1;font-size:13px;font-weight:900;margin-top:12px}',
@@ -74,6 +74,12 @@
     if(contact)contact.insertAdjacentHTML('beforebegin',configHtml());
     else pg.insertAdjacentHTML('afterbegin',configHtml());
     bindConfig();
+  }
+
+  function syncTopicView(){
+    const pg=$('pgFo'),card=$('dfVendedorCard');
+    if(!pg||!card)return;
+    pg.classList.toggle('dfVendedorOnly',card.classList.contains('dfTopicVisible'));
   }
 
   function bindConfig(){
@@ -256,12 +262,12 @@
   function init(){
     addConfig();
     wrapSave();
-    setTimeout(()=>{addConfig();bindConfig();wrapSave();},400);
-    setTimeout(()=>{addConfig();bindConfig();wrapSave();},1200);
-    setTimeout(()=>{addConfig();bindConfig();wrapSave();},2500);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},400);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},1200);
+    setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},2500);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
   else init();
-  document.addEventListener('click',function(){setTimeout(()=>{addConfig();bindConfig();wrapSave();},200)},true);
+  document.addEventListener('click',function(){setTimeout(()=>{addConfig();bindConfig();wrapSave();syncTopicView();},200)},true);
 })();
