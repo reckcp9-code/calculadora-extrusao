@@ -18,11 +18,11 @@
     let src=await r.text();
     const marker='    document.open();document.write(h);document.close();';
     if(!src.includes(marker))throw new Error('Estrutura do painel incompatível');
-    const patched="    h=h.replace('</body>','<script src=\"./gerador-online-ui.js?v=20260908-online-live-v99\"></scr'+'ipt><script src=\"./gerador-fast-ui.js?v=20260907-fast-v93\"></scr'+'ipt><script src=\"./gerador-platform-ui.js?v=20260907-platform-v94\"></scr'+'ipt><script src=\"./gerador-online-notify.js?v=20260908-admin-badge-clear-v100\"></scr'+'ipt></body>');\n"+marker;
+    const patched="    h=h.replace('</body>','<script src=\"./gerador-online-ui.js?v=20260908-online-live-v99\"></scr'+'ipt><script src=\"./gerador-fast-ui.js?v=20260907-fast-v93\"></scr'+'ipt><script src=\"./gerador-platform-ui.js?v=20260907-platform-v94\"></scr'+'ipt><script src=\"./gerador-online-notify.js?v=20260908-admin-badge-clear-v100\"></scr'+'ipt><script src=\"./gerador-key-view-stable.js?v=20260910-keyfix-v101\"></scr'+'ipt></body>');\n"+marker;
     src=src.replace(marker,patched);
     document.open();document.write(src);document.close();
   }catch(e){
-    document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:20px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar o painel. Atualize e tente novamente.</p></div>';
+    document.body.innerHTML='<div style="max-width:520px;margin:70px auto;padding:20px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar o painel.</p><p style="color:#94a3b8">'+String(e&&e.message||'Erro desconhecido').replace(/[&<>]/g,'')+'</p><button onclick="location.reload()" style="margin-top:14px;border:1px solid #f59e0b;background:#2b1d00;color:#fde68a;border-radius:12px;padding:12px 16px;font-weight:900">TENTAR NOVAMENTE</button></div>';
   }
 })();
 </script>
