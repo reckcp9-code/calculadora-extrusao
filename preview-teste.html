@@ -14,119 +14,29 @@
 <script src="./device-identity.js?v=20260910-formulacao-livre-v116"></script>
 </head>
 <body>
-<div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc">
-  <h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2>
-  <p style="color:#94a3b8">Carregando calculadora...</p>
-</div>
+<div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc"><h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando calculadora...</p></div>
 <script>
 (async()=>{
-  const BUILD='20260910-litragens-v121';
+  const BUILD='20260910-medida-v123';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
   const SHELL_CACHE='df-app-shell-source-v5';
   const SHELL_KEY='./__df_base_shell_v116__.html';
-
-  const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
-
-  async function fetchText(url,timeout=5000){
-    let ctrl=null,timer=null;
-    try{
-      if('AbortController' in window){
-        ctrl=new AbortController();
-        timer=setTimeout(()=>ctrl.abort(),timeout);
-      }
-      const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      const txt=await r.text();
-      if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');
-      return txt;
-    }finally{if(timer)clearTimeout(timer)}
-  }
-
-  async function readCachedShell(){
-    try{
-      if(!('caches' in window))return '';
-      const c=await caches.open(SHELL_CACHE);
-      const r=await c.match(SHELL_KEY);
-      const txt=r?await r.text():'';
-      return txt&&txt.indexOf('<!doctype html')>=0?txt:'';
-    }catch(e){return ''}
-  }
-
-  async function saveCachedShell(txt){
-    try{
-      if(!('caches' in window)||!txt)return;
-      const c=await caches.open(SHELL_CACHE);
-      await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));
-      caches.delete('df-app-shell-source-v2').catch(()=>{});
-      caches.delete('df-app-shell-source-v3').catch(()=>{});
-    }catch(e){}
-  }
-
-  async function loadShell(){
-    if(navigator.onLine!==false){
-      try{
-        const fresh=await fetchText(LOCAL_SHELL,4500);
-        await saveCachedShell(fresh);
-        return fresh;
-      }catch(e){}
-    }
-
-    const cached=await readCachedShell();
-    if(cached)return cached;
-
-    try{
-      const fresh=await fetchText(LOCAL_SHELL,5000);
-      await saveCachedShell(fresh);
-      return fresh;
-    }catch(e){}
-
-    throw new Error('Falha ao carregar a base da calculadora');
-  }
-
+  const safeGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+  async function fetchText(url,timeout=5000){let ctrl=null,timer=null;try{if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),timeout)}const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});if(!r.ok)throw new Error('HTTP '+r.status);const txt=await r.text();if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');return txt}finally{if(timer)clearTimeout(timer)}}
+  async function readCachedShell(){try{if(!('caches' in window))return '';const c=await caches.open(SHELL_CACHE);const r=await c.match(SHELL_KEY);const txt=r?await r.text():'';return txt&&txt.indexOf('<!doctype html')>=0?txt:''}catch(e){return ''}}
+  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));caches.delete('df-app-shell-source-v2').catch(()=>{});caches.delete('df-app-shell-source-v3').catch(()=>{})}catch(e){}}
+  async function loadShell(){if(navigator.onLine!==false){try{const fresh=await fetchText(LOCAL_SHELL,4500);await saveCachedShell(fresh);return fresh}catch(e){}}const cached=await readCachedShell();if(cached)return cached;try{const fresh=await fetchText(LOCAL_SHELL,5000);await saveCachedShell(fresh);return fresh}catch(e){}throw new Error('Falha ao carregar a base da calculadora')}
   try{
-    const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
-    let h=await loadShell();
-
+    const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();let h=await loadShell();
     h=h.replace('</head>','<style id="dfStableBoot">html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
-    if(savedAccess){
-      h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
-    }
-
-    const closeScript='</scr'+'ipt>';
-    const openScript='<scr'+'ipt>';
-    const p=h.lastIndexOf(openScript);
-    if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
-
-    const scripts=[
-      'error-monitor-v1.js?v='+BUILD,
-      'performance-guard-v1.js?v='+BUILD,
-      'app-bundle.js?v='+BUILD,
-      'local-calculations.js?v='+BUILD,
-      'op-qr-hook.js?v='+BUILD,
-      'formula-material-collapse.js?v='+BUILD,
-      'formula-op-relatorio.js?v='+BUILD,
-      'op-photo-source.js?v='+BUILD,
-      'op-manual-confirm.js?v='+BUILD,
-      'op-sync-lite-v2.js?v='+BUILD,
-      'op-cloud-team-v2.js?v='+BUILD,
-      'op-team-notify-v2.js?v='+BUILD,
-      'runtime-stability-v3.js?v='+BUILD,
-      'layout-formula-test.js?v='+BUILD
-    ];
+    if(savedAccess)h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
+    const closeScript='</scr'+'ipt>',openScript='<scr'+'ipt>';const p=h.lastIndexOf(openScript);if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
+    const scripts=['error-monitor-v1.js?v='+BUILD,'performance-guard-v1.js?v='+BUILD,'app-bundle.js?v='+BUILD,'local-calculations.js?v='+BUILD,'op-qr-hook.js?v='+BUILD,'formula-material-collapse.js?v='+BUILD,'formula-op-relatorio.js?v='+BUILD,'op-photo-source.js?v='+BUILD,'op-manual-confirm.js?v='+BUILD,'op-sync-lite-v2.js?v='+BUILD,'op-cloud-team-v2.js?v='+BUILD,'op-team-notify-v2.js?v='+BUILD,'runtime-stability-v3.js?v='+BUILD,'layout-formula-test.js?v='+BUILD,'medida-test.js?v='+BUILD];
     const external='<scr'+'ipt defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></scr'+'ipt>';
     const tags=scripts.slice(0,4).map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('')+external+scripts.slice(4).map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
     const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,700)})();</scr'+'ipt>';
-    h=h.replace('</body>',tags+ready+'</body>');
-
-    document.open();
-    document.write(h);
-    document.close();
-  }catch(e){
-    document.body.style.visibility='visible';
-    document.body.style.opacity='1';
-    document.body.style.background='#080b13';
-    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><p style="color:#94a3b8">Verifique sua internet e tente novamente.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>';
-  }
+    h=h.replace('</body>',tags+ready+'</body>');document.open();document.write(h);document.close();
+  }catch(e){document.body.style.visibility='visible';document.body.style.opacity='1';document.body.style.background='#080b13';document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><p style="color:#94a3b8">Verifique sua internet e tente novamente.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>'}
 })();
 </script>
 </body>
