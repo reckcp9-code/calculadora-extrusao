@@ -32,7 +32,7 @@
     scheduled=false;ensureOverlay();
     const nome=$('foNome');if(!nome)return false;
     const holder=nome.parentElement;if(!holder)return false;
-    const label=holder.querySelector('label');if(label)label.textContent='Cliente:';
+    const label=holder.querySelector('label');if(label&&label.textContent!=='Cliente:')label.textContent='Cliente:';
     let row=holder.querySelector('.dfClienteMedidaRow');
     if(!row){
       row=document.createElement('div');row.className='dfClienteMedidaRow';row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px';
