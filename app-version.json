@@ -1,6 +1,6 @@
 {
-  "version": "1.0.130",
-  "title": "DF EXTRUSOR PRO — gestão de equipe",
-  "message": "Publicada a gestão de equipe: dono pode transferir a propriedade para outro operador; operadores podem sair da equipe; o dono precisa transferir a propriedade antes de sair. OPs, fotos e histórico permanecem preservados.",
-  "updatedAt": "2026-09-11T20:29:00-03:00"
+  "version": "1.0.131",
+  "title": "DF EXTRUSOR PRO — estabilidade da equipe",
+  "message": "Corrigido o travamento causado pelo observador da interface de gestão de equipe. Mantidas as funções de transferir propriedade e sair da equipe, agora com atualização idempotente e observação limitada ao quadro da equipe.",
+  "updatedAt": "2026-09-11T20:35:00-03:00"
 }
