@@ -7,21 +7,21 @@
 <meta name="color-scheme" content="dark">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO — TESTE</title>
-<link rel="manifest" href="./manifest.webmanifest?v=20260911-original-v96-test1">
+<link rel="manifest" href="./manifest.webmanifest?v=20260911-original-v96-test2">
 <link rel="apple-touch-icon" href="./logo.jpg.jpeg">
 <link rel="preconnect" href="https://df-extrusor-api.reck-cp9.workers.dev" crossorigin>
 <style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
-<script src="./device-identity.js?v=20260911-original-v96-test1"></script>
-<script src="./ios-reinstall-bridge.js?v=20260911-original-v96-test1"></script>
+<script src="./device-identity.js?v=20260911-original-v96-test2"></script>
+<script src="./ios-reinstall-bridge.js?v=20260911-original-v96-test2"></script>
 </head>
 <body>
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc"><h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando calculadora...</p></div>
 <script>
 (async()=>{
-  const BUILD='20260911-original-v96-test1';
+  const BUILD='20260911-original-v96-test2';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
-  const SHELL_CACHE='df-app-shell-original-v96-test1';
-  const SHELL_KEY='./__df_base_shell_original_v96_test1__.html';
+  const SHELL_CACHE='df-app-shell-original-v96-test2';
+  const SHELL_KEY='./__df_base_shell_original_v96_test2__.html';
   const safeGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
   async function fetchText(url,timeout=5000){let ctrl=null,timer=null;try{if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),timeout)}const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});if(!r.ok)throw new Error('HTTP '+r.status);const txt=await r.text();if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');return txt}finally{if(timer)clearTimeout(timer)}}
   async function readCachedShell(){try{if(!('caches' in window))return '';const c=await caches.open(SHELL_CACHE);const r=await c.match(SHELL_KEY);const txt=r?await r.text():'';return txt&&txt.indexOf('<!doctype html')>=0?txt:''}catch(e){return ''}}
