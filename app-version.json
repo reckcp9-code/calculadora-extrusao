@@ -1,6 +1,6 @@
 {
-  "version": "1.0.115",
-  "title": "DF EXTRUSOR PRO — diagnóstico automático",
-  "message": "Adicionado sistema automático de diagnóstico: erros JavaScript, falhas de carregamento, promessas não tratadas e travamentos longos recebem um código simples como DF-OP-123. O app guarda até 30 ocorrências localmente, protege dados sensíveis e permite copiar o código ou o diagnóstico para suporte.",
-  "updatedAt": "2026-09-10T19:05:00-03:00"
+  "version": "1.0.127",
+  "title": "DF EXTRUSOR PRO — produção estável",
+  "message": "Organização da versão de produção: arquivos de teste separados dos clientes, Formulação e MEDIDA em módulos estáveis, backup removido da área inferior, QR da OP protegido com gerador dedicado e correções adicionais de estabilidade e data local.",
+  "updatedAt": "2026-09-10T22:30:00-03:00"
 }
