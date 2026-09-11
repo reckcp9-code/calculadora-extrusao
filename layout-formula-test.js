@@ -20,6 +20,7 @@
     const style=document.createElement('style');
     style.id='dfFormulaLayoutTestStyle';
     style.textContent=[
+      '#pgFo #dfCloudBackupCard{display:none!important}',
       '#pgFo.dfTestVendorOnly > #foDevArea{display:none!important}',
       '#pgFo.dfTestVendorOnly > .card:not(#dfVendedorCard){display:none!important}',
       '#pgFo.dfTestVendorOnly > #dfVendedorCard{display:block!important}'
