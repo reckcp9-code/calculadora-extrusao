@@ -10,6 +10,7 @@
     const s=document.createElement('style');
     s.id='dfFormulaLayoutTestStyle';
     s.textContent=[
+      '#pgFo:not(.dfTestBackupOnly) > #dfCloudBackupCard{display:none!important}',
       '#pgFo.dfTestVendorOnly > #foDevArea{display:none!important}',
       '#pgFo.dfTestVendorOnly > .card:not(#dfVendedorCard){display:none!important}',
       '#pgFo.dfTestVendorOnly > #dfVendedorCard{display:block!important}',
