@@ -1,1 +1,84 @@
-(function(){'use strict';const K='df_litragens_teste_v1',$=i=>document.getElementById(i),n=v=>parseFloat(String(v||'').replace(',','.'))||0;function load(){try{return JSON.parse(localStorage.getItem(K)||'[]')}catch(e){return[]}}function save(a){localStorage.setItem(K,JSON.stringify(a));render()}function css(){if($('dfMedidaCss'))return;const s=document.createElement('style');s.id='dfMedidaCss';s.textContent='#dfMedidaBtn{margin-left:8px;border:1px solid #f5a000;background:#211400;color:#ffd36a;border-radius:12px;padding:9px 13px;font-weight:900}#dfMedidaPanel{position:fixed;inset:0;z-index:1000003;background:#080b13;overflow:auto;padding:18px 14px}#dfMedidaPanel[hidden]{display:none!important}.dfMW{max-width:760px;margin:auto}.dfMH{display:flex;justify-content:space-between;gap:10px;align-items:center}.dfMC{background:#111827;border:1px solid #263244;border-radius:18px;padding:16px;margin-top:14px}.dfMG{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.dfMR{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #263244;background:#0f172a;border-radius:12px;padding:10px;margin-top:8px}@media(max-width:560px){.dfMG{grid-template-columns:1fr}}';document.head.appendChild(s)}function html(){return '<div id="dfMedidaPanel" hidden><div class="dfMW"><div class="dfMH"><h2>📐 MEDIDA</h2><button id="dfMedidaMin" class="calcBtn alt" style="width:auto;margin:0" type="button">— MINIMIZAR</button></div><div class="dfMC"><div class="dfMG"><div><label>Nome / medida</label><input id="dfMN" placeholder="Ex.: 100 L"></div><div><label>Largura (cm)</label><input id="dfML" inputmode="decimal" placeholder="Ex.: 75"></div><div><label>Comprimento (cm)</label><input id="dfMC" inputmode="decimal" placeholder="Ex.: 105"></div></div><button id="dfMAdd" class="calcBtn" type="button">ADICIONAR MEDIDA</button></div><div class="dfMC"><h2>Medidas cadastradas</h2><div id="dfMList"></div></div></div></div>'}function render(){const b=$('dfMList');if(!b)return;const a=load();b.innerHTML=(a.length?a:[{id:'75x105',nome:'75 × 105',largura:75,comprimento:105}]).map(x=>'<div class="dfMR"><div><b>'+x.nome+'</b><div class="smallNote">'+x.largura+' × '+x.comprimento+' cm</div></div><button class="delBtn" data-del="'+x.id+'">EXCLUIR</button></div>').join('')}function close(){const p=$('dfMedidaPanel');if(p)p.hidden=true;document.body.style.overflow=''}function mount(){css();if(!$('dfMedidaPanel')){document.body.insertAdjacentHTML('beforeend',html());$('dfMedidaMin').onclick=close;$('dfMAdd').onclick=()=>{const nome=$('dfMN').value.trim(),l=n($('dfML').value),c=n($('dfMC').value);if(!nome||!l||!c)return alert('Preencha nome, largura e comprimento.');const a=load();a.push({id:Date.now().toString(36),nome,largura:l,comprimento:c});save(a);$('dfMN').value=$('dfML').value=$('dfMC').value=''};$('dfMList').onclick=e=>{const id=e.target.dataset.del;if(id&&confirm('Excluir esta medida?'))save(load().filter(x=>x.id!==id))};render()}const pg=$('pgEx'),card=pg&&pg.querySelector(':scope > .card'),tag=card&&card.querySelector('.tag');if(!tag)return;const old=$('dfRecipeMiniBtn');if(old)old.remove();let b=$('dfMedidaBtn');if(!b){b=document.createElement('button');b.id='dfMedidaBtn';b.type='button';b.textContent='📐 MEDIDA';b.onclick=()=>{const p=$('dfMedidaPanel');p.hidden=false;document.body.style.overflow='hidden'}}if(tag.nextElementSibling!==b)tag.insertAdjacentElement('afterend',b)}function run(){mount();setTimeout(mount,200);setTimeout(mount,700)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();window.addEventListener('df-ui-ready',run)})();
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  let marker=null,originalParent=null,originalNext=null,opened=false;
+
+  function addStyle(){
+    if($('dfMedidaCloneCss'))return;
+    const s=document.createElement('style');s.id='dfMedidaCloneCss';s.textContent=[
+      '#dfMedidaInlineBtn{width:auto;margin:0 0 0 8px;padding:9px 13px;border:1px solid #f5a000;background:#211400;color:#ffd36a;border-radius:12px;font-weight:900;white-space:nowrap}',
+      '#dfMedidaOverlay{position:fixed;inset:0;z-index:1000004;background:#080b13;overflow:auto;padding:14px}',
+      '#dfMedidaOverlay[hidden]{display:none!important}',
+      '#dfMedidaOverlay .dfMedidaWrap{max-width:760px;margin:auto}',
+      '#dfMedidaOverlay .dfMedidaTop{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#080b13ee;padding:8px 0 12px}',
+      '#dfMedidaOverlay .dfMedidaTop h2{margin:0}',
+      '#dfMedidaMin{width:auto;margin:0;padding:10px 14px}',
+      '#dfMedidaHost #pgEx{display:block!important}',
+      '#dfMedidaHost #pgEx.page{display:block!important}',
+      '@media(max-width:560px){#dfMedidaInlineBtn{margin-left:6px;padding:8px 10px;font-size:12px}.dfMedidaTop{align-items:flex-start}}'
+    ].join('');document.head.appendChild(s);
+  }
+
+  function ensureOverlay(){
+    addStyle();
+    if($('dfMedidaOverlay'))return;
+    const d=document.createElement('div');d.id='dfMedidaOverlay';d.hidden=true;
+    d.innerHTML='<div class="dfMedidaWrap"><div class="dfMedidaTop"><h2>📐 MEDIDA</h2><button id="dfMedidaMin" class="calcBtn alt" type="button">— MINIMIZAR</button></div><div id="dfMedidaHost"></div></div>';
+    document.body.appendChild(d);
+    $('dfMedidaMin').onclick=closeMedida;
+  }
+
+  function placeButton(){
+    ensureOverlay();
+    const nome=$('foNome');if(!nome)return false;
+    const holder=nome.parentElement;if(!holder)return false;
+    const label=holder.querySelector('label');
+    if(label)label.textContent='Cliente:';
+    let row=holder.querySelector('.dfClienteMedidaRow');
+    if(!row){
+      row=document.createElement('div');row.className='dfClienteMedidaRow';row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px';
+      if(label){holder.insertBefore(row,label);row.appendChild(label);label.style.margin='0'}
+      else holder.insertBefore(row,nome);
+    }
+    let b=$('dfMedidaInlineBtn');
+    if(!b){b=document.createElement('button');b.id='dfMedidaInlineBtn';b.type='button';b.textContent='📐 MEDIDA';b.onclick=openMedida}
+    if(b.parentElement!==row)row.appendChild(b);
+    const old=$('dfMedidaBtn');if(old)old.remove();
+    return true;
+  }
+
+  function openMedida(ev){
+    if(ev){ev.preventDefault();ev.stopPropagation()}
+    ensureOverlay();
+    const pg=$('pgEx'),host=$('dfMedidaHost'),overlay=$('dfMedidaOverlay');
+    if(!pg||!host||!overlay)return;
+    if(!marker){
+      marker=document.createComment('df-pgEx-origin');
+      originalParent=pg.parentNode;originalNext=pg.nextSibling;
+      originalParent.insertBefore(marker,pg);
+    }
+    host.appendChild(pg);
+    pg.classList.add('on');
+    overlay.hidden=false;overlay.scrollTop=0;document.body.style.overflow='hidden';opened=true;
+  }
+
+  function closeMedida(){
+    const pg=$('pgEx'),overlay=$('dfMedidaOverlay');
+    if(pg&&marker&&marker.parentNode){marker.parentNode.insertBefore(pg,marker.nextSibling);pg.classList.remove('on')}
+    if(overlay)overlay.hidden=true;
+    document.body.style.overflow='';opened=false;
+    const pgFo=$('pgFo');if(pgFo)pgFo.classList.add('on');
+    const btFo=$('btFo');if(btFo)btFo.classList.add('on');
+  }
+
+  function restoreIfNeeded(){
+    if(!opened)return;
+    if(!$('dfMedidaOverlay')||$('dfMedidaOverlay').hidden)closeMedida();
+  }
+
+  function run(){placeButton();setTimeout(placeButton,150);setTimeout(placeButton,600);setTimeout(placeButton,1400)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+  window.addEventListener('df-ui-ready',run);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened)closeMedida()});
+  document.addEventListener('click',()=>setTimeout(placeButton,70),true);
+})();
