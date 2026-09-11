@@ -7,11 +7,11 @@
 <meta name="color-scheme" content="dark">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO — Teste Formulação</title>
-<link rel="manifest" href="./manifest.webmanifest?v=20260910-layout-test-v6">
+<link rel="manifest" href="./manifest.webmanifest?v=20260911-layout-test-v7">
 <link rel="apple-touch-icon" href="./logo.jpg.jpeg">
 <link rel="preconnect" href="https://df-extrusor-api.reck-cp9.workers.dev" crossorigin>
 <style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
-<script src="./device-identity.js?v=20260910-layout-test-v6"></script>
+<script src="./device-identity.js?v=20260911-layout-test-v7"></script>
 </head>
 <body>
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc">
@@ -20,10 +20,10 @@
 </div>
 <script>
 (async()=>{
-  const BUILD='20260910-layout-test-v6';
+  const BUILD='20260911-layout-test-v7';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
-  const SHELL_CACHE='df-app-shell-formula-layout-test-v6';
-  const SHELL_KEY='./__df_formula_layout_test_v6__.html';
+  const SHELL_CACHE='df-app-shell-formula-layout-test-v7';
+  const SHELL_KEY='./__df_formula_layout_test_v7__.html';
 
   const safeGet=(k)=>{try{return localStorage.getItem(k)}catch(e){return null}};
 
@@ -75,6 +75,7 @@
       'op-manual-confirm.js?v='+BUILD,
       'op-sync-lite-v2.js?v='+BUILD,
       'op-cloud-team-v2.js?v='+BUILD,
+      'op-team-transfer-test-v1.js?v='+BUILD,
       'op-team-notify-v2.js?v='+BUILD,
       'runtime-stability-v3.js?v='+BUILD,
       'formula-layout-test-v2.js?v='+BUILD
