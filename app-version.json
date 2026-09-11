@@ -1,6 +1,6 @@
 {
-  "version": "1.0.127",
-  "title": "DF EXTRUSOR PRO — produção estável",
-  "message": "Organização da versão de produção: arquivos de teste separados dos clientes, Formulação e MEDIDA em módulos estáveis, backup removido da área inferior, QR da OP protegido com gerador dedicado e correções adicionais de estabilidade e data local.",
-  "updatedAt": "2026-09-10T22:30:00-03:00"
+  "version": "1.0.130",
+  "title": "DF EXTRUSOR PRO — gestão de equipe",
+  "message": "Publicada a gestão de equipe: dono pode transferir a propriedade para outro operador; operadores podem sair da equipe; o dono precisa transferir a propriedade antes de sair. OPs, fotos e histórico permanecem preservados.",
+  "updatedAt": "2026-09-11T20:29:00-03:00"
 }
