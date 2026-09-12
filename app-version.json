@@ -1,6 +1,6 @@
 {
-  "version": "1.0.139",
-  "title": "DF EXTRUSOR PRO — corrigido botão excluir foto",
-  "message": "Corrigido o carregamento do botão EXCLUIR FOTO na aba Fotos. O botão agora é inserido diretamente em cada foto da equipe e permanece visível mesmo quando a lista é atualizada.",
-  "updatedAt": "2026-09-11T23:04:00-03:00"
+  "version": "1.0.140",
+  "title": "DF EXTRUSOR PRO — excluir foto pela OP pronta",
+  "message": "Agora a opção EXCLUIR FOTO aparece também diretamente nas OPs Prontas e Pendentes. A foto é removida do aparelho e, quando sincronizada, da nuvem da equipe; a OP e os dados de produção permanecem salvos.",
+  "updatedAt": "2026-09-11T23:16:00-03:00"
 }
