@@ -1,6 +1,6 @@
 {
-  "version": "1.0.135",
-  "title": "DF EXTRUSOR PRO — abas móveis alinhadas",
-  "message": "No celular, as abas Formulação, WhatsApp/PDF e Backup agora ficam lado a lado no topo. O menu permanece separado acima e o layout do computador continua igual.",
-  "updatedAt": "2026-09-11T21:35:00-03:00"
+  "version": "1.0.136",
+  "title": "DF EXTRUSOR PRO — abas móveis roláveis",
+  "message": "No celular, Formulação, WhatsApp/PDF e Backup ficam na mesma linha no topo. Se não couber tudo na largura da tela, basta deslizar horizontalmente para acessar as abas sem quebrar para outra linha.",
+  "updatedAt": "2026-09-11T21:39:00-03:00"
 }
