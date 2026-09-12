@@ -29,6 +29,15 @@
   function clearMode(){const p=page();if(!p)return;p.classList.remove('dfCleanWhatsOnly','dfCleanBackupOnly')}
   function markActive(target){const n=nav();if(!n)return;n.querySelectorAll('.dfAutoTopic').forEach(b=>b.classList.toggle('on',b===target))}
 
+  function cleanLiteralNewline(){
+    const p=page();if(!p)return;
+    Array.from(p.childNodes).forEach(node=>{
+      if(node.nodeType===3&&String(node.nodeValue||'').includes('\\n')){
+        node.nodeValue=String(node.nodeValue||'').replace(/\\n/g,'');
+      }
+    });
+  }
+
   function ensureFormulaButton(){
     const n=nav();if(!n)return null;
     let formula=findFormula();
@@ -45,13 +54,13 @@
     return formula;
   }
 
-  function showWhats(btn){const p=page();if(!p)return;p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
-  function showBackup(btn){const p=page();if(!p)return;p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
+  function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
+  function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
   function showFormula(btn){
-    clearMode();
+    clearMode();cleanLiteralNewline();
     const form=$('dfFormTabCore');
     if(form)form.click();
-    setTimeout(()=>{const fresh=ensureFormulaButton();markActive(fresh||btn)},0);
+    setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();markActive(fresh||btn)},0);
     window.scrollTo(0,0);
   }
 
@@ -67,7 +76,7 @@
     if(navObserver)navObserver.disconnect();
     navObserver=new MutationObserver(()=>{
       clearTimeout(fixTimer);
-      fixTimer=setTimeout(()=>{ensureFormulaButton();bind()},30);
+      fixTimer=setTimeout(()=>{cleanLiteralNewline();ensureFormulaButton();bind()},30);
     });
     navObserver.__nav=n;
     navObserver.observe(n,{childList:true});
@@ -76,6 +85,7 @@
   function bind(){
     ensureStyle();
     const p=page(),n=nav();if(!p||!n)return false;
+    cleanLiteralNewline();
     const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();
 
     bindFormula(formula);
@@ -83,8 +93,8 @@
     if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}
 
     const form=$('dfFormTabCore'),ops=$('dfFormTabOps');
-    [form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();setTimeout(()=>{const f=ensureFormulaButton();if(btn===form)markActive(f)},0)},true)}});
-    buttons().forEach(btn=>{if(btn===formula||btn===whats||btn===backup)return;if(!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',clearMode,true)}});
+    [form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();if(btn===form)markActive(f)},0)},true)}});
+    buttons().forEach(btn=>{if(btn===formula||btn===whats||btn===backup)return;if(!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline()},true)}});
 
     attachNavObserver();
     return true;
