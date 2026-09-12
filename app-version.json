@@ -1,6 +1,6 @@
 {
-  "version": "1.0.145",
-  "title": "DF EXTRUSOR PRO — recuperação de acesso após reinstalação",
-  "message": "Quando o app é aberto sem um acesso salvo, o endereço principal agora direciona para a recuperação por identificação em vez de cair na tela antiga de chave. Isso permite tentar reassociar o acesso existente sem consumir uma nova licença.",
-  "updatedAt": "2026-09-12T13:08:00-03:00"
+  "version": "1.0.146",
+  "title": "DF EXTRUSOR PRO — recuperação segura após reinstalação",
+  "message": "Ao reinstalar o app, o sistema não tenta mais criar outro usuário automaticamente. Agora existe recuperação pela mesma licença antiga, reutilizando o vínculo existente sem consumir outra key e preservando a associação com o backup em nuvem. Primeiro acesso continua em uma opção separada.",
+  "updatedAt": "2026-09-12T13:36:00-03:00"
 }
