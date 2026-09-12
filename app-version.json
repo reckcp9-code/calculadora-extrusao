@@ -1,6 +1,6 @@
 {
-  "version": "1.0.138",
-  "title": "DF EXTRUSOR PRO — excluir fotos da equipe",
-  "message": "Na aba Fotos, cada foto da nuvem da equipe agora possui a opção EXCLUIR FOTO com confirmação. A exclusão remove somente a foto da nuvem e mantém a OP.",
-  "updatedAt": "2026-09-11T22:51:00-03:00"
+  "version": "1.0.139",
+  "title": "DF EXTRUSOR PRO — corrigido botão excluir foto",
+  "message": "Corrigido o carregamento do botão EXCLUIR FOTO na aba Fotos. O botão agora é inserido diretamente em cada foto da equipe e permanece visível mesmo quando a lista é atualizada.",
+  "updatedAt": "2026-09-11T23:04:00-03:00"
 }
