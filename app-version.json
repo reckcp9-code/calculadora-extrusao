@@ -1,6 +1,6 @@
 {
-  "version": "1.0.142",
-  "title": "DF EXTRUSOR PRO — exclusão permanente de OP",
-  "message": "Corrigida a exclusão de OP para não reaparecer após fechar e abrir o app. A OP excluída fica bloqueada da sincronização, a foto correspondente é procurada na nuvem e removida, e produção/apara deixam de entrar nos totais.",
-  "updatedAt": "2026-09-12T00:02:00-03:00"
+  "version": "1.0.144",
+  "title": "DF EXTRUSOR PRO — correção da abertura no iPhone",
+  "message": "Corrigida a abertura pela Tela de Início no iPhone para manter o modo app e removido o texto literal \\n que podia aparecer na primeira abertura antes de atualizar a tela.",
+  "updatedAt": "2026-09-12T12:54:00-03:00"
 }
