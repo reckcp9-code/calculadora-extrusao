@@ -1,6 +1,6 @@
 {
-  "version": "1.0.131",
-  "title": "DF EXTRUSOR PRO — estabilidade da equipe",
-  "message": "Corrigido o travamento causado pelo observador da interface de gestão de equipe. Mantidas as funções de transferir propriedade e sair da equipe, agora com atualização idempotente e observação limitada ao quadro da equipe.",
-  "updatedAt": "2026-09-11T20:35:00-03:00"
+  "version": "1.0.132",
+  "title": "DF EXTRUSOR PRO — abas de Formulação organizadas",
+  "message": "Separadas as áreas de Formulação, Backup e WhatsApp/PDF. A aba WhatsApp mostra somente o quadro completo do vendedor, a aba Backup mostra somente o backup, a aba Formulação permanece fixa e o texto literal \\n foi removido.",
+  "updatedAt": "2026-09-11T21:30:00-03:00"
 }
