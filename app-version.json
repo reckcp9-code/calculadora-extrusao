@@ -1,6 +1,6 @@
 {
-  "version": "1.0.140",
-  "title": "DF EXTRUSOR PRO — excluir foto pela OP pronta",
-  "message": "Agora a opção EXCLUIR FOTO aparece também diretamente nas OPs Prontas e Pendentes. A foto é removida do aparelho e, quando sincronizada, da nuvem da equipe; a OP e os dados de produção permanecem salvos.",
-  "updatedAt": "2026-09-11T23:16:00-03:00"
+  "version": "1.0.141",
+  "title": "DF EXTRUSOR PRO — excluir OP e foto dos totais",
+  "message": "Ao excluir uma OP, o sistema agora apaga junto a foto e o registro da OP. A produção e a apara dessa OP deixam de entrar nos totais do mês.",
+  "updatedAt": "2026-09-11T23:22:00-03:00"
 }
