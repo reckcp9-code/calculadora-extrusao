@@ -1,6 +1,6 @@
 {
-  "version": "1.0.134",
-  "title": "DF EXTRUSOR PRO — abas estáveis",
-  "message": "Corrigida definitivamente a navegação da Formulação: Formulação, OPs, WhatsApp e Backup agora ficam separados; o quadro do vendedor não aparece nas OPs e o Backup não vaza para outras telas. A barra também foi organizada para celular.",
-  "updatedAt": "2026-09-11T22:05:00-03:00"
+  "version": "1.0.135",
+  "title": "DF EXTRUSOR PRO — abas móveis alinhadas",
+  "message": "No celular, as abas Formulação, WhatsApp/PDF e Backup agora ficam lado a lado no topo. O menu permanece separado acima e o layout do computador continua igual.",
+  "updatedAt": "2026-09-11T21:35:00-03:00"
 }
