@@ -11,11 +11,11 @@
     const s=document.createElement('style');
     s.id='dfFormulaSeparateTabsTestStyle';
     s.textContent=[
-      '#pgFo.dfTestWhatsOnly > #foDevArea{display:none!important}',
-      '#pgFo.dfTestWhatsOnly > .card:not(#dfVendedorCard){display:none!important}',
+      /* WhatsApp: mantém a barra de tópicos para navegar e, abaixo dela, somente o card original completo do vendedor. */
+      '#pgFo.dfTestWhatsOnly > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}',
       '#pgFo.dfTestWhatsOnly > #dfVendedorCard{display:block!important}',
-      '#pgFo.dfTestBackupOnly > #foDevArea{display:none!important}',
-      '#pgFo.dfTestBackupOnly > .card:not(#dfCloudBackupCard){display:none!important}',
+      /* Backup: mantém a barra de tópicos para navegar e, abaixo dela, somente o card original de backup. */
+      '#pgFo.dfTestBackupOnly > *:not(.dfAutoTopics):not(#dfCloudBackupCard){display:none!important}',
       '#pgFo.dfTestBackupOnly > #dfCloudBackupCard{display:block!important}'
     ].join('');
     document.head.appendChild(s);
