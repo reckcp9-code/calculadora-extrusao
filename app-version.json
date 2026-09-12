@@ -1,6 +1,6 @@
 {
-  "version": "1.0.137",
-  "title": "DF EXTRUSOR PRO — recuperação automática de acesso",
-  "message": "O acesso agora ganha uma recuperação persistente vinculada à mesma licença. Ao reinstalar o app ou perder a sessão do navegador, o sistema tenta restaurar automaticamente a licença existente em vez de consumir outra key.",
-  "updatedAt": "2026-09-11T22:10:00-03:00"
+  "version": "1.0.138",
+  "title": "DF EXTRUSOR PRO — excluir fotos da equipe",
+  "message": "Na aba Fotos, cada foto da nuvem da equipe agora possui a opção EXCLUIR FOTO com confirmação. A exclusão remove somente a foto da nuvem e mantém a OP.",
+  "updatedAt": "2026-09-11T22:51:00-03:00"
 }
