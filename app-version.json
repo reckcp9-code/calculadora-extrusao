@@ -1,6 +1,6 @@
 {
-  "version": "1.0.133",
-  "title": "DF EXTRUSOR PRO — notificação de atualização",
-  "message": "Corrigida a notificação de nova versão. Agora, quando houver uma publicação nova, o app avisa ao abrir e também verifica novamente enquanto estiver em uso.",
-  "updatedAt": "2026-09-11T21:45:00-03:00"
+  "version": "1.0.134",
+  "title": "DF EXTRUSOR PRO — abas estáveis",
+  "message": "Corrigida definitivamente a navegação da Formulação: Formulação, OPs, WhatsApp e Backup agora ficam separados; o quadro do vendedor não aparece nas OPs e o Backup não vaza para outras telas. A barra também foi organizada para celular.",
+  "updatedAt": "2026-09-11T22:05:00-03:00"
 }
