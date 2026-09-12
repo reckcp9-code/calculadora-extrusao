@@ -1,6 +1,6 @@
 {
-  "version": "1.0.141",
-  "title": "DF EXTRUSOR PRO — excluir OP e foto dos totais",
-  "message": "Ao excluir uma OP, o sistema agora apaga junto a foto e o registro da OP. A produção e a apara dessa OP deixam de entrar nos totais do mês.",
-  "updatedAt": "2026-09-11T23:22:00-03:00"
+  "version": "1.0.142",
+  "title": "DF EXTRUSOR PRO — exclusão permanente de OP",
+  "message": "Corrigida a exclusão de OP para não reaparecer após fechar e abrir o app. A OP excluída fica bloqueada da sincronização, a foto correspondente é procurada na nuvem e removida, e produção/apara deixam de entrar nos totais.",
+  "updatedAt": "2026-09-12T00:02:00-03:00"
 }
