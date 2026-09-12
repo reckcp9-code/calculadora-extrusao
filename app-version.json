@@ -1,6 +1,6 @@
 {
-  "version": "1.0.136",
-  "title": "DF EXTRUSOR PRO — abas móveis roláveis",
-  "message": "No celular, Formulação, WhatsApp/PDF e Backup ficam na mesma linha no topo. Se não couber tudo na largura da tela, basta deslizar horizontalmente para acessar as abas sem quebrar para outra linha.",
-  "updatedAt": "2026-09-11T21:39:00-03:00"
+  "version": "1.0.137",
+  "title": "DF EXTRUSOR PRO — recuperação automática de acesso",
+  "message": "O acesso agora ganha uma recuperação persistente vinculada à mesma licença. Ao reinstalar o app ou perder a sessão do navegador, o sistema tenta restaurar automaticamente a licença existente em vez de consumir outra key.",
+  "updatedAt": "2026-09-11T22:10:00-03:00"
 }
