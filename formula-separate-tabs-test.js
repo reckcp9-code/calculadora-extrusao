@@ -11,20 +11,41 @@
     const s=document.createElement('style');
     s.id='dfFormulaSeparateTabsTestStyle';
     s.textContent=[
-      /* WhatsApp: mantém a barra de tópicos para navegar e, abaixo dela, somente o card original completo do vendedor. */
       '#pgFo.dfTestWhatsOnly > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}',
       '#pgFo.dfTestWhatsOnly > #dfVendedorCard{display:block!important}',
-      /* Backup: mantém a barra de tópicos para navegar e, abaixo dela, somente o card original de backup. */
       '#pgFo.dfTestBackupOnly > *:not(.dfAutoTopics):not(#dfCloudBackupCard){display:none!important}',
       '#pgFo.dfTestBackupOnly > #dfCloudBackupCard{display:block!important}'
     ].join('');
     document.head.appendChild(s);
   }
 
-  function setMode(mode){
+  function setMode(mode,activeBtn){
     const page=$('pgFo');if(!page)return;
+    const nav=page.querySelector(':scope > .dfAutoTopics');
     page.classList.toggle('dfTestWhatsOnly',mode==='whatsapp');
     page.classList.toggle('dfTestBackupOnly',mode==='backup');
+    if(nav&&activeBtn){nav.querySelectorAll('.dfAutoTopic').forEach(b=>b.classList.toggle('on',b===activeBtn));}
+    if(mode==='whatsapp'){
+      page.classList.add('dfStableVendorOnly');
+      page.classList.remove('dfStableBackupOnly');
+    }else if(mode==='backup'){
+      page.classList.add('dfStableBackupOnly');
+      page.classList.remove('dfStableVendorOnly');
+    }else{
+      page.classList.remove('dfStableVendorOnly','dfStableBackupOnly');
+    }
+  }
+
+  function bindDirect(btn,mode){
+    if(!btn||btn.dataset.dfSeparateTestBound==='1')return;
+    btn.dataset.dfSeparateTestBound='1';
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      setMode(mode,btn);
+      window.scrollTo(0,0);
+    },true);
   }
 
   function setup(){
@@ -33,27 +54,22 @@
     const nav=page.querySelector(':scope > .dfAutoTopics');if(!nav)return false;
     const buttons=Array.from(nav.querySelectorAll('.dfAutoTopic'));
     const whatsapp=buttons.find(b=>norm(b.textContent).includes('WHATSAPP'));
-    const backup=buttons.find(b=>norm(b.textContent).includes('BACKUP NA NUVEM')||b.dataset.dfBackupTop==='1');
-    const ops=$('dfFormTabOps');
-    const form=$('dfFormTabCore');
+    const backup=buttons.find(b=>b.dataset.dfBackupTop==='1'||norm(b.textContent).includes('BACKUP NA NUVEM'));
+    const ops=buttons.find(b=>b.dataset.dfOpenOps==='1'||norm(b.textContent).includes('OPS'));
+    const formula=buttons.find(b=>norm(b.textContent).includes('FORMULA'));
 
-    if(whatsapp&&!whatsapp.dataset.dfSeparateTestBound){
-      whatsapp.dataset.dfSeparateTestBound='1';
-      whatsapp.addEventListener('click',()=>setTimeout(()=>setMode('whatsapp'),0));
-    }
-    if(backup&&!backup.dataset.dfSeparateTestBound){
-      backup.dataset.dfSeparateTestBound='1';
-      backup.addEventListener('click',()=>setTimeout(()=>setMode('backup'),0));
-    }
-    [ops,form].forEach(btn=>{
-      if(btn&&!btn.dataset.dfSeparateTestClear){
+    bindDirect(whatsapp,'whatsapp');
+    bindDirect(backup,'backup');
+
+    [ops,formula].forEach(btn=>{
+      if(btn&&btn.dataset.dfSeparateTestClear!=='1'){
         btn.dataset.dfSeparateTestClear='1';
-        btn.addEventListener('click',()=>setMode(''));
+        btn.addEventListener('click',()=>setMode('',btn),true);
       }
     });
 
-    if(whatsapp&&whatsapp.classList.contains('on'))setMode('whatsapp');
-    else if(backup&&backup.classList.contains('on'))setMode('backup');
+    if(whatsapp&&whatsapp.classList.contains('on'))setMode('whatsapp',whatsapp);
+    else if(backup&&backup.classList.contains('on'))setMode('backup',backup);
     return true;
   }
 
