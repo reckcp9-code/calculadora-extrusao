@@ -21,7 +21,7 @@
       '#pgFo.dfCleanWhatsOnly > #dfVendedorCard{display:block!important}',
       '#pgFo.dfCleanBackupOnly > *:not(.dfAutoTopics):not(#dfCloudBackupCard){display:none!important}',
       '#pgFo.dfCleanBackupOnly > #dfCloudBackupCard{display:block!important}',
-      /* Barra estável: nunca deixa FORMULAÇÃO solta em uma linha sozinha. */
+      /* Barra estável no computador. */
       '#pgFo > .dfAutoTopics{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important;overflow:visible!important}',
       '#pgFo > .dfAutoTopics .dfAutoTopic{width:100%!important;min-width:0!important;white-space:normal!important;line-height:1.15!important}',
       '#pgFo > .dfAutoTopics [data-df-nav-menu="1"]{order:1}',
@@ -29,7 +29,8 @@
       '#pgFo > .dfAutoTopics [data-df-nav-ops="1"]{order:3}',
       '#pgFo > .dfAutoTopics [data-df-nav-whats="1"]{order:4}',
       '#pgFo > .dfAutoTopics [data-df-nav-backup="1"]{order:5}',
-      '@media(max-width:560px){#pgFo > .dfAutoTopics{grid-template-columns:repeat(2,minmax(0,1fr))!important}#pgFo > .dfAutoTopics [data-df-nav-backup="1"]{grid-column:1 / -1}#pgFo > .dfAutoTopics .dfAutoTopic{font-size:10px!important;min-height:43px!important}}'
+      /* No celular: MENU em cima e, logo abaixo, FORMULAÇÃO + WHATSAPP + BACKUP lado a lado. */
+      '@media(max-width:560px){#pgFo > .dfAutoTopics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}#pgFo > .dfAutoTopics [data-df-nav-menu="1"]{grid-column:1 / -1!important;order:1!important}#pgFo > .dfAutoTopics [data-df-formula-top="1"]{grid-column:auto!important;order:2!important}#pgFo > .dfAutoTopics [data-df-nav-whats="1"]{grid-column:auto!important;order:3!important}#pgFo > .dfAutoTopics [data-df-nav-backup="1"]{grid-column:auto!important;order:4!important}#pgFo > .dfAutoTopics [data-df-nav-ops="1"]{display:none!important}#pgFo > .dfAutoTopics .dfAutoTopic{font-size:9px!important;min-height:44px!important;padding-left:4px!important;padding-right:4px!important}}'
     ].join('');
     document.head.appendChild(s);
   }
