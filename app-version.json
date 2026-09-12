@@ -1,6 +1,6 @@
 {
-  "version": "1.0.132",
-  "title": "DF EXTRUSOR PRO — abas de Formulação organizadas",
-  "message": "Separadas as áreas de Formulação, Backup e WhatsApp/PDF. A aba WhatsApp mostra somente o quadro completo do vendedor, a aba Backup mostra somente o backup, a aba Formulação permanece fixa e o texto literal \\n foi removido.",
-  "updatedAt": "2026-09-11T21:30:00-03:00"
+  "version": "1.0.133",
+  "title": "DF EXTRUSOR PRO — notificação de atualização",
+  "message": "Corrigida a notificação de nova versão. Agora, quando houver uma publicação nova, o app avisa ao abrir e também verifica novamente enquanto estiver em uso.",
+  "updatedAt": "2026-09-11T21:45:00-03:00"
 }
