@@ -1,96 +1,132 @@
 (function(){
   'use strict';
-  if(window.DFCostSimpleTestV1)return;
-  window.DFCostSimpleTestV1=true;
+  if(window.DFCostSimpleTestV2)return;
+  window.DFCostSimpleTestV2=true;
 
-  const ADVANCED_IDS=[
-    'cuEnergiaKg','cuMaoKg','cuReprocessoKg','cuOutrosKg','cuEmbalagemRolo','cuFreteRolo',
-    'cuImpostoPct','cuComissaoPct','cuPrecoModo','cuVendaTipo','cuVendaAlvo','cuLucroModo'
-  ];
+  const $=id=>document.getElementById(id);
 
-  function fieldWrap(el){
-    if(!el)return null;
-    let p=el.parentElement;
-    while(p&&p.id!=='pgCu'){
-      if(p.tagName==='DIV' && (p.querySelector('label')||p.classList.contains('grid'))) return p;
-      p=p.parentElement;
-    }
-    return el.parentElement;
+  function fire(el){
+    if(!el)return;
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    el.dispatchEvent(new Event('change',{bubbles:true}));
   }
+  function setOriginal(id,value){
+    const el=$(id); if(!el)return;
+    el.value=value; fire(el);
+  }
+  function read(id){return String($(id)?.value||'')}
+  function text(id){return String($(id)?.textContent||'—').trim()||'—'}
 
   function addStyle(){
-    if(document.getElementById('dfCostSimpleStyle'))return;
+    if($('dfCostUltraStyle'))return;
     const s=document.createElement('style');
-    s.id='dfCostSimpleStyle';
+    s.id='dfCostUltraStyle';
     s.textContent=`
-      #pgCu .df-cost-simple-head{background:#0f172a;border:1px solid #263244;border-radius:16px;padding:14px;margin:0 0 14px}
-      #pgCu .df-cost-simple-head b{display:block;font-size:18px;color:#f8fafc;margin-bottom:4px}
-      #pgCu .df-cost-simple-head span{display:block;color:#94a3b8;font-size:13px;line-height:1.4}
-      #pgCu .df-cost-simple-toggle{width:100%;border:1px solid #334155;background:#111827;color:#cbd5e1;border-radius:12px;padding:12px;margin:4px 0 14px;font-weight:900}
-      #pgCu .df-cost-advanced-hidden{display:none!important}
-      #pgCu .df-cost-primary .result{margin-top:10px}
-      #pgCu .df-cost-primary .kpi{padding:11px 12px}
-      #pgCu .df-cost-muted{opacity:.78}
-      #pgCu .df-cost-simple-badge{display:inline-block;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-bottom:8px}
+      #pgCu.df-cost-ultra > .card{display:none!important}
+      #pgCu .dfCostUltra{display:block!important;background:#111827;border:1px solid #263244;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 12px 38px rgba(0,0,0,.16)}
+      #pgCu .dfCostUltra h2{margin:4px 0 5px;font-size:23px}
+      #pgCu .dfCostUltra .subx{color:#94a3b8;font-size:13px;line-height:1.4;margin-bottom:14px}
+      #pgCu .dfCostUltra .step{background:#0f172a;border:1px solid #263244;border-radius:15px;padding:13px;margin-top:10px}
+      #pgCu .dfCostUltra .stepNo{display:inline-flex;width:27px;height:27px;border-radius:50%;align-items:center;justify-content:center;background:#241600;border:1px solid #f5a000;color:#ffd36a;font-weight:900;margin-right:7px}
+      #pgCu .dfCostUltra label{margin:0 0 8px;font-size:14px;font-weight:800;color:#e2e8f0}
+      #pgCu .dfCostUltra input{font-size:20px;font-weight:800;padding:14px}
+      #pgCu .dfCostUltra .autoLine{display:flex;align-items:center;gap:9px;margin:12px 0 2px;color:#cbd5e1;font-size:13px}
+      #pgCu .dfCostUltra .autoLine input{width:20px;height:20px;margin:0;accent-color:#f5a000}
+      #pgCu .dfCostUltra .resTitle{margin:18px 0 8px;color:#94a3b8;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+      #pgCu .dfCostUltra .bigResult{background:#0c1c13;border:1px solid #274734;border-radius:16px;padding:15px;text-align:center;margin-top:9px}
+      #pgCu .dfCostUltra .bigResult span{display:block;color:#bbf7d0;font-size:12px;font-weight:800}
+      #pgCu .dfCostUltra .bigResult b{display:block;color:#86efac;font-size:31px;margin-top:4px}
+      #pgCu .dfCostUltra .miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
+      #pgCu .dfCostUltra .mini{background:#0f172a;border:1px solid #263244;border-radius:13px;padding:12px;text-align:center}
+      #pgCu .dfCostUltra .mini span{display:block;color:#94a3b8;font-size:11px}
+      #pgCu .dfCostUltra .mini b{display:block;color:#f8fafc;font-size:18px;margin-top:5px}
+      #pgCu .dfCostUltra .fullBtn{width:100%;border:1px solid #334155;background:#0f172a;color:#94a3b8;border-radius:12px;padding:11px;margin-top:14px;font-size:12px;font-weight:900}
+      #pgCu.df-cost-full > .card{display:block!important}
+      #pgCu.df-cost-full .dfCostUltra{display:none!important}
+      @media(max-width:560px){#pgCu .dfCostUltra .miniGrid{grid-template-columns:1fr 1fr}}
     `;
     document.head.appendChild(s);
   }
 
-  function markAdvanced(hidden){
-    ADVANCED_IDS.forEach(id=>{
-      const el=document.getElementById(id);
-      if(!el)return;
-      const w=fieldWrap(el);
-      if(w)w.classList.toggle('df-cost-advanced-hidden',hidden);
-    });
-
-    ['cuLucroModoInfo','cuPrecoModoInfo','cuPrecoInversoBox','cuVendaAlvoInfo'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el)el.classList.toggle('df-cost-advanced-hidden',hidden);
-    });
-  }
-
-  function setup(){
-    const pg=document.getElementById('pgCu');
-    if(!pg||pg.dataset.dfSimpleReady==='1')return;
-    pg.dataset.dfSimpleReady='1';
+  function build(){
+    const pg=$('pgCu');
+    if(!pg||$('dfCostUltra'))return;
     addStyle();
+    pg.classList.add('df-cost-ultra');
 
-    const firstCard=pg.querySelector('.card');
-    if(firstCard){
-      const head=document.createElement('div');
-      head.className='df-cost-simple-head';
-      head.innerHTML='<span class="df-cost-simple-badge">MODO SIMPLES — TESTE</span><b>Custo e preço de venda</b><span>Preencha só o essencial. As opções avançadas continuam disponíveis abaixo quando você precisar.</span>';
-      firstCard.insertBefore(head,firstCard.firstChild);
-    }
+    // Simplifica o modelo: 1 rolo por cálculo, preço por percentual e lucro sobre custo.
+    setOriginal('cuQtd','1');
+    setOriginal('cuPrecoModo','percentual');
+    setOriginal('cuLucroModo','markup');
 
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className='df-cost-simple-toggle';
-    btn.textContent='MOSTRAR MAIS OPÇÕES';
-    btn.dataset.open='0';
-    btn.onclick=function(){
-      const open=btn.dataset.open==='1';
-      btn.dataset.open=open?'0':'1';
-      btn.textContent=open?'MOSTRAR MAIS OPÇÕES':'OCULTAR OPÇÕES AVANÇADAS';
-      markAdvanced(open);
+    const box=document.createElement('div');
+    box.id='dfCostUltra';
+    box.className='dfCostUltra';
+    box.innerHTML=`
+      <span class="tag">CUSTO SIMPLES — TESTE</span>
+      <h2>Quanto custa e por quanto vender?</h2>
+      <div class="subx">Só 4 informações. O app faz o restante sozinho.</div>
+
+      <label class="autoLine"><input id="dfCuAuto" type="checkbox"> Puxar peso e quantidade automaticamente da aba Sacolas</label>
+
+      <div class="step"><label><span class="stepNo">1</span>Peso do rolo (kg)</label><input id="dfCuPeso" inputmode="decimal" placeholder="Ex.: 5"></div>
+      <div class="step"><label><span class="stepNo">2</span>Quantas sacolas tem no rolo?</label><input id="dfCuUnid" inputmode="numeric" placeholder="Ex.: 200"></div>
+      <div class="step"><label><span class="stepNo">3</span>Quanto custa o material por kg? (R$)</label><input id="dfCuKg" inputmode="decimal" placeholder="Ex.: 8,50"></div>
+      <div class="step"><label><span class="stepNo">4</span>Quanto quer colocar de lucro? (%)</label><input id="dfCuLucro" inputmode="decimal" placeholder="Ex.: 30"></div>
+
+      <div class="resTitle">Resultado</div>
+      <div class="bigResult"><span>PREÇO DE VENDA DO ROLO</span><b id="dfCuVenda">—</b></div>
+      <div class="miniGrid">
+        <div class="mini"><span>Custo do rolo</span><b id="dfCuCusto">—</b></div>
+        <div class="mini"><span>Preço por sacola</span><b id="dfCuSacola">—</b></div>
+        <div class="mini"><span>Lucro no rolo</span><b id="dfCuLucroRes">—</b></div>
+        <div class="mini"><span>Preço por kg</span><b id="dfCuPrecoKg">—</b></div>
+      </div>
+      <button id="dfCuCompleto" class="fullBtn" type="button">ABRIR CÁLCULO COMPLETO</button>
+    `;
+    pg.insertBefore(box,pg.firstChild);
+
+    const autoOrig=$('cuAuto');
+    $('dfCuAuto').checked=!!autoOrig?.checked;
+
+    const map=[
+      ['dfCuPeso','cuPeso'],['dfCuUnid','cuUnid'],['dfCuKg','cuKg'],['dfCuLucro','cuLucroPct']
+    ];
+    map.forEach(([simple,orig])=>{
+      const a=$(simple); a.value=read(orig);
+      a.addEventListener('input',()=>setOriginal(orig,a.value));
+      a.addEventListener('change',()=>setOriginal(orig,a.value));
+    });
+
+    $('dfCuAuto').addEventListener('change',()=>{
+      if(autoOrig){autoOrig.checked=$('dfCuAuto').checked;fire(autoOrig)}
+      setTimeout(syncFromOriginal,180);
+    });
+
+    $('dfCuCompleto').onclick=()=>{
+      pg.classList.remove('df-cost-ultra');
+      pg.classList.add('df-cost-full');
     };
 
-    if(firstCard) firstCard.appendChild(btn);
-    else pg.insertBefore(btn,pg.firstChild);
-
-    markAdvanced(true);
-
-    // Prioriza visualmente os campos que o operador realmente usa no dia a dia.
-    ['cuPeso','cuUnid','cuKg','cuQtd','cuLucroPct'].forEach(id=>{
-      const el=document.getElementById(id); const w=fieldWrap(el); if(w)w.classList.add('df-cost-primary');
-    });
-
-    // Mantém todos os cálculos existentes; apenas reduz a poluição visual no teste.
-    pg.querySelectorAll('.smallNote,.hint').forEach(el=>el.classList.add('df-cost-muted'));
+    syncFromOriginal();
+    setInterval(()=>{
+      if(pg.classList.contains('on')||pg.classList.contains('dfSectionSelected'))syncFromOriginal();
+    },500);
   }
 
-  window.addEventListener('df-ui-ready',()=>setTimeout(setup,250),{once:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(setup,700),{once:true});
-  else setTimeout(setup,700);
+  function syncFromOriginal(){
+    const focused=document.activeElement?.id||'';
+    const map=[['dfCuPeso','cuPeso'],['dfCuUnid','cuUnid'],['dfCuKg','cuKg'],['dfCuLucro','cuLucroPct']];
+    map.forEach(([simple,orig])=>{if(focused!==simple && $(simple))$(simple).value=read(orig)});
+    if($('dfCuAuto')&&$('cuAuto'))$('dfCuAuto').checked=!!$('cuAuto').checked;
+    if($('dfCuVenda'))$('dfCuVenda').textContent=text('cuVendaRolo');
+    if($('dfCuCusto'))$('dfCuCusto').textContent=text('cuCustoRolo');
+    if($('dfCuSacola'))$('dfCuSacola').textContent=text('cuPrecoUnid');
+    if($('dfCuLucroRes'))$('dfCuLucroRes').textContent=text('cuLucroLiquidoRolo');
+    if($('dfCuPrecoKg'))$('dfCuPrecoKg').textContent=text('cuPrecoKg');
+  }
+
+  window.addEventListener('df-ui-ready',()=>setTimeout(build,250),{once:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(build,700),{once:true});
+  else setTimeout(build,700);
 })();
