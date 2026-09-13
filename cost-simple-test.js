@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  if(window.DFCostSimpleTestV2)return;
-  window.DFCostSimpleTestV2=true;
+  if(window.DFCostSimpleTestV3)return;
+  window.DFCostSimpleTestV3=true;
 
   const $=id=>document.getElementById(id);
 
@@ -33,17 +33,17 @@
       #pgCu .dfCostUltra .autoLine{display:flex;align-items:center;gap:9px;margin:12px 0 2px;color:#cbd5e1;font-size:13px}
       #pgCu .dfCostUltra .autoLine input{width:20px;height:20px;margin:0;accent-color:#f5a000}
       #pgCu .dfCostUltra .resTitle{margin:18px 0 8px;color:#94a3b8;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
-      #pgCu .dfCostUltra .bigResult{background:#0c1c13;border:1px solid #274734;border-radius:16px;padding:15px;text-align:center;margin-top:9px}
-      #pgCu .dfCostUltra .bigResult span{display:block;color:#bbf7d0;font-size:12px;font-weight:800}
-      #pgCu .dfCostUltra .bigResult b{display:block;color:#86efac;font-size:31px;margin-top:4px}
-      #pgCu .dfCostUltra .miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
-      #pgCu .dfCostUltra .mini{background:#0f172a;border:1px solid #263244;border-radius:13px;padding:12px;text-align:center}
-      #pgCu .dfCostUltra .mini span{display:block;color:#94a3b8;font-size:11px}
-      #pgCu .dfCostUltra .mini b{display:block;color:#f8fafc;font-size:18px;margin-top:5px}
+      #pgCu .dfCostUltra .greenGrid{display:grid;grid-template-columns:1fr;gap:9px;margin-top:9px}
+      #pgCu .dfCostUltra .greenResult{background:#0c1c13;border:1px solid #274734;border-radius:16px;padding:15px;text-align:center}
+      #pgCu .dfCostUltra .greenResult span{display:block;color:#bbf7d0;font-size:12px;font-weight:800}
+      #pgCu .dfCostUltra .greenResult b{display:block;color:#86efac;font-size:29px;margin-top:4px}
+      #pgCu .dfCostUltra .optional{border-style:dashed}
+      #pgCu .dfCostUltra .optional small{display:block;color:#94a3b8;font-size:11px;margin-top:5px;font-weight:600}
+      #pgCu .dfCostUltra .saleBox{display:none;margin-top:10px}
+      #pgCu .dfCostUltra .saleBox.on{display:block}
       #pgCu .dfCostUltra .fullBtn{width:100%;border:1px solid #334155;background:#0f172a;color:#94a3b8;border-radius:12px;padding:11px;margin-top:14px;font-size:12px;font-weight:900}
       #pgCu.df-cost-full > .card{display:block!important}
       #pgCu.df-cost-full .dfCostUltra{display:none!important}
-      @media(max-width:560px){#pgCu .dfCostUltra .miniGrid{grid-template-columns:1fr 1fr}}
     `;
     document.head.appendChild(s);
   }
@@ -54,7 +54,6 @@
     addStyle();
     pg.classList.add('df-cost-ultra');
 
-    // Simplifica o modelo: 1 rolo por cálculo, preço por percentual e lucro sobre custo.
     setOriginal('cuQtd','1');
     setOriginal('cuPrecoModo','percentual');
     setOriginal('cuLucroModo','markup');
@@ -64,24 +63,23 @@
     box.className='dfCostUltra';
     box.innerHTML=`
       <span class="tag">CUSTO SIMPLES — TESTE</span>
-      <h2>Quanto custa e por quanto vender?</h2>
-      <div class="subx">Só 4 informações. O app faz o restante sozinho.</div>
+      <h2>Custo do produto</h2>
+      <div class="subx">Preencha o básico. O lucro é opcional.</div>
 
       <label class="autoLine"><input id="dfCuAuto" type="checkbox"> Puxar peso e quantidade automaticamente da aba Sacolas</label>
 
       <div class="step"><label><span class="stepNo">1</span>Peso do rolo (kg)</label><input id="dfCuPeso" inputmode="decimal" placeholder="Ex.: 5"></div>
-      <div class="step"><label><span class="stepNo">2</span>Quantas sacolas tem no rolo?</label><input id="dfCuUnid" inputmode="numeric" placeholder="Ex.: 200"></div>
-      <div class="step"><label><span class="stepNo">3</span>Quanto custa o material por kg? (R$)</label><input id="dfCuKg" inputmode="decimal" placeholder="Ex.: 8,50"></div>
-      <div class="step"><label><span class="stepNo">4</span>Quanto quer colocar de lucro? (%)</label><input id="dfCuLucro" inputmode="decimal" placeholder="Ex.: 30"></div>
+      <div class="step"><label><span class="stepNo">2</span>Quantas unidades tem no rolo?</label><input id="dfCuUnid" inputmode="numeric" placeholder="Ex.: 200"></div>
+      <div class="step"><label><span class="stepNo">3</span>Custo do material por kg (R$)</label><input id="dfCuKg" inputmode="decimal" placeholder="Ex.: 8,50"></div>
+      <div class="step optional"><label>Lucro (%) — opcional</label><input id="dfCuLucro" inputmode="decimal" placeholder="Deixe vazio se não quiser calcular venda"><small>Se preencher, o app mostra o preço de venda automaticamente.</small></div>
 
       <div class="resTitle">Resultado</div>
-      <div class="bigResult"><span>PREÇO DE VENDA DO ROLO</span><b id="dfCuVenda">—</b></div>
-      <div class="miniGrid">
-        <div class="mini"><span>Custo do rolo</span><b id="dfCuCusto">—</b></div>
-        <div class="mini"><span>Preço por sacola</span><b id="dfCuSacola">—</b></div>
-        <div class="mini"><span>Lucro no rolo</span><b id="dfCuLucroRes">—</b></div>
-        <div class="mini"><span>Preço por kg</span><b id="dfCuPrecoKg">—</b></div>
+      <div class="greenGrid">
+        <div class="greenResult"><span>CUSTO POR KG</span><b id="dfCuCustoKg">—</b></div>
+        <div class="greenResult"><span>CUSTO POR UNIDADE</span><b id="dfCuCustoUn">—</b></div>
+        <div class="greenResult"><span>CUSTO TOTAL</span><b id="dfCuCustoTotal">—</b></div>
       </div>
+      <div id="dfCuSaleBox" class="saleBox"><div class="greenResult"><span>PREÇO DE VENDA COM LUCRO</span><b id="dfCuVenda">—</b></div></div>
       <button id="dfCuCompleto" class="fullBtn" type="button">ABRIR CÁLCULO COMPLETO</button>
     `;
     pg.insertBefore(box,pg.firstChild);
@@ -89,13 +87,11 @@
     const autoOrig=$('cuAuto');
     $('dfCuAuto').checked=!!autoOrig?.checked;
 
-    const map=[
-      ['dfCuPeso','cuPeso'],['dfCuUnid','cuUnid'],['dfCuKg','cuKg'],['dfCuLucro','cuLucroPct']
-    ];
+    const map=[['dfCuPeso','cuPeso'],['dfCuUnid','cuUnid'],['dfCuKg','cuKg'],['dfCuLucro','cuLucroPct']];
     map.forEach(([simple,orig])=>{
       const a=$(simple); a.value=read(orig);
-      a.addEventListener('input',()=>setOriginal(orig,a.value));
-      a.addEventListener('change',()=>setOriginal(orig,a.value));
+      a.addEventListener('input',()=>{setOriginal(orig,a.value);syncFromOriginal()});
+      a.addEventListener('change',()=>{setOriginal(orig,a.value);syncFromOriginal()});
     });
 
     $('dfCuAuto').addEventListener('change',()=>{
@@ -119,11 +115,15 @@
     const map=[['dfCuPeso','cuPeso'],['dfCuUnid','cuUnid'],['dfCuKg','cuKg'],['dfCuLucro','cuLucroPct']];
     map.forEach(([simple,orig])=>{if(focused!==simple && $(simple))$(simple).value=read(orig)});
     if($('dfCuAuto')&&$('cuAuto'))$('dfCuAuto').checked=!!$('cuAuto').checked;
+
+    if($('dfCuCustoKg'))$('dfCuCustoKg').textContent=text('cuCustoRealKg');
+    if($('dfCuCustoUn'))$('dfCuCustoUn').textContent=text('cuCustoUnid');
+    if($('dfCuCustoTotal'))$('dfCuCustoTotal').textContent=text('cuCustoRolo');
     if($('dfCuVenda'))$('dfCuVenda').textContent=text('cuVendaRolo');
-    if($('dfCuCusto'))$('dfCuCusto').textContent=text('cuCustoRolo');
-    if($('dfCuSacola'))$('dfCuSacola').textContent=text('cuPrecoUnid');
-    if($('dfCuLucroRes'))$('dfCuLucroRes').textContent=text('cuLucroLiquidoRolo');
-    if($('dfCuPrecoKg'))$('dfCuPrecoKg').textContent=text('cuPrecoKg');
+
+    const lucro=String($('dfCuLucro')?.value||'').trim();
+    const hasLucro=lucro!=='' && Number(lucro.replace(',','.'))>0;
+    $('dfCuSaleBox')?.classList.toggle('on',hasLucro);
   }
 
   window.addEventListener('df-ui-ready',()=>setTimeout(build,250),{once:true});
