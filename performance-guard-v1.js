@@ -10,17 +10,31 @@
   const listenerMap=new WeakMap();
 
   function sourceOf(fn){try{return typeof fn==='function'?Function.prototype.toString.call(fn):String(fn||'')}catch(e){return ''}}
+  function dormantInterval(){return nativeInterval(function(){},24*60*60*1000)}
 
-  // O pacote antigo ainda contém um monitor de OCR/QR que varria o DOM a cada ~1,2 s.
-  // O fluxo atual é manual, então esse monitor só consumia CPU no iPhone.
+  // O pacote antigo ainda contém monitores legados que não fazem parte do fluxo atual.
+  // Eles continuavam acordando a CPU, varrendo o DOM e/ou serializando todo o localStorage.
   window.setInterval=function(fn,delay){
     const src=sourceOf(fn),ms=Number(delay)||0,args=[].slice.call(arguments,2);
+
+    // OCR/QR automático legado: hoje a leitura é manual.
     if(ms>0&&ms<=1500&&/wrapTesseract|wrapQR\(\).*wrapTesseract|wrapQR;wrapTesseract/i.test(src)){
-      return nativeInterval(function(){},24*60*60*1000);
+      return dormantInterval();
     }
+
+    // Backup automático legado: desde a v147 o backup é somente manual.
+    // detectChanges() fazia snapshot + JSON.stringify do armazenamento inteiro a cada 12 s,
+    // o que ficava pesado conforme OPs/fotos/dados cresciam e causava travadas no celular.
+    if(ms>=10000&&ms<=15000&&/snapshotHash\s*\(|markPending\s*\(|saveNow\s*\(/i.test(src)){
+      return dormantInterval();
+    }
+    if(ms>=55000&&ms<=65000&&/ensureCard\s*\(|PENDING_KEY|saveNow\s*\(/i.test(src)){
+      return dormantInterval();
+    }
+
     return nativeInterval(function(){
       if(document.hidden&&ms<5000)return;
-      try{return typeof fn==='function'?fn.apply(window,args):Function(String(fn))()}catch(e){setTimeout(function(){throw e},0)}
+      try{return typeof fn==='function'?fn.apply(window,args):Function(String(fn))()}catch(e){nativeTimeout(function(){throw e},0)}
     },ms);
   };
 
@@ -75,7 +89,7 @@
     window.MutationObserver=GuardedMO;
   }
 
-  // Informa a sincronização de OP quando o backup geral acabou de salvar.
+  // Informa a sincronização de OP quando o backup geral acabou de salvar manualmente.
   try{
     const nativeSetItem=Storage.prototype.setItem;
     Storage.prototype.setItem=function(key,value){
