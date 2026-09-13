@@ -1,6 +1,6 @@
 {
-  "version": "1.0.147",
-  "title": "DF EXTRUSOR PRO — backup somente manual",
-  "message": "O Backup na nuvem agora funciona somente quando você tocar em FAZER BACKUP AGORA. Alterações não são mais enviadas automaticamente nem ficam em fila para sincronizar sozinhas. A restauração continua disponível manualmente.",
-  "updatedAt": "2026-09-12T21:45:00-03:00"
+  "version": "1.0.148",
+  "title": "DF EXTRUSOR PRO — correção de estabilidade",
+  "message": "Correção de travamentos: removido o monitor automático legado que continuava varrendo e serializando os dados do aparelho mesmo com o backup em modo manual. Também foi renovado o cache do PWA para carregar a correção.",
+  "updatedAt": "2026-09-12T22:02:00-03:00"
 }
