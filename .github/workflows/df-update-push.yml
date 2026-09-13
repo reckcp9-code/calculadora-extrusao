@@ -1,0 +1,22 @@
+name: DF EXTRUSOR - avisar atualizacao
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app-version.json'
+  workflow_dispatch:
+
+jobs:
+  notify-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aguardar publicacao do GitHub Pages
+        run: sleep 75
+      - name: Disparar verificacao de nova versao
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 15 --retry-all-errors \
+            -X POST \
+            -H 'User-Agent: DF-EXTRUSOR-GITHUB-AUTO/1.0' \
+            'https://df-extrusor-api.reck-cp9.workers.dev/push/check-update'
