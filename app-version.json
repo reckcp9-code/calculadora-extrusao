@@ -1,6 +1,6 @@
 {
-  "version": "1.0.146",
-  "title": "DF EXTRUSOR PRO — recuperação segura após reinstalação",
-  "message": "Ao reinstalar o app, o sistema não tenta mais criar outro usuário automaticamente. Agora existe recuperação pela mesma licença antiga, reutilizando o vínculo existente sem consumir outra key e preservando a associação com o backup em nuvem. Primeiro acesso continua em uma opção separada.",
-  "updatedAt": "2026-09-12T13:36:00-03:00"
+  "version": "1.0.147",
+  "title": "DF EXTRUSOR PRO — backup somente manual",
+  "message": "O Backup na nuvem agora funciona somente quando você tocar em FAZER BACKUP AGORA. Alterações não são mais enviadas automaticamente nem ficam em fila para sincronizar sozinhas. A restauração continua disponível manualmente.",
+  "updatedAt": "2026-09-12T21:45:00-03:00"
 }
