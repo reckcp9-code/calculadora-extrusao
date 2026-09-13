@@ -1,6 +1,6 @@
 {
-  "version": "1.0.150",
-  "title": "DF EXTRUSOR PRO — custo simplificado",
-  "message": "A aba Custo foi simplificada para mostrar custo por kg, custo por unidade e custo total, com percentual de lucro opcional para calcular o preço de venda.",
-  "updatedAt": "2026-09-14T19:00:00-03:00"
+  "version": "1.0.151",
+  "title": "DF EXTRUSOR PRO — estabilidade aprimorada",
+  "message": "Varredura geral de estabilidade: cache renovado e carregamento de módulos mais resistente a falhas de internet, com novas tentativas automáticas quando necessário.",
+  "updatedAt": "2026-09-14T19:30:00-03:00"
 }
