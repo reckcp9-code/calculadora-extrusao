@@ -1,6 +1,6 @@
 {
-  "version": "1.0.149",
-  "title": "DF EXTRUSOR PRO — desempenho otimizado",
-  "message": "Inicialização mais leve: rotinas secundárias e módulos de OP deixaram de carregar no primeiro instante, QR não é mais baixado em duplicidade, o precache foi reduzido ao núcleo essencial e o polling antigo de recuperação de acesso foi removido.",
-  "updatedAt": "2026-09-12T22:10:00-03:00"
+  "version": "1.0.150",
+  "title": "DF EXTRUSOR PRO — custo simplificado",
+  "message": "A aba Custo foi simplificada para mostrar custo por kg, custo por unidade e custo total, com percentual de lucro opcional para calcular o preço de venda.",
+  "updatedAt": "2026-09-14T19:00:00-03:00"
 }
