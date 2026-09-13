@@ -11,31 +11,31 @@
 <meta name="apple-mobile-web-app-title" content="DF EXTRUSOR">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO</title>
-<link rel="manifest" href="./manifest.webmanifest?v=20260912-modular-v150">
+<link rel="manifest" href="./manifest.webmanifest?v=20260912-fast-v149">
 <link rel="apple-touch-icon" href="./logo.jpg.jpeg">
 <link rel="preconnect" href="https://df-extrusor-api.reck-cp9.workers.dev" crossorigin>
 <style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
-<script src="./device-identity.js?v=20260912-modular-v150"></script>
-<script src="./ios-reinstall-bridge.js?v=20260912-modular-v150"></script>
-<script src="./access-recovery-v1.js?v=20260912-modular-v150"></script>
+<script src="./device-identity.js?v=20260912-fast-v149"></script>
+<script src="./ios-reinstall-bridge.js?v=20260912-fast-v149"></script>
+<script src="./access-recovery-v1.js?v=20260912-fast-v149"></script>
 </head>
 <body>
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc"><h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando calculadora...</p></div>
 <script>
 (async()=>{
-  const BUILD='20260912-modular-v150';
+  const BUILD='20260912-fast-v149';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
-  const SHELL_CACHE='df-app-shell-source-v7';
-  const SHELL_KEY='./__df_base_shell_v150__.html';
+  const SHELL_CACHE='df-app-shell-source-v6';
+  const SHELL_KEY='./__df_base_shell_v149__.html';
   const safeGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
   async function fetchText(url,timeout=4200){let ctrl=null,timer=null;try{if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),timeout)}const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});if(!r.ok)throw new Error('HTTP '+r.status);const txt=await r.text();if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');return txt}finally{if(timer)clearTimeout(timer)}}
   async function readCachedShell(){try{if(!('caches' in window))return '';const c=await caches.open(SHELL_CACHE);const r=await c.match(SHELL_KEY);const txt=r?await r.text():'';return txt&&txt.indexOf('<!doctype html')>=0?txt:''}catch(e){return ''}}
-  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));for(const k of ['df-app-shell-source-v2','df-app-shell-source-v3','df-app-shell-source-v5','df-app-shell-source-v6'])caches.delete(k).catch(()=>{})}catch(e){}}
+  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));for(const k of ['df-app-shell-source-v2','df-app-shell-source-v3','df-app-shell-source-v5'])caches.delete(k).catch(()=>{})}catch(e){}}
   async function loadShell(){if(navigator.onLine!==false){try{const fresh=await fetchText(LOCAL_SHELL);saveCachedShell(fresh);return fresh}catch(e){}}const cached=await readCachedShell();if(cached)return cached;const fresh=await fetchText(LOCAL_SHELL,5000);saveCachedShell(fresh);return fresh}
-  function scriptTag(src){return '<scr'+'ipt defer src="./'+src+'"></scr'+'ipt>'}
+  function scriptTag(src,defer=true){return '<scr'+'ipt '+(defer?'defer ':'')+'src="./'+src+'"></scr'+'ipt>'}
   try{
-    try{if(window.DFIosReinstallReady)await Promise.race([window.DFIosReinstallReady,new Promise(r=>setTimeout(r,1500))])}catch(e){}
-    try{if(window.DFAccessRecoveryReady)await Promise.race([window.DFAccessRecoveryReady,new Promise(r=>setTimeout(r,900))])}catch(e){}
+    try{if(window.DFIosReinstallReady)await Promise.race([window.DFIosReinstallReady,new Promise(r=>setTimeout(r,1800))])}catch(e){}
+    try{if(window.DFAccessRecoveryReady)await Promise.race([window.DFAccessRecoveryReady,new Promise(r=>setTimeout(r,1200))])}catch(e){}
     const savedAccess=String(safeGet('df_auto_access_credential_v1')||'').trim();
     if(!savedAccess){try{const u=new URL(location.href);if(!u.searchParams.has('acesso')){u.searchParams.set('acesso','geral');history.replaceState(null,'',u.pathname+'?'+u.searchParams.toString()+u.hash)}}catch(e){}}
     let h=await loadShell();
@@ -43,91 +43,37 @@
     if(savedAccess)h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
     const closeScript='</scr'+'ipt>',openScript='<scr'+'ipt>';const p=h.lastIndexOf(openScript);if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
 
-    // Núcleo atual. O antigo app-bundle.js de 353 KB não é mais executado.
     const core=[
       'performance-guard-v1.js?v='+BUILD,
-      'platform-hint.js?v='+BUILD,
-      'auto-access.js?v='+BUILD,
-      'auto-user.js?v='+BUILD,
-      'local-calculations.js?v='+BUILD,
-      'safe-core.js?v='+BUILD,
+      'app-bundle.js?v='+BUILD,
       'access-reinstall-recovery-v2.js?v='+BUILD,
       'backup-manual-only-v1.js?v='+BUILD,
+      'local-calculations.js?v='+BUILD,
       'runtime-stability-v3.js?v='+BUILD,
       'medida-formulacao-stable.js?v='+BUILD,
       'formula-tabs-clean-v1.js?v='+BUILD
     ];
-
-    const groups={
-      base:[
-        'beta-launch.js?v='+BUILD,
-        'access-device-guard.js?v='+BUILD,
-        'presence-lite.js?v='+BUILD,
-        'help-extra.js?v='+BUILD,
-        'back-extra.js?v='+BUILD,
-        'contact-extra.js?v='+BUILD,
-        'install-app.js?v='+BUILD,
-        'offline-mode.js?v='+BUILD,
-        'nav-separation-fix.js?v='+BUILD,
-        'quick-access.js?v='+BUILD,
-        'favoritos.js?v='+BUILD,
-        'home-swap-menu.js?v='+BUILD,
-        'help-inline-assistant.js?v='+BUILD,
-        'home-whatsapp-feedback-inline.js?v='+BUILD,
-        'course-lock.js?v='+BUILD,
-        'update-notify-v1.js?v='+BUILD,
-        'error-monitor-v1.js?v='+BUILD
-      ],
-      extrusao:[
-        'bobina-safe.js?v='+BUILD,
-        'bobina-factor-profiles.js?v='+BUILD,
-        'machine-recipe.js?v='+BUILD,
-        'extrusao-tabs.js?v='+BUILD,
-        'sacolas-merge-micra.js?v='+BUILD,
-        'mobile-back-position.js?v='+BUILD,
-        'extrusao-back-tab.js?v='+BUILD,
-        'extrusao-medidas-auto.js?v='+BUILD
-      ],
-      sacolas:['sacola-peso-quantidade.js?v='+BUILD],
-      custo:[
-        'cost-safe.js?v='+BUILD,
-        'cost-unit-stable.js?v='+BUILD,
-        'cost-explanations.js?v='+BUILD
-      ],
-      formula:[
-        'material-manager.js?v='+BUILD,
-        'formula-unlock.js?v='+BUILD,
-        'formula-mix-kg.js?v='+BUILD,
-        'formula-share-safe.js?v='+BUILD,
-        'pdf-button-safe.js?v='+BUILD,
-        'formula-view-safe.js?v='+BUILD,
-        'whatsapp-user-number.js?v='+BUILD,
-        'vendedor-pdf-profissional.js?v='+BUILD,
-        'vendedor-extra.js?v='+BUILD,
-        'feedback-extra.js?v='+BUILD,
-        'formula-bottom-order.js?v='+BUILD,
-        'formula-material-collapse.js?v='+BUILD
-      ],
-      op:[
-        'op-page-maximize.js?v='+BUILD,
-        'op-single-safe.js?v='+BUILD,
-        'op-qr-hook.js?v='+BUILD,
-        'op-landscape-pdf.js?v='+BUILD,
-        'formula-op-relatorio.js?v='+BUILD,
-        'op-photo-source.js?v='+BUILD,
-        'op-manual-confirm.js?v='+BUILD,
-        'op-sync-lite-v2.js?v='+BUILD,
-        'op-cloud-team-v2.js?v='+BUILD,
-        'op-photo-delete-v5.js?v='+BUILD,
-        'op-team-notify-v2.js?v='+BUILD,
-        'client-stability-v127.js?v='+BUILD,
-        'op-team-admin-v97.js?v='+BUILD
-      ]
-    };
-
-    const tags=core.map(scriptTag).join('');
-    const lazy='<scr'+'ipt>(function(){var G='+JSON.stringify(groups)+',loaded=new Set(),started=new Set();function load(src){if(loaded.has(src))return Promise.resolve();loaded.add(src);return new Promise(function(ok){var s=document.createElement("script");s.src="./"+src;s.async=false;s.onload=ok;s.onerror=ok;document.head.appendChild(s)})}function group(name){if(started.has(name)||!G[name])return;started.add(name);G[name].reduce(function(p,src){return p.then(function(){return load(src)})},Promise.resolve())}function byHash(){var h=location.hash;if(h==="#sacolas")group("sacolas");else if(h==="#custo")group("custo");else if(h==="#formulacao"){group("formula");}else group("extrusao")}document.addEventListener("click",function(e){var t=e.target&&e.target.closest?e.target.closest("#btEx,#btSa,#btCu,#btFo,#dfFormTabOps,[data-pane=ops],[data-pane=ok],[data-pane=archive]"):null;if(!t)return;var id=t.id||"";if(id==="btSa")group("sacolas");else if(id==="btCu")group("custo");else if(id==="btFo")group("formula");else if(id==="dfFormTabOps"||t.matches("[data-pane=ops],[data-pane=ok],[data-pane=archive]")){group("formula");group("op")}else group("extrusao")},true);window.addEventListener("hashchange",byHash);var idle=window.requestIdleCallback||function(fn){return setTimeout(fn,900)};idle(function(){group("base")},{timeout:1800});window.addEventListener("df-ui-ready",function(){byHash();setTimeout(function(){if(document.getElementById("dfFormulaOps")&&location.hash==="#formulacao")group("op")},900)},{once:true});})();</scr'+'ipt>';
-    const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,350)})();</scr'+'ipt>';
+    const optional=[
+      'formula-material-collapse.js?v='+BUILD,
+      'update-notify-v1.js?v='+BUILD,
+      'error-monitor-v1.js?v='+BUILD
+    ];
+    const op=[
+      'op-qr-hook.js?v='+BUILD,
+      'op-landscape-pdf.js?v='+BUILD,
+      'formula-op-relatorio.js?v='+BUILD,
+      'op-photo-source.js?v='+BUILD,
+      'op-manual-confirm.js?v='+BUILD,
+      'op-sync-lite-v2.js?v='+BUILD,
+      'op-cloud-team-v2.js?v='+BUILD,
+      'op-photo-delete-v5.js?v='+BUILD,
+      'op-team-notify-v2.js?v='+BUILD,
+      'client-stability-v127.js?v='+BUILD,
+      'op-team-admin-v97.js?v='+BUILD
+    ];
+    const tags=core.map(s=>scriptTag(s)).join('');
+    const lazy='<scr'+'ipt>(function(){var loaded=new Set();function load(src){if(loaded.has(src))return Promise.resolve();loaded.add(src);return new Promise(function(ok){var s=document.createElement("script");s.src="./"+src;s.defer=true;s.onload=ok;s.onerror=ok;document.head.appendChild(s)})}function loadList(list){return Promise.all(list.map(load))}var optional='+JSON.stringify(optional)+',op='+JSON.stringify(op)+',opStarted=false;function loadOp(){if(opStarted)return;opStarted=true;loadList(op)}document.addEventListener("click",function(e){var t=e.target&&e.target.closest?e.target.closest("#btFo,#dfFormTabOps,[data-pane=ops],[data-pane=ok],[data-pane=archive]"):null;if(t)loadOp()},true);var idle=window.requestIdleCallback||function(fn){return setTimeout(fn,1600)};idle(function(){loadList(optional)}, {timeout:2600});window.addEventListener("df-ui-ready",function(){setTimeout(function(){if(document.getElementById("dfFormulaOps"))loadOp()},1800)},{once:true});})();</scr'+'ipt>';
+    const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,500)})();</scr'+'ipt>';
     h=h.replace('</body>',tags+lazy+ready+'</body>');document.open();document.write(h);document.close();
   }catch(e){document.body.style.visibility='visible';document.body.style.opacity='1';document.body.style.background='#080b13';document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><p style="color:#94a3b8">Verifique sua internet e tente novamente.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>'}
 })();
