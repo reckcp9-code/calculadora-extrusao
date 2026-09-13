@@ -1,6 +1,6 @@
 {
-  "version": "1.0.151",
-  "title": "DF EXTRUSOR PRO — estabilidade aprimorada",
-  "message": "Varredura geral de estabilidade: cache renovado e carregamento de módulos mais resistente a falhas de internet, com novas tentativas automáticas quando necessário.",
-  "updatedAt": "2026-09-14T19:30:00-03:00"
+  "version": "1.0.152",
+  "title": "DF EXTRUSOR PRO — correção no iPhone",
+  "message": "Corrigido o deslocamento horizontal da barra da Formulação no iPhone. A página não anda mais para os lados e a rolagem fica somente dentro da barra de opções.",
+  "updatedAt": "2026-09-13T20:35:00-03:00"
 }
