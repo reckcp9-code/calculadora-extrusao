@@ -1,6 +1,6 @@
 {
-  "version": "1.0.148",
-  "title": "DF EXTRUSOR PRO — correção de estabilidade",
-  "message": "Correção de travamentos: removido o monitor automático legado que continuava varrendo e serializando os dados do aparelho mesmo com o backup em modo manual. Também foi renovado o cache do PWA para carregar a correção.",
-  "updatedAt": "2026-09-12T22:02:00-03:00"
+  "version": "1.0.149",
+  "title": "DF EXTRUSOR PRO — desempenho otimizado",
+  "message": "Inicialização mais leve: rotinas secundárias e módulos de OP deixaram de carregar no primeiro instante, QR não é mais baixado em duplicidade, o precache foi reduzido ao núcleo essencial e o polling antigo de recuperação de acesso foi removido.",
+  "updatedAt": "2026-09-12T22:10:00-03:00"
 }
