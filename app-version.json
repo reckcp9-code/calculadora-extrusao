@@ -1,6 +1,6 @@
 {
-  "version": "1.0.150",
-  "title": "DF EXTRUSOR PRO — núcleo modular",
-  "message": "O pacote legado de 353 KB deixou de ser executado. O app agora carrega somente o núcleo necessário na abertura e ativa módulos de Extrusão, Sacolas, Custo, Formulação e OP apenas quando forem necessários. Rotinas antigas de backup automático, atualização duplicada e compatibilidade antiga ficaram fora do runtime.",
-  "updatedAt": "2026-09-12T22:18:00-03:00"
+  "version": "1.0.149",
+  "title": "DF EXTRUSOR PRO — desempenho otimizado",
+  "message": "Inicialização mais leve: rotinas secundárias e módulos de OP deixaram de carregar no primeiro instante, QR não é mais baixado em duplicidade, o precache foi reduzido ao núcleo essencial e o polling antigo de recuperação de acesso foi removido.",
+  "updatedAt": "2026-09-12T22:10:00-03:00"
 }
