@@ -1,6 +1,6 @@
 {
-  "version": "1.0.152",
-  "title": "DF EXTRUSOR PRO — correção no iPhone",
-  "message": "Corrigido o deslocamento horizontal da barra da Formulação no iPhone. A página não anda mais para os lados e a rolagem fica somente dentro da barra de opções.",
-  "updatedAt": "2026-09-13T20:35:00-03:00"
+  "version": "1.0.153",
+  "title": "DF EXTRUSOR PRO — atualização automática",
+  "message": "O app agora detecta uma nova versão, limpa somente os caches antigos do app e recarrega automaticamente uma vez, sem precisar tocar em Atualizar.",
+  "updatedAt": "2026-09-13T20:52:00-03:00"
 }
