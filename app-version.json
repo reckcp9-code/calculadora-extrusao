@@ -1,6 +1,6 @@
 {
-  "version": "1.0.155",
-  "title": "DF EXTRUSOR PRO — seta de voltar restaurada",
-  "message": "Restaurada a seta de voltar na aba Custo, mantendo o modo de custo simplificado com lucro opcional.",
-  "updatedAt": "2026-09-13T21:10:00-03:00"
+  "version": "1.0.156",
+  "title": "DF EXTRUSOR PRO — recuperação de OP por QR",
+  "message": "Agora é possível recuperar ou recriar uma OP pelo código DFOP quando ela não existir no aparelho, permitindo dar baixa normalmente após reinstalação ou uso em outro celular.",
+  "updatedAt": "2026-09-14T07:36:00-03:00"
 }
