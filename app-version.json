@@ -1,6 +1,6 @@
 {
-  "version": "1.0.165",
-  "title": "DF EXTRUSOR PRO — recuperação segura do código da equipe",
-  "message": "Quando o dono estiver sem o código salvo, o app tenta recuperar o código pela sessão da nuvem sem travar a tela. Se o servidor não devolver o código, aparece uma opção para informar e salvar o código manualmente uma única vez.",
-  "updatedAt": "2026-09-14T10:06:00-03:00"
+  "version": "1.0.166",
+  "title": "DF EXTRUSOR PRO — código da equipe no PWA",
+  "message": "Corrigido o código da equipe no app instalado. Quando o PWA não compartilhar o armazenamento do Safari, o dono pode informar o código uma única vez dentro do próprio app; ele fica salvo no PWA e passa a aparecer com o botão de copiar, sem depender de atualizações automáticas.",
+  "updatedAt": "2026-09-14T10:18:00-03:00"
 }
