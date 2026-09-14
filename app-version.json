@@ -1,6 +1,6 @@
 {
-  "version": "1.0.164",
-  "title": "DF EXTRUSOR PRO — equipe sem travar no navegador",
-  "message": "Publicada a correção aprovada no teste: o código da equipe continua disponível sem prender a tela quando a sessão automática da nuvem não está presente. A recuperação agressiva foi removida e o restante das OPs continua utilizável.",
-  "updatedAt": "2026-09-14T09:58:00-03:00"
+  "version": "1.0.165",
+  "title": "DF EXTRUSOR PRO — recuperação segura do código da equipe",
+  "message": "Quando o dono estiver sem o código salvo, o app tenta recuperar o código pela sessão da nuvem sem travar a tela. Se o servidor não devolver o código, aparece uma opção para informar e salvar o código manualmente uma única vez.",
+  "updatedAt": "2026-09-14T10:06:00-03:00"
 }
