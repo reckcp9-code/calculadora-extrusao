@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>DF EXTRUSOR PRO — TESTE AGORA</title>
+<link rel="apple-touch-icon" href="./logo.jpg.jpeg">
+<style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
+<script src="./device-identity.js?v=20260914-agora-owner-v4"></script>
+</head>
+<body>
+<div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc"><h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando teste...</p></div>
+<script>
+(async()=>{
+  const BUILD='20260914-agora-owner-v4';
+  try{
+    const r=await fetch('./app-shell.html?v='+BUILD,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    let h=await r.text();
+    h=h.replace('</head>','<style>html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
+    const closeScript='</scr'+'ipt>',openScript='<scr'+'ipt>';
+    const p=h.lastIndexOf(openScript);
+    if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
+    const core=[
+      'performance-guard-v1.js?v='+BUILD,
+      'app-bundle.js?v='+BUILD,
+      'cost-simple-only-test-v2.js?v='+BUILD,
+      'local-calculations.js?v='+BUILD,
+      'runtime-stability-v3.js?v='+BUILD,
+      'medida-formulacao-stable.js?v='+BUILD,
+      'formula-tabs-clean-v1.js?v='+BUILD,
+      'formula-mobile-nav-fix-test-v2.js?v='+BUILD,
+      'op-production-now-team-test-v4.js?v='+BUILD
+    ];
+    const op=[
+      'op-qr-hook.js?v='+BUILD,
+      'op-landscape-pdf.js?v='+BUILD,
+      'formula-op-relatorio.js?v='+BUILD,
+      'op-photo-source.js?v='+BUILD,
+      'op-manual-confirm.js?v='+BUILD,
+      'op-manual-qr-code-test-v1.js?v='+BUILD,
+      'op-sync-lite-v2.js?v='+BUILD,
+      'op-cloud-team-v2.js?v='+BUILD,
+      'op-photo-delete-v5.js?v='+BUILD,
+      'op-team-notify-v2.js?v='+BUILD,
+      'client-stability-v127.js?v='+BUILD,
+      'op-team-admin-v97.js?v='+BUILD
+    ];
+    const tags=core.map(s=>'<scr'+'ipt defer src="./'+s+'"></scr'+'ipt>').join('');
+    const lazy='<scr'+'ipt>(function(){var done=false;function loadOps(){if(done)return;done=true;var list='+JSON.stringify(op)+';list.forEach(function(src){var s=document.createElement("script");s.src="./"+src;s.defer=true;s.onerror=function(){done=false};document.head.appendChild(s)})}document.addEventListener("click",function(e){var t=e.target&&e.target.closest?e.target.closest("#btFo,#dfFormTabOps,[data-pane]"):null;if(t)loadOps()},true);window.addEventListener("df-ui-ready",function(){setTimeout(loadOps,500)},{once:true});setTimeout(loadOps,1200)})();</scr'+'ipt>';
+    const ready='<scr'+'ipt>(function(){function fire(){try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fire,{once:true});else fire();setTimeout(fire,400)})();</scr'+'ipt>';
+    h=h.replace('</body>',tags+lazy+ready+'</body>');
+    document.open();document.write(h);document.close();
+  }catch(e){document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não consegui carregar o teste.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>'}
+})();
+</script>
+</body>
+</html>
