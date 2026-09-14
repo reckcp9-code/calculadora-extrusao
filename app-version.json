@@ -1,6 +1,6 @@
 {
-  "version": "1.0.161",
-  "title": "DF EXTRUSOR PRO — dono define Produção Agora",
-  "message": "Publicado o comportamento aprovado no teste: a aba Produção Agora permanece visível e o dono da equipe é reconhecido para definir máquina, status, OP, operador e horário; operadores continuam somente em visualização.",
-  "updatedAt": "2026-09-14T09:05:00-03:00"
+  "version": "1.0.162",
+  "title": "DF EXTRUSOR PRO — correção Produção Agora",
+  "message": "Corrigido o erro de sintaxe DF-OP-826 no módulo Produção Agora. O botão AGORA volta a carregar na versão oficial, o dono é reconhecido para definir o que está rodando e os operadores permanecem somente em visualização.",
+  "updatedAt": "2026-09-14T09:18:00-03:00"
 }
