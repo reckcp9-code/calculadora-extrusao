@@ -1,6 +1,6 @@
 {
-  "version": "1.0.167",
-  "title": "DF EXTRUSOR PRO — Produção Agora leve",
-  "message": "Publicado o novo Produção Agora com leitura de QR da OP, busca por código ou nome/produto e exclusão de OPs geradas. Removidos os verificadores agressivos que causavam travamentos, mantendo a sincronização da equipe de forma mais leve.",
-  "updatedAt": "2026-09-14T12:05:00-03:00"
+  "version": "1.0.168",
+  "title": "DF EXTRUSOR PRO — Produção Agora sincronizada",
+  "message": "Corrigida a sincronização do Produção Agora entre o celular do dono e os operadores. O status publicado pelo dono agora é reenviado e lido pelos aparelhos da mesma equipe, mantendo o modo leve aprovado no teste.",
+  "updatedAt": "2026-09-14T12:32:00-03:00"
 }
