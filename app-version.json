@@ -1,6 +1,6 @@
 {
-  "version": "1.0.168",
-  "title": "DF EXTRUSOR PRO — Produção Agora sincronizada",
-  "message": "Corrigida a sincronização do Produção Agora entre o celular do dono e os operadores. O status publicado pelo dono agora é reenviado e lido pelos aparelhos da mesma equipe, mantendo o modo leve aprovado no teste.",
-  "updatedAt": "2026-09-14T12:32:00-03:00"
+  "version": "1.0.169",
+  "title": "DF EXTRUSOR PRO — status do dono visível ao operador",
+  "message": "Corrigida novamente a sincronização do Produção Agora. O status do dono agora é gravado em um formato que volta pela nuvem e pode ser lido corretamente no celular dos operadores da mesma equipe.",
+  "updatedAt": "2026-09-14T12:45:00-03:00"
 }
