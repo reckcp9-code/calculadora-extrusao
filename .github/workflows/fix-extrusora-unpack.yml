@@ -10,57 +10,61 @@ permissions:
   contents: write
 
 jobs:
-  inspect-central:
+  inspect-history:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar projeto
+      - name: Baixar projeto com historico
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Inspecionar payload atual e historico
+      - name: Procurar uma copia integra da Central Tecnica
         shell: bash
         run: |
           python - <<'PY'
-          from pathlib import Path
-          import re, subprocess, string, base64, gzip
+          import subprocess, re, base64, gzip, string
 
-          refs = [
-            ('atual','HEAD','extrusora/index.html'),
-            ('bb80','bb80a3b3f0ebcc0eded886f9acdebbb0aec14649','extrusora/index.html'),
-            ('1fb34','1fb34c32584afd601a4a99d23f016baeba6eb0a0','extrusora/index.html'),
-            ('base1fb34','1fb34c32584afd601a4a99d23f016baeba6eb0a0','extrusora/base-v6.html'),
-          ]
-          allowed = set(string.ascii_letters + string.digits + '+/=')
-          for label, ref, path in refs:
-            try:
-              if ref == 'HEAD':
-                source = Path(path).read_text(encoding='utf-8')
-              else:
-                source = subprocess.check_output(['git','show',f'{ref}:{path}'], text=True)
-            except Exception as e:
-              print(label, 'READ_FAIL', e)
-              continue
-            m = re.search(r"atob\('([^']+)'\)", source)
-            if not m:
-              print(label, 'NO_PAYLOAD', 'len=',len(source))
-              continue
-            payload = m.group(1)
-            clean = re.sub(r'\s+', '', payload)
-            bad_positions = [(i,c) for i,c in enumerate(clean) if c not in allowed]
-            print('\n###',label,'payload_len',len(payload),'clean_len',len(clean),'bad_count',len(bad_positions))
-            for i,c in bad_positions[:30]:
-              a=max(0,i-80); b=min(len(clean),i+140)
-              print('BAD',i,repr(c),'CTX',repr(clean[a:b]))
-            filtered=''.join(c for c in clean if c in allowed)
-            try:
-              packed=base64.b64decode(filtered, validate=True)
-              print('filtered_base64_ok bytes',len(packed))
+          commits = subprocess.check_output(['git','rev-list','--all','--','extrusora/index.html','extrusora/base-v6.html'], text=True).split()
+          print('commits_encontrados', len(commits))
+          seen=set()
+          allowed=set(string.ascii_letters+string.digits+'+/=')
+          found=[]
+          for commit in commits:
+            for path in ('extrusora/index.html','extrusora/base-v6.html'):
               try:
-                html=gzip.decompress(packed).decode('utf-8')
-                print('gzip_ok html_len',len(html),'title_ctx',repr(html[:180]))
-              except Exception as e:
-                print('gzip_fail',repr(e))
-            except Exception as e:
-              print('filtered_base64_fail',repr(e),'filtered_len',len(filtered),'mod4',len(filtered)%4)
+                blob=subprocess.check_output(['git','rev-parse',f'{commit}:{path}'], text=True, stderr=subprocess.DEVNULL).strip()
+                if blob in seen: continue
+                seen.add(blob)
+                src=subprocess.check_output(['git','show',f'{commit}:{path}'], text=True, stderr=subprocess.DEVNULL)
+              except Exception:
+                continue
+              title='Central Técnica de Extrusão' in src or 'Central Tecnica de Extrusao' in src
+              ell='ELLIPSIZATION' in src
+              m=re.search(r"atob\('([^']+)'\)",src)
+              state='raw'
+              detail=''
+              if m:
+                p=re.sub(r'\s+','',m.group(1))
+                bad=sum(1 for c in p if c not in allowed)
+                state=f'payload bad={bad} len={len(p)} mod4={len(p)%4}'
+                if bad==0:
+                  try:
+                    packed=base64.b64decode(p,validate=True)
+                    html=gzip.decompress(packed).decode('utf-8')
+                    state+=f' GZIP_OK html={len(html)} central={"Central Técnica" in html or "Central Tecnica" in html}'
+                    found.append((commit,path,blob,len(html)))
+                  except Exception as e:
+                    detail=f' decode_fail={e!r}'
+              print(commit[:10], path, blob[:10], 'len',len(src),'title',title,'ellipsization',ell,state,detail)
+          print('VALIDOS',found)
+
+          print('\nBRANCH_HEADS')
+          branches=subprocess.check_output(['git','for-each-ref','--format=%(refname:short)','refs/remotes/origin'],text=True).splitlines()
+          for br in branches:
+            for path in ('extrusora/index.html','extrusora/base-v6.html'):
+              try:
+                src=subprocess.check_output(['git','show',f'{br}:{path}'],text=True,stderr=subprocess.DEVNULL)
+              except Exception: continue
+              if 'Central Técnica' in src or 'Central Tecnica' in src or "atob('" in src:
+                print(br,path,'len',len(src),'ELL', 'ELLIPSIZATION' in src,'payload',bool(re.search(r"atob\('([^']+)'\)",src)))
           PY
