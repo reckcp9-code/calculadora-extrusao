@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  inspect-history:
+  restore-stable:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar projeto com historico
@@ -18,53 +18,56 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Procurar uma copia integra da Central Tecnica
+      - name: Restaurar base integra e manter modulo de rosca
         shell: bash
         run: |
           python - <<'PY'
-          import subprocess, re, base64, gzip, string
+          from pathlib import Path
+          import subprocess
 
-          commits = subprocess.check_output(['git','rev-list','--all','--','extrusora/index.html','extrusora/base-v6.html'], text=True).split()
-          print('commits_encontrados', len(commits))
-          seen=set()
-          allowed=set(string.ascii_letters+string.digits+'+/=')
-          found=[]
-          for commit in commits:
-            for path in ('extrusora/index.html','extrusora/base-v6.html'):
-              try:
-                blob=subprocess.check_output(['git','rev-parse',f'{commit}:{path}'], text=True, stderr=subprocess.DEVNULL).strip()
-                if blob in seen: continue
-                seen.add(blob)
-                src=subprocess.check_output(['git','show',f'{commit}:{path}'], text=True, stderr=subprocess.DEVNULL)
-              except Exception:
-                continue
-              title='Central Técnica de Extrusão' in src or 'Central Tecnica de Extrusao' in src
-              ell='ELLIPSIZATION' in src
-              m=re.search(r"atob\('([^']+)'\)",src)
-              state='raw'
-              detail=''
-              if m:
-                p=re.sub(r'\s+','',m.group(1))
-                bad=sum(1 for c in p if c not in allowed)
-                state=f'payload bad={bad} len={len(p)} mod4={len(p)%4}'
-                if bad==0:
-                  try:
-                    packed=base64.b64decode(p,validate=True)
-                    html=gzip.decompress(packed).decode('utf-8')
-                    state+=f' GZIP_OK html={len(html)} central={"Central Técnica" in html or "Central Tecnica" in html}'
-                    found.append((commit,path,blob,len(html)))
-                  except Exception as e:
-                    detail=f' decode_fail={e!r}'
-              print(commit[:10], path, blob[:10], 'len',len(src),'title',title,'ellipsization',ell,state,detail)
-          print('VALIDOS',found)
+          stable_ref='c4c8fecbc1a6172a2a92ed3565b49d5357c7e50c'
+          html=subprocess.check_output(['git','show',f'{stable_ref}:extrusora/base-v6.html'],text=True)
+          if len(html) < 20000 or '<!doctype html>' not in html.lower() or '</html>' not in html.lower():
+              raise SystemExit('Base estável histórica inválida')
+          if 'ELLIPSIZATION' in html or "atob('" in html:
+              raise SystemExit('Base histórica não é íntegra')
 
-          print('\nBRANCH_HEADS')
-          branches=subprocess.check_output(['git','for-each-ref','--format=%(refname:short)','refs/remotes/origin'],text=True).splitlines()
-          for br in branches:
-            for path in ('extrusora/index.html','extrusora/base-v6.html'):
-              try:
-                src=subprocess.check_output(['git','show',f'{br}:{path}'],text=True,stderr=subprocess.DEVNULL)
-              except Exception: continue
-              if 'Central Técnica' in src or 'Central Tecnica' in src or "atob('" in src:
-                print(br,path,'len',len(src),'ELL', 'ELLIPSIZATION' in src,'payload',bool(re.search(r"atob\('([^']+)'\)",src)))
+          # Mantém a identidade atual sem depender de descompactação no navegador.
+          html=html.replace('<title>DF • Calculadora Privada de Extrusoras</title>','<title>DF • Central Técnica de Extrusão</title>')
+          module='<script src="./rosca-compressao-v7.js?v=7.2"></script>'
+          if module not in html:
+              html=html.replace('</body>',module+'\n</body>')
+
+          Path('extrusora/index.html').write_text(html,encoding='utf-8')
+          print('index.html restaurado como HTML direto:',len(html),'caracteres')
           PY
+
+      - name: Validar pagina antes de publicar
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('extrusora/index.html').read_text(encoding='utf-8')
+          checks={
+            'doctype':'<!doctype html>' in p.lower(),
+            'fim_html':'</html>' in p.lower(),
+            'sem_ellipsization':'ELLIPSIZATION' not in p,
+            'sem_loader_comprimido':"atob('" not in p,
+            'modulo_rosca':'rosca-compressao-v7.js' in p,
+          }
+          print(checks)
+          if not all(checks.values()): raise SystemExit('Validação falhou')
+          PY
+
+      - name: Publicar correcao
+        shell: bash
+        run: |
+          git config user.name 'DF Extrusor Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add extrusora/index.html
+          if git diff --cached --quiet; then
+            echo 'Nenhuma alteração necessária.'
+            exit 0
+          fi
+          git commit -m 'Restaura Central Técnica em HTML direto para iPhone'
+          git push origin HEAD:main
