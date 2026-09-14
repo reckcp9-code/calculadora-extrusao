@@ -1,0 +1,51 @@
+name: Corrigir Central Tecnica no iPhone
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/fix-extrusora-unpack.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  unpack-central:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Descompactar a Central Tecnica
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, base64, gzip
+
+          source = Path('extrusora/base-v6.html').read_text(encoding='utf-8')
+          match = re.search(r"atob\('([^']+)'\)", source)
+          if not match:
+              raise SystemExit('Payload compactado nao encontrado em extrusora/base-v6.html')
+
+          packed = base64.b64decode(match.group(1), validate=True)
+          html = gzip.decompress(packed).decode('utf-8')
+          if '<html' not in html.lower() or '</html>' not in html.lower():
+              raise SystemExit('Conteudo descompactado nao parece ser HTML valido')
+
+          Path('extrusora/index.html').write_text(html, encoding='utf-8')
+          print(f'Central descompactada: {len(html)} caracteres')
+          PY
+
+      - name: Publicar correcao
+        shell: bash
+        run: |
+          if git diff --quiet -- extrusora/index.html; then
+            echo 'Nenhuma alteracao necessaria.'
+            exit 0
+          fi
+          git config user.name 'DF Extrusor Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add extrusora/index.html
+          git commit -m 'Corrige abertura da Central Tecnica no iPhone'
+          git push origin HEAD:main
