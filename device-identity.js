@@ -46,6 +46,41 @@
     return id;
   }
 
+  function loadPrivateCalculatorRecovery(){
+    try{
+      if(!/^\/extrusora(?:\/|$)/i.test(location.pathname))return;
+      const access=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+      if(access)return;
+      if(document.getElementById('dfPrivateRecoveryLoader'))return;
+
+      const gateText=document.getElementById('gateText');
+      if(gateText)gateText.textContent='Restaurando seu acesso de dono automaticamente...';
+
+      const s=document.createElement('script');
+      s.id='dfPrivateRecoveryLoader';
+      s.src='../access-recovery-v1.js?v=private-extruder-recovery-v2';
+      s.async=true;
+      s.onload=function(){
+        try{
+          const ready=window.DFAccessRecoveryReady;
+          if(ready&&typeof ready.then==='function'){
+            ready.then(function(ok){
+              if(ok){
+                try{location.reload()}catch(e){}
+              }else{
+                const t=document.getElementById('gateText');
+                if(t&&!String(localStorage.getItem('df_auto_access_credential_v1')||'').trim())t.textContent='Não consegui recuperar o acesso automaticamente. Abra o DF EXTRUSOR PRO uma vez neste navegador e tente novamente.';
+              }
+            }).catch(function(){});
+          }
+        }catch(e){}
+      };
+      document.head.appendChild(s);
+    }catch(e){}
+  }
+
   window.DFDeviceIdentity={get:sync,sync:sync};
   sync();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadPrivateCalculatorRecovery,{once:true});
+  else loadPrivateCalculatorRecovery();
 })();
