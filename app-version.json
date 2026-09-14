@@ -1,6 +1,6 @@
 {
-  "version": "1.0.159",
-  "title": "DF EXTRUSOR PRO — Produção Agora pelo dono",
-  "message": "Corrigida a aba Produção Agora: o dono da equipe pode definir e publicar o que está rodando; os operadores ficam somente em visualização. A OP selecionada continua puxando automaticamente o código DFOP e os dados do produto.",
-  "updatedAt": "2026-09-14T08:49:00-03:00"
+  "version": "1.0.160",
+  "title": "DF EXTRUSOR PRO — Produção Agora persistente",
+  "message": "Corrigido o desaparecimento da aba Produção Agora após atualizações dinâmicas da tela de OPs. A aba volta automaticamente se a interface for reconstruída, mantendo o dono com edição e os operadores somente em visualização.",
+  "updatedAt": "2026-09-14T08:55:00-03:00"
 }
