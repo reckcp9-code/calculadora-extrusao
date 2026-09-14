@@ -1,6 +1,6 @@
 {
-  "version": "1.0.163",
-  "title": "DF EXTRUSOR PRO — código da equipe persistente",
-  "message": "O código da equipe do dono agora é recuperado e mantido visível para conectar novos operadores. Também foi adicionado copiar código e recuperação automática quando o código local não estiver disponível.",
-  "updatedAt": "2026-09-14T09:47:00-03:00"
+  "version": "1.0.164",
+  "title": "DF EXTRUSOR PRO — equipe sem travar no navegador",
+  "message": "Publicada a correção aprovada no teste: o código da equipe continua disponível sem prender a tela quando a sessão automática da nuvem não está presente. A recuperação agressiva foi removida e o restante das OPs continua utilizável.",
+  "updatedAt": "2026-09-14T09:58:00-03:00"
 }
