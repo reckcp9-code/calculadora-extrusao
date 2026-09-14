@@ -8,6 +8,17 @@
   const $=id=>document.getElementById(id);
   let timer=0,observer=null;
 
+  function loadStatusArtifactFilter(){
+    try{
+      if(window.DFStatusArtifactFilterV170||document.getElementById('dfStatusArtifactFilterV170Loader'))return;
+      const s=document.createElement('script');
+      s.id='dfStatusArtifactFilterV170Loader';
+      s.src='./op-status-artifact-filter-v170.js?v=20260914-v170';
+      s.defer=true;
+      document.head.appendChild(s);
+    }catch(e){}
+  }
+
   function digits(v){
     const s=String(v==null?'':v).replace(/\D/g,'');
     return s.length>=6&&s.length<=12?s:'';
@@ -109,6 +120,6 @@
     observer.__box=box;observer.observe(box,{childList:true});
   }
   function run(){schedule();setTimeout(attachObserver,120)}
-  function boot(){bootstrapFromUrl();run();window.addEventListener('df-ui-ready',run);window.addEventListener('df-team-changed',run);window.addEventListener('df-team-joined',run);window.addEventListener('pageshow',run);setTimeout(run,500);setTimeout(run,1500)}
+  function boot(){loadStatusArtifactFilter();bootstrapFromUrl();run();window.addEventListener('df-ui-ready',run);window.addEventListener('df-team-changed',run);window.addEventListener('df-team-joined',run);window.addEventListener('pageshow',run);setTimeout(run,500);setTimeout(run,1500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
