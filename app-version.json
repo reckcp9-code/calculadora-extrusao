@@ -1,6 +1,6 @@
 {
-  "version": "1.0.166",
-  "title": "DF EXTRUSOR PRO — código da equipe no PWA",
-  "message": "Corrigido o código da equipe no app instalado. Quando o PWA não compartilhar o armazenamento do Safari, o dono pode informar o código uma única vez dentro do próprio app; ele fica salvo no PWA e passa a aparecer com o botão de copiar, sem depender de atualizações automáticas.",
-  "updatedAt": "2026-09-14T10:18:00-03:00"
+  "version": "1.0.167",
+  "title": "DF EXTRUSOR PRO — Produção Agora leve",
+  "message": "Publicado o novo Produção Agora com leitura de QR da OP, busca por código ou nome/produto e exclusão de OPs geradas. Removidos os verificadores agressivos que causavam travamentos, mantendo a sincronização da equipe de forma mais leve.",
+  "updatedAt": "2026-09-14T12:05:00-03:00"
 }
