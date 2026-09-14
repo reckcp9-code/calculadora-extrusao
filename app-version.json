@@ -1,6 +1,6 @@
 {
-  "version": "1.0.153",
-  "title": "DF EXTRUSOR PRO — atualização automática",
-  "message": "O app agora detecta uma nova versão, limpa somente os caches antigos do app e recarrega automaticamente uma vez, sem precisar tocar em Atualizar.",
-  "updatedAt": "2026-09-13T20:52:00-03:00"
+  "version": "1.0.154",
+  "title": "DF EXTRUSOR PRO — custo e lucro simplificados",
+  "message": "A aba Custo agora mantém apenas os campos combinados e permite lucro opcional por Markup sobre o custo ou Margem sobre a venda, mostrando venda por kg, por unidade e total.",
+  "updatedAt": "2026-09-14T00:12:00-03:00"
 }
