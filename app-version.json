@@ -1,6 +1,6 @@
 {
-  "version": "1.0.154",
-  "title": "DF EXTRUSOR PRO — custo e lucro simplificados",
-  "message": "A aba Custo agora mantém apenas os campos combinados e permite lucro opcional por Markup sobre o custo ou Margem sobre a venda, mostrando venda por kg, por unidade e total.",
-  "updatedAt": "2026-09-14T00:12:00-03:00"
+  "version": "1.0.155",
+  "title": "DF EXTRUSOR PRO — seta de voltar restaurada",
+  "message": "Restaurada a seta de voltar na aba Custo, mantendo o modo de custo simplificado com lucro opcional.",
+  "updatedAt": "2026-09-13T21:10:00-03:00"
 }
