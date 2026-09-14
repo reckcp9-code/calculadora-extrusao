@@ -1,6 +1,6 @@
 {
-  "version": "1.0.156",
-  "title": "DF EXTRUSOR PRO — recuperação de OP por QR",
-  "message": "Agora é possível recuperar ou recriar uma OP pelo código DFOP quando ela não existir no aparelho, permitindo dar baixa normalmente após reinstalação ou uso em outro celular.",
-  "updatedAt": "2026-09-14T07:36:00-03:00"
+  "version": "1.0.157",
+  "title": "DF EXTRUSOR PRO — Produção Agora",
+  "message": "Adicionada a aba Produção Agora nas OPs, abaixo de Pendentes, para acompanhar o status das máquinas, produto em produção, OP, operador e horário de início.",
+  "updatedAt": "2026-09-14T08:20:00-03:00"
 }
