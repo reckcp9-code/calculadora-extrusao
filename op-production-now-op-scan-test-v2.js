@@ -18,12 +18,12 @@
       '#dfNowOpSelect{display:none!important}#dfNowOpInfo{display:none!important}'+
       '#dfNowOpScanOnly{margin-top:8px;border:1px solid #334155;background:#0b1220;border-radius:13px;padding:10px}'+
       '#dfNowOpScanOnly .opBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}'+
-      '#dfNowOpScanOnly button{border:1px solid #2563eb;background:#10234a;color:#bfdbfe;border-radius:10px;padding:11px;font-size:12px;font-weight:900}'+
-      '#dfNowOpManualOnly{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px}'+
+      '#dfNowOpScanOnly button{border:1px solid #2563eb;background:#10234a;color:#bfdbfe;border-radius:10px;padding:12px;font-size:12px;font-weight:900}'+
+      '#dfNowOpManualOnly{display:none;grid-template-columns:1fr auto;gap:8px;margin-top:8px}'+
       '#dfNowOpManualInput{width:100%;box-sizing:border-box;border:1px solid #334155;background:#080f1d;color:#fff;border-radius:10px;padding:11px;font-size:13px;text-transform:uppercase}'+
       '#dfNowOpSelected{margin-top:8px;border:1px solid #334155;background:#0f172a;border-radius:10px;padding:9px;color:#93c5fd;font-size:11px;line-height:1.45}'+
       '#dfNowOpSelected.ok{border-color:#166534;color:#86efac}#dfNowOpSelected.bad{border-color:#7f1d1d;color:#fca5a5}#dfNowOpSelected.warn{border-color:#a16207;color:#fde68a}'+
-      '@media(max-width:430px){#dfNowOpScanOnly .opBtns{grid-template-columns:1fr}#dfNowOpManualOnly{grid-template-columns:1fr}}';
+      '@media(max-width:430px){#dfNowOpScanOnly .opBtns{grid-template-columns:1fr 1fr}#dfNowOpManualOnly{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
   function msg(text,cls){var e=$('dfNowOpSelected');if(!e)return;e.className=cls||'';e.innerHTML=text||''}
@@ -62,21 +62,21 @@
     return'';
   }
   async function readFile(file){
-    if(!file||busy)return;busy=true;msg('📷 Lendo o QR da OP...','warn');
-    try{var q=await decodeQR(file);if(!q){msg('Não consegui ler o QR. Aproxime mais a câmera e tente novamente, ou digite o código abaixo.','bad');return}var inp=$('dfNowOpManualInput');if(inp)inp.value=q;lookup(q,'QR da OP')}catch(e){msg('Não consegui ler o QR: '+esc(e&&e.message||e),'bad')}finally{busy=false;var f=$('dfNowOpQrOnlyFile');if(f)try{f.value=''}catch(e){}}
+    if(!file||busy)return;busy=true;msg('📷 Lendo a OP...','warn');
+    try{var q=await decodeQR(file);if(!q){msg('Não consegui ler o QR. Aproxime mais a câmera e tente novamente, ou use DIGITE OP.','bad');return}var inp=$('dfNowOpManualInput');if(inp)inp.value=q;lookup(q,'leitura da OP')}catch(e){msg('Não consegui ler a OP: '+esc(e&&e.message||e),'bad')}finally{busy=false;var f=$('dfNowOpQrOnlyFile');if(f)try{f.value=''}catch(e){}}
   }
 
   function mount(){
     var form=$('dfNowAdminForm'),sel=$('dfNowOpSelect');if(!form||!sel)return false;
     style();
     var host=sel.parentNode;if(!host)return false;
-    var label=host.querySelector('label');if(label)label.textContent='IDENTIFICAR OP';
+    var label=host.querySelector('label');if(label)label.textContent='OP GERADA';
     var old=$('dfNowOpScanOnly');if(old&&host.contains(old))return true;if(old)old.remove();
     var box=document.createElement('div');box.id='dfNowOpScanOnly';
-    box.innerHTML='<div class="opBtns"><button id="dfNowOpReadOnly" type="button">📷 LER QR DA OP</button><button id="dfNowOpFocusManual" type="button">⌨️ DIGITAR CÓDIGO DA OP</button></div><div id="dfNowOpManualOnly"><input id="dfNowOpManualInput" autocomplete="off" autocapitalize="characters" placeholder="DFOP-20260914-..."><button id="dfNowOpSearchOnly" type="button">🔎 BUSCAR OP</button></div><input id="dfNowOpQrOnlyFile" type="file" accept="image/*" capture="environment" style="display:none"><div id="dfNowOpSelected">Leia o QR da OP ou digite o código impresso nela.</div>';
+    box.innerHTML='<div class="opBtns"><button id="dfNowOpReadOnly" type="button">📷 LER OP</button><button id="dfNowOpFocusManual" type="button">⌨️ DIGITE OP</button></div><div id="dfNowOpManualOnly"><input id="dfNowOpManualInput" autocomplete="off" autocapitalize="characters" placeholder="Digite o código DFOP"><button id="dfNowOpSearchOnly" type="button">🔎 BUSCAR</button></div><input id="dfNowOpQrOnlyFile" type="file" accept="image/*" capture="environment" style="display:none"><div id="dfNowOpSelected">Escolha LER OP ou DIGITE OP.</div>';
     host.appendChild(box);
     $('dfNowOpReadOnly').onclick=function(){$('dfNowOpQrOnlyFile').click()};
-    $('dfNowOpFocusManual').onclick=function(){setTimeout(function(){$('dfNowOpManualInput').focus()},40)};
+    $('dfNowOpFocusManual').onclick=function(){var r=$('dfNowOpManualOnly');r.style.display='grid';setTimeout(function(){$('dfNowOpManualInput').focus()},40)};
     $('dfNowOpSearchOnly').onclick=function(){lookup($('dfNowOpManualInput').value,'código digitado')};
     $('dfNowOpManualInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();lookup(e.target.value,'código digitado')}});
     $('dfNowOpQrOnlyFile').addEventListener('change',function(e){var f=e.target.files&&e.target.files[0];if(f)readFile(f)});
