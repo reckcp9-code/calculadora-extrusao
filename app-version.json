@@ -1,6 +1,6 @@
 {
-  "version": "1.0.170",
-  "title": "DF EXTRUSOR PRO — OPs falsas removidas",
-  "message": "Os registros técnicos usados para sincronizar o Produção Agora não aparecem mais como OPs ou fotos. A lista mostra somente OPs reais geradas e enviadas pelo usuário.",
-  "updatedAt": "2026-09-14T12:48:00-03:00"
+  "version": "1.0.171",
+  "title": "DF EXTRUSOR PRO — status separado das OPs",
+  "message": "Corrigido definitivamente o Produção Agora para que registros técnicos de status não entrem mais nas listas de OPs ou fotos. Também limpa automaticamente os registros DFSTATUS/DFOP-STATUS que já apareceram.",
+  "updatedAt": "2026-09-14T12:54:00-03:00"
 }
