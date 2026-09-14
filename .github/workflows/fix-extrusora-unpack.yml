@@ -21,14 +21,23 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re, base64, gzip
+          import re, base64, gzip, string
 
           source = Path('extrusora/base-v6.html').read_text(encoding='utf-8')
           match = re.search(r"atob\('([^']+)'\)", source)
           if not match:
               raise SystemExit('Payload compactado nao encontrado em extrusora/base-v6.html')
 
-          packed = base64.b64decode(match.group(1), validate=True)
+          payload = match.group(1)
+          clean = re.sub(r'\s+', '', payload)
+          allowed = set(string.ascii_letters + string.digits + '+/=')
+          invalid = sorted(set(clean) - allowed)
+          print(f'Payload: {len(payload)} caracteres; apos remover espacos: {len(clean)}')
+          if invalid:
+              print('Caracteres invalidos encontrados:', [repr(c) for c in invalid])
+              raise SystemExit('Payload base64 corrompido')
+
+          packed = base64.b64decode(clean, validate=True)
           html = gzip.decompress(packed).decode('utf-8')
           if '<html' not in html.lower() or '</html>' not in html.lower():
               raise SystemExit('Conteudo descompactado nao parece ser HTML valido')
