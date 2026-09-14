@@ -11,26 +11,26 @@
 <meta name="apple-mobile-web-app-title" content="DF EXTRUSOR">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO</title>
-<link rel="manifest" href="./manifest.webmanifest?v=20260913-auto-update-v153">
+<link rel="manifest" href="./manifest.webmanifest?v=20260914-cost-profit-v154">
 <link rel="apple-touch-icon" href="./logo.jpg.jpeg">
 <link rel="preconnect" href="https://df-extrusor-api.reck-cp9.workers.dev" crossorigin>
 <style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
-<script src="./device-identity.js?v=20260913-auto-update-v153"></script>
-<script src="./ios-reinstall-bridge.js?v=20260913-auto-update-v153"></script>
-<script src="./access-recovery-v1.js?v=20260913-auto-update-v153"></script>
+<script src="./device-identity.js?v=20260914-cost-profit-v154"></script>
+<script src="./ios-reinstall-bridge.js?v=20260914-cost-profit-v154"></script>
+<script src="./access-recovery-v1.js?v=20260914-cost-profit-v154"></script>
 </head>
 <body>
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc"><h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando calculadora...</p></div>
 <script>
 (async()=>{
-  const BUILD='20260913-auto-update-v153';
+  const BUILD='20260914-cost-profit-v154';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
-  const SHELL_CACHE='df-app-shell-source-v9';
-  const SHELL_KEY='./__df_base_shell_v153__.html';
+  const SHELL_CACHE='df-app-shell-source-v10';
+  const SHELL_KEY='./__df_base_shell_v154__.html';
   const safeGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
   async function fetchText(url,timeout=5000){let ctrl=null,timer=null;try{if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),timeout)}const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});if(!r.ok)throw new Error('HTTP '+r.status);const txt=await r.text();if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');return txt}finally{if(timer)clearTimeout(timer)}}
   async function readCachedShell(){try{if(!('caches' in window))return '';const c=await caches.open(SHELL_CACHE);const r=await c.match(SHELL_KEY);const txt=r?await r.text():'';return txt&&txt.indexOf('<!doctype html')>=0?txt:''}catch(e){return ''}}
-  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));for(const k of ['df-app-shell-source-v2','df-app-shell-source-v3','df-app-shell-source-v5','df-app-shell-source-v6','df-app-shell-source-v7','df-app-shell-source-v8'])caches.delete(k).catch(()=>{})}catch(e){}}
+  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));for(const k of ['df-app-shell-source-v2','df-app-shell-source-v3','df-app-shell-source-v5','df-app-shell-source-v6','df-app-shell-source-v7','df-app-shell-source-v8','df-app-shell-source-v9'])caches.delete(k).catch(()=>{})}catch(e){}}
   async function loadShell(){if(navigator.onLine!==false){try{const fresh=await fetchText(LOCAL_SHELL,4500);await saveCachedShell(fresh);return fresh}catch(e){}}const cached=await readCachedShell();if(cached)return cached;const fresh=await fetchText(LOCAL_SHELL,5500);await saveCachedShell(fresh);return fresh}
   function scriptTag(src,defer=true){return '<scr'+'ipt '+(defer?'defer ':'')+'src="./'+src+'"></scr'+'ipt>'}
   try{
@@ -46,7 +46,7 @@
     const core=[
       'performance-guard-v1.js?v='+BUILD,
       'app-bundle.js?v='+BUILD,
-      'cost-simple-test.js?v='+BUILD,
+      'cost-simple-v154.js?v='+BUILD,
       'push-background-repair-v1.js?v='+BUILD,
       'access-reinstall-recovery-v2.js?v='+BUILD,
       'backup-manual-only-v1.js?v='+BUILD,
