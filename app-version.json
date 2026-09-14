@@ -1,6 +1,6 @@
 {
-  "version": "1.0.160",
-  "title": "DF EXTRUSOR PRO — Produção Agora persistente",
-  "message": "Corrigido o desaparecimento da aba Produção Agora após atualizações dinâmicas da tela de OPs. A aba volta automaticamente se a interface for reconstruída, mantendo o dono com edição e os operadores somente em visualização.",
-  "updatedAt": "2026-09-14T08:55:00-03:00"
+  "version": "1.0.161",
+  "title": "DF EXTRUSOR PRO — dono define Produção Agora",
+  "message": "Publicado o comportamento aprovado no teste: a aba Produção Agora permanece visível e o dono da equipe é reconhecido para definir máquina, status, OP, operador e horário; operadores continuam somente em visualização.",
+  "updatedAt": "2026-09-14T09:05:00-03:00"
 }
