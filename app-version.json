@@ -1,6 +1,6 @@
 {
-  "version": "1.0.157",
-  "title": "DF EXTRUSOR PRO — Produção Agora",
-  "message": "Adicionada a aba Produção Agora nas OPs, abaixo de Pendentes, para acompanhar o status das máquinas, produto em produção, OP, operador e horário de início.",
-  "updatedAt": "2026-09-14T08:20:00-03:00"
+  "version": "1.0.158",
+  "title": "DF EXTRUSOR PRO — Produção Agora compartilhada",
+  "message": "A aba Produção Agora agora usa um único link: somente o administrador com a senha administrativa salva neste aparelho pode alterar o status; operadores e donos da equipe apenas visualizam. Ao selecionar uma OP já gerada, o código DFOP e os dados do produto são puxados automaticamente.",
+  "updatedAt": "2026-09-14T08:45:00-03:00"
 }
