@@ -1,15 +1,20 @@
 (function(){
   'use strict';
-  if(window.DFCostSimpleV154)return;
-  window.DFCostSimpleV154=true;
+  if(window.DFCostSimpleV170)return;
+  window.DFCostSimpleV170=true;
 
   const $=id=>document.getElementById(id);
   const num=v=>{
-    const n=Number(String(v??'').replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
+    let s=String(v??'').trim().replace(/\s/g,'');
+    if(!s)return 0;
+    if(s.includes(',')) s=s.replace(/\./g,'').replace(',','.');
+    else if((s.match(/\./g)||[]).length>1) s=s.replace(/\./g,'');
+    const n=Number(s);
     return Number.isFinite(n)?n:0;
   };
   const money=v=>Number.isFinite(v)?v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—';
   const fire=el=>{if(!el)return;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))};
+  let originalBound=false;
 
   function addStyle(){
     if($('dfCostSimpleV154Style'))return;
@@ -45,124 +50,107 @@
   }
 
   function syncAutoToOriginal(){
-    const auto=$('dfCostAuto154');
-    const orig=$('cuAuto');
+    const auto=$('dfCostAuto154'),orig=$('cuAuto');
     if(!auto||!orig)return;
     orig.checked=auto.checked;
     fire(orig);
   }
 
   function pullFromOriginal(){
-    if(!$('dfCostAuto154')?.checked)return;
-    const p=$('cuPeso'),u=$('cuUnid');
-    if(p&&document.activeElement!==$('dfCostPeso154'))$('dfCostPeso154').value=p.value||'';
-    if(u&&document.activeElement!==$('dfCostUnid154'))$('dfCostUnid154').value=u.value||'';
+    const auto=$('dfCostAuto154');
+    if(!auto||!auto.checked)return;
+    const p=$('cuPeso'),u=$('cuUnid'),peso=$('dfCostPeso154'),unid=$('dfCostUnid154');
+    if(p&&peso&&document.activeElement!==peso)peso.value=p.value||'';
+    if(u&&unid&&document.activeElement!==unid)unid.value=u.value||'';
   }
 
   function calc(){
-    const peso=num($('dfCostPeso154')?.value);
-    const unid=num($('dfCostUnid154')?.value);
-    const custoKg=num($('dfCostKg154')?.value);
-    const pct=num($('dfCostLucro154')?.value);
-    const mode=$('dfCostModo154')?.value||'markup';
+    const pesoEl=$('dfCostPeso154'),unidEl=$('dfCostUnid154'),kgEl=$('dfCostKg154'),lucroEl=$('dfCostLucro154'),modoEl=$('dfCostModo154');
+    const resKg=$('dfCostResKg154'),resUn=$('dfCostResUn154'),resTotal=$('dfCostResTotal154');
+    const sale=$('dfCostVenda154'),err=$('dfCostErro154');
+    if(!pesoEl||!unidEl||!kgEl||!lucroEl||!modoEl||!resKg||!resUn||!resTotal||!sale||!err)return false;
 
+    const peso=num(pesoEl.value),unid=num(unidEl.value),custoKg=num(kgEl.value),pct=num(lucroEl.value),mode=modoEl.value||'markup';
     const custoTotal=peso>0&&custoKg>0?peso*custoKg:0;
     const custoUn=unid>0&&custoTotal>0?custoTotal/unid:0;
 
-    $('dfCostResKg154').textContent=custoKg>0?money(custoKg):'—';
-    $('dfCostResUn154').textContent=custoUn>0?money(custoUn):'—';
-    $('dfCostResTotal154').textContent=custoTotal>0?money(custoTotal):'—';
+    resKg.textContent=custoKg>0?money(custoKg):'—';
+    resUn.textContent=custoUn>0?money(custoUn):'—';
+    resTotal.textContent=custoTotal>0?money(custoTotal):'—';
 
-    const sale=$('dfCostVenda154');
-    const err=$('dfCostErro154');
-    const hasProfit=pct>0;
-    if(!hasProfit){sale.classList.remove('on');err.classList.remove('on');return;}
-
+    if(!(pct>0)){sale.classList.remove('on');err.classList.remove('on');return true;}
     if(mode==='margin'&&pct>=100){
       sale.classList.remove('on');
       err.textContent='Na margem sobre a venda, o percentual precisa ser menor que 100%.';
       err.classList.add('on');
-      return;
+      return true;
     }
     err.classList.remove('on');
 
-    const factor=mode==='margin' ? 1/(1-pct/100) : 1+pct/100;
-    const vendaKg=custoKg>0?custoKg*factor:0;
-    const vendaUn=custoUn>0?custoUn*factor:0;
-    const vendaTotal=custoTotal>0?custoTotal*factor:0;
-
-    $('dfCostVendaKg154').textContent=vendaKg>0?money(vendaKg):'—';
-    $('dfCostVendaUn154').textContent=vendaUn>0?money(vendaUn):'—';
-    $('dfCostVendaTotal154').textContent=vendaTotal>0?money(vendaTotal):'—';
-    $('dfCostModoTexto154').textContent=mode==='margin'
-      ? 'Margem sobre a venda: o percentual representa a parte do preço final que fica como lucro.'
-      : 'Markup sobre o custo: o percentual é acrescentado diretamente em cima do custo.';
+    const factor=mode==='margin'?1/(1-pct/100):1+pct/100;
+    const vendaKg=custoKg>0?custoKg*factor:0,vendaUn=custoUn>0?custoUn*factor:0,vendaTotal=custoTotal>0?custoTotal*factor:0;
+    const vk=$('dfCostVendaKg154'),vu=$('dfCostVendaUn154'),vt=$('dfCostVendaTotal154'),mt=$('dfCostModoTexto154');
+    if(!vk||!vu||!vt||!mt)return false;
+    vk.textContent=vendaKg>0?money(vendaKg):'—';
+    vu.textContent=vendaUn>0?money(vendaUn):'—';
+    vt.textContent=vendaTotal>0?money(vendaTotal):'—';
+    mt.textContent=mode==='margin'
+      ?'Margem sobre a venda: o percentual representa a parte do preço final que fica como lucro.'
+      :'Markup sobre o custo: o percentual é acrescentado diretamente em cima do custo.';
     sale.classList.add('on');
+    return true;
+  }
+
+  function bindOriginal(){
+    if(originalBound)return;
+    const p=$('cuPeso'),u=$('cuUnid');
+    if(!p&&!u)return;
+    const sync=()=>{if($('dfCostAuto154')?.checked){pullFromOriginal();calc();}};
+    [p,u].forEach(el=>{if(el){el.addEventListener('input',sync);el.addEventListener('change',sync);}});
+    originalBound=true;
   }
 
   function build(){
     const pg=$('pgCu');
     if(!pg)return false;
     addStyle();
-    if($('dfCostSimpleV154')){pullFromOriginal();calc();return true;}
+    let box=$('dfCostSimpleV154');
+    if(box){
+      bindOriginal();
+      pullFromOriginal();
+      calc();
+      return true;
+    }
 
-    const box=document.createElement('div');
+    box=document.createElement('div');
     box.id='dfCostSimpleV154';
     box.innerHTML=`
       <span class="tag">CUSTO SIMPLES</span>
       <h2>Custo do produto</h2>
       <div class="subx">Somente custo, lucro opcional e preço de venda.</div>
-
       <label class="autoLine"><input id="dfCostAuto154" type="checkbox"> Puxar peso e quantidade automaticamente da aba Sacolas</label>
-
       <div class="step"><label>Peso do rolo (kg)</label><input id="dfCostPeso154" inputmode="decimal" placeholder="Ex.: 5"></div>
       <div class="step"><label>Quantas unidades tem no rolo?</label><input id="dfCostUnid154" inputmode="numeric" placeholder="Ex.: 200"></div>
       <div class="step"><label>Custo do material por kg (R$)</label><input id="dfCostKg154" inputmode="decimal" placeholder="Ex.: 8,50"></div>
-
-      <div class="step optional">
-        <label>Lucro (%) — opcional</label>
-        <div class="modeGrid">
-          <input id="dfCostLucro154" inputmode="decimal" placeholder="Ex.: 30">
-          <select id="dfCostModo154">
-            <option value="markup">Markup sobre o custo</option>
-            <option value="margin">Margem sobre a venda</option>
-          </select>
-        </div>
-        <small>Markup soma o percentual em cima do custo. Margem calcula o preço para que o lucro represente esse percentual da venda.</small>
-        <div id="dfCostErro154" class="err"></div>
-      </div>
-
+      <div class="step optional"><label>Lucro (%) — opcional</label><div class="modeGrid"><input id="dfCostLucro154" inputmode="decimal" placeholder="Ex.: 30"><select id="dfCostModo154"><option value="markup">Markup sobre o custo</option><option value="margin">Margem sobre a venda</option></select></div><small>Markup soma o percentual em cima do custo. Margem calcula o preço para que o lucro represente esse percentual da venda.</small><div id="dfCostErro154" class="err"></div></div>
       <div class="greenResult"><span>CUSTO POR KG</span><b id="dfCostResKg154">—</b></div>
       <div class="greenResult"><span>CUSTO POR UNIDADE</span><b id="dfCostResUn154">—</b></div>
       <div class="greenResult"><span>CUSTO TOTAL</span><b id="dfCostResTotal154">—</b></div>
-
-      <div id="dfCostVenda154" class="saleBox">
-        <div class="saleTitle">PREÇO DE VENDA COM LUCRO</div>
-        <div id="dfCostModoTexto154" class="saleModeText"></div>
-        <div class="greenResult"><span>VENDA POR KG</span><b id="dfCostVendaKg154">—</b></div>
-        <div class="greenResult"><span>VENDA POR UNIDADE</span><b id="dfCostVendaUn154">—</b></div>
-        <div class="greenResult"><span>VENDA TOTAL</span><b id="dfCostVendaTotal154">—</b></div>
-      </div>
-    `;
+      <div id="dfCostVenda154" class="saleBox"><div class="saleTitle">PREÇO DE VENDA COM LUCRO</div><div id="dfCostModoTexto154" class="saleModeText"></div><div class="greenResult"><span>VENDA POR KG</span><b id="dfCostVendaKg154">—</b></div><div class="greenResult"><span>VENDA POR UNIDADE</span><b id="dfCostVendaUn154">—</b></div><div class="greenResult"><span>VENDA TOTAL</span><b id="dfCostVendaTotal154">—</b></div></div>`;
     pg.insertBefore(box,pg.firstChild);
 
-    const origAuto=$('cuAuto');
-    $('dfCostAuto154').checked=!!origAuto?.checked;
+    const auto=$('dfCostAuto154'),origAuto=$('cuAuto');
+    auto.checked=!!origAuto?.checked;
+    ['dfCostPeso154','dfCostUnid154','dfCostKg154','dfCostLucro154'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}});
+    $('dfCostModo154')?.addEventListener('change',calc);
+    auto.addEventListener('change',()=>{syncAutoToOriginal();setTimeout(()=>{pullFromOriginal();calc()},100)});
+    bindOriginal();
     pullFromOriginal();
-
-    ['dfCostPeso154','dfCostUnid154','dfCostKg154','dfCostLucro154'].forEach(id=>{
-      $(id).addEventListener('input',calc);
-      $(id).addEventListener('change',calc);
-    });
-    $('dfCostModo154').addEventListener('change',calc);
-    $('dfCostAuto154').addEventListener('change',()=>{syncAutoToOriginal();setTimeout(()=>{pullFromOriginal();calc()},150)});
-
     calc();
-    setInterval(()=>{pullFromOriginal();calc()},600);
     return true;
   }
 
-  function start(){if(build())return;let n=0;const t=setInterval(()=>{n++;if(build()||n>50)clearInterval(t)},100)}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  window.addEventListener('df-ui-ready',()=>{setTimeout(build,100);setTimeout(build,600)},{once:true});
+  function ensure(){if(build())return;let n=0;const t=setInterval(()=>{if(build()||++n>30)clearInterval(t)},120)}
+  function boot(){ensure();document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#btCu'))setTimeout(ensure,60)},true);window.addEventListener('pageshow',()=>setTimeout(ensure,80));window.addEventListener('df-ui-ready',()=>setTimeout(ensure,100));}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
