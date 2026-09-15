@@ -1,0 +1,62 @@
+name: Conectar Intensidade de Compressao v8
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/attach-intensidade-compressao-v8.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Conectar novo modulo e renovar cache
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          js = Path('extrusora/rosca-compressao-v7.js')
+          src = js.read_text(encoding='utf-8')
+          marker = 'DFCompressionIntensityLoaderV8'
+          loader = r'''
+          (function(){
+          'use strict';
+          if(window.DFCompressionIntensityLoaderV8)return;
+          window.DFCompressionIntensityLoaderV8=true;
+          const s=document.createElement('script');
+          s.src='./intensidade-compressao-v8.js?v=8.1';
+          s.async=false;
+          document.head.appendChild(s);
+          })();
+          '''.strip()
+          if marker not in src:
+              js.write_text(src.rstrip() + '\n\n' + loader + '\n', encoding='utf-8')
+
+          html = Path('extrusora/index.html')
+          page = html.read_text(encoding='utf-8')
+          page = page.replace('rosca-compressao-v7.js?v=7.2', 'rosca-compressao-v7.js?v=7.3')
+          html.write_text(page, encoding='utf-8')
+          PY
+
+          node --check extrusora/rosca-compressao-v7.js
+          node --check extrusora/intensidade-compressao-v8.js
+
+      - name: Publicar alteracoes
+        shell: bash
+        run: |
+          if git diff --quiet -- extrusora/rosca-compressao-v7.js extrusora/index.html; then
+            echo 'Nenhuma alteracao necessaria.'
+            exit 0
+          fi
+          git config user.name 'DF Extrusor Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add extrusora/rosca-compressao-v7.js extrusora/index.html
+          git commit -m 'Ativa Intensidade de Compressao v8 no app'
+          git push origin HEAD:main
