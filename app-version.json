@@ -1,6 +1,6 @@
 {
-  "version": "1.0.173",
-  "title": "DF EXTRUSOR PRO — botão voltar na aba Custo",
-  "message": "Adicionada a seta de voltar para a tela principal na aba Custo, mantendo o mesmo padrão das outras abas.",
-  "updatedAt": "2026-09-14T14:11:00-03:00"
+  "version": "1.0.174",
+  "title": "DF EXTRUSOR PRO — correção ao finalizar máquina",
+  "message": "Corrigido o Produção Agora para impedir que uma máquina finalizada volte automaticamente para RODANDO por causa de um status antigo retornado pela sincronização. A finalização fica protegida localmente até existir um status realmente mais novo.",
+  "updatedAt": "2026-09-15T12:39:00-03:00"
 }
