@@ -108,3 +108,13 @@ function saveAnalysis(){const m=currentMachine();if(!m){$('ldSaveMsg').textConte
 function boot(){let n=0;const t=setInterval(()=>{n++;if(ensureUi()||n>50)clearInterval(t)},100);window.addEventListener('pageshow',()=>setTimeout(()=>{ensureUi();renderMachineOptions();loadDefault();calc()},150))}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+(function(){
+'use strict';
+if(window.DFCompressionIntensityLoaderV8)return;
+window.DFCompressionIntensityLoaderV8=true;
+const s=document.createElement('script');
+s.src='./intensidade-compressao-v8.js?v=8.1';
+s.async=false;
+document.head.appendChild(s);
+})();
