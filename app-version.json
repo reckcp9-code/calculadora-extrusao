@@ -1,6 +1,6 @@
 {
-  "version": "1.0.174",
-  "title": "DF EXTRUSOR PRO — correção ao finalizar máquina",
-  "message": "Corrigido o Produção Agora para impedir que uma máquina finalizada volte automaticamente para RODANDO por causa de um status antigo retornado pela sincronização. A finalização fica protegida localmente até existir um status realmente mais novo.",
-  "updatedAt": "2026-09-15T12:39:00-03:00"
+  "version": "1.0.175",
+  "title": "DF EXTRUSOR PRO — finalização sincronizada entre celulares",
+  "message": "Ao finalizar uma máquina no Produção Agora, o app força a publicação do estado FINALIZADA para a equipe e os celulares dos operadores passam a consultar a nuvem com maior frequência enquanto a aba AGORA estiver aberta.",
+  "updatedAt": "2026-09-15T12:50:00-03:00"
 }
