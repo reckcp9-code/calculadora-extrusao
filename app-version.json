@@ -1,6 +1,6 @@
 {
-  "version": "1.0.177",
-  "title": "DF EXTRUSOR PRO — permissões da equipe",
-  "message": "As permissões da equipe agora são sincronizadas com mais frequência nos aparelhos dos operadores. Abas bloqueadas pelo dono são ocultadas automaticamente. O painel gerador também mostra quantos aparelhos estão conectados à equipe.",
-  "updatedAt": "2026-09-16T00:35:00-03:00"
+  "version": "1.0.178",
+  "title": "DF EXTRUSOR PRO — bloqueio de abas corrigido",
+  "message": "Corrigido o bloqueio de Sacolas, Custo e Curso nos aparelhos dos operadores. As permissões definidas pelo dono agora são aplicadas mesmo em aparelhos que ficaram com um registro antigo de proprietário.",
+  "updatedAt": "2026-09-16T08:49:00-03:00"
 }
