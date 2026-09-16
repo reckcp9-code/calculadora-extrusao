@@ -1,0 +1,49 @@
+name: Corrigir OPs fantasma v204
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/fix-op-fantasma-v204.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corrigir criação de OP por foto e ativar limpeza
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('op-cloud-team-v2.js')
+          s=p.read_text()
+          old="}else{a.unshift({id:sid,createdAt:"
+          new="}else{if(!(cloud.produzido>0))continue;a.unshift({id:sid,createdAt:"
+          if old in s:
+              s=s.replace(old,new,1)
+              p.write_text(s)
+          elif new not in s:
+              raise SystemExit('Ponto de correção não encontrado em op-cloud-team-v2.js')
+
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace("const BUILD='20260916-device200';","const BUILD='20260916-op204';")
+          needle="'op-cloud-team-v2.js?v='+BUILD,"
+          add=needle+"\n      'op-phantom-guard-v204.js?v='+BUILD,"
+          if 'op-phantom-guard-v204.js' not in s:
+              if needle not in s: raise SystemExit('Lista OP não encontrada no index')
+              s=s.replace(needle,add,1)
+          p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "DF EXTRUSOR Auto Fix"
+          git config user.email "actions@github.com"
+          git add op-cloud-team-v2.js index.html op-phantom-guard-v204.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Corrige OPs fantasma no fechamento mensal"
+          git push
