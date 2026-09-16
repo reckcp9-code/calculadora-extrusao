@@ -1,10 +1,10 @@
-const DF_CACHE='df-extrusor-shell-v24';
+const DF_CACHE='df-extrusor-shell-v25';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
   './','./index.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
   './device-identity.js','./performance-guard-v1.js','./app-bundle.js','./access-reinstall-recovery-v2.js',
-  './backup-manual-only-v1.js','./local-calculations.js','./runtime-stability-v3.js','./medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./update-notify-v1.js'
+  './backup-manual-only-v1.js','./local-calculations.js','./runtime-stability-v3.js','./medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./update-notify-v1.js','./team-tab-permissions-v182.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
@@ -35,7 +35,7 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url),same=url.origin===self.location.origin;if(!same)return;
   if(req.mode==='navigate'){event.respondWith((async()=>{try{return await networkFirst(req)}catch(e){return(await cached('./index.html'))||(await cached('./'))||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}})}})());return}
   const p=url.pathname;
-  if(p.endsWith('/app-version.json')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')||p.endsWith('/update-notify-v1.js')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
+  if(p.endsWith('/app-version.json')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')||p.endsWith('/update-notify-v1.js')||p.endsWith('/team-tab-permissions-v182.js')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
   event.respondWith(staleWhileRevalidate(req));
 });
 self.addEventListener('message',event=>{const data=event.data||{};if(data.type==='DF_SHOW_NOTIFICATION')event.waitUntil((async()=>{await notifyUpdate({title:data.title,body:data.body,message:data.body});await increaseBadge()})());if(data.type==='DF_SET_VERSION')event.waitUntil(setStoredVersion(data.version));if(data.type==='DF_CLEAR_BADGE')event.waitUntil(clearBadge());if(data.type==='DF_CACHE_NOW')event.waitUntil(precache());if(data.type==='SKIP_WAITING')self.skipWaiting()});
