@@ -1,6 +1,6 @@
 {
-  "version": "1.0.179",
-  "title": "DF EXTRUSOR PRO — bloqueio aplicado no PWA",
-  "message": "Corrigido o bloqueio de Sacolas, Custo e Curso também no PWA dos operadores. Ao atualizar, as abas desmarcadas pelo dono são ocultadas automaticamente.",
-  "updatedAt": "2026-09-16T08:57:00-03:00"
+  "version": "1.0.180",
+  "title": "DF EXTRUSOR PRO — permissões do operador no PWA",
+  "message": "O PWA agora busca o módulo de permissões diretamente da versão atual. Abas bloqueadas pelo dono, como Sacolas e Custo, somem também no aplicativo instalado.",
+  "updatedAt": "2026-09-16T09:01:00-03:00"
 }
