@@ -1,38 +1,13 @@
 (function(){
 'use strict';
-if(window.DFTeamTabPermissionsV182)return;window.DFTeamTabPermissionsV182=true;
-
-var API='https://df-extrusor-api.reck-cp9.workers.dev';
-var TEAM_KEY='df_op_team_v1',CACHE_KEY='df_team_tab_permissions_v1';
-var TOKEN_KEY='df_secure_token_v2',DEVICE_KEY='df_licenseauth_device_v1',ACCESS_KEY='df_auto_access_credential_v1';
-var ADMIN_SECRET_KEY='df_access_admin_secret_saved_v1';
-var PREFIX='DFPERM1.';
-var DEFAULT_TABS={extrusao:true,formulacao:true,sacolas:true,custo:true,curso:true};
-var tabs=Object.assign({},DEFAULT_TABS),busy=false,lastSync=0,adminCheckAt=0,adminValid=false;
-
-function load(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'');return v==null?f:v}catch(e){return f}}
-function team(){var t=load(TEAM_KEY,null);return t&&typeof t==='object'?t:null}
-function isOwner(t){return String(t&&t.role||'').toLowerCase()==='owner'}
-function deviceId(){try{if(window.DFDeviceIdentity&&typeof window.DFDeviceIdentity.get==='function'){var d=String(window.DFDeviceIdentity.get()||'').trim();if(d)return d}}catch(e){}try{return String(localStorage.getItem(DEVICE_KEY)||'').trim()}catch(e){return''}}
-function adminSecret(){try{return String(localStorage.getItem(ADMIN_SECRET_KEY)||'').trim()}catch(e){return''}}
-function normalize(v){var x=v&&typeof v==='object'?v:{};return{extrusao:x.extrusao!==false,formulacao:x.formulacao!==false,sacolas:x.sacolas!==false,custo:x.custo!==false,curso:x.curso!==false}}
-function month(off){var d=new Date();d.setMonth(d.getMonth()+(off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
-function dec(s){try{s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))))}catch(e){return null}}
-function cached(t){if(!t||!t.teamId)return null;var all=load(CACHE_KEY,{}),p=all&&all[t.teamId];return p&&p.tabs?{teamId:t.teamId,tabs:normalize(p.tabs),updatedAt:p.updatedAt||''}:null}
-function cachePayload(p){if(!p||!p.teamId||!p.tabs)return;var all=load(CACHE_KEY,{});if(!all||typeof all!=='object')all={};all[p.teamId]={teamId:p.teamId,tabs:normalize(p.tabs),updatedAt:p.updatedAt||new Date().toISOString()};try{localStorage.setItem(CACHE_KEY,JSON.stringify(all))}catch(e){}}
-function latestFrom(photos,t){var best=null;(photos||[]).forEach(function(p){var q=String(p&&p.qr||'');if(q.indexOf(PREFIX)!==0)return;var x=dec(q.slice(PREFIX.length));if(!x||String(x.teamId||'')!==String(t.teamId||''))return;var stamp=String(x.updatedAt||p.updatedAt||p.createdAt||'');if(!best||stamp>String(best.updatedAt||''))best={teamId:x.teamId,tabs:normalize(x.tabs),updatedAt:stamp||new Date().toISOString()}});return best}
-function addStyle(){if(document.getElementById('dfTeamPermStyleV182'))return;var s=document.createElement('style');s.id='dfTeamPermStyleV182';s.textContent='.dfTeamPermDenied182{display:none!important}';document.head.appendChild(s)}
-function keyFor(n){if(!n||n.nodeType!==1)return'';var id=String(n.id||'');if(id==='btEx'||id==='pgEx')return'extrusao';if(id==='btFo'||id==='pgFo')return'formulacao';if(id==='btSa'||id==='pgSa')return'sacolas';if(id==='btCu'||id==='pgCu')return'custo';var oc=String(n.getAttribute&&n.getAttribute('onclick')||'');var tx=String(n.textContent||'').trim().toUpperCase();if(/curso\.html/i.test(oc)||tx.indexOf('CURSO')===0)return'curso';if(tx.indexOf('SACOLA')===0)return'sacolas';if(tx.indexOf('CUSTO')===0)return'custo';if(tx.indexOf('EXTRUS')===0)return'extrusao';if(tx.indexOf('FORMULA')===0)return'formulacao';if(/show\(['\"]ex['\"]\)/i.test(oc))return'extrusao';if(/show\(['\"]fo['\"]\)/i.test(oc))return'formulacao';if(/show\(['\"]sa['\"]\)/i.test(oc))return'sacolas';if(/show\(['\"]cu['\"]\)/i.test(oc))return'custo';return''}
-function nodes(){var out=[];try{document.querySelectorAll('#btEx,#btFo,#btSa,#btCu,#pgEx,#pgFo,#pgSa,#pgCu,.tabs .tab,.tabs button,.page').forEach(function(e){if(out.indexOf(e)<0)out.push(e)})}catch(e){}return out}
-function fallback(){if(tabs.extrusao)return'ex';if(tabs.formulacao)return'fo';if(tabs.sacolas)return'sa';if(tabs.custo)return'cu';return''}
-async function validAdmin(){var sec=adminSecret();if(!sec)return false;if(Date.now()-adminCheckAt<60000)return adminValid;adminCheckAt=Date.now();adminValid=false;try{var r=await fetch(API+'/admin/access/list-used',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':sec},body:'{}',cache:'no-store'}),j={};try{j=await r.json()}catch(e){}adminValid=!!(r.ok&&j.ok!==false)}catch(e){}return adminValid}
-async function privilegedOwner(t){if(!isOwner(t))return false;return validAdmin()}
-async function enforce(){addStyle();var t=team(),priv=await privilegedOwner(t);nodes().forEach(function(e){var k=keyFor(e);if(!k)return;if(priv||!t||tabs[k]!==false)e.classList.remove('dfTeamPermDenied182');else e.classList.add('dfTeamPermDenied182')});if(!priv&&t){var page=document.querySelector('.page.on');if(page){var k=keyFor(page);if(k&&tabs[k]===false){var f=fallback();if(f&&typeof window.show==='function'){try{window.show(f)}catch(e){}}}}}}
-function xhr(method,url,headers,body){return new Promise(function(resolve,reject){var x=new XMLHttpRequest();x.open(method,url,true);x.timeout=9000;Object.keys(headers||{}).forEach(function(k){try{x.setRequestHeader(k,headers[k])}catch(e){}});x.onreadystatechange=function(){if(x.readyState!==4)return;var j={};try{j=JSON.parse(x.responseText||'{}')}catch(e){}if(x.status>=200&&x.status<300&&j.ok!==false)resolve(j);else{var er=new Error(j.error||('HTTP '+x.status));er.status=x.status;reject(er)}};x.onerror=function(){reject(new Error('falha de conexão'))};x.ontimeout=function(){reject(new Error('tempo esgotado'))};x.send(body==null?null:body)})}
-async function renew(){var cred='';try{cred=String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){}var dev=deviceId();if(!cred||!dev)throw new Error('acesso automático indisponível');var j=await xhr('POST',API+'/access/session',{'Content-Type':'application/json','X-DF-Device':dev},JSON.stringify({credential:cred,deviceId:dev}));var tok=String(j&&j.token||'').trim();if(!tok)throw new Error('sessão vazia');try{sessionStorage.setItem(TOKEN_KEY,tok)}catch(e){}return tok}
-async function post(path,body,retry){var tok='';try{tok=String(sessionStorage.getItem(TOKEN_KEY)||'').trim()}catch(e){}if(!tok)tok=await renew();var dev=deviceId();try{return await xhr('POST',API+path,{'Content-Type':'application/json','Authorization':'Bearer '+tok,'X-DF-Device':dev},JSON.stringify(body||{}))}catch(e){if(e&&e.status===401&&retry!==false){await renew();return post(path,body,false)}throw e}}
-async function sync(force){if(busy||navigator.onLine===false)return false;if(!force&&Date.now()-lastSync<2500)return false;busy=true;lastSync=Date.now();try{var st=await post('/op/team/status',{}),t=st&&st.team||null;if(t){try{localStorage.setItem(TEAM_KEY,JSON.stringify(t))}catch(e){}}else{await enforce();return false}var priv=await privilegedOwner(t);if(priv){tabs=Object.assign({},DEFAULT_TABS);await enforce();return true}var a=await post('/op/photo/list',{teamId:t.teamId,month:month(0)}),p=latestFrom(a&&a.photos||[],t);if(!p){try{var b=await post('/op/photo/list',{teamId:t.teamId,month:month(-1)});p=latestFrom(b&&b.photos||[],t)}catch(e){}}if(p){tabs=normalize(p.tabs);cachePayload(p)}else{var c=cached(t);tabs=c&&c.tabs?normalize(c.tabs):Object.assign({},DEFAULT_TABS)}await enforce();try{window.dispatchEvent(new CustomEvent('df-team-tab-permissions',{detail:{tabs:Object.assign({},tabs),teamId:t.teamId,source:'v182-fixed'}}))}catch(e){}return true}catch(e){var t0=team(),c0=cached(t0);if(t0&&c0)tabs=normalize(c0.tabs);await enforce();return false}finally{busy=false}}
-function boot(){var t=team(),c=cached(t);if(t&&c)tabs=normalize(c.tabs);addStyle();enforce();var mo=new MutationObserver(function(){enforce()});try{mo.observe(document.documentElement,{childList:true,subtree:true})}catch(e){}setTimeout(function(){sync(true)},120);setTimeout(function(){sync(true)},900);setTimeout(function(){sync(true)},2200);setInterval(function(){if(!document.hidden)sync(false)},4000);['online','pageshow','focus','df-team-changed','df-team-joined','df-ui-ready','df-admin-secret-ready'].forEach(function(ev){window.addEventListener(ev,function(){setTimeout(function(){sync(true)},100)})});document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(function(){sync(true)},100)});document.addEventListener('click',function(e){var n=e.target&&e.target.closest?e.target.closest('.tabs .tab,.tabs button,#btEx,#btFo,#btSa,#btCu'):null;if(!n)return;var k=keyFor(n);if(k&&tabs[k]===false&&n.classList.contains('dfTeamPermDenied182')){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()}},true)}
-window.DFTeamTabPermissionsV182API={sync:sync,enforce:enforce,get:function(){return Object.assign({},tabs)}};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+if(window.DFTeamTabPermissionsV182Loader)return;window.DFTeamTabPermissionsV182Loader=true;
+function load(){
+  if(window.DFTeamTabPermissionsV196)return;
+  var s=document.createElement('script');
+  s.src='./team-tab-permissions-v196.js?v=196&t='+Date.now();
+  s.async=false;
+  s.onload=function(){try{window.DFTeamTabPermissionsV196API&&window.DFTeamTabPermissionsV196API.sync(true)}catch(e){}};
+  document.head.appendChild(s);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
