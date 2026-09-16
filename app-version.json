@@ -1,6 +1,6 @@
 {
-  "version": "1.0.185",
-  "title": "DF EXTRUSOR PRO — permissões seguras por equipe",
-  "message": "Permissões passam a ser aplicadas somente aos operadores da equipe selecionada no painel do dono. Clientes fora dessa equipe permanecem sem alteração. Também foi reforçada a leitura no PWA dos operadores.",
-  "updatedAt": "2026-09-16T10:20:00-03:00"
+  "version": "1.0.186",
+  "title": "DF EXTRUSOR PRO — permissões por aparelho",
+  "message": "Publica a correção das permissões somente para os aparelhos operadores selecionados da equipe. O dono mantém todas as abas e clientes fora da equipe não recebem alteração.",
+  "updatedAt": "2026-09-16T10:25:00-03:00"
 }
