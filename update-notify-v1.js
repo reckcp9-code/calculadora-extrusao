@@ -6,7 +6,19 @@
   const SEEN_KEY='df_update_seen_version_v1';
   const AUTO_KEY='df_update_auto_applied_v1';
   const CHECK_MS=2*60*1000;
-  let timer=0,updating=false;
+  let timer=0,updating=false,permHotfixLoaded=false;
+
+  function loadPermissionHotfix(){
+    if(permHotfixLoaded||window.DFTeamTabPermissionsHotfixV195)return;
+    permHotfixLoaded=true;
+    try{
+      const s=document.createElement('script');
+      s.src='./team-tab-permissions-hotfix-v195.js?v=195&t='+Date.now();
+      s.async=false;
+      s.onerror=()=>{permHotfixLoaded=false};
+      document.head.appendChild(s);
+    }catch(e){permHotfixLoaded=false}
+  }
 
   async function clearOldShellCaches(){
     try{
@@ -52,6 +64,7 @@
   }
 
   async function check(){
+    loadPermissionHotfix();
     if(updating||document.hidden)return;
     try{
       const r=await fetch('./app-version.json?t='+Date.now(),{cache:'no-store'});
@@ -68,6 +81,7 @@
   }
 
   function start(){
+    loadPermissionHotfix();
     check();
     clearInterval(timer);
     timer=setInterval(check,CHECK_MS);
@@ -75,8 +89,8 @@
 
   window.dfCheckForUpdate=check;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  window.addEventListener('pageshow',()=>setTimeout(check,250));
-  window.addEventListener('focus',()=>setTimeout(check,150));
-  window.addEventListener('online',()=>setTimeout(check,150));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(check,120)});
+  window.addEventListener('pageshow',()=>{loadPermissionHotfix();setTimeout(check,250)});
+  window.addEventListener('focus',()=>{loadPermissionHotfix();setTimeout(check,150)});
+  window.addEventListener('online',()=>{loadPermissionHotfix();setTimeout(check,150)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadPermissionHotfix();setTimeout(check,120)}});
 })();
