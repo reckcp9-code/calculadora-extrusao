@@ -1,0 +1,31 @@
+(function(){
+'use strict';
+if(window.DFGeradorAdminPwaV192)return;window.DFGeradorAdminPwaV192=true;
+
+const LOCAL_KEY='df_access_admin_secret_saved_v1';
+const BRIDGE_COOKIE='df_admin_bridge_v192';
+const RECOVERY_COOKIE='df_access_recovery_v1';
+const MAX_AGE=315360000;
+let restoring=false,prepared=false;
+
+function $(id){return document.getElementById(id)}
+function readCookie(name){try{const p=name+'=';for(const part of String(document.cookie||'').split(';')){const x=part.trim();if(x.startsWith(p))return decodeURIComponent(x.slice(p.length)).trim()}}catch(e){}return''}
+function writeCookie(name,value){if(!value)return;try{document.cookie=name+'='+encodeURIComponent(value)+'; Max-Age='+MAX_AGE+'; Path=/; SameSite=Lax; Secure'}catch(e){}}
+function platformKey(){let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){}return [navigator.platform||'',navigator.language||'',String(screen.width||0)+'x'+String(screen.height||0),String(window.devicePixelRatio||1),String(navigator.maxTouchPoints||0),tz].join('|')}
+function recoverySecret(){try{if(window.DFAccessRecovery&&typeof window.DFAccessRecovery.getSecret==='function'){const s=String(window.DFAccessRecovery.getSecret()||'').trim();if(s)return s}}catch(e){}return readCookie(RECOVERY_COOKIE)}
+function b64u(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function unb64u(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+async function key(){const base=recoverySecret();if(!base||!crypto.subtle)return null;const raw=new TextEncoder().encode(base+'|DF-ADMIN-PWA-V192|'+platformKey());const hash=await crypto.subtle.digest('SHA-256',raw);return crypto.subtle.importKey('raw',hash,{name:'AES-GCM'},false,['encrypt','decrypt'])}
+async function seal(secret){const k=await key();if(!k)return'';const iv=crypto.getRandomValues(new Uint8Array(12)),plain=new TextEncoder().encode(secret),buf=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,plain);return'1.'+b64u(iv)+'.'+b64u(new Uint8Array(buf))}
+async function openSeal(blob){try{const p=String(blob||'').split('.');if(p.length!==3||p[0]!=='1')return'';const k=await key();if(!k)return'';const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64u(p[1])},k,unb64u(p[2]));return new TextDecoder().decode(plain).trim()}catch(e){return''}}
+function saved(){try{return String(localStorage.getItem(LOCAL_KEY)||'').trim()}catch(e){return''}}
+function store(v){if(!v)return;try{localStorage.setItem(LOCAL_KEY,String(v))}catch(e){}}
+function hide(secretInput,remember){const label=secretInput&&secretInput.previousElementSibling;const help=remember&&remember.parentElement&&remember.parentElement.nextElementSibling;if(secretInput)secretInput.style.display='none';if(label&&label.tagName==='LABEL')label.style.display='none';if(remember&&remember.parentElement)remember.parentElement.style.display='none';if(help&&help.classList&&help.classList.contains('sub'))help.style.display='none';let badge=$('dfAdminPwaBadge192');if(!badge){badge=document.createElement('div');badge.id='dfAdminPwaBadge192';badge.style.cssText='margin:10px 0 2px;padding:10px 12px;border:1px solid #166534;background:#052e16;color:#bbf7d0;border-radius:12px;font-size:12px;font-weight:900;text-align:center';badge.textContent='🔓 ACESSO ADMINISTRATIVO AUTOMÁTICO';const statusBtn=$('statusBtn');if(statusBtn&&statusBtn.parentNode)statusBtn.parentNode.insertBefore(badge,statusBtn)}}
+function show(secretInput,remember){const label=secretInput&&secretInput.previousElementSibling;const help=remember&&remember.parentElement&&remember.parentElement.nextElementSibling;if(secretInput)secretInput.style.display='';if(label&&label.tagName==='LABEL')label.style.display='';if(remember&&remember.parentElement)remember.parentElement.style.display='';if(help&&help.classList&&help.classList.contains('sub'))help.style.display='';const badge=$('dfAdminPwaBadge192');if(badge)badge.remove()}
+async function persist(secret){if(!secret)return false;try{const blob=await seal(secret);if(blob){writeCookie(BRIDGE_COOKIE,blob);prepared=true;return true}}catch(e){}return false}
+async function restore(){if(restoring)return false;restoring=true;try{let secret=saved();if(!secret){const blob=readCookie(BRIDGE_COOKIE);if(blob)secret=await openSeal(blob);if(secret)store(secret)}const input=$('secret'),remember=$('rememberSecret'),btn=$('statusBtn');if(secret&&input){input.value=secret;if(remember)remember.checked=true;hide(input,remember);if(!prepared)persist(secret);setTimeout(function(){try{btn&&btn.click()}catch(e){}},120);try{window.dispatchEvent(new CustomEvent('df-admin-secret-ready',{detail:{restored:true}}))}catch(e){}return true}if(input)show(input,remember);return false}finally{restoring=false}}
+function watchVerifiedSecret(){const input=$('secret'),btn=$('statusBtn');if(!input||!btn)return;const capture=async()=>{const v=String(input.value||'').trim();if(v){store(v);await persist(v);hide(input,$('rememberSecret'));try{window.dispatchEvent(new CustomEvent('df-admin-secret-ready',{detail:{restored:false}}))}catch(e){}}};btn.addEventListener('click',function(){setTimeout(function(){const msg=$('statusMsg');if(msg&&!msg.classList.contains('bad'))capture()},700)},true);input.addEventListener('change',function(){const v=String(input.value||'').trim();if(v)store(v)})}
+function boot(){let n=0,iv=setInterval(function(){n++;if($('secret')&&$('statusBtn')){clearInterval(iv);watchVerifiedSecret();restore()}else if(n>80)clearInterval(iv)},100);window.addEventListener('df-access-recovered',()=>setTimeout(restore,150));window.addEventListener('df-ios-access-restored',()=>setTimeout(restore,150));window.addEventListener('pageshow',()=>setTimeout(restore,150));window.addEventListener('focus',()=>setTimeout(restore,150))}
+window.DFGeradorAdminPwa={restore:restore,persistCurrent:async function(){const v=saved()||String($('secret')&&$('secret').value||'').trim();return persist(v)}};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
