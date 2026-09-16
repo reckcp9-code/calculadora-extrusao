@@ -1,6 +1,6 @@
 {
-  "version": "1.0.176",
-  "title": "DF EXTRUSOR PRO — correção de rollback no Produção Agora",
-  "message": "Corrigida a sincronização para impedir que status, produto ou cliente mais antigos retornem depois de uma atualização. O app agora mantém por máquina o registro com updatedAt mais recente e preserva o produto manual informado pelo dono.",
-  "updatedAt": "2026-09-15T14:42:00-03:00"
+  "version": "1.0.177",
+  "title": "DF EXTRUSOR PRO — permissões da equipe",
+  "message": "As permissões da equipe agora são sincronizadas com mais frequência nos aparelhos dos operadores. Abas bloqueadas pelo dono são ocultadas automaticamente. O painel gerador também mostra quantos aparelhos estão conectados à equipe.",
+  "updatedAt": "2026-09-16T00:35:00-03:00"
 }
