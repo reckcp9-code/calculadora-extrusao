@@ -1,0 +1,34 @@
+(function(){
+'use strict';
+if(window.DFGeradorTeamDevicesV186)return;window.DFGeradorTeamDevicesV186=true;
+
+var API='https://df-extrusor-api.reck-cp9.workers.dev';
+var TEAM_KEY='df_op_team_v1';
+var OWNER_TOKEN_KEY='df_gerador_owner_token_v181';
+var OWNER_DEVICE_KEY='df_gerador_owner_device_v181';
+var busy=false,timer=0;
+
+function $(id){return document.getElementById(id)}
+function loadTeam(){try{return JSON.parse(localStorage.getItem(TEAM_KEY)||'null')}catch(e){return null}}
+function session(){try{var token=String(sessionStorage.getItem(OWNER_TOKEN_KEY)||'').trim(),deviceId=String(sessionStorage.getItem(OWNER_DEVICE_KEY)||'').trim();return token&&deviceId?{token:token,deviceId:deviceId}:null}catch(e){return null}}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+function fmt(v){try{var d=new Date(v);if(!Number.isFinite(d.getTime()))return'';return d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
+function fetchJson(url,opt,ms){return new Promise(function(resolve,reject){var done=false,c=null,t=null;try{if('AbortController' in window){c=new AbortController();opt=Object.assign({},opt||{},{signal:c.signal})}}catch(e){}t=setTimeout(function(){if(done)return;done=true;try{if(c)c.abort()}catch(e){}reject(new Error('tempo esgotado'))},ms||7000);fetch(url,opt||{}).then(async function(r){if(done)return;var j={};try{j=await r.json()}catch(e){}if(done)return;done=true;clearTimeout(t);resolve({r:r,j:j})}).catch(function(e){if(done)return;done=true;clearTimeout(t);reject(e)})})}
+
+function style(){if($('dfTeamDevicesStyle186'))return;var s=document.createElement('style');s.id='dfTeamDevicesStyle186';s.textContent='#dfTeamDevices186{margin-top:9px;border:1px solid #334155;background:#0b1220;border-radius:12px;padding:11px;color:#e2e8f0}#dfTeamDevices186 .tdTop{font-size:13px;font-weight:950;color:#f8fafc}#dfTeamDevices186 .tdMeta{font-size:11px;color:#93c5fd;margin-top:5px;font-weight:850}#dfTeamDevices186 .tdList{display:grid;gap:6px;margin-top:9px}#dfTeamDevices186 .tdRow{border:1px solid #263244;background:#111827;border-radius:9px;padding:8px;font-size:11px;color:#cbd5e1}#dfTeamDevices186 .tdRow b{color:#bfdbfe}#dfTeamDevices186 .tdMuted{font-size:11px;color:#94a3b8;margin-top:5px}#dfTeamDevices186 .tdRetry{margin-top:9px;width:100%;border:1px solid #2563eb;background:#10234a;color:#bfdbfe;border-radius:9px;padding:9px;font-size:11px;font-weight:900}';document.head.appendChild(s)}
+function mount(){var host=$('dfTeamPermTeam');if(!host)return false;style();['dfTeamDevices182','dfTeamDevices183','dfTeamDevices184','dfTeamDevices185'].forEach(function(id){var e=$(id);if(e)e.remove()});var box=$('dfTeamDevices186');if(!box){box=document.createElement('div');box.id='dfTeamDevices186';host.insertAdjacentElement('afterend',box)}return true}
+function loading(text){if(!mount())return;var b=$('dfTeamDevices186');b.innerHTML='<div class="tdTop">📱 Aparelhos conectados</div><div class="tdMuted">'+esc(text||'Atualizando...')+'</div>'}
+function errorBox(text){if(!mount())return;var b=$('dfTeamDevices186');b.innerHTML='<div class="tdTop">📱 Aparelhos conectados</div><div class="tdMuted">'+esc(text||'Não foi possível atualizar agora.')+'</div><button type="button" class="tdRetry" id="dfTeamDevicesRetry186">🔄 TENTAR NOVAMENTE</button>';var bt=$('dfTeamDevicesRetry186');if(bt)bt.onclick=function(){refresh(true)}}
+function render(j){if(!mount())return;var members=Array.isArray(j&&j.members)?j.members:[],total=Number(j&&j.memberCount||members.length||0),owners=members.filter(function(m){return String(m&&m.role||'').toLowerCase()==='owner'}).length,ops=members.filter(function(m){return String(m&&m.role||'').toLowerCase()!=='owner'}).length;if(total>0&&!owners)owners=1;if(total>0&&owners+ops<total)ops=Math.max(0,total-owners);var html='<div class="tdTop">📱 Aparelhos conectados: '+total+'</div><div class="tdMeta">👑 Dono: '+owners+' • 👷 Operadores: '+ops+'</div>';if(members.length){html+='<div class="tdList">';members.forEach(function(m,i){var role=String(m&&m.role||'').toLowerCase()==='owner'?'DONO':'OPERADOR',last=fmt(m&&(m.lastActivity||m.lastSeen||m.updatedAt||m.joinedAt));html+='<div class="tdRow"><b>'+(role==='DONO'?'👑 ':'👷 ')+role+'</b> • Aparelho '+(i+1)+(last?'<br>Última atividade: '+esc(last):'')+'</div>'});html+='</div>'}$('dfTeamDevices186').innerHTML=html}
+
+async function ensureOwner(force){var s=session();if(s&&!force)return s;var p=window.DFGeradorTeamPermissions;if(p&&typeof p.recoverOwner==='function'){try{await Promise.race([p.recoverOwner(!!force),sleep(12000)])}catch(e){}}
+for(var i=0;i<50;i++){s=session();if(s)return s;await sleep(200)}return null}
+async function members(teamId,force){var s=await ensureOwner(!!force);if(!s)throw new Error('sessão do dono não localizada');var x=await fetchJson(API+'/op/team/members',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.token,'X-DF-Device':s.deviceId},body:JSON.stringify({teamId:String(teamId||'')}),cache:'no-store'},7000);if((x.r.status===401||x.r.status===403)&&!force)return members(teamId,true);if(!x.r.ok||x.j.ok===false)throw new Error(x.j.error||('HTTP '+x.r.status));return x.j}
+
+async function refresh(force){if(busy||!mount())return false;busy=true;try{var t=loadTeam();if(!t||!t.teamId){loading('Localizando equipe...');var p=window.DFGeradorTeamPermissions;if(p&&typeof p.recoverOwner==='function'){try{await p.recoverOwner(false)}catch(e){}t=loadTeam()}}if(!t||!t.teamId){errorBox('Equipe não localizada.');return false}loading('Buscando os aparelhos da equipe...');var j=await members(t.teamId,!!force);render(j);return true}catch(e){errorBox('Falha ao consultar os aparelhos. Toque em tentar novamente.');return false}finally{busy=false}}
+function schedule(ms,force){clearTimeout(timer);timer=setTimeout(function(){refresh(!!force)},ms||100)}
+function boot(){var tries=0,iv=setInterval(function(){tries++;if(mount()||tries>60){clearInterval(iv);schedule(1000,false)}},100);window.addEventListener('pageshow',function(){schedule(400,false)});window.addEventListener('online',function(){schedule(300,true)});window.addEventListener('df-team-changed',function(){schedule(300,false)});window.addEventListener('df-team-joined',function(){schedule(300,false)});setInterval(function(){if(!document.hidden)refresh(false)},30000)}
+window.DFGeradorTeamDevices={refresh:refresh};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
