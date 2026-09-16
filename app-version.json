@@ -1,6 +1,6 @@
 {
-  "version": "1.0.181",
-  "title": "DF EXTRUSOR PRO — permissões da equipe corrigidas",
-  "message": "Corrigida a sincronização das permissões nos PWAs dos operadores. Sacolas, Custo e Curso bloqueados pelo dono agora somem mesmo quando a nuvem demora ou o aparelho estava com cache antigo.",
-  "updatedAt": "2026-09-16T09:06:00-03:00"
+  "version": "1.0.182",
+  "title": "DF EXTRUSOR PRO — permissões bidirecionais corrigidas",
+  "message": "O DONO mantém todas as abas. Nos operadores, as abas bloqueadas somem e, quando forem liberadas novamente no painel, voltam automaticamente no Safari e no PWA.",
+  "updatedAt": "2026-09-16T09:12:00-03:00"
 }
