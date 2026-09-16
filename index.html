@@ -24,15 +24,15 @@
 <div id="dfBootStatus" style="max-width:520px;margin:80px auto;padding:24px;text-align:center;color:#f8fafc"><h2 style="margin-bottom:10px">DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando calculadora...</p></div>
 <script>
 (async()=>{
-  const BUILD='20260916-op204';
+  const BUILD='20260916-report205';
   const LOCAL_SHELL='./app-shell.html?v='+BUILD;
   const SHELL_CACHE='df-app-shell-source-v34';
   const SHELL_KEY='./__df_base_shell_v176__.html';
   const safeGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
   async function fetchText(url,timeout=5000){let ctrl=null,timer=null;try{if('AbortController' in window){ctrl=new AbortController();timer=setTimeout(()=>ctrl.abort(),timeout)}const r=await fetch(url,{cache:'no-store',signal:ctrl?ctrl.signal:undefined});if(!r.ok)throw new Error('HTTP '+r.status);const txt=await r.text();if(!txt||txt.indexOf('<!doctype html')<0)throw new Error('Conteúdo inválido');return txt}finally{if(timer)clearTimeout(timer)}}
   async function readCachedShell(){try{if(!('caches' in window))return '';const c=await caches.open(SHELL_CACHE);const r=await c.match(SHELL_KEY);const txt=r?await r.text():'';return txt&&txt.indexOf('<!doctype html')>=0?txt:''}catch(e){return ''}}
-  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}));for(const k of ['df-app-shell-source-v2','df-app-shell-source-v3','df-app-shell-source-v5','df-app-shell-source-v6','df-app-shell-source-v7','df-app-shell-source-v8','df-app-shell-source-v9','df-app-shell-source-v10','df-app-shell-source-v11','df-app-shell-source-v12','df-app-shell-source-v13','df-app-shell-source-v14','df-app-shell-source-v15','df-app-shell-source-v16','df-app-shell-source-v17','df-app-shell-source-v18','df-app-shell-source-v19','df-app-shell-source-v20','df-app-shell-source-v21','df-app-shell-source-v22','df-app-shell-source-v23','df-app-shell-source-v24','df-app-shell-source-v25','df-app-shell-source-v26','df-app-shell-source-v27','df-app-shell-source-v28','df-app-shell-source-v29','df-app-shell-source-v30','df-app-shell-source-v31','df-app-shell-source-v32','df-app-shell-source-v33'])caches.delete(k).catch(()=>{})}catch(e){}}
-  async function loadShell(){if(navigator.onLine!==false){try{const fresh=await fetchText(LOCAL_SHELL,4500);await saveCachedShell(fresh);return fresh}catch(e){}}const cached=await readCachedShell();if(cached)return cached;const fresh=await fetchText(LOCAL_SHELL,5500);await saveCachedShell(fresh);return fresh}
+  async function saveCachedShell(txt){try{if(!('caches' in window)||!txt)return;const c=await caches.open(SHELL_CACHE);await c.put(SHELL_KEY,new Response(txt,{headers:{'Content-Type':'text/html; charset=utf-8'}}))}catch(e){}}
+  async function loadShell(){if(navigator.onLine!==false){try{const fresh=await fetchText(LOCAL_SHELL,4500);await saveCachedShell(fresh);return fresh}catch(e){}}const cached=await readCachedShell();if(cached)return cached;return fetchText(LOCAL_SHELL,5500)}
   function scriptTag(src,defer=true){return '<scr'+'ipt '+(defer?'defer ':'')+'src="./'+src+'"></scr'+'ipt>'}
   try{
     try{if(window.DFIosReinstallReady)await Promise.race([window.DFIosReinstallReady,new Promise(r=>setTimeout(r,1800))])}catch(e){}
@@ -44,58 +44,14 @@
     h=h.replace('</head>','<style id="dfStableBoot">html,body{background:#080b13!important}body{opacity:1!important;visibility:visible!important}</style></head>');
     if(savedAccess)h=h.replace('</head>','<style id="dfSavedAccessBoot">#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
     const closeScript='</scr'+'ipt>',openScript='<scr'+'ipt>';const p=h.lastIndexOf(openScript);if(p>=0){const e=h.indexOf(closeScript,p);if(e>=0)h=h.slice(0,p)+h.slice(e+closeScript.length)}
-
-    const core=[
-      'performance-guard-v1.js?v='+BUILD,
-      'app-bundle.js?v='+BUILD,
-      'cost-simple-v154.js?v='+BUILD,
-      'cost-back-v155.js?v='+BUILD,
-      'push-background-repair-v1.js?v='+BUILD,
-      'access-reinstall-recovery-v2.js?v='+BUILD,
-      'backup-manual-only-v1.js?v='+BUILD,
-      'local-calculations.js?v='+BUILD,
-      'runtime-stability-v3.js?v='+BUILD,
-      'team-tab-permissions-v182.js?v='+BUILD,
-      'update-notify-v1.js?v='+BUILD,
-      'medida-formulacao-stable.js?v='+BUILD,
-      'formula-tabs-clean-v1.js?v='+BUILD,
-      'formula-mobile-nav-fix-test-v1.js?v='+BUILD
-    ];
-    const optional=[
-      'formula-material-collapse.js?v='+BUILD,
-      'error-monitor-v1.js?v='+BUILD
-    ];
-    const op=[
-      'op-qr-hook.js?v='+BUILD,
-      'op-landscape-pdf.js?v='+BUILD,
-      'formula-op-relatorio.js?v='+BUILD,
-      'op-photo-source.js?v='+BUILD,
-      'op-manual-confirm.js?v='+BUILD,
-      'op-manual-qr-recovery-v1.js?v='+BUILD,
-      'op-production-now-state-guard-v176.js?v='+BUILD,
-      'op-production-now-team-v167.js?v='+BUILD,
-      'op-production-now-finalize-lock-v174.js?v='+BUILD,
-      'op-production-now-cloud-bridge-v169.js?v='+BUILD,
-      'op-production-now-finalize-broadcast-v175.js?v='+BUILD,
-      'op-status-artifact-filter-v170.js?v='+BUILD,
-      'op-sync-lite-v2.js?v='+BUILD,
-      'op-cloud-team-v2.js?v='+BUILD,
-      'op-phantom-guard-v204.js?v='+BUILD,
-      'op-registry-cloud-test-v174.js?v='+BUILD,
-      'op-generated-meta-sync-v177.js?v='+BUILD,
-      'op-production-now-product-details-test-v172.js?v='+BUILD,
-      'op-production-now-client-test-v175.js?v='+BUILD,
-      'op-team-code-pwa-v166.js?v='+BUILD,
-      'op-photo-delete-v5.js?v='+BUILD,
-      'op-team-notify-v2.js?v='+BUILD,
-      'client-stability-v127.js?v='+BUILD,
-      'op-team-admin-v97.js?v='+BUILD
-    ];
+    const core=['performance-guard-v1.js?v='+BUILD,'app-bundle.js?v='+BUILD,'cost-simple-v154.js?v='+BUILD,'cost-back-v155.js?v='+BUILD,'push-background-repair-v1.js?v='+BUILD,'access-reinstall-recovery-v2.js?v='+BUILD,'backup-manual-only-v1.js?v='+BUILD,'local-calculations.js?v='+BUILD,'runtime-stability-v3.js?v='+BUILD,'team-tab-permissions-v182.js?v='+BUILD,'update-notify-v1.js?v='+BUILD,'medida-formulacao-stable.js?v='+BUILD,'formula-tabs-clean-v1.js?v='+BUILD,'formula-mobile-nav-fix-test-v1.js?v='+BUILD];
+    const optional=['formula-material-collapse.js?v='+BUILD,'error-monitor-v1.js?v='+BUILD];
+    const op=['op-qr-hook.js?v='+BUILD,'op-landscape-pdf.js?v='+BUILD,'formula-op-relatorio.js?v='+BUILD,'op-report-back-v205.js?v='+BUILD,'op-photo-source.js?v='+BUILD,'op-manual-confirm.js?v='+BUILD,'op-manual-qr-recovery-v1.js?v='+BUILD,'op-production-now-state-guard-v176.js?v='+BUILD,'op-production-now-team-v167.js?v='+BUILD,'op-production-now-finalize-lock-v174.js?v='+BUILD,'op-production-now-cloud-bridge-v169.js?v='+BUILD,'op-production-now-finalize-broadcast-v175.js?v='+BUILD,'op-status-artifact-filter-v170.js?v='+BUILD,'op-sync-lite-v2.js?v='+BUILD,'op-cloud-team-v2.js?v='+BUILD,'op-phantom-guard-v204.js?v='+BUILD,'op-registry-cloud-test-v174.js?v='+BUILD,'op-generated-meta-sync-v177.js?v='+BUILD,'op-production-now-product-details-test-v172.js?v='+BUILD,'op-production-now-client-test-v175.js?v='+BUILD,'op-team-code-pwa-v166.js?v='+BUILD,'op-photo-delete-v5.js?v='+BUILD,'op-team-notify-v2.js?v='+BUILD,'client-stability-v127.js?v='+BUILD,'op-team-admin-v97.js?v='+BUILD];
     const tags=core.map(s=>scriptTag(s)).join('');
-    const lazy='<scr'+'ipt>(function(){var loaded=new Set(),loading=new Map();function load(src,attempt){attempt=attempt||0;if(loaded.has(src))return Promise.resolve(true);if(loading.has(src))return loading.get(src);var job=new Promise(function(resolve){var s=document.createElement("script");s.src="./"+src;s.defer=true;s.onload=function(){loaded.add(src);loading.delete(src);resolve(true)};s.onerror=function(){loading.delete(src);s.remove();if(attempt<2)setTimeout(function(){load(src,attempt+1).then(resolve)},350*(attempt+1));else{try{window.DFErrorMonitor&&window.DFErrorMonitor.report("Falha ao carregar módulo",{filename:src})}catch(e){}resolve(false)}};document.head.appendChild(s)});loading.set(src,job);return job}function loadList(list){return Promise.all(list.map(function(x){return load(x,0)}))}var optional='+JSON.stringify(optional)+',op='+JSON.stringify(op)+',opStarted=false;function loadOp(){if(opStarted)return;opStarted=true;loadList(op).then(function(r){if(r.some(function(x){return !x}))opStarted=false})}document.addEventListener("click",function(e){var t=e.target&&e.target.closest?e.target.closest("#btFo,#dfFormTabOps,[data-pane=ops],[data-pane=ok],[data-pane=archive],[data-pane=now]"):null;if(t)loadOp()},true);var idle=window.requestIdleCallback||function(fn){return setTimeout(fn,1200)};idle(function(){loadList(optional)},{timeout:2200});window.addEventListener("df-ui-ready",function(){setTimeout(function(){if(document.getElementById("dfFormulaOps"))loadOp()},1400)},{once:true});window.addEventListener("online",function(){if(!opStarted&&document.getElementById("dfFormulaOps"))loadOp()});})();</scr'+'ipt>';
+    const lazy='<scr'+'ipt>(function(){var loaded=new Set(),loading=new Map();function load(src,attempt){attempt=attempt||0;if(loaded.has(src))return Promise.resolve(true);if(loading.has(src))return loading.get(src);var job=new Promise(function(resolve){var s=document.createElement("script");s.src="./"+src;s.defer=true;s.onload=function(){loaded.add(src);loading.delete(src);resolve(true)};s.onerror=function(){loading.delete(src);s.remove();if(attempt<2)setTimeout(function(){load(src,attempt+1).then(resolve)},350*(attempt+1));else resolve(false)};document.head.appendChild(s)});loading.set(src,job);return job}function loadList(list){return Promise.all(list.map(function(x){return load(x,0)}))}var optional='+JSON.stringify(optional)+',op='+JSON.stringify(op)+',opStarted=false;function loadOp(){if(opStarted)return;opStarted=true;loadList(op).then(function(r){if(r.some(function(x){return !x}))opStarted=false})}document.addEventListener("click",function(e){var t=e.target&&e.target.closest?e.target.closest("#btFo,#dfFormTabOps,[data-pane=ops],[data-pane=ok],[data-pane=archive],[data-pane=now]"):null;if(t)loadOp()},true);var idle=window.requestIdleCallback||function(fn){return setTimeout(fn,1200)};idle(function(){loadList(optional)},{timeout:2200});window.addEventListener("df-ui-ready",function(){setTimeout(function(){if(document.getElementById("dfFormulaOps"))loadOp()},1400)},{once:true});})();</scr'+'ipt>';
     const ready='<scr'+'ipt>(function(){var fired=false;function finish(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(finish,500)})();</scr'+'ipt>';
     h=h.replace('</body>',tags+lazy+ready+'</body>');document.open();document.write(h);document.close();
-  }catch(e){document.body.style.visibility='visible';document.body.style.opacity='1';document.body.style.background='#080b13';document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><p style="color:#94a3b8">Verifique sua internet e tente novamente.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>'}
+  }catch(e){document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível carregar a calculadora.</p><button onclick="location.reload()">TENTAR NOVAMENTE</button></div>'}
 })();
 </script>
 </body>
