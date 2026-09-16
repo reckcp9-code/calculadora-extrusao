@@ -1,6 +1,6 @@
 {
-  "version": "1.0.180",
-  "title": "DF EXTRUSOR PRO — permissões do operador no PWA",
-  "message": "O PWA agora busca o módulo de permissões diretamente da versão atual. Abas bloqueadas pelo dono, como Sacolas e Custo, somem também no aplicativo instalado.",
-  "updatedAt": "2026-09-16T09:01:00-03:00"
+  "version": "1.0.181",
+  "title": "DF EXTRUSOR PRO — permissões da equipe corrigidas",
+  "message": "Corrigida a sincronização das permissões nos PWAs dos operadores. Sacolas, Custo e Curso bloqueados pelo dono agora somem mesmo quando a nuvem demora ou o aparelho estava com cache antigo.",
+  "updatedAt": "2026-09-16T09:06:00-03:00"
 }
