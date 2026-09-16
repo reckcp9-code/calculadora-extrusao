@@ -1,0 +1,45 @@
+name: Patch OP generated metadata v177
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-op-generated-meta-v177.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Patch loader and validate
+        run: |
+          node --check op-generated-meta-sync-v177.js
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old="20260915-state-guard-v176"
+          new="20260915-op-meta-v177"
+          s=s.replace(old,new)
+          marker="      'op-registry-cloud-test-v174.js?v='+BUILD,\n"
+          add=marker+"      'op-generated-meta-sync-v177.js?v='+BUILD,\n"
+          if 'op-generated-meta-sync-v177.js?v=' not in s:
+              if marker not in s:
+                  raise SystemExit('marker not found')
+              s=s.replace(marker,add,1)
+          p.write_text(s)
+          PY
+          grep -q "op-generated-meta-sync-v177.js" index.html
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Ativa sincronização completa das OPs v177'
+          git push
