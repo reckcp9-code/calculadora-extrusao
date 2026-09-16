@@ -1,6 +1,6 @@
 {
-  "version": "1.0.183",
-  "title": "DF EXTRUSOR PRO — controle por aparelho",
-  "message": "Agora o dono escolhe no painel gerador quais aparelhos operadores receberão cada alteração de abas. O dono mantém todas as abas e o módulo de permissões foi simplificado para reduzir travamentos no PWA.",
-  "updatedAt": "2026-09-16T09:24:00-03:00"
+  "version": "1.0.184",
+  "title": "DF EXTRUSOR PRO — permissões dos operadores corrigidas",
+  "message": "Corrigida a identificação dos operadores e o vínculo da regra ao aparelho. As abas escolhidas no painel do dono agora são aplicadas no PWA e no Safari dos operadores, enquanto o dono mantém todas as abas.",
+  "updatedAt": "2026-09-16T10:12:00-03:00"
 }
