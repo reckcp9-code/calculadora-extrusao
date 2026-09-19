@@ -13,6 +13,7 @@ try{
     '<script src="./projeto-rosca-engenharia-v16.js?v=16.2"></script>',
     '<script src="./integracao-mecanica-v17.js?v=17.1"></script>',
     '<script src="./integracao-mecanica-fix-v17-2.js?v=17.2"></script>',
+    '<script src="./projeto-transmissao-v18.js?v=18.1"></script>',
     '<script src="./projeto-rosca-ajuda-v12.js?v=12.6"></script>',
     '<script src="./relacao-polias-v11.js?v=11.6"></script>',
     '<script src="./diagnostico-tecnico-v9.js?v=9.7"></script>'
