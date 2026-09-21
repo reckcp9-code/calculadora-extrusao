@@ -16,7 +16,8 @@ try{
     '<script src="./projeto-transmissao-v18.js?v=18.1"></script>',
     '<script src="./projeto-rosca-ajuda-v12.js?v=12.6"></script>',
     '<script src="./relacao-polias-v11.js?v=11.6"></script>',
-    '<script src="./diagnostico-tecnico-v9.js?v=9.7"></script>'
+    '<script src="./diagnostico-tecnico-v9.js?v=9.7"></script>',
+    '<script src="./navegacao-organizada-v19.js?v=19.1"></script>'
   ].join('');
   html=html.replace('</body>',extras+'</body>');
   document.open();
