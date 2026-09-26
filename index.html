@@ -103,7 +103,8 @@
       'sacolas-merge-micra.js?v=20260909-performance-v1',
       'mobile-back-position.js?v=20260909-mobile-back-v5',
       'extrusao-back-tab.js?v=20260909-performance-v1',
-      'extrusao-medidas-auto.js?v=20260909-medidas-auto-v1'
+      'extrusao-medidas-auto.js?v=20260909-medidas-auto-v1',
+      'extrusao-matriz-teste.js?v=20260926-matriz-teste-v1'
     ];
     const tags=scripts.map(s=>'<scr'+'ipt src="./'+s+'"></scr'+'ipt>').join('');
     const ready='<scr'+'ipt>(function(){var started=false;function finish(){if(started)return;started=true;try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}requestAnimationFrame(function(){requestAnimationFrame(function(){try{document.body.classList.add("dfBootReady")}catch(e){}})})}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",finish,{once:true});else finish();setTimeout(function(){if(!document.body.classList.contains("dfBootReady")){try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}document.body.classList.add("dfBootReady")}},1600)})();</scr'+'ipt>';
