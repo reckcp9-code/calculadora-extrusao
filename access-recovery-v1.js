@@ -9,8 +9,10 @@
   const RECOVERY_COOKIE='df_access_recovery_v1';
   const BOUND_KEY='df_access_recovery_bound_v1';
   const COOKIE_MAX_AGE=315360000;
+  const nativeFetch=window.fetch.bind(window);
   let binding=false;
   let restoring=false;
+  let repairing=false;
 
   function readCookie(name){
     try{const prefix=name+'=';for(const part of String(document.cookie||'').split(';')){const item=part.trim();if(item.startsWith(prefix))return decodeURIComponent(item.slice(prefix.length)).trim()}}catch(e){}
@@ -29,27 +31,56 @@
   }
   function recoverySecret(){
     const fromCookie=readCookie(RECOVERY_COOKIE);let fromStorage='';try{fromStorage=String(localStorage.getItem(RECOVERY_KEY)||'').trim()}catch(e){}
-    const secret=fromCookie||fromStorage||newSecret();try{if(fromStorage!==secret)localStorage.setItem(RECOVERY_KEY,secret)}catch(e){}if(fromCookie!==secret)writeCookie(RECOVERY_COOKIE,secret);return secret;
+    const secret=fromStorage||fromCookie||newSecret();
+    try{if(fromStorage!==secret)localStorage.setItem(RECOVERY_KEY,secret)}catch(e){}
+    if(fromCookie!==secret)writeCookie(RECOVERY_COOKIE,secret);
+    return secret;
   }
   function platform(){const ua=String(navigator.userAgent||'');if(/iPad/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return'iPad';if(/iPhone|iPod/i.test(ua))return'iOS';if(/Android/i.test(ua))return'Android';if(/Windows NT|Macintosh|CrOS|Linux|X11/i.test(ua))return'PC';return'Outro'}
+  function saveRecovered(j){
+    const credential=String(j&&j.accessCredential||'').trim(),token=String(j&&j.token||'').trim();
+    if(!credential||!token)return null;
+    try{localStorage.setItem(ACCESS_KEY,credential);localStorage.setItem(BOUND_KEY,credential);sessionStorage.setItem(TOKEN_KEY,token)}catch(e){return null}
+    try{window.dispatchEvent(new CustomEvent('df-access-repaired',{detail:{ok:true}}))}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('df-access-recovered',{detail:{ok:true}}))}catch(e){}
+    return{credential,token};
+  }
 
   async function bind(){
     if(binding||navigator.onLine===false)return false;const credential=savedCredential();if(!credential)return false;const secret=recoverySecret();if(!secret)return false;
     try{if(String(localStorage.getItem(BOUND_KEY)||'')===credential)return true}catch(e){}
     binding=true;
-    try{const dev=deviceId();const r=await fetch(API+'/access/recovery/bind',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,recoverySecret:secret,deviceId:dev,platform:platform()}),cache:'no-store'});if(r.status===404)return false;let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)return false;try{localStorage.setItem(BOUND_KEY,credential)}catch(e){}return true}catch(e){return false}finally{binding=false}
+    try{const dev=deviceId();const r=await nativeFetch(API+'/access/recovery/bind',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,recoverySecret:secret,deviceId:dev,platform:platform()}),cache:'no-store'});if(r.status===404)return false;let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)return false;try{localStorage.setItem(BOUND_KEY,credential)}catch(e){}return true}catch(e){return false}finally{binding=false}
+  }
+
+  // Repara um acesso salvo que ficou inválido para o device atual. Não depende
+  // do credential antigo: usa o segredo de recuperação já vinculado ao aparelho.
+  async function repair(){
+    if(repairing||navigator.onLine===false)return null;
+    const secret=recoverySecret();if(!secret)return null;
+    repairing=true;
+    try{
+      const dev=deviceId();
+      const r=await nativeFetch(API+'/access/recovery/restore',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({recoverySecret:secret,deviceId:dev,platform:platform()}),cache:'no-store'});
+      if(r.status===404)return null;
+      let j={};try{j=await r.json()}catch(e){}
+      if(!r.ok||j.ok===false)return null;
+      return saveRecovered(j);
+    }catch(e){return null}finally{repairing=false}
   }
 
   async function restore(){
-    if(restoring||navigator.onLine===false||savedCredential())return false;const secret=recoverySecret();if(!secret)return false;restoring=true;
-    try{const dev=deviceId();const r=await fetch(API+'/access/recovery/restore',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({recoverySecret:secret,deviceId:dev,platform:platform()}),cache:'no-store'});if(r.status===404)return false;let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)return false;const credential=String(j.accessCredential||'').trim(),token=String(j.token||'').trim();if(!credential||!token)return false;try{localStorage.setItem(ACCESS_KEY,credential);localStorage.setItem(BOUND_KEY,credential);sessionStorage.setItem(TOKEN_KEY,token)}catch(e){return false}try{window.dispatchEvent(new CustomEvent('df-access-recovered'))}catch(e){}location.reload();return true}catch(e){return false}finally{restoring=false}
+    if(restoring||navigator.onLine===false||savedCredential())return false;
+    restoring=true;
+    try{const fixed=await repair();if(!fixed)return false;setTimeout(function(){try{location.reload()}catch(e){}},40);return true}catch(e){return false}finally{restoring=false}
   }
 
-  window.DFAccessRecovery={bind,restore,getSecret:recoverySecret};
+  window.DFAccessRecovery={bind,restore,repair,getSecret:recoverySecret,getNativeFetch:function(){return nativeFetch}};
   window.DFAccessRecoveryReady=restore();
 
-  function bindSoon(){if(savedCredential())setTimeout(bind,250)}
+  function bindSoon(){if(savedCredential())setTimeout(bind,120)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindSoon,{once:true});else bindSoon();
   window.addEventListener('df-ui-ready',bindSoon,{once:true});
-  window.addEventListener('online',()=>{setTimeout(()=>{if(savedCredential())bind();else restore()},350)});
+  window.addEventListener('df-access-repaired',function(){setTimeout(bind,80)});
+  window.addEventListener('online',()=>{setTimeout(()=>{if(savedCredential())bind();else restore()},180)});
 })();
