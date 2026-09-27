@@ -12,7 +12,15 @@
   const today=()=>new Date().toISOString().slice(0,10), monthNow=()=>today().slice(0,7);
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
   function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}renderAll()}
-  function registry(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){return{}}}
+  function registry(){
+    let local={};try{local=JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){}
+    const backup=window.DFOpTestSnapshot?.get?.()?.registry||{};
+    const result={...backup,...local};
+    for(const [id,entry] of Object.entries(backup)){
+      if(!String(result[id]?.expected?.title||'').trim()&&String(entry?.expected?.title||'').trim())result[id]=entry;
+    }
+    return result;
+  }
 
   // Consulta apenas fontes existentes; nunca altera nem salva OPs históricas.
   const validText=value=>{
@@ -195,17 +203,25 @@
   function scanLoop(){const v=$('dfQrVideo'),c=$('dfQrCanvas');if(!stream)return;try{if(v.videoWidth>0){c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(v,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});if(r?.data){const id=r.data;stopScanner();openStored(id);return}}}catch(e){}scanTimer=setTimeout(scanLoop,220)}
   async function scanFile(e){const f=e.target.files?.[0];if(!f)return;try{const id=await decodeQR(f);if(!id)alert('Não encontrei o QR nessa foto.');else openStored(id)}catch(err){alert('Falha ao ler QR.')}e.target.value=''}
 
-  function monthRecords(){const m=$('dfOpMonth')?.value||monthNow();return load().filter(o=>(o.data||'').slice(0,7)===m)}
+  function monthRecords(){
+    const m=$('dfOpMonth')?.value||monthNow();
+    const local=load().filter(o=>(o.data||'').slice(0,7)===m);
+    const backup=(window.DFOpTestSnapshot?.get?.()?.ops||[]).filter(o=>(o.data||'').slice(0,7)===m);
+    const complete=arr=>arr.filter(o=>o.status==='ok');
+    const detail=arr=>complete(arr).reduce((n,o)=>n+(o.produto?2:0)+(o.materials||[]).filter(x=>(+x.kg||0)>0).length*3+(o.operador?1:0)+(o.maquina?1:0),0);
+    return backup.length&&complete(backup).length>=complete(local).length&&detail(backup)>detail(local)?backup:local;
+  }
   function aggregate(list){const ok=list.filter(o=>o.status==='ok');let prod=0,ap=0,meters=0;const mats={},operators={},machines={};ok.forEach(o=>{prod+=+o.produzido||0;ap+=+o.apara||0;if(+o.gm>0)meters+=(+o.produzido||0)*1000/(+o.gm);const operator=operatorFor(o),machine=machineFor(o);if(operator!=='—')operators[operator]=(operators[operator]||0)+(+o.produzido||0);if(machine!=='—')machines[machine]=(machines[machine]||0)+(+o.produzido||0);(o.materials||[]).forEach(m=>mats[m.name]=(mats[m.name]||0)+(+m.kg||0))});const liquid=Math.max(0,prod-ap),yieldPct=prod>0?liquid/prod*100:0;return{ok,pending:list.length-ok.length,prod,ap,liquid,yieldPct,meters,mats,operators,machines}}
   function rows(obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]);return a.length?a.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)} kg</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
   function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`}
   function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(productFor(o))}</td><td>${esc(operatorFor(o))}</td><td>${esc(machineFor(o))}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}</style></head><body><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
-  async function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}await readOriginals();w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
+  async function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}await Promise.all([readOriginals(),window.DFOpTestSnapshot?.load?.()]);w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
 
   async function renderArchive(){const b=$('dfArchiveList');if(!b)return;const list=monthRecords();b.innerHTML=list.length?list.map(o=>`<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${o.status==='ok'?'ok':'warn'}">${o.status==='ok'?'OK':'PENDENTE'}</span><div class="dfOpsTiny">Foto ligada ao QR ${esc(o.qr||'sem QR')}</div><div class="dfArchiveBtns"><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><button class="dfOpsBtn danger" data-delphoto="${esc(o.id)}">EXCLUIR FOTO + OP</button></div></div>`).join(''):'<div class="dfOpsTiny">Nenhuma foto neste mês.</div>';bindViews(b);b.querySelectorAll('[data-delphoto]').forEach(x=>x.onclick=async()=>{if(!confirm('Excluir esta OP e a foto arquivada?'))return;await photoDelete(x.dataset.delphoto);save(load().filter(o=>o.id!==x.dataset.delphoto))})}
   function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
   async function zipMonth(){const list=monthRecords();if(!list.length){alert('Não há fotos neste mês.');return}try{await loadZip();const z=new JSZip();let n=0;for(const o of list){const p=await photoGet(o.id);if(p?.blob){const ext=(p.mime||'').includes('png')?'png':'jpg';z.file((o.numero?'OP-'+o.numero:o.id)+'.'+ext,p.blob);n++}}if(!n){alert('Nenhuma foto encontrada neste aparelho.');return}const blob=await z.generateAsync({type:'blob'});downloadBlob(blob,'DF-OPs-'+($('dfOpMonth').value||monthNow())+'.zip')}catch(e){alert('Falha ao gerar backup: '+(e.message||e))}}
 
-  window.DFOpReportTest={productFor,operatorFor,machineFor,aggregate,reportHtml,remoteOriginals,decodeMeta};
+  window.DFOpReportTest={productFor,operatorFor,machineFor,aggregate,reportHtml,remoteOriginals,decodeMeta,monthRecords};
+  window.addEventListener('df-op-test-snapshot',renderAll);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));setTimeout(mount,1200);setTimeout(mount,2200);
 })();
