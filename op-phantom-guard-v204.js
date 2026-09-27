@@ -4,52 +4,33 @@
   window.DFOpPhantomGuardV204=true;
 
   const OPS_KEY='df_formula_ops_auto_v2';
-  let cleaning=false,last='';
+  let cleaning=false,timer=0;
 
-  function read(){try{const v=JSON.parse(localStorage.getItem(OPS_KEY)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
   function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
-  function technical(v){const s=String(v||'').toUpperCase();return /^DFMASTER(?:1|2|3)?[.-]/.test(s)||/^DFOPNAME2[.]/.test(s)||/^DFNAME2-/.test(s)}
+  function technical(v){const s=String(v||'').toUpperCase().trim();return /^(?:DFMASTER(?:1|2|3)?[.-]|DFOPNAME\d*[.]|DFNAME\d*-|DFOPMETA\d*[.]|DFMETA-)/.test(s)}
   function isPhantom(o){
     if(!o||typeof o!=='object')return true;
-    if(technical(o.id)||technical(o.qr)||technical(o.sourceId))return true;
+    if(technical(o.id)||technical(o.qr)||technical(o.sourceId)||technical(o.source))return true;
     return String(o.source||'')==='foto-equipe' && !(n(o.produzido)>0);
   }
-  function dedupe(a){
-    const seen=new Set(),out=[];
-    for(const o of a){
-      if(isPhantom(o))continue;
-      const id=String(o&&o.id||'').trim();
-      if(id){if(seen.has(id))continue;seen.add(id)}
-      out.push(o);
-    }
-    return out;
-  }
   function clean(emit){
-    if(cleaning)return false;
-    cleaning=true;
+    if(cleaning)return false;cleaning=true;
     try{
-      const before=read(),after=dedupe(before);
-      const sig=JSON.stringify(after);
-      if(after.length!==before.length||sig!==JSON.stringify(before)){
-        localStorage.setItem(OPS_KEY,sig);
-        last=sig;
-        if(emit!==false){
-          try{window.dispatchEvent(new CustomEvent('df-op-phantoms-cleaned',{detail:{removed:before.length-after.length}}))}catch(e){}
-          const month=document.getElementById('dfOpMonth');
-          if(month)month.dispatchEvent(new Event('change'));
-        }
-        return true;
-      }
-      last=sig;
-      return false;
+      const raw=localStorage.getItem(OPS_KEY)||'[]';let before=[];try{before=JSON.parse(raw)}catch(e){before=[]}if(!Array.isArray(before))before=[];
+      const seen=new Set(),after=[];
+      for(const o of before){if(isPhantom(o))continue;const id=String(o&&o.id||'').trim();if(id){if(seen.has(id))continue;seen.add(id)}after.push(o)}
+      const next=JSON.stringify(after);if(next===raw)return false;
+      localStorage.setItem(OPS_KEY,next);
+      if(emit!==false){try{window.dispatchEvent(new CustomEvent('df-op-phantoms-cleaned',{detail:{removed:Math.max(0,before.length-after.length)}}))}catch(e){}const month=document.getElementById('dfOpMonth');if(month)try{month.dispatchEvent(new Event('change'))}catch(e){}}
+      return true;
     }catch(e){return false}finally{cleaning=false}
   }
+  function schedule(ms){clearTimeout(timer);timer=setTimeout(()=>clean(true),ms==null?80:ms)}
 
   clean(true);
-  window.addEventListener('df-op-remote-merged',()=>setTimeout(()=>clean(true),0));
-  window.addEventListener('df-team-changed',()=>setTimeout(()=>clean(true),50));
-  window.addEventListener('focus',()=>clean(true));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)clean(true)});
-  setInterval(()=>{try{const raw=localStorage.getItem(OPS_KEY)||'[]';if(raw!==last)clean(true)}catch(e){}},2500);
+  ['df-op-remote-merged','df-team-changed','df-product-server-applied','df-op-saved','df-op-save-ui-refresh'].forEach(ev=>window.addEventListener(ev,()=>schedule(80)));
+  window.addEventListener('pageshow',()=>schedule(120));
+  window.addEventListener('storage',e=>{if(e&&e.key===OPS_KEY)schedule(50)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(120)});
   window.DFOpPhantomGuard={clean};
 })();
