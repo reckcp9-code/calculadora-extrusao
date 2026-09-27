@@ -2,6 +2,8 @@
   'use strict';
 
   const STORAGE_KEY='df_licenseauth_device_v1';
+  const ACCESS_KEY='df_auto_access_credential_v1';
+  const HISTORY_KEY='df_device_id_history_v1';
   const COOKIE_KEY='df_device_id_v1';
   const COOKIE_MAX_AGE=315360000; // 10 anos
 
@@ -28,20 +30,35 @@
     return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
   }
 
-  function sync(){
-    let cookieId=readCookie();
-    let storedId='';
-    try{storedId=String(localStorage.getItem(STORAGE_KEY)||'').trim()}catch(e){}
+  function remember(ids){
+    try{
+      const old=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+      const all=(Array.isArray(old)?old:[]).concat(ids||[]).map(v=>String(v||'').trim()).filter(Boolean);
+      const unique=all.filter((v,i)=>all.indexOf(v)===i).slice(-8);
+      localStorage.setItem(HISTORY_KEY,JSON.stringify(unique));
+    }catch(e){}
+  }
 
-    // No iOS, o cookie copiado para o app da Tela de Início é a identidade canônica.
-    // Assim Safari e PWA usam o mesmo ID, mesmo com localStorage separado.
-    const id=cookieId||storedId||newId();
+  function sync(){
+    const cookieId=readCookie();
+    let storedId='',hasAccess=false;
+    try{storedId=String(localStorage.getItem(STORAGE_KEY)||'').trim()}catch(e){}
+    try{hasAccess=!!String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){}
+
+    remember([storedId,cookieId]);
+
+    // Regra principal: se este navegador já possui um acesso salvo, o device id
+    // que está no mesmo localStorage desse acesso é o canônico. Isso evita que
+    // um cookie vindo de outro contexto do iPhone troque o device id e invalide
+    // uma licença já vinculada.
+    const id=(hasAccess&&storedId)?storedId:(cookieId||storedId||newId());
 
     try{
       if(storedId!==id)localStorage.setItem(STORAGE_KEY,id);
     }catch(e){}
     if(cookieId!==id)writeCookie(id);
 
+    remember([id]);
     window.DF_DEVICE_ID=id;
     return id;
   }
@@ -49,7 +66,7 @@
   function loadPrivateCalculatorRecovery(){
     try{
       if(!/^\/extrusora(?:\/|$)/i.test(location.pathname))return;
-      const access=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+      const access=String(localStorage.getItem(ACCESS_KEY)||'').trim();
       if(access)return;
       if(document.getElementById('dfPrivateRecoveryLoader'))return;
 
@@ -58,7 +75,7 @@
 
       const s=document.createElement('script');
       s.id='dfPrivateRecoveryLoader';
-      s.src='../access-recovery-v1.js?v=private-extruder-recovery-v2';
+      s.src='../access-recovery-v1.js?v=private-extruder-recovery-v3';
       s.async=true;
       s.onload=function(){
         try{
@@ -69,7 +86,7 @@
                 try{location.reload()}catch(e){}
               }else{
                 const t=document.getElementById('gateText');
-                if(t&&!String(localStorage.getItem('df_auto_access_credential_v1')||'').trim())t.textContent='Não consegui recuperar o acesso automaticamente. Abra o DF EXTRUSOR PRO uma vez neste navegador e tente novamente.';
+                if(t&&!String(localStorage.getItem(ACCESS_KEY)||'').trim())t.textContent='Não consegui recuperar o acesso automaticamente. Abra o DF EXTRUSOR PRO uma vez neste navegador e tente novamente.';
               }
             }).catch(function(){});
           }
