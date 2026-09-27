@@ -13,6 +13,52 @@
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
   function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}renderAll()}
   function registry(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){return{}}}
+  // Somente leitura: nenhum dado de produção ou fechamento é regravado.
+  let originalProducts={};
+  const normId=v=>String(v??'').trim().toUpperCase().replace(/\s+/g,'');
+  const realName=v=>{const name=String(v??'').trim();return name&&!/^(?:—|-|sem produto|op sem nome|produto não informado(?: na op)?)$/i.test(name)?name:''};
+  function opIds(o){return [o?.id,o?.qr,o?.numero,o?.op,o?.codigo].map(normId).filter(Boolean)}
+  function originalEntry(o){
+    const ids=opIds(o),r=registry();
+    for(const [key,entry] of Object.entries(r)){
+      if(ids.includes(normId(entry?.id||key)))return entry;
+    }
+    return null;
+  }
+  function linkedProduction(o){
+    const ids=opIds(o);if(!ids.length)return[];
+    const matches=[];
+    for(const key of ['df_production_now_team_v1','df_production_now_team_test_v6','df_production_now_v1']){
+      let list=[];try{list=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+      if(!Array.isArray(list))continue;
+      matches.push(...list.filter(x=>[x?.op,x?.id,x?.qr,x?.opId].some(v=>ids.includes(normId(v)))));
+    }
+    return matches;
+  }
+  function productFor(o){
+    let name=realName(o?.produto);if(name)return name;
+    const original=originalEntry(o),ids=opIds(o);
+    name=realName(original?.expected?.title)||realName(original?.expected?.produto)||realName(original?.produto);
+    if(name)return name;
+    for(const id of ids){
+      const expected=originalProducts[id];
+      name=realName(expected?.title)||realName(expected?.produto)||realName(expected?.product);
+      if(name)return name;
+    }
+    for(const x of linkedProduction(o)){
+      name=realName(x?.product)||realName(x?.produto)||realName(x?.nomeProduto)||realName(x?.opNome);
+      if(name)return name;
+    }
+    return realName(o?.product)||realName(o?.nomeProduto)||realName(o?.opNome)||realName(o?.expected?.title)||realName(o?.title)||'Produto não informado';
+  }
+  async function readOriginalProducts(){
+    try{
+      const api=window.DFOpRegistryCloudTestV174;
+      if(typeof api?.readOriginalProducts!=='function')return;
+      originalProducts=await api.readOriginalProducts($('dfOpMonth')?.value||monthNow());
+    }catch(e){}
+  }
+
 
   function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
   async function photoPut(id,blob,meta={}){const d=await dbOpen();return new Promise((res,rej)=>{const tx=d.transaction('photos','readwrite');tx.objectStore('photos').put({id,blob,mime:blob.type||'image/jpeg',savedAt:new Date().toISOString(),...meta});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
@@ -109,8 +155,8 @@
   function aggregate(list){const ok=list.filter(o=>o.status==='ok');let prod=0,ap=0,meters=0;const mats={},operators={},machines={};ok.forEach(o=>{prod+=+o.produzido||0;ap+=+o.apara||0;if(+o.gm>0)meters+=(+o.produzido||0)*1000/(+o.gm);if(o.operador)operators[o.operador]=(operators[o.operador]||0)+(+o.produzido||0);if(o.maquina)machines[o.maquina]=(machines[o.maquina]||0)+(+o.produzido||0);(o.materials||[]).forEach(m=>mats[m.name]=(mats[m.name]||0)+(+m.kg||0))});const liquid=Math.max(0,prod-ap),yieldPct=prod>0?liquid/prod*100:0;return{ok,pending:list.length-ok.length,prod,ap,liquid,yieldPct,meters,mats,operators,machines}}
   function rows(obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]);return a.length?a.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)} kg</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
   function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`}
-  function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(o.produto||'—')}</td><td>${esc(o.operador||'—')}</td><td>${esc(o.maquina||'—')}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}</style></head><body><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
-  function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
+  function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(productFor(o))}</td><td>${esc(o.operador||'—')}</td><td>${esc(o.maquina||'—')}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}</style></head><body><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
+  async function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}await readOriginalProducts();w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
 
   async function renderArchive(){const b=$('dfArchiveList');if(!b)return;const list=monthRecords();b.innerHTML=list.length?list.map(o=>`<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${o.status==='ok'?'ok':'warn'}">${o.status==='ok'?'OK':'PENDENTE'}</span><div class="dfOpsTiny">Foto ligada ao QR ${esc(o.qr||'sem QR')}</div><div class="dfArchiveBtns"><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><button class="dfOpsBtn danger" data-delphoto="${esc(o.id)}">EXCLUIR FOTO + OP</button></div></div>`).join(''):'<div class="dfOpsTiny">Nenhuma foto neste mês.</div>';bindViews(b);b.querySelectorAll('[data-delphoto]').forEach(x=>x.onclick=async()=>{if(!confirm('Excluir esta OP e a foto arquivada?'))return;await photoDelete(x.dataset.delphoto);save(load().filter(o=>o.id!==x.dataset.delphoto))})}
   function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
