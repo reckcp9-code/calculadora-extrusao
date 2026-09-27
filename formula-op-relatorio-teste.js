@@ -61,14 +61,14 @@
   }
   function candidateFromPhoto(text){
     const lines=String(text||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
-    const clean=x=>String(x||'').replace(/^(?:nome|descri[cç][aã]o)\s*[:\-]?\s*/i,'').replace(/\s+(?:quantidade|pedido|op\s*\/|peso\s+total|metragem|data\s+emiss[aã]o)\b.*$/i,'').trim().slice(0,85);
-    for(const pattern of [/cliente\s*[/|\-]?\s*formula[cç][aã]o/i, /(?:^|\s)formula[cç][aã]o\s*[:\-]/i, /(?:^|\s)produto\s*[:\-]/i, /(?:^|\s)cliente\s*[:\-]/i]){
+    const clean=x=>String(x||'').replace(/\s+(?:tamanho\s+final|peso\s+l[ií]quido|descri[cç][aã]o\s+do\s+produto|quantidade|pedido|op\s*\/|data\s+emiss[aã]o)\b.*$/i,'').trim().slice(0,85);
+    for(const pattern of [/formul[aá][cç][aã]o\b/i, /descri[cç][aã]o\s+(?:do|d0|de)\s+produt[oo]\b/i, /(?:^|\s)produto\s*[:\-]/i, /(?:^|\s)cliente\b/i]){
       for(let i=0;i<lines.length;i++){
         const match=lines[i].match(pattern);if(!match)continue;
-        const same=clean(lines[i].slice(match.index+match[0].length).replace(/^\s*[:\-]\s*/,''));
+        const same=clean(lines[i].slice(match.index+match[0].length).replace(/^\s*[:\-|]\s*/,''));
         const next=clean(lines[i+1]);
         const value=realName(same)||realName(next);
-        if(value&&/[A-Za-zÀ-ÿ]{3}/.test(value)&&!/^(?:formula[cç][aã]o|cliente|produto|ordem\s+de\s+produ[cç][aã]o|ferreira\s+embalagens)$/i.test(value))return value;
+        if(value&&/[A-Za-zÀ-ÿ]{3}/.test(value)&&!/^(?:formula[cç][aã]o|cliente|produto|ordem\s+de\s+produ[cç][aã]o|ferreira\s+embalagens|tamanho\s+final)$/i.test(value))return value;
       }
     }
     return '';
@@ -77,6 +77,14 @@
     const c=document.createElement('canvas');c.width=source.height;c.height=source.width;
     const ctx=c.getContext('2d');ctx.translate(clockwise?c.width:0,clockwise?0:c.height);ctx.rotate(clockwise?Math.PI/2:-Math.PI/2);ctx.drawImage(source,0,0);
     return c;
+  }
+  function headerCanvas(source){
+    const width=Math.floor(source.width*.68),height=Math.floor(source.height*.43);
+    const factor=Math.min(2.5,2400/Math.max(1,width));
+    const out=document.createElement('canvas');out.width=Math.round(width*factor);out.height=Math.round(height*factor);
+    const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,out.width,out.height);
+    x.drawImage(source,0,0,width,height,0,0,out.width,out.height);
+    return out;
   }
   let cloudPhotoListPromise=null,photoRecoveryRunning=false,photoRecoveryMonth='',photoRecoveryTimer=0;
   function cloudTeamId(){
@@ -145,7 +153,7 @@
     if(!list.length){if(manual)recoveryStatus('Todos os produtos deste mês já foram encontrados.');return}
     photoRecoveryRunning=true;photoRecoveryMonth=month;
     const btn=$('dfRecoverPhotoNamesTest');if(btn)btn.disabled=true;
-    let fixed=0,unavailable=0,worker=null;
+    let fixed=0,unavailable=0,photoFound=0,photoRead=0,worker=null;
     try{
       await loadTess();
       if(typeof window.Tesseract.createWorker==='function')worker=await window.Tesseract.createWorker('por');
@@ -158,10 +166,14 @@
         if(!guess)try{
           const file=await photoForReport(o);
           if(file){
+            photoFound++;
             const c=await imageCanvas(file,2100);
-            const sources=c.height>c.width*1.1?[rotatePhotoCanvas(c,true),c,rotatePhotoCanvas(c,false)]:[c,rotatePhotoCanvas(c,true),rotatePhotoCanvas(c,false)];
+            const sources=c.height>c.width*1.1?[rotatePhotoCanvas(c,true),rotatePhotoCanvas(c,false),c]:[c,rotatePhotoCanvas(c,true),rotatePhotoCanvas(c,false)];
             for(const source of sources){
-              const result=worker?await worker.recognize(source):await window.Tesseract.recognize(source,'por');
+              const crop=headerCanvas(source);
+              try{await worker?.setParameters?.({tessedit_pageseg_mode:6})}catch(e){}
+              const result=worker?await worker.recognize(crop):await window.Tesseract.recognize(crop,'por');
+              photoRead++;
               guess=candidateFromPhoto(result?.data?.text);
               if(guess)break;
             }
@@ -172,7 +184,7 @@
         try{localStorage.setItem(TEST_PHOTO_NAMES_KEY,JSON.stringify(photoNames))}catch(e){}
       }
       if(fixed)renderReport();
-      recoveryStatus(fixed+' produto(s) recuperado(s) pelo campo Cliente/Formulação; '+unavailable+' ainda sem leitura segura. Pesos e materiais preservados.');
+      recoveryStatus(fixed+' produto(s) identificados. Fotos encontradas: '+photoFound+' de '+list.length+'; fotos da equipe na nuvem: '+photos.length+'; '+unavailable+' ainda sem nome legível. Pesos e materiais preservados.');
     }catch(e){recoveryStatus('Não foi possível ler as fotos da nuvem: '+(e.message||e))}
     finally{
       try{await worker?.terminate?.()}catch(e){}
