@@ -38,27 +38,69 @@
     if(!entries||typeof entries!=='object')return[];
     return Object.entries(entries).filter(([key,x])=>ids.includes(String(x?.id||key).trim().toUpperCase().replace(/\s+/g,''))).map(([,x])=>x);
   }
+  // Metadados originais da OP vindos da equipe, mantidos só em memória nesta prévia.
+  const remoteOriginals=new Map();
+  function cloudOriginalFor(o){
+    for(const id of keysFor(o)){const entry=remoteOriginals.get(id);if(entry)return entry}
+    return null;
+  }
   function productFor(o){
-    // 1. Nome gravado diretamente na OP.
+    // O nome impresso na OP original prevalece, inclusive sobre o fechamento.
     let value=validText(o?.produto);if(value)return value;
-    const production=productionFor(o);
-    // 2. Fechamento/registro da produção desta OP.
-    for(const x of production){
-      value=validText(x?.product)||validText(x?.produto)||validText(x?.nomeProduto);
-      if(value)return value;
-    }
-    // 3. Cadastro da OP relacionado pelo código ou QR.
     for(const x of registeredFor(o)){
       value=validText(x?.expected?.title)||validText(x?.expected?.produto)||validText(x?.produto)||validText(x?.product);
       if(value)return value;
     }
-    // 4. Campos antigos mantidos nos registros.
+    const remote=cloudOriginalFor(o);
+    value=validText(remote?.expected?.title)||validText(remote?.expected?.produto);
+    if(value)return value;
+    const production=productionFor(o);
+    for(const x of production){
+      value=validText(x?.product)||validText(x?.produto)||validText(x?.nomeProduto);
+      if(value)return value;
+    }
     for(const x of [o,...production]){
       value=validText(x?.product)||validText(x?.nomeProduto)||validText(x?.opNome)||validText(x?.expected?.title)||validText(x?.title)||validText(x?.nome);
       if(value)return value;
     }
     return 'Produto não informado';
   }
+  function decodeMeta(code){
+    try{
+      let raw=String(code).slice('DFOPMETA1.'.length).replace(/-/g,'+').replace(/_/g,'/');
+      while(raw.length%4)raw+='=';
+      return JSON.parse(decodeURIComponent(Array.from(atob(raw),c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')));
+    }catch(e){return null}
+  }
+  async function readOriginals(){
+    if(navigator.onLine===false)return;
+    let team=null;try{team=window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null')}catch(e){}
+    if(!team?.teamId)return;
+    try{
+      let token=sessionStorage.getItem('df_secure_token_v2')||'';
+      const device=window.DFDeviceIdentity?.get?.()||localStorage.getItem('df_licenseauth_device_v1')||'';
+      if(!token){
+        const credential=localStorage.getItem('df_auto_access_credential_v1')||'';
+        if(!credential||!device)return;
+        const session=await fetch('https://df-extrusor-api.reck-cp9.workers.dev/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':device},body:JSON.stringify({credential,deviceId:device}),cache:'no-store'});
+        if(!session.ok)return;
+        token=String((await session.json()).token||'');
+        if(!token)return;
+      }
+      const month=$('dfOpMonth')?.value||monthNow();
+      const response=await fetch('https://df-extrusor-api.reck-cp9.workers.dev/op/photo/list',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device},body:JSON.stringify({teamId:team.teamId,month}),cache:'no-store'});
+      if(!response.ok)return;
+      const photos=(await response.json()).photos||[];
+      for(const p of photos){
+        const qr=String(p?.qr||'');
+        if(!qr.startsWith('DFOPMETA1.'))continue;
+        const entry=decodeMeta(qr);
+        const id=String(entry?.id||'').trim().toUpperCase().replace(/\s+/g,'');
+        if(id)remoteOriginals.set(id,entry);
+      }
+    }catch(e){}
+  }
+
   function operatorFor(o){return validText(o?.operador)||productionFor(o).map(x=>validText(x?.operador)||validText(x?.operator)||validText(x?.operatorName)).find(Boolean)||'—'}
   function machineFor(o){return validText(o?.maquina)||productionFor(o).map(x=>validText(x?.maquina)||validText(x?.machine)||validText(x?.machineName)).find(Boolean)||'—'}
 
@@ -89,10 +131,10 @@
     <div id="dfOpModal" class="dfOpModal"><div class="dfOpModalBox"><button id="dfCloseModal" class="dfOpsBtn gray" style="margin-top:0">FECHAR</button><div id="dfModalBody"></div></div></div>
     <div id="dfScanModal" class="dfOpModal"><div class="dfOpModalBox dfScanWrap"><button id="dfCloseScan" class="dfOpsBtn gray" style="margin-top:0">FECHAR CÂMERA</button><video id="dfQrVideo" playsinline muted></video><canvas id="dfQrCanvas" style="display:none"></canvas><div id="dfScanStatus" class="dfOpsStatus">Procurando QR...</div></div></div>`}
 
-  function mount(){addStyle();const area=$('foDevArea');if(!area||$('dfFormulaSubnav'))return;const core=document.createElement('div');core.id='dfFormulaCore';Array.from(area.children).forEach(ch=>core.appendChild(ch));const nav=document.createElement('div');nav.id='dfFormulaSubnav';nav.innerHTML='<button id="dfFormTabCore" class="on">🧪 FORMULAÇÃO</button><button id="dfFormTabOps">🤖 OPS AUTOMÁTICAS</button>';const ops=document.createElement('div');ops.id='dfFormulaOps';ops.innerHTML=build();area.append(nav,core,ops);$('dfFormTabCore').onclick=()=>switchMain(false);$('dfFormTabOps').onclick=()=>switchMain(true);ops.querySelectorAll('[data-pane]').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));bind();renderAll();if(new URLSearchParams(location.search).get('ops')==='1')switchMain(true)}
+  function mount(){addStyle();const area=$('foDevArea');if(!area||$('dfFormulaSubnav'))return;const core=document.createElement('div');core.id='dfFormulaCore';Array.from(area.children).forEach(ch=>core.appendChild(ch));const nav=document.createElement('div');nav.id='dfFormulaSubnav';nav.innerHTML='<button id="dfFormTabCore" class="on">🧪 FORMULAÇÃO</button><button id="dfFormTabOps">🤖 OPS AUTOMÁTICAS</button>';const ops=document.createElement('div');ops.id='dfFormulaOps';ops.innerHTML=build();area.append(nav,core,ops);$('dfFormTabCore').onclick=()=>switchMain(false);$('dfFormTabOps').onclick=()=>switchMain(true);ops.querySelectorAll('[data-pane]').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));bind();renderAll();setTimeout(readOriginals,500);if(new URLSearchParams(location.search).get('ops')==='1')switchMain(true)}
   function switchMain(on){$('dfFormulaCore').style.display=on?'none':'block';$('dfFormulaOps').classList.toggle('on',on);$('dfFormTabCore').classList.toggle('on',!on);$('dfFormTabOps').classList.toggle('on',on)}
   function switchPane(name){document.querySelectorAll('.dfOpsTabs button').forEach(b=>b.classList.toggle('on',b.dataset.pane===name));document.querySelectorAll('.dfOpsPane').forEach(p=>p.classList.remove('on'));$('dfPane'+name[0].toUpperCase()+name.slice(1))?.classList.add('on');if(name==='archive')renderArchive()}
-  function bind(){$('dfOpMonth').value=monthNow();$('dfOpPhoto').onchange=photoChosen;$('dfOpMonth').onchange=renderAll;$('dfPrintReport').onclick=printReport;$('dfScanQr').onclick=startScanner;$('dfScanQrFile').onchange=scanFile;$('dfCloseScan').onclick=stopScanner;$('dfCloseModal').onclick=closeModal;$('dfZipMonth').onclick=zipMonth}
+  function bind(){$('dfOpMonth').value=monthNow();$('dfOpPhoto').onchange=photoChosen;$('dfOpMonth').onchange=()=>{renderAll();readOriginals()};$('dfPrintReport').onclick=printReport;$('dfScanQr').onclick=startScanner;$('dfScanQrFile').onchange=scanFile;$('dfCloseScan').onclick=stopScanner;$('dfCloseModal').onclick=closeModal;$('dfZipMonth').onclick=zipMonth}
 
   function status(t,c=''){$('dfOpStatus').className='dfOpsStatus '+c;$('dfOpStatus').innerHTML=t}
   async function imageCanvas(file,max=2200){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Foto inválida'))};img.src=u})}
@@ -158,12 +200,12 @@
   function rows(obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]);return a.length?a.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)} kg</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
   function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`}
   function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(productFor(o))}</td><td>${esc(operatorFor(o))}</td><td>${esc(machineFor(o))}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}</style></head><body><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
-  function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
+  async function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}await readOriginals();w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
 
   async function renderArchive(){const b=$('dfArchiveList');if(!b)return;const list=monthRecords();b.innerHTML=list.length?list.map(o=>`<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${o.status==='ok'?'ok':'warn'}">${o.status==='ok'?'OK':'PENDENTE'}</span><div class="dfOpsTiny">Foto ligada ao QR ${esc(o.qr||'sem QR')}</div><div class="dfArchiveBtns"><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><button class="dfOpsBtn danger" data-delphoto="${esc(o.id)}">EXCLUIR FOTO + OP</button></div></div>`).join(''):'<div class="dfOpsTiny">Nenhuma foto neste mês.</div>';bindViews(b);b.querySelectorAll('[data-delphoto]').forEach(x=>x.onclick=async()=>{if(!confirm('Excluir esta OP e a foto arquivada?'))return;await photoDelete(x.dataset.delphoto);save(load().filter(o=>o.id!==x.dataset.delphoto))})}
   function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
   async function zipMonth(){const list=monthRecords();if(!list.length){alert('Não há fotos neste mês.');return}try{await loadZip();const z=new JSZip();let n=0;for(const o of list){const p=await photoGet(o.id);if(p?.blob){const ext=(p.mime||'').includes('png')?'png':'jpg';z.file((o.numero?'OP-'+o.numero:o.id)+'.'+ext,p.blob);n++}}if(!n){alert('Nenhuma foto encontrada neste aparelho.');return}const blob=await z.generateAsync({type:'blob'});downloadBlob(blob,'DF-OPs-'+($('dfOpMonth').value||monthNow())+'.zip')}catch(e){alert('Falha ao gerar backup: '+(e.message||e))}}
 
-  window.DFOpReportTest={productFor,operatorFor,machineFor,aggregate,reportHtml};
+  window.DFOpReportTest={productFor,operatorFor,machineFor,aggregate,reportHtml,remoteOriginals,decodeMeta};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));setTimeout(mount,1200);setTimeout(mount,2200);
 })();
