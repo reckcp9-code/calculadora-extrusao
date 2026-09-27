@@ -11,18 +11,40 @@
     document.head.appendChild(st);
   }
 
+  function fire(el){
+    if(!el)return;
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+    el.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
   function apply(inp,p){
     inp.value=p.nome;
     inp.dataset.produtoId=p.id;
     inp.dataset.produtoBoca=p.boca_largura;
+    inp.dataset.produtoComprimento=p.comprimento;
     inp.dataset.produtoMicra=p.micra;
     let info=document.getElementById('dfProdutoInfo');
     if(!info){info=document.createElement('div');info.id='dfProdutoInfo';info.className='dfProdutoInfo';inp.parentElement.appendChild(info)}
-    info.innerHTML='Boca/Largura: <strong>'+esc(p.boca_largura)+'</strong> &nbsp;•&nbsp; Micra: <strong>'+esc(p.micra)+'</strong>';
+    info.innerHTML='Largura: <strong>'+esc(p.boca_largura)+'</strong> &nbsp;•&nbsp; Comprimento: <strong>'+esc(p.comprimento)+'</strong> &nbsp;•&nbsp; Micra: <strong>'+esc(p.micra)+'</strong>';
+
     const exL=document.getElementById('exL');
+    const exComp=document.getElementById('exComp');
     const exM=document.getElementById('exM');
-    if(exL){exL.value=String(p.boca_largura).replace('.',',');exL.dispatchEvent(new Event('input',{bubbles:true}))}
-    if(exM){exM.value=String(p.micra).replace('.',',');exM.dispatchEvent(new Event('input',{bubbles:true}))}
+
+    if(exL){exL.value=String(p.boca_largura).replace('.',',');fire(exL)}
+    if(exComp){exComp.value=String(p.comprimento).replace('.',',');fire(exComp)}
+    if(exM){exM.value=String(p.micra).replace('.',',');fire(exM)}
+
+    try{
+      localStorage.setItem('df_produto_extrusao_selecionado_v1',JSON.stringify({
+        id:p.id,
+        nome:p.nome,
+        largura:p.boca_largura,
+        comprimento:p.comprimento,
+        micra:p.micra
+      }));
+    }catch(e){}
+
     const list=document.getElementById('dfProdutoLista');
     if(list)list.classList.remove('on');
   }
@@ -31,7 +53,7 @@
     const list=document.getElementById('dfProdutoLista');if(!list)return;
     const q=norm(inp.value.trim());
     const arr=produtos.filter(p=>!q||norm(p.nome).includes(q)).slice(0,20);
-    list.innerHTML=arr.length?arr.map((p,i)=>'<button type="button" class="dfProdutoOpcao" data-i="'+i+'"><b>'+esc(p.nome)+'</b><span>Boca/Largura '+esc(p.boca_largura)+' • Micra '+esc(p.micra)+'</span></button>').join(''):'<div style="padding:12px;color:#94a3b8;font-size:12px">Nenhum produto encontrado.</div>';
+    list.innerHTML=arr.length?arr.map((p,i)=>'<button type="button" class="dfProdutoOpcao" data-i="'+i+'"><b>'+esc(p.nome)+'</b><span>'+esc(p.boca_largura)+' × '+esc(p.comprimento)+' • Micra '+esc(p.micra)+'</span></button>').join(''):'<div style="padding:12px;color:#94a3b8;font-size:12px">Nenhum produto encontrado.</div>';
     list.dataset.ids=JSON.stringify(arr.map(p=>p.id));
     list.classList.add('on');
   }
