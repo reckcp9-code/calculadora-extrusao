@@ -31,6 +31,25 @@ function mergeMeta(p){if(!p||!p.id)return false;var r=load(REG,{}),id=String(p.i
 async function sync(){if(busy||navigator.onLine===false)return false;var t=team();if(!t||!t.teamId)return false;busy=true;try{var all=[];for(var i=0;i<2;i++){try{var j=await post('/op/photo/list',{teamId:t.teamId,month:month(-i)});all=all.concat(j.photos||[])}catch(e){}}var n=0;all.forEach(function(p){var q=String(p&&p.qr||'');if(q.indexOf(PREFIX)!==0)return;var x=dec(q.slice(PREFIX.length));if(x&&mergeMeta(x))n++});if(n){try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:{source:'cloud-team'}}))}catch(e){}}purgeArtifacts();return true}finally{busy=false}}
 function refreshSoon(){setTimeout(function(){publishAll();sync()},180)}
 function boot(){purgeArtifacts();setTimeout(function(){publishAll().then(sync).catch(function(){})},700);setTimeout(sync,1800);window.addEventListener('df-op-qr-created',function(e){if(e&&e.detail&&e.detail.source==='cloud-team')return;setTimeout(publishAll,150)});window.addEventListener('df-team-changed',refreshSoon);window.addEventListener('df-team-joined',refreshSoon);window.addEventListener('online',refreshSoon);window.addEventListener('pageshow',function(){setTimeout(sync,250)});document.addEventListener('click',function(e){var t=e.target;if(!t)return;if(t.id==='dfNowTab'||t.id==='dfCloudRefresh'||t.id==='dfNowSave'){setTimeout(function(){publishAll();sync()},220)}},true)}
-window.DFOpRegistryCloudTestV174={sync:sync,publishAll:publishAll};
+async function readOriginalProducts(reportMonth){
+  var t=team(),result={};
+  if(!t||!t.teamId||navigator.onLine===false)return result;
+  var selected=/^\d{4}-\d{2}$/.test(String(reportMonth||''))?String(reportMonth):month(0);
+  var d=new Date(Number(selected.slice(0,4)),Number(selected.slice(5,7))-1,1),months=[selected];
+  d.setMonth(d.getMonth()-1);
+  months.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+  var pages=await Promise.allSettled(months.map(function(m){return post('/op/photo/list',{teamId:t.teamId,month:m})}));
+  pages.forEach(function(page){
+    if(page.status!=='fulfilled')return;
+    (page.value.photos||[]).forEach(function(p){
+      var qr=String(p&&p.qr||'');
+      if(qr.indexOf(PREFIX)!==0)return;
+      var original=dec(qr.slice(PREFIX.length)),id=norm(original&&original.id);
+      if(id&&original&&original.expected)result[id]=original.expected;
+    });
+  });
+  return result;
+}
+window.DFOpRegistryCloudTestV174={sync:sync,publishAll:publishAll,readOriginalProducts:readOriginalProducts};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
