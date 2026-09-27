@@ -56,8 +56,9 @@
   try{localStorage.removeItem('df_test_photo_names_confirmed_v1')}catch(e){}
   let photoNames={};
   try{photoNames=JSON.parse(localStorage.getItem(TEST_PHOTO_NAMES_KEY)||'{}')||{}}catch(e){}
+  const verifiedPhotoNames={'DFOP-20260921-123452-CW7X':'Koch 88 x 108 x 0,049','DFOP-20260916-151910-X1EA':'Canela 150 litros'};
   function photoName(o){
-    for(const id of opIds(o)){const name=realName(photoNames[id]);if(name)return name}
+    for(const id of opIds(o)){const name=realName(verifiedPhotoNames[id])||realName(photoNames[id]);if(name)return name}
     return '';
   }
   function candidateFromPhoto(text){
