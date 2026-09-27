@@ -52,7 +52,8 @@
     return realName(o?.product)||realName(o?.nomeProduto)||realName(o?.opNome)||realName(o?.expected?.title)||realName(o?.title)||photoName(o)||'Produto não informado';
   }
   // Apenas leitura no teste: nomes confirmados por QR/foto não alteram as OPs históricas.
-  const TEST_PHOTO_NAMES_KEY='df_test_photo_names_confirmed_v1';
+  const TEST_PHOTO_NAMES_KEY='df_test_photo_names_confirmed_v2';
+  try{localStorage.removeItem('df_test_photo_names_confirmed_v1')}catch(e){}
   let photoNames={};
   try{photoNames=JSON.parse(localStorage.getItem(TEST_PHOTO_NAMES_KEY)||'{}')||{}}catch(e){}
   function photoName(o){
@@ -61,15 +62,28 @@
   }
   function candidateFromPhoto(text){
     const lines=String(text||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
-    const clean=x=>String(x||'').replace(/\s+(?:tamanho\s+final|peso\s+l[ií]quido|descri[cç][aã]o\s+do\s+produto|quantidade|pedido|op\s*\/|data\s+emiss[aã]o)\b.*$/i,'').trim().slice(0,85);
-    for(const pattern of [/formul[aá][cç][aã]o\b/i, /descri[cç][aã]o\s+(?:do|d0|de)\s+produt[oo]\b/i, /(?:^|\s)produto\s*[:\-]/i, /(?:^|\s)cliente\b/i]){
-      for(let i=0;i<lines.length;i++){
-        const match=lines[i].match(pattern);if(!match)continue;
-        const same=clean(lines[i].slice(match.index+match[0].length).replace(/^\s*[:\-|]\s*/,''));
-        const next=clean(lines[i+1]);
-        const value=realName(same)||realName(next);
-        if(value&&/[A-Za-zÀ-ÿ]{3}/.test(value)&&!/^(?:formula[cç][aã]o|cliente|produto|ordem\s+de\s+produ[cç][aã]o|ferreira\s+embalagens|tamanho\s+final)$/i.test(value))return value;
-      }
+    const reject=/^(?:ferreira|ordem|produ[cç][aã]o|fase|extrus[aã]o|tamanho|peso|quantidade|descri[cç][aã]o|cliente|formula[cç][aã]o|material|aparas?|kg\b|uf\b|cm\b|total|gramas|largura|data|operador|m[aá]quina|in[ií]cio|final|obs(?:erva[cç][oõ]es)?|c[oó]digo)\b/i;
+    const valid=x=>{
+      if(/\b(?:FASE|EXTRUS[AÃ]O|PRODU[CÇ][AÃ]O\s+(?:POR|DIA)|ORDEM\s+DE|MISTURA\s+CALCULADA)\b/i.test(String(x||'')))return '';
+      const value=String(x||'').replace(/^[^\p{L}\p{N}]+/u,'').replace(/\s+(?:TAMANHO|UF:|FASE\s*1|PESO|MISTURA|OS:|ORDEM)\b.*$/i,'').trim();
+      const words=(value.match(/[a-zà-ÿ]{2,}/gi)||[]);
+      if(/\d/.test(value)&&words.length<2&&!/\d\s*[x×]\s*\d/i.test(value))return '';
+      return value.length>=4&&value.length<=75&&words.length>0&&!reject.test(value)&&!/[=:]{2,}/.test(value)?value:'';
+    };
+    const found=[];
+    for(let i=0;i<lines.length-1;i++){
+      const label=lines[i];
+      if(!/(?:formul[aá][cç][aã]o|descri[cç][aã]o\s+(?:do|d0|de)\s+produt[oo])/i.test(label))continue;
+      if(label.length>65||/\b(?:fase|extrus[aã]o|m[aá]quina|produ[cç][aã]o\s+(?:por|dia)|parada)\b/i.test(label))continue;
+      const value=valid(lines[i+1]);
+      if(value)found.push(value);
+    }
+    if(!found.length)return '';
+    if(found.length===1)return found[0];
+    const norm=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    for(let i=0;i<found.length;i++)for(let j=i+1;j<found.length;j++){
+      const x=norm(found[i]),y=norm(found[j]);
+      if(x===y||x.length>=5&&y.length>=5&&(x.includes(y)||y.includes(x)))return found[i].length>=found[j].length?found[i]:found[j];
     }
     return '';
   }
@@ -79,7 +93,7 @@
     return c;
   }
   function headerCanvas(source){
-    const width=Math.floor(source.width*.68),height=Math.floor(source.height*.43);
+    const width=Math.floor(source.width*.52),height=Math.floor(source.height*.38);
     const factor=Math.min(2.5,2400/Math.max(1,width));
     const out=document.createElement('canvas');out.width=Math.round(width*factor);out.height=Math.round(height*factor);
     const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,out.width,out.height);
