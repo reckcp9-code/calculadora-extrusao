@@ -164,7 +164,7 @@
     if(photoRecoveryRunning)return;
     if(manual)cloudPhotoListPromise=null;
     if(photoRecoveryMonth===month&&!manual)return;
-    const list=monthRecords().filter(o=>productFor(o)==='Produto não informado');
+    const list=monthRecords().filter(o=>o.status==='ok'&&productFor(o)==='Produto não informado');
     if(!list.length){if(manual)recoveryStatus('Todos os produtos deste mês já foram encontrados.');return}
     photoRecoveryRunning=true;photoRecoveryMonth=month;
     const btn=$('dfRecoverPhotoNamesTest');if(btn)btn.disabled=true;
@@ -176,7 +176,7 @@
       for(let i=0;i<list.length;i++){
         if(document.hidden)break;
         const o=list[i],id=opIds(o)[0]||String(o.id||'');
-        recoveryStatus('Lendo Cliente/Formulação das fotos: '+(i+1)+' de '+list.length+'...');
+        recoveryStatus('Conferindo Cliente/Formulação nas OPs de Prontas: '+(i+1)+' de '+list.length+'...');
         let guess=candidateFromPhoto(o.ocrText);
         if(!guess)try{
           const file=await photoForReport(o);
@@ -207,7 +207,7 @@
     }
   }
   async function reviewUnknownProducts(){
-    const list=monthRecords().filter(o=>o.status==='ok'&&productFor(o)==='Produto não informado');
+    const list=load().filter(o=>o.status==='ok'&&(o.data||'').slice(0,7)===($('dfOpMonth')?.value||monthNow())&&productFor(o)==='Produto não informado');
     if(!list.length){alert('Não há produtos sem nome neste mês.');return}
     const overlay=document.createElement('div');overlay.id='dfPhotoReviewTest';
     overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.94);padding:12px;overflow:auto;color:#fff';
