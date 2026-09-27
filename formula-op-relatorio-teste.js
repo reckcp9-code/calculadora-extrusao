@@ -52,11 +52,11 @@
     return realName(o?.product)||realName(o?.nomeProduto)||realName(o?.opNome)||realName(o?.expected?.title)||realName(o?.title)||photoName(o)||'Produto não informado';
   }
   // Apenas leitura no teste: nomes confirmados por QR/foto não alteram as OPs históricas.
-  const TEST_PHOTO_NAMES_KEY='df_test_photo_names_confirmed_v2';
-  try{localStorage.removeItem('df_test_photo_names_confirmed_v1')}catch(e){}
+  const TEST_PHOTO_NAMES_KEY='df_test_photo_names_confirmed_v3';
+  try{localStorage.removeItem('df_test_photo_names_confirmed_v1');localStorage.removeItem('df_test_photo_names_confirmed_v2')}catch(e){}
   let photoNames={};
   try{photoNames=JSON.parse(localStorage.getItem(TEST_PHOTO_NAMES_KEY)||'{}')||{}}catch(e){}
-  const verifiedPhotoNames={'DFOP-20260921-123452-CW7X':'Koch 88 x 108 x 0,049','DFOP-20260916-151910-X1EA':'Canela 150 litros'};
+  const verifiedPhotoNames={'DFOP-20260921-123452-CW7X':'Koch 88 x 108 x 0,049','DFOP-20260915-122157-WF7L':'Koch 88 x 108 x 0,049','DFOP-20260916-151910-X1EA':'Canela 150 litros','DFOP-20260921-145718-LTIF':'Sacola amarela d2','DFOP-20260914-115415-HRU2':'Fundo reto','DFOP-20260921-150129-UWGN':'Volpini'};
   function photoName(o){
     for(const id of opIds(o)){const name=realName(verifiedPhotoNames[id])||realName(photoNames[id]);if(name)return name}
     return '';
@@ -68,7 +68,7 @@
       if(/\b(?:FASE|EXTRUS[AÃ]O|PRODU[CÇ][AÃ]O\s+(?:POR|DIA)|ORDEM\s+DE|MISTURA\s+CALCULADA)\b/i.test(String(x||'')))return '';
       const value=String(x||'').replace(/^[^\p{L}\p{N}]+/u,'').replace(/\s+(?:TAMANHO|UF:|FASE\s*1|PESO|MISTURA|OS:|ORDEM)\b.*$/i,'').trim();
       const words=(value.match(/[a-zà-ÿ]{2,}/gi)||[]);
-      if(/\d/.test(value)&&words.length<2&&!/\d\s*[x×]\s*\d/i.test(value))return '';
+      if(/\d/.test(value)&&words.length<2&&!/\d\s*[x×]\s*\d/i.test(value)&&!/^\d+\s*(?:litros|lts)$/i.test(value))return '';
       return value.length>=4&&value.length<=75&&words.length>0&&!reject.test(value)&&!/[=:]{2,}/.test(value)?value:'';
     };
     const found=[];
@@ -80,11 +80,11 @@
       if(value)found.push(value);
     }
     if(!found.length)return '';
-    if(found.length===1)return found[0];
+    if(found.length<2)return '';
     const norm=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
     for(let i=0;i<found.length;i++)for(let j=i+1;j<found.length;j++){
       const x=norm(found[i]),y=norm(found[j]);
-      if(x===y||x.length>=5&&y.length>=5&&(x.includes(y)||y.includes(x)))return found[i].length>=found[j].length?found[i]:found[j];
+      if(x===y)return found[i].length>=found[j].length?found[i]:found[j];
     }
     return '';
   }
@@ -206,6 +206,38 @@
       photoRecoveryRunning=false;if(btn)btn.disabled=false;
     }
   }
+  async function reviewUnknownProducts(){
+    const list=monthRecords().filter(o=>o.status==='ok'&&productFor(o)==='Produto não informado');
+    if(!list.length){alert('Não há produtos sem nome neste mês.');return}
+    const overlay=document.createElement('div');overlay.id='dfPhotoReviewTest';
+    overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.94);padding:12px;overflow:auto;color:#fff';
+    const panel=document.createElement('div');panel.style.cssText='max-width:640px;margin:10px auto;background:#101827;border:1px solid #334155;border-radius:16px;padding:14px';
+    const heading=document.createElement('h2'),status=document.createElement('p'),img=document.createElement('img'),input=document.createElement('input');
+    heading.textContent='Conferir produto na OP';heading.style.margin='0 0 10px';
+    status.style.cssText='font-size:14px;color:#cbd5e1;line-height:1.5';
+    img.style.cssText='display:block;width:100%;max-height:65vh;object-fit:contain;background:#000;border-radius:8px;margin:10px 0';
+    input.placeholder='Digite exatamente o nome em Cliente/Formulação';
+    input.style.cssText='width:100%;box-sizing:border-box;padding:14px;font-size:17px;background:#080b13;color:#fff;border:1px solid #64748b;border-radius:8px;margin:8px 0';
+    const bar=document.createElement('div');bar.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+    const saveBtn=document.createElement('button'),skipBtn=document.createElement('button'),closeBtn=document.createElement('button');
+    for(const button of [saveBtn,skipBtn,closeBtn])button.style.cssText='flex:1;min-width:115px;padding:13px;border:1px solid #475569;border-radius:9px;background:#14213d;color:#fff;font-weight:700';
+    saveBtn.textContent='✓ Salvar e próxima';skipBtn.textContent='Pular';closeBtn.textContent='Fechar';
+    bar.append(saveBtn,skipBtn,closeBtn);panel.append(heading,status,img,input,bar);overlay.append(panel);document.body.append(overlay);
+    let n=0,url='';
+    async function next(){
+      if(url){URL.revokeObjectURL(url);url=''}
+      if(n>=list.length){overlay.remove();renderReport();return}
+      const o=list[n],id=opIds(o)[0]||String(o.id||'');
+      status.textContent='OP '+(n+1)+' de '+list.length+' • '+id+' • confira o nome diretamente na foto.';
+      input.value='';img.removeAttribute('src');
+      try{const photo=await photoForReport(o);if(photo){url=URL.createObjectURL(photo);img.src=url}else status.textContent+=' Foto indisponível neste aparelho.'}
+      catch(e){status.textContent+=' Não foi possível abrir a foto.'}
+    }
+    saveBtn.onclick=()=>{const name=realName(input.value);if(!name){input.focus();return}const id=opIds(list[n])[0]||String(list[n].id||'');photoNames[id]=name;try{localStorage.setItem(TEST_PHOTO_NAMES_KEY,JSON.stringify(photoNames))}catch(e){}n++;next()};
+    skipBtn.onclick=()=>{n++;next()};
+    closeBtn.onclick=()=>{if(url)URL.revokeObjectURL(url);overlay.remove();renderReport()};
+    await next();
+  }
   async function readOriginalProducts(){
     try{
       const api=window.DFOpRegistryCloudTestV174;
@@ -309,7 +341,7 @@
   function monthRecords(){const m=$('dfOpMonth')?.value||monthNow();return load().filter(o=>(o.data||'').slice(0,7)===m)}
   function aggregate(list){const ok=list.filter(o=>o.status==='ok');let prod=0,ap=0,meters=0;const mats={},operators={},machines={};ok.forEach(o=>{prod+=+o.produzido||0;ap+=+o.apara||0;if(+o.gm>0)meters+=(+o.produzido||0)*1000/(+o.gm);if(o.operador)operators[o.operador]=(operators[o.operador]||0)+(+o.produzido||0);if(o.maquina)machines[o.maquina]=(machines[o.maquina]||0)+(+o.produzido||0);(o.materials||[]).forEach(m=>mats[m.name]=(mats[m.name]||0)+(+m.kg||0))});const liquid=Math.max(0,prod-ap),yieldPct=prod>0?liquid/prod*100:0;return{ok,pending:list.length-ok.length,prod,ap,liquid,yieldPct,meters,mats,operators,machines}}
   function rows(obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]);return a.length?a.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)} kg</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
-  function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<button id="dfRecoverPhotoNamesTest" type="button" class="dfOpsBtn gray" style="margin-top:12px">🔎 BUSCAR PRODUTOS NAS FOTOS DA NUVEM</button><div id="dfPhotoRecoveryStatusTest" class="dfOpsTiny" style="margin-top:6px">Lê automaticamente o campo Cliente/Formulação das OPs sem produto, pelo QR.</div><h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`;const recover=$('dfRecoverPhotoNamesTest');if(recover)recover.onclick=()=>recoverProductFromPhoto(true)}
+  function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<button id="dfRecoverPhotoNamesTest" type="button" class="dfOpsBtn gray" style="margin-top:12px">🔎 BUSCAR PRODUTOS NAS FOTOS DA NUVEM</button><button id="dfReviewProductsTest" type="button" class="dfOpsBtn gray" style="margin-top:8px">📷 CONFERIR OP POR OP</button><div id="dfPhotoRecoveryStatusTest" class="dfOpsTiny" style="margin-top:6px">Lê automaticamente o campo Cliente/Formulação das OPs sem produto, pelo QR.</div><h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`;const recover=$('dfRecoverPhotoNamesTest');if(recover)recover.onclick=()=>recoverProductFromPhoto(true);const review=$('dfReviewProductsTest');if(review)review.onclick=reviewUnknownProducts}
   function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(productFor(o))}</td><td>${esc(o.operador||'—')}</td><td>${esc(o.maquina||'—')}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}@media print{#dfVoltarFormula209{display:none!important}}</style></head><body><button id="dfVoltarFormula209" type="button" style="display:inline-flex;align-items:center;margin:0 0 14px;padding:10px 14px;border:1px solid #bbb;border-radius:9px;background:#fff;color:#111;font:700 14px Arial,sans-serif;cursor:pointer" onclick="try{if(window.opener)window.opener.focus()}catch(e){};try{window.close()}catch(e){};setTimeout(function(){try{if(!window.closed)history.back()}catch(e){}},120)">← VOLTAR PARA FORMULAÇÃO</button><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
   async function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}await readOriginalProducts();w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
 
