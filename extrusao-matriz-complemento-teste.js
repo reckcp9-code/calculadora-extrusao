@@ -7,6 +7,13 @@
     geomembrana:{name:'Geomembrana',min:3,max:3},raschel80:{name:'Raschel 80 µm',min:1,max:1.2},
     raschel120:{name:'Raschel 120 µm',min:1.5,max:1.5}
   };
+  // BUR é uma conferência separada; não altera a matriz que a lógica publicada escolheu.
+  const burRefs={
+    pead:{name:'PEAD',min:4,max:6},pebd:{name:'PEBD',min:1.8,max:3},
+    pelbd:{name:'PEBDL / contrátil',min:2.4,max:3.2},
+    reciclado:{name:'PEBD (base do reciclado)',min:1.8,max:3}
+  };
+  const diameters=[60,75,90,100,125,135,150,165,175,180,200,225,250,300,350,400,450,500,600,750,900];
   const num=v=>{const t=String(v??'').trim().replace(/\s/g,'');return t?Number(t.includes(',')&&t.includes('.')?t.replace(/\./g,'').replace(',','.'):t.replace(',','.')):NaN};
   const fmt=(v,d=1)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
   function calculate({material,widthCm,dieMm,gapMm,micra,micraMode,application}){
@@ -18,7 +25,23 @@
     const key=application&&application!=='material'?application:
       material==='pead'?'pead':material==='pelbd'?'pelbd':'pebd';
     const ref=refs[key],bur=base.bur;
-    return {base,wall,gap,ref,ddr:wall>0&&gap>0&&Number.isFinite(bur)?gap/(wall/1000*bur):NaN,
+    const width=num(widthCm),die=num(dieMm),burRef=burRefs[material]||burRefs.pebd;
+    const burFor=size=>width>0&&size>0?20*width/(Math.PI*size):NaN;
+    const withinBur=value=>Number.isFinite(value)&&value>=burRef.min-1e-9&&value<=burRef.max+1e-9;
+    const withinGeometry=size=>base.ready&&size>=base.referenceMin&&size<=base.referenceMax;
+    const suggestedBur=base.ready?burFor(base.recommended):NaN;
+    const candidates=[...new Set([...diameters,die,base.recommended].filter(n=>Number.isFinite(n)&&n>0))].sort((a,b)=>a-b);
+    const comparison=base.ready?candidates.map(size=>{
+      const value=burFor(size);
+      return {die:size,bur:value,ddr:wall>0&&gap>0?gap/(wall/1000*value):NaN,
+        geometric:withinGeometry(size),burOk:withinBur(value)};
+    }):[];
+    const acceptable=comparison.filter(c=>c.geometric&&c.burOk);
+    const compromise=acceptable.length?acceptable.reduce((a,b)=>
+      Math.abs(b.die-base.recommended)<Math.abs(a.die-base.recommended)?b:a):null;
+    return {base,wall,gap,ref,burRef,suggestedBur,compromise,comparison,
+      suggestedWithinBur:withinBur(suggestedBur),
+      ddr:wall>0&&gap>0&&Number.isFinite(bur)?gap/(wall/1000*bur):NaN,
       gapStatus:gap>0?(gap<ref.min?'abaixo':gap>ref.max?'acima':'dentro'):null};
   }
   root.DFDieAdvisorSupplementTest={calculate};
@@ -41,29 +64,57 @@
     $('dfDieReading').before(mode);
     const extra=document.createElement('section');
     extra.id='dfDieTechTest';
-    extra.innerHTML='<h3>Informações técnicas</h3>'+
-      '<div class="dfDieTechGrid"><div>BUR calculado<strong id="dfDieBurTest">—</strong></div>'+
+    extra.innerHTML='<h3>Verificação técnica da matriz</h3>'+
+      '<div class="dfDieTechGrid"><div>Matriz atual<strong id="dfDieCurrentTest">—</strong></div>'+
+      '<div>BUR atual<strong id="dfDieCurrentBurTest">—</strong></div>'+
+      '<div>Sugerida pela tabela<strong id="dfDieSuggestedTest">—</strong></div>'+
+      '<div>BUR previsto<strong id="dfDieSuggestedBurTest">—</strong></div></div>'+
+      '<div class="dfDieTechVerdict" id="dfDieSuggestedVerdictTest"></div>'+
+      '<div class="dfDieTechCompromise" id="dfDieCompromiseTest"></div>'+
+      '<button type="button" id="dfDieCompareButtonTest" aria-expanded="false">Ver efeito de outras matrizes</button>'+
+      '<div id="dfDieCompareTest" hidden><div class="dfDieCompareScroll"><table><thead><tr><th>Diâmetro</th><th>BUR</th><th>DDR</th><th>Situação</th></tr></thead><tbody id="dfDieCompareRowsTest"></tbody></table></div></div>'+
+      '<h3>EXPANSÃO</h3><div class="dfDieTechGrid"><div>BUR atual<strong id="dfDieBurTest">—</strong></div>'+
+      '<div>Faixa de referência<strong id="dfDieBurRangeTest">—</strong></div></div>'+
+      '<div class="dfDieTechVerdict" id="dfDieBurStatusTest"></div>'+
+      '<h3>ESTIRAMENTO</h3><div class="dfDieTechGrid"><div>GAP<strong id="dfDieGapOutputTest">—</strong></div>'+
       '<div>Micra por parede<strong id="dfDieWallOutputTest">—</strong></div>'+
-      '<div>GAP da matriz<strong id="dfDieGapOutputTest">—</strong></div>'+
       '<div>DDR estimado<strong id="dfDieDdrTest">—</strong></div></div>'+
       '<label for="dfDieGapAppTest">Referência de GAP</label>'+
       '<select id="dfDieGapAppTest"><option value="material">Padrão do material selecionado</option>'+
       '<option value="stretch">Stretch</option><option value="geomembrana">Geomembrana</option>'+
       '<option value="raschel80">Raschel 80 µm</option><option value="raschel120">Raschel 120 µm</option></select>'+
       '<p id="dfDieGapReferenceTest"></p>'+
-      '<p>O BUR mostra a expansão do balão. O DDR usa GAP ÷ (micra por parede ÷ 1000 × BUR).'+
-      ' Esses números complementam a escolha de matriz feita acima pela lógica atual.</p>';
+      '<details class="dfDieHowTest"><summary>ⓘ Como funciona</summary>'+
+      '<p>A tabela atual escolhe a matriz e classifica seu uso. BUR verifica a expansão do balão sem mudar essa escolha. O DDR estimado é GAP ÷ (micra por parede ÷ 1000 × BUR); ele não decide sozinho se a matriz roda.</p>'+
+      '<p>As faixas de GAP são referências, não limites obrigatórios. A linha de névoa depende de resina, temperatura da massa, vazão, refrigeração e produção.</p></details>';
     card.querySelector('.dfDieRecommendation').after(extra);
     const style=document.createElement('style');
     style.textContent='#dfDieAdvisorTest .dfDieExtraInputs{margin:14px 0}'+
       '#dfDieAdvisorTest #dfDieTechTest{border:1px solid #36516c;background:#0b1828;border-radius:14px;padding:14px;margin:14px 0}'+
-      '#dfDieAdvisorTest #dfDieTechTest h3{font-size:17px;color:#ffd36a;margin:0 0 12px}'+
+      '#dfDieAdvisorTest #dfDieTechTest h3{font-size:17px;color:#ffd36a;margin:16px 0 12px}'+
+      '#dfDieAdvisorTest #dfDieTechTest h3:first-child{margin-top:0}'+
       '#dfDieAdvisorTest .dfDieTechGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}'+
       '#dfDieAdvisorTest .dfDieTechGrid>div{background:#121e30;border:1px solid #33455b;border-radius:10px;padding:9px;font-size:11px;color:#aebcd0}'+
       '#dfDieAdvisorTest .dfDieTechGrid strong{display:block;color:#fff;font-size:18px;margin-top:5px}'+
-      '#dfDieAdvisorTest #dfDieTechTest p{font-size:13px;line-height:1.5;color:#cbd5e1}';
+      '#dfDieAdvisorTest #dfDieTechTest p{font-size:13px;line-height:1.5;color:#cbd5e1}'+
+      '#dfDieAdvisorTest .dfDieIntro,#dfDieAdvisorTest .dfDieLimit,#dfDieAdvisorTest .dfDieGuidance{display:none}'+
+      '#dfDieAdvisorTest .dfDieTechVerdict{font-size:14px;font-weight:800;line-height:1.45;margin:10px 0}'+
+      '#dfDieAdvisorTest .dfDieTechCompromise{border:1px solid #2d8955;background:#0b2417;border-radius:10px;padding:11px;color:#86efac;font-weight:800;margin:10px 0}'+
+      '#dfDieAdvisorTest #dfDieCompareButtonTest{width:100%;border-radius:10px;border:1px solid #b98516;background:#251a09;color:#ffd36a;font-weight:900;padding:12px;margin:6px 0 10px}'+
+      '#dfDieAdvisorTest .dfDieCompareScroll{overflow-x:auto}'+
+      '#dfDieAdvisorTest #dfDieCompareTest table{width:100%;border-collapse:collapse;font-size:12px;min-width:355px}'+
+      '#dfDieAdvisorTest #dfDieCompareTest th,#dfDieAdvisorTest #dfDieCompareTest td{text-align:left;padding:8px 5px;border-bottom:1px solid #34465f}'+
+      '#dfDieAdvisorTest #dfDieCompareTest th{color:#ffd36a}'+
+      '#dfDieAdvisorTest .dfDieHowTest{border-top:1px solid #34465f;padding-top:12px;margin-top:13px}'+
+      '#dfDieAdvisorTest .dfDieHowTest summary{cursor:pointer;color:#ffd36a;font-weight:900}';
     document.head.appendChild(style);
     let wallEdited=false;
+    $('dfDieCompareButtonTest').addEventListener('click',()=>{
+      const panel=$('dfDieCompareTest'),open=panel.hidden;
+      panel.hidden=!open;
+      $('dfDieCompareButtonTest').setAttribute('aria-expanded',String(open));
+      $('dfDieCompareButtonTest').textContent=open?'Ocultar outras matrizes':'Ver efeito de outras matrizes';
+    });
     function update(){
       const selected=$('dfDieMicraModeTest').value;
       $('dfDieWallBoxTest').hidden=selected!=='wall';
@@ -74,12 +125,46 @@
       const x=calculate({material:$('dfDieMaterial').value,widthCm:width.value,dieMm:$('dfDieDiameter').value,
         gapMm:$('dfDieGap').value,micra,micraMode:selected,application:$('dfDieGapAppTest').value});
       const b=x.base;
+      if(b.ready)$('dfDieSuggestedNote').textContent='Faixa geométrica: aproximadamente '+
+        fmt(b.referenceMin,0)+'–'+fmt(b.referenceMax,0)+' mm.';
       $('dfDieStatus').textContent=b.status==='No limite'?'🟡 NO LIMITE':
         b.status==='Boa para testar'?'🟢 BOA PARA TESTAR':
         b.status==='Não recomendada'?'🔴 NÃO RECOMENDADA':b.status;
       $('dfDieReading').textContent='Largura: '+(num(width.value)>0?width.value+' cm':'—')+
         ' · Micra: '+(num(micra)>0?micra+' µm ('+(selected==='wall'?'por parede':'dupla')+')':'—');
       $('dfDieBurTest').textContent=Number.isFinite(b.bur)?fmt(b.bur,2)+' : 1':'—';
+      $('dfDieCurrentTest').textContent=num($('dfDieDiameter').value)>0?fmt(num($('dfDieDiameter').value),0)+' mm':'—';
+      $('dfDieCurrentBurTest').textContent=Number.isFinite(b.bur)?fmt(b.bur,2)+' : 1':'—';
+      $('dfDieSuggestedTest').textContent=b.ready?fmt(b.recommended,0)+' mm':'—';
+      $('dfDieSuggestedBurTest').textContent=Number.isFinite(x.suggestedBur)?fmt(x.suggestedBur,2)+' : 1':'—';
+      $('dfDieBurRangeTest').textContent=fmt(x.burRef.min,2)+'–'+fmt(x.burRef.max,2)+' : 1';
+      $('dfDieBurStatusTest').textContent=Number.isFinite(b.bur)?
+        (b.bur>=x.burRef.min&&b.bur<=x.burRef.max?'🟢 BUR atual dentro da referência '+x.burRef.name:
+        '🔴 BUR atual fora da referência '+x.burRef.name):'Informe largura e matriz para conferir o BUR.';
+      $('dfDieSuggestedVerdictTest').textContent=Number.isFinite(x.suggestedBur)?
+        (x.suggestedWithinBur?'🟢 Matriz sugerida pela tabela também mantém o BUR na referência.':
+        '⚠️ Atenção: a matriz sugerida pela tabela geométrica produz BUR '+fmt(x.suggestedBur,2)+
+        ':1, fora da referência '+fmt(x.burRef.min,2)+'–'+fmt(x.burRef.max,2)+':1.'):
+        'Informe a largura para verificar a sugestão.';
+      $('dfDieCompromiseTest').textContent=x.compromise?
+        'Melhor compromisso técnico: '+fmt(x.compromise.die,0)+' mm → BUR '+fmt(x.compromise.bur,2)+
+        ':1 (dentro da faixa geométrica e da referência de BUR; confirme disponibilidade).':
+        b.ready?'Nenhuma matriz comparada atende às duas referências; confira outras medidas e o processo.':'';
+      $('dfDieCompromiseTest').hidden=!b.ready;
+      const rows=$('dfDieCompareRowsTest');rows.replaceChildren();
+      for(const item of x.comparison){
+        const tr=document.createElement('tr');
+        const situation=item.geometric&&item.burOk?'🟢 Dentro das duas':
+          !item.geometric&&!item.burOk?'🔴 Fora das duas':
+          !item.geometric?'🟡 Fora da faixa geométrica':'🔴 BUR fora da referência';
+        for(const value of [
+          fmt(item.die,0)+' mm'+(item.die===num($('dfDieDiameter').value)?' (atual)':
+            item.die===b.recommended?' (tabela)':''),
+          fmt(item.bur,2)+':1',Number.isFinite(item.ddr)?fmt(item.ddr,1)+':1':'—',situation]){
+          const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
+        }
+        rows.appendChild(tr);
+      }
       $('dfDieWallOutputTest').textContent=x.wall>0?fmt(x.wall)+' µm':'—';
       $('dfDieGapOutputTest').textContent=x.gap>0?fmt(x.gap)+' mm':'—';
       $('dfDieDdrTest').textContent=Number.isFinite(x.ddr)?fmt(x.ddr,1)+' : 1':'—';
