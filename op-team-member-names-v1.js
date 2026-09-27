@@ -53,7 +53,9 @@ function renderEditor(){
 }
 function renderMembers(members){
   const box=$('dfOpTeamCloud');if(!box)return;let p=$('dfTeamMembersNames');if(!p){p=document.createElement('div');p.id='dfTeamMembersNames';box.appendChild(p)}
-  const list=Array.isArray(members)?members:[];p.innerHTML='<div class="ttl">👥 EQUIPE • '+list.length+' '+(list.length===1?'pessoa':'pessoas')+'</div>'+list.map((m,i)=>'<div class="row"><span class="name">'+esc(clean(m.displayName)||(m.role==='owner'?'Dono':'Operador '+(i+1)))+'</span><span class="role">'+(m.role==='owner'?'DONO':'OPERADOR')+'</span></div>').join('');
+  const raw=Array.isArray(members)?members:[];let ownerSeen=false,operatorNumber=0;
+  const list=raw.map(function(m){let role=String(m&&m.role||'operator')==='owner'?'owner':'operator';if(role==='owner'){if(ownerSeen)role='operator';else ownerSeen=true}let name=clean(m&&m.displayName);if(role==='operator'&&/^dono$/i.test(name))name='';if(role==='operator')operatorNumber++;if(!name)name=role==='owner'?'Dono':'Operador '+operatorNumber;return{role:role,displayName:name}});
+  p.innerHTML='<div class="ttl">👥 EQUIPE • '+list.length+' '+(list.length===1?'pessoa':'pessoas')+'</div>'+list.map(m=>'<div class="row"><span class="name">'+esc(m.displayName)+'</span><span class="role">'+(m.role==='owner'?'DONO':'OPERADOR')+'</span></div>').join('');
 }
 async function refreshMembers(force){
   const t=loadTeam();if(!t||!t.teamId||membersBusy)return;if(!force&&Date.now()-lastMembersAt<4000)return;membersBusy=true;
