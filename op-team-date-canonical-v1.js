@@ -2,9 +2,9 @@
 'use strict';
 if(window.DFOpTeamDateCanonicalV1)return;window.DFOpTeamDateCanonicalV1=true;
 
-var OPS='df_formula_ops_auto_v2',TEAM='df_op_team_v1',SIG='df_team_owner_master_sig_v3';
-var AUTO_KEY='df_team_date_canonical_boot_v1';
-var busy=false,observer=null;
+var OPS='df_formula_ops_auto_v2',TEAM='df_op_team_v1';
+var AUTO_KEY='df_team_date_canonical_boot_v2';
+var busy=false,observer=null,lastAutoSync=0;
 
 function load(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'');return v==null?f:v}catch(e){return f}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
@@ -50,25 +50,26 @@ function canonicalize(){sortStore();sortDom();}
 
 function forceOwnerPublish(){
   canonicalize();var m=master();if(!isOwner()||!m||typeof m.publish!=='function')return Promise.resolve(false);
-  try{localStorage.removeItem(SIG)}catch(e){}
-  return Promise.resolve(m.publish(true)).then(function(ok){setTimeout(canonicalize,120);return ok}).catch(function(){return false});
+  // Não apaga mais a assinatura antes de cada atualização. Assim o app não cria
+  // novas fotos técnicas quando a lista e os nomes não mudaram.
+  return Promise.resolve(m.publish(false)).then(function(ok){setTimeout(canonicalize,120);return ok}).catch(function(){return false});
 }
 function forceOperatorPull(){
   canonicalize();var m=master();if(isOwner()||!m||typeof m.pull!=='function')return Promise.resolve(false);
   return Promise.resolve(m.pull(true)).then(function(ok){setTimeout(canonicalize,120);setTimeout(canonicalize,650);return ok}).catch(function(){return false});
 }
-function forceSync(){return isOwner()?forceOwnerPublish():forceOperatorPull()}
+function forceSync(){lastAutoSync=Date.now();return isOwner()?forceOwnerPublish():forceOperatorPull()}
 
 function boot(){
   canonicalize();setTimeout(canonicalize,300);setTimeout(canonicalize,1200);
   if(!observer){observer=new MutationObserver(function(){if(!busy)setTimeout(canonicalize,25)});observer.observe(document.documentElement,{childList:true,subtree:true})}
-  document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('#dfCloudRefresh'):null;if(!t)return;setTimeout(forceSync,850);setTimeout(canonicalize,1800)},true);
+  document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('#dfCloudRefresh'):null;if(!t)return;setTimeout(forceSync,650);setTimeout(canonicalize,1400)},true);
   ['df-owner-master-applied','df-prontas-products-synced','df-team-names-synced','df-op-remote-merged','df-team-changed','df-team-joined'].forEach(function(ev){window.addEventListener(ev,function(){setTimeout(canonicalize,80)})});
-  window.addEventListener('pageshow',function(){setTimeout(canonicalize,120)});window.addEventListener('online',function(){setTimeout(canonicalize,160)});
-  setInterval(function(){if(!document.hidden)canonicalize()},5000);
+  window.addEventListener('pageshow',function(){setTimeout(canonicalize,120);setTimeout(forceSync,600)});window.addEventListener('online',function(){setTimeout(canonicalize,160);setTimeout(forceSync,700)});
+  setInterval(function(){if(document.hidden)return;canonicalize();if(Date.now()-lastAutoSync>15000)forceSync()},5000);
   setTimeout(function(){
     var done='';try{done=String(localStorage.getItem(AUTO_KEY)||'')}catch(e){}
-    if(done==='1')return;
+    if(done==='1'){setTimeout(forceSync,500);return}
     var tries=0,timer=setInterval(function(){tries++;var m=master(),t=team();if(m&&t&&t.teamId){clearInterval(timer);forceSync().then(function(ok){if(ok)try{localStorage.setItem(AUTO_KEY,'1')}catch(e){}})}else if(tries>12)clearInterval(timer)},500);
   },1000);
 }
