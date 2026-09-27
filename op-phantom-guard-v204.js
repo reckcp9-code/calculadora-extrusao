@@ -8,11 +8,10 @@
 
   function read(){try{const v=JSON.parse(localStorage.getItem(OPS_KEY)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
   function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
+  function technical(v){const s=String(v||'').toUpperCase();return /^DFMASTER(?:1|2|3)?[.-]/.test(s)||/^DFOPNAME2[.]/.test(s)||/^DFNAME2-/.test(s)}
   function isPhantom(o){
     if(!o||typeof o!=='object')return true;
-    // Registros criados automaticamente apenas porque uma FOTO da equipe foi
-    // sincronizada não são OP concluída. Uma OP remota só entra no fechamento
-    // quando trouxe produção real (>0). OPs normais do app não são tocadas.
+    if(technical(o.id)||technical(o.qr)||technical(o.sourceId))return true;
     return String(o.source||'')==='foto-equipe' && !(n(o.produzido)>0);
   }
   function dedupe(a){
@@ -46,20 +45,11 @@
     }catch(e){return false}finally{cleaning=false}
   }
 
-  // Limpa o estoque antigo imediatamente.
   clean(true);
-
-  // Toda sincronização de fotos pode tentar recriar um registro foto-equipe.
-  // Limpamos logo após o merge e também quando a tela volta ao primeiro plano.
   window.addEventListener('df-op-remote-merged',()=>setTimeout(()=>clean(true),0));
   window.addEventListener('df-team-changed',()=>setTimeout(()=>clean(true),50));
   window.addEventListener('focus',()=>clean(true));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)clean(true)});
-
-  // Guarda leve para versões antigas/PWA que sincronizam sem emitir evento.
-  setInterval(()=>{
-    try{const raw=localStorage.getItem(OPS_KEY)||'[]';if(raw!==last)clean(true)}catch(e){}
-  },2500);
-
+  setInterval(()=>{try{const raw=localStorage.getItem(OPS_KEY)||'[]';if(raw!==last)clean(true)}catch(e){}},2500);
   window.DFOpPhantomGuard={clean};
 })();
