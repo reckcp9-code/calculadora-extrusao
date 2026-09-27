@@ -136,7 +136,7 @@
     if(!cloudPhotoListPromise){
       const teamId=cloudTeamId(),month=$('dfOpMonth')?.value||monthNow();
       if(!teamId)return [];
-      cloudPhotoListPromise=(async()=>{const r=await cloudRequest('/op/photo/list',{teamId,month});if(!r)return[];const j=await r.json();return Array.isArray(j.photos)?j.photos:[]})().catch(()=>[]);
+      cloudPhotoListPromise=(async()=>{const shared=window.DFOpCloud?.listPhotos?.();if(Array.isArray(shared)&&shared.length)return shared;const r=await cloudRequest('/op/photo/list',{teamId,month});if(!r)return[];const j=await r.json();return Array.isArray(j.photos)?j.photos:[]})().catch(()=>[]);
     }
     return cloudPhotoListPromise;
   }
@@ -149,6 +149,7 @@
       cloudId=String(linked?.id||'').trim();
     }
     if(!cloudId)return null;
+    try{const blob=await window.DFOpCloud?.getPhotoBlob?.(cloudId);if(blob)return blob}catch(e){}
     const r=await cloudRequest('/op/photo/get?id='+encodeURIComponent(cloudId));
     return r?r.blob():null;
   }
