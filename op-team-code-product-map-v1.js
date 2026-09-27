@@ -54,10 +54,7 @@ function applyMap(map){
 async function publishOwnerNames(forceMaster){
   if(!isOwner()||busy)return false;busy=true;
   try{
-    var map=ownerMap(),shared=window.DFOpTeamSharedNames;
-    if(shared&&typeof shared.publish==='function'){
-      for(var id of Object.keys(map)){try{await shared.publish(id,map[id])}catch(e){}}
-    }
+    ownerMap();
     if(forceMaster){try{localStorage.removeItem(SIG)}catch(e){}var master=window.DFOpTeamOwnerMaster;if(master&&typeof master.publish==='function')try{await master.publish(true)}catch(e){}}
     return true;
   }finally{busy=false}
@@ -66,7 +63,6 @@ async function pullOperatorNames(){
   if(isOwner()||busy)return false;busy=true;
   try{
     var master=window.DFOpTeamOwnerMaster;if(master&&typeof master.pull==='function')try{await master.pull(true)}catch(e){}
-    var shared=window.DFOpTeamSharedNames;if(shared&&typeof shared.sync==='function')try{await shared.sync()}catch(e){}
     applyMap(cacheMap());
     setTimeout(function(){applyMap(cacheMap())},250);
     setTimeout(function(){applyMap(cacheMap())},900);
@@ -81,7 +77,6 @@ function boot(){
   document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#dfCloudRefresh'):null;if(b)queueSync(300)},true);
   window.addEventListener('df-prontas-products-synced',function(e){var d=e&&e.detail||{};if(isOwner()&&d.id&&d.name){writeName(d.id,d.name,Date.now());queueSync(100)}else if(!isOwner())setTimeout(function(){applyMap(cacheMap())},80)});
   window.addEventListener('df-owner-master-applied',function(){if(!isOwner())setTimeout(function(){applyMap(cacheMap())},30)});
-  window.addEventListener('df-team-names-synced',function(){if(!isOwner())setTimeout(function(){applyMap(cacheMap())},30)});
   window.addEventListener('pageshow',function(){queueSync(250)});
   window.addEventListener('focus',function(){queueSync(250)});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)queueSync(250)});
