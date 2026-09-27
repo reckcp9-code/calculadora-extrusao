@@ -1,0 +1,69 @@
+(function(){
+'use strict';
+if(window.DFOpProntasProductSourceV1)return;
+window.DFOpProntasProductSourceV1=true;
+
+var OPS='df_formula_ops_auto_v2',REG='df_op_qr_registry_v1';
+var PHOTO_KEYS=['df_test_photo_names_confirmed_v1','df_test_photo_names_confirmed_v2','df_test_photo_names_confirmed_v3'];
+var syncing=false,pending=false,lastSync=0,observer=null;
+
+function $(id){return document.getElementById(id)}
+function load(k,f){try{var v=JSON.parse(localStorage.getItem(k)||'');return v==null?f:v}catch(e){return f}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function norm(v){return String(v==null?'':v).trim().toUpperCase().replace(/\s+/g,'')}
+function ids(o){var a=[o&&o.id,o&&o.qr,o&&o.numero,o&&o.op,o&&o.codigo].map(norm).filter(Boolean);return a.filter(function(v,i){return a.indexOf(v)===i})}
+function exact(v){var raw=String(v==null?'':v),check=raw.trim();if(!check||/^(?:—|-|sem produto|op sem nome|produto não informado(?: na op)?)$/i.test(check))return'';return raw}
+function same(a,b){return String(a==null?'':a)===String(b==null?'':b)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+function fmt(v,d){var n=Number(v||0);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'0'}
+function selectedMonth(){var e=$('dfOpMonth');if(e&&/^\d{4}-\d{2}$/.test(String(e.value||'')))return String(e.value);var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function readyProduct(o){return exact(o&&o.clienteFormulacao)||exact(o&&o.produto)||exact(o&&o.product)||exact(o&&o.opNome)||''}
+function localRegistryMap(){var r=load(REG,{}),out={};Object.keys(r||{}).forEach(function(k){var x=r[k]||{},id=norm(x.id||k),name=exact(x.expected&&x.expected.title)||exact(x.expected&&x.expected.produto);if(id&&name)out[id]=name});return out}
+function upsertRegistryName(r,id,name){if(!id||!name)return false;var key=null;Object.keys(r||{}).some(function(k){var x=r[k]||{};if(norm(x.id||k)===id){key=k;return true}return false});if(!key)key=id;var x=r[key]||{id:id,createdAt:new Date().toISOString(),expected:{}};if(!x.expected)x.expected={};var current=exact(x.expected.title);if(current)return false;x.expected.title=name;r[key]=x;return true}
+
+async function waitRegistryApi(limit){limit=limit||35;for(var i=0;i<limit;i++){var api=window.DFOpRegistryCloudTestV174;if(api&&typeof api.readOriginalProducts==='function')return api;await new Promise(function(res){setTimeout(res,120)})}return null}
+async function cloudNames(month){var out={},api=await waitRegistryApi();if(!api)return out;try{if(typeof api.sync==='function')await api.sync()}catch(e){}try{var m=await api.readOriginalProducts(month)||{};Object.keys(m).forEach(function(k){var x=m[k]||{},name=exact(x.title)||exact(x.produto)||exact(x.product);if(name)out[norm(k)]=name})}catch(e){}return out}
+
+async function syncProntas(force){var now=Date.now();if(syncing){pending=true;return false}if(!force&&now-lastSync<1800)return true;syncing=true;lastSync=now;try{
+  try{if(window.DFOpCloud&&typeof window.DFOpCloud.sync==='function')await window.DFOpCloud.sync(false)}catch(e){}
+  var cloud=await cloudNames(selectedMonth()),local=localRegistryMap(),a=load(OPS,[]);if(!Array.isArray(a))a=[];
+  var r=load(REG,{}),changed=false,regChanged=false,fixed=0;
+  a.forEach(function(o){if(!o||o.status!=='ok')return;var opids=ids(o),name='';
+    for(var i=0;i<opids.length&&!name;i++)name=cloud[opids[i]]||local[opids[i]]||'';
+    if(!name)name=readyProduct(o);
+    if(!name)return;
+    if(!same(o.clienteFormulacao,name)){o.clienteFormulacao=name;changed=true}
+    if(!same(o.produto,name)){o.produto=name;changed=true}
+    if(!same(o.product,name)){o.product=name;changed=true}
+    var canonical=opids[0]||norm(o.id);if(canonical&&upsertRegistryName(r,canonical,name))regChanged=true;
+    fixed++;
+  });
+  if(changed)save(OPS,a);if(regChanged)save(REG,r);
+  try{window.dispatchEvent(new CustomEvent('df-prontas-products-synced',{detail:{fixed:fixed,changed:changed}}))}catch(e){}
+  patchUi();return true;
+}finally{syncing=false;if(pending){pending=false;setTimeout(function(){syncProntas(true)},100)}}}
+
+function byIdMap(){var a=load(OPS,[]),m={};if(!Array.isArray(a))return m;a.forEach(function(o){ids(o).forEach(function(id){if(!m[id])m[id]=o})});return m}
+function patchReadyList(){var box=$('dfOkList');if(!box)return;var map=byIdMap();box.querySelectorAll('.dfOpList').forEach(function(row){var b=row.querySelector('[data-view]'),id=norm(b&&b.getAttribute('data-view'));if(!id)return;var o=map[id];if(!o)return;var tiny=row.querySelector('.dfOpsTiny');if(!tiny)return;var name=readyProduct(o)||'Sem produto';tiny.textContent=String(o.data||'')+' • '+name+' • '+fmt(o.produzido,2)+' kg • Apara '+fmt(o.apara,2)+' kg'})}
+function cleanReportTools(){var a=$('dfRecoverPhotoNamesTest'),b=$('dfReviewProductsTest');if(a)a.style.display='none';if(b)b.style.display='none';var s=$('dfPhotoRecoveryStatusTest');if(s)s.textContent='Produto: nome exato salvo na OP de Prontas, localizado pelo código da OP.'}
+function patchUi(){patchReadyList();cleanReportTools()}
+
+function aggregate(list){var prod=0,ap=0,meters=0,mats={},operators={},machines={};list.forEach(function(o){prod+=+o.produzido||0;ap+=+o.apara||0;if(+o.gm>0)meters+=(+o.produzido||0)*1000/(+o.gm);if(o.operador)operators[o.operador]=(operators[o.operador]||0)+(+o.produzido||0);if(o.maquina)machines[o.maquina]=(machines[o.maquina]||0)+(+o.produzido||0);(o.materials||[]).forEach(function(m){if(m&&m.name)mats[m.name]=(mats[m.name]||0)+(+m.kg||0)})});var liquid=Math.max(0,prod-ap),yieldPct=prod>0?liquid/prod*100:0;return{prod:prod,ap:ap,liquid:liquid,yieldPct:yieldPct,meters:meters,mats:mats,operators:operators,machines:machines}}
+function rows(obj){var a=Object.entries(obj||{}).sort(function(x,y){return y[1]-x[1]});return a.length?a.map(function(x){return'<tr><td>'+esc(x[0])+'</td><td>'+fmt(x[1],2)+' kg</td></tr>'}).join(''):'<tr><td colspan="2">—</td></tr>'}
+function reportHtml(month){var all=load(OPS,[]),list=(Array.isArray(all)?all:[]).filter(function(o){return o&&o.status==='ok'&&String(o.data||'').slice(0,7)===month}),a=aggregate(list);var pending=(Array.isArray(all)?all:[]).filter(function(o){return o&&o.status!=='ok'&&String(o.data||'').slice(0,7)===month}).length;var body=list.map(function(o){var product=readyProduct(o)||'Sem produto';return'<tr><td>'+esc(o.data||'')+'</td><td>'+esc(o.numero||o.id||o.qr||'')+'</td><td>'+esc(product)+'</td><td>'+esc(o.operador||'—')+'</td><td>'+esc(o.maquina||'—')+'</td><td>'+fmt(o.produzido,2)+'</td><td>'+fmt(o.apara,2)+'</td></tr>'}).join('');return'<!doctype html><html><head><meta charset="utf-8"><title>Relatório '+esc(month)+'</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}@media print{#dfVoltarFormulaProntas{display:none!important}}</style></head><body><button id="dfVoltarFormulaProntas" type="button" style="display:inline-flex;align-items:center;margin:0 0 14px;padding:10px 14px;border:1px solid #bbb;border-radius:9px;background:#fff;color:#111;font:700 14px Arial,sans-serif;cursor:pointer" onclick="try{if(window.opener)window.opener.focus()}catch(e){};try{window.close()}catch(e){}">← VOLTAR PARA FORMULAÇÃO</button><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — '+esc(month)+' • Pendentes: '+pending+' • Produto obtido da OP salva em Prontas pelo código</div><div class="k"><div class="c"><span>OPs</span><b>'+list.length+'</b></div><div class="c"><span>Produção</span><b>'+fmt(a.prod,2)+' kg</b></div><div class="c"><span>Apara</span><b>'+fmt(a.ap,2)+' kg</b></div><div class="c"><span>Líquido</span><b>'+fmt(a.liquid,2)+' kg</b></div><div class="c"><span>Rendimento</span><b>'+fmt(a.yieldPct,2)+'%</b></div><div class="c"><span>Metros est.</span><b>'+fmt(a.meters,0)+'</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>'+(body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>')+'</tbody></table><h2>Materiais</h2><table>'+rows(a.mats)+'</table><h2>Produção por operador</h2><table>'+rows(a.operators)+'</table><h2>Produção por máquina</h2><table>'+rows(a.machines)+'</table></body></html>'}
+
+async function printFromProntas(button){if(button&&button.dataset.dfProntasPrinting==='1')return;button&&button.setAttribute('data-df-prontas-printing','1');var w=window.open('','_blank');if(!w){alert('Libere pop-up para gerar o relatório.');button&&button.removeAttribute('data-df-prontas-printing');return}try{w.document.open();w.document.write('<!doctype html><html><body style="font-family:Arial;padding:30px">Conferindo os códigos das OPs em Prontas...</body></html>');w.document.close();await syncProntas(true);var month=selectedMonth();w.document.open();w.document.write(reportHtml(month));w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(x){}alert('Não consegui gerar o relatório: '+(e&&e.message||e))}finally{button&&button.removeAttribute('data-df-prontas-printing')}}
+
+// Impede que o módulo antigo registre recuperação automática de nome por foto/OCR.
+var nativeAdd=window.addEventListener.bind(window);
+window.addEventListener=function(type,listener,options){try{if((type==='df-op-remote-merged'||type==='df-op-cloud-synced'||type==='df-team-changed')&&String(listener).indexOf('schedulePhotoRecovery')>=0)return}catch(e){}return nativeAdd(type,listener,options)};
+try{PHOTO_KEYS.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('#dfPrintReport'):null;if(t){e.preventDefault();e.stopImmediatePropagation();printFromProntas(t);return}var q=e.target&&e.target.closest?e.target.closest('#dfFormTabOps,[data-pane="ok"],[data-pane="month"],#dfCloudRefresh'):null;if(q)setTimeout(function(){syncProntas(true)},80)},true);
+
+function queue(force){setTimeout(function(){syncProntas(!!force)},120)}
+function watch(){if(observer)return;observer=new MutationObserver(function(){patchUi()});observer.observe(document.documentElement,{childList:true,subtree:true})}
+function boot(){watch();patchUi();queue(false);setTimeout(function(){queue(true)},1600);setTimeout(function(){queue(true)},4200);window.addEventListener('df-op-remote-merged',function(){queue(true)});window.addEventListener('df-op-cloud-synced',function(){queue(true)});window.addEventListener('df-op-qr-created',function(){queue(true)});window.addEventListener('df-prontas-products-synced',function(){patchUi()});window.addEventListener('pageshow',function(){queue(false)});window.addEventListener('online',function(){queue(true)});setInterval(function(){if(!document.hidden)syncProntas(false)},15000)}
+window.DFOpProntasProductSource={sync:function(){return syncProntas(true)},product:function(o){return readyProduct(o)||'Sem produto'}};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
