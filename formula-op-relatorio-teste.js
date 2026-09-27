@@ -141,17 +141,16 @@
     return cloudPhotoListPromise;
   }
   async function photoForReport(o){
-    for(const id of opIds(o)){const p=await photoGet(id).catch(()=>null);if(p?.blob)return p.blob}
-    let cloudId=String(o.cloudPhotoId||'').trim();
-    if(!cloudId){
-      const ids=opIds(o),photos=await cloudPhotosForMonth();
-      const linked=photos.find(p=>[p.sourceId,p.qr].some(x=>ids.includes(normId(x))));
-      cloudId=String(linked?.id||'').trim();
+    const ids=opIds(o);
+    for(const id of ids){const p=await photoGet(id).catch(()=>null);if(p?.blob)return p.blob}
+    const photos=await cloudPhotosForMonth();
+    const matches=photos.filter(p=>[p.sourceId,p.qr].some(x=>ids.includes(normId(x))));
+    const candidates=[...new Set([...matches.map(p=>String(p.id||'').trim()),String(o.cloudPhotoId||'').trim()].filter(Boolean))];
+    for(const cloudId of candidates){
+      try{const blob=await window.DFOpCloud?.getPhotoBlob?.(cloudId);if(blob)return blob}catch(e){}
+      try{const r=await cloudRequest('/op/photo/get?id='+encodeURIComponent(cloudId));if(r)return r.blob()}catch(e){}
     }
-    if(!cloudId)return null;
-    try{const blob=await window.DFOpCloud?.getPhotoBlob?.(cloudId);if(blob)return blob}catch(e){}
-    const r=await cloudRequest('/op/photo/get?id='+encodeURIComponent(cloudId));
-    return r?r.blob():null;
+    return null;
   }
   function recoveryStatus(message){
     const b=$('dfPhotoRecoveryStatusTest');if(b)b.textContent=message;
