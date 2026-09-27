@@ -139,6 +139,7 @@
   async function recoverProductFromPhoto(manual){
     const month=$('dfOpMonth')?.value||monthNow();
     if(photoRecoveryRunning)return;
+    if(manual)cloudPhotoListPromise=null;
     if(photoRecoveryMonth===month&&!manual)return;
     const list=monthRecords().filter(o=>productFor(o)==='Produto não informado');
     if(!list.length){if(manual)recoveryStatus('Todos os produtos deste mês já foram encontrados.');return}
@@ -289,5 +290,5 @@
   function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
   async function zipMonth(){const list=monthRecords();if(!list.length){alert('Não há fotos neste mês.');return}try{await loadZip();const z=new JSZip();let n=0;for(const o of list){const p=await photoGet(o.id);if(p?.blob){const ext=(p.mime||'').includes('png')?'png':'jpg';z.file((o.numero?'OP-'+o.numero:o.id)+'.'+ext,p.blob);n++}}if(!n){alert('Nenhuma foto encontrada neste aparelho.');return}const blob=await z.generateAsync({type:'blob'});downloadBlob(blob,'DF-OPs-'+($('dfOpMonth').value||monthNow())+'.zip')}catch(e){alert('Falha ao gerar backup: '+(e.message||e))}}
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));window.addEventListener('df-op-remote-merged',()=>{cloudPhotoListPromise=null;photoRecoveryMonth='';schedulePhotoRecovery()});setTimeout(mount,1200);setTimeout(mount,2200);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));window.addEventListener('df-op-remote-merged',()=>{cloudPhotoListPromise=null;photoRecoveryMonth='';schedulePhotoRecovery()});window.addEventListener('df-op-cloud-synced',()=>{cloudPhotoListPromise=null;photoRecoveryMonth='';schedulePhotoRecovery()});window.addEventListener('df-team-changed',()=>{cloudPhotoListPromise=null;photoRecoveryMonth='';schedulePhotoRecovery()});setTimeout(mount,1200);setTimeout(mount,2200);
 })();
