@@ -38,11 +38,17 @@
     msg('✅ OP '+id+' identificada'+(exp.title?' • '+exp.title:'')+(source?' pelo '+source:''), 'ok');
     return true;
   }
-  function lookup(raw,source){
+  async function lookup(raw,source){
     var code=normalize(raw);if(!code){msg('Digite ou leia o código da OP.','warn');return false}
     if(!validCode(code)){msg('Código inválido. Use o código DFOP impresso na OP.','bad');return false}
+    msg('☁️ Conferindo a OP e o produto no cadastro compartilhado...','warn');
+    try{
+      var cloud=window.DFOpRegistryCloudTestV174;
+      if(cloud&&typeof cloud.sync==='function')await cloud.sync();
+    }catch(e){}
     var entry=findEntry(code);
-    if(!entry){msg('⚠️ Não encontrei essa OP gerada neste aparelho. Confira o código.','warn');return false}
+    if(!entry){msg('⚠️ Não encontrei essa OP no cadastro compartilhado. Confira o código e a conexão.','warn');return false}
+    if(!String(entry.expected&&entry.expected.title||'').trim()){msg('⚠️ OP encontrada, mas o produto ainda não chegou do cadastro compartilhado. Atualize e tente novamente.','warn');return false}
     return selectEntry(entry,source);
   }
 
@@ -53,7 +59,7 @@
   function crop(src,x,y,w,h,s){s=s||1;x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));w=Math.max(1,Math.min(src.width-x,Math.round(w)));h=Math.max(1,Math.min(src.height-y,Math.round(h)));var c=mk(w*s,h*s),g=c.getContext('2d',{willReadFrequently:true});g.drawImage(src,x,y,w,h,0,0,c.width,c.height);return c}
   function scanCanvas(c){try{var x=c.getContext('2d',{willReadFrequently:true}),d=x.getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});return r&&r.data||''}catch(e){return''}}
   async function decode(file){await loadQR();var base=await imageCanvas(file,2400),degs=[0,90,180,270];for(var i=0;i<degs.length;i++){var c=rot(base,degs[i]),tries=[c,crop(c,0,0,c.width,c.height*.65,1.8),crop(c,c.width*.1,0,c.width*.8,c.height*.7,2)];for(var j=0;j<tries.length;j++){var q=scanCanvas(tries[j]);if(q&&validCode(q))return q}}return''}
-  async function handleFile(file){if(!file||busy)return;busy=true;msg('📷 Lendo QR da OP...','warn');try{var q=await decode(file);if(!q){msg('Não consegui ler o QR. Aproxime a câmera ou digite o código da OP abaixo.','bad');return}var manual=$('dfNowOpManualCode');if(manual)manual.value=normalize(q);lookup(q,'QR')}catch(e){msg('Não consegui ler o QR: '+String(e&&e.message||e),'bad')}finally{busy=false;var input=$('dfNowOpQrFile');if(input)try{input.value=''}catch(e){}}}
+  async function handleFile(file){if(!file||busy)return;busy=true;msg('📷 Lendo QR da OP...','warn');try{var q=await decode(file);if(!q){msg('Não consegui ler o QR. Aproxime a câmera ou digite o código da OP abaixo.','bad');return}var manual=$('dfNowOpManualCode');if(manual)manual.value=normalize(q);await lookup(q,'QR')}catch(e){msg('Não consegui ler o QR: '+String(e&&e.message||e),'bad')}finally{busy=false;var input=$('dfNowOpQrFile');if(input)try{input.value=''}catch(e){}}}
 
   function mount(){
     var form=$('dfNowAdminForm'),sel=$('dfNowOpSelect');if(!form||!sel)return false;
