@@ -73,6 +73,11 @@
     }
     return '';
   }
+  function rotatePhotoCanvas(source,clockwise){
+    const c=document.createElement('canvas');c.width=source.height;c.height=source.width;
+    const ctx=c.getContext('2d');ctx.translate(clockwise?c.width:0,clockwise?0:c.height);ctx.rotate(clockwise?Math.PI/2:-Math.PI/2);ctx.drawImage(source,0,0);
+    return c;
+  }
   let cloudPhotoListPromise=null,photoRecoveryRunning=false,photoRecoveryMonth='',photoRecoveryTimer=0;
   function cloudTeamId(){
     try{return String(window.DFOpCloud?.team?.()?.teamId||JSON.parse(localStorage.getItem('df_op_team_v1')||'null')?.teamId||'')}catch(e){return ''}
@@ -153,8 +158,12 @@
           const file=await photoForReport(o);
           if(file){
             const c=await imageCanvas(file,2100);
-            const result=worker?await worker.recognize(c):await window.Tesseract.recognize(c,'por');
-            guess=candidateFromPhoto(result?.data?.text);
+            const sources=c.height>c.width*1.1?[rotatePhotoCanvas(c,true),c,rotatePhotoCanvas(c,false)]:[c,rotatePhotoCanvas(c,true),rotatePhotoCanvas(c,false)];
+            for(const source of sources){
+              const result=worker?await worker.recognize(source):await window.Tesseract.recognize(source,'por');
+              guess=candidateFromPhoto(result?.data?.text);
+              if(guess)break;
+            }
           }
         }catch(e){}
         if(!guess){unavailable++;continue}
