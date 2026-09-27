@@ -2,7 +2,7 @@
 'use strict';
 if(window.DFOpTeamMemberNamesV1)return;window.DFOpTeamMemberNamesV1=true;
 const API='https://df-extrusor-api.reck-cp9.workers.dev',TEAM='df_op_team_v1',NAME='df_op_member_display_name_v1';
-const $=id=>document.getElementById(id);
+const $=id=>document.getElementById(id);let tm=0,lastMembersAt=0,membersBusy=false;
 function loadTeam(){try{return JSON.parse(localStorage.getItem(TEAM)||'null')}catch(e){return null}}
 function saveTeam(t){try{if(t)localStorage.setItem(TEAM,JSON.stringify(t))}catch(e){}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -41,7 +41,7 @@ async function post(path,body){
 async function saveMyName(){
   const t=loadTeam(),input=$('dfMyMemberName'),name=clean(input&&input.value);if(!t||!t.teamId||!name){alert('Digite o nome do operador.');return}
   const b=$('dfSaveMemberName');if(b){b.disabled=true;b.textContent='SALVANDO...'}
-  try{const j=await post('/op/team/member-name',{teamId:t.teamId,displayName:name});setSavedName(name);t.displayName=String(j.displayName||name);saveTeam(t);render();await refreshMembers();try{window.dispatchEvent(new CustomEvent('df-team-changed',{detail:{team:t}}))}catch(e){}}
+  try{const j=await post('/op/team/member-name',{teamId:t.teamId,displayName:name});setSavedName(name);t.displayName=String(j.displayName||name);saveTeam(t);renderEditor();await refreshMembers(true);try{window.dispatchEvent(new CustomEvent('df-team-changed',{detail:{team:t}}))}catch(e){}}
   catch(e){alert('Não foi possível salvar o nome: '+(e.message||e));if(b){b.disabled=false;b.textContent='✅ SALVAR MEU NOME'}}
 }
 function renderEditor(){
@@ -55,13 +55,14 @@ function renderMembers(members){
   const box=$('dfOpTeamCloud');if(!box)return;let p=$('dfTeamMembersNames');if(!p){p=document.createElement('div');p.id='dfTeamMembersNames';box.appendChild(p)}
   const list=Array.isArray(members)?members:[];p.innerHTML='<div class="ttl">👥 EQUIPE • '+list.length+' '+(list.length===1?'pessoa':'pessoas')+'</div>'+list.map((m,i)=>'<div class="row"><span class="name">'+esc(clean(m.displayName)||(m.role==='owner'?'Dono':'Operador '+(i+1)))+'</span><span class="role">'+(m.role==='owner'?'DONO':'OPERADOR')+'</span></div>').join('');
 }
-async function refreshMembers(){
-  const t=loadTeam();if(!t||!t.teamId)return;try{const j=await post('/op/team/members',{teamId:t.teamId});renderMembers(j.members||[])}catch(e){}
+async function refreshMembers(force){
+  const t=loadTeam();if(!t||!t.teamId||membersBusy)return;if(!force&&Date.now()-lastMembersAt<4000)return;membersBusy=true;
+  try{const j=await post('/op/team/members',{teamId:t.teamId});lastMembersAt=Date.now();renderMembers(j.members||[])}catch(e){}finally{membersBusy=false}
 }
-function render(){addStyle();mountJoinName();renderEditor();const t=loadTeam();if(t&&t.teamId)refreshMembers();else{$('dfTeamMembersNames')?.remove();$('dfMemberNameEditor')?.remove()}}
-let tm=0;function schedule(delay){clearTimeout(tm);tm=setTimeout(render,delay==null?120:delay)}
-const obs=new MutationObserver(()=>schedule(80));function boot(){addStyle();if(document.documentElement)obs.observe(document.documentElement,{childList:true,subtree:true});schedule(0);setTimeout(()=>schedule(0),800);setTimeout(()=>schedule(0),1800)}
+function render(force){addStyle();mountJoinName();renderEditor();const t=loadTeam();if(t&&t.teamId)refreshMembers(!!force);else{$('dfTeamMembersNames')?.remove();$('dfMemberNameEditor')?.remove()}}
+function schedule(delay,force){clearTimeout(tm);tm=setTimeout(()=>render(!!force),delay==null?120:delay)}
+function boot(){addStyle();schedule(0,true);setTimeout(()=>schedule(0,true),700);setTimeout(()=>schedule(0,true),1800)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-window.addEventListener('df-team-joined',()=>schedule(120));window.addEventListener('df-team-changed',()=>schedule(120));window.addEventListener('pageshow',()=>schedule(120));
-document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#dfCloudRefresh'))setTimeout(refreshMembers,350)},true);
+window.addEventListener('df-team-joined',()=>schedule(120,true));window.addEventListener('df-team-changed',()=>schedule(120,true));window.addEventListener('pageshow',()=>schedule(120,false));
+document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#dfCloudRefresh'))setTimeout(()=>refreshMembers(true),350)},true);
 })();
