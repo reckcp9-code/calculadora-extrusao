@@ -13,6 +13,8 @@ function validName(v){var s=String(v==null?'':v).trim();return s&&!/^(?:—|-|se
 function ids(o){return [o&&o.id,o&&o.qr,o&&o.numero,o&&o.op,o&&o.codigo,o&&o.opId].map(norm).filter(Boolean)}
 function team(){try{if(window.DFOpCloud&&typeof window.DFOpCloud.team==='function'){var t=window.DFOpCloud.team();if(t)return t}}catch(e){}return load(TEAM,null)}
 function isOwner(){var t=team();return !!(t&&String(t.role||'').toLowerCase()==='owner')}
+function serverApi(){return window.DFOpProductD1Authority||null}
+function serverActive(){var s=serverApi();try{return !!(s&&typeof s.active==='function'&&s.active())}catch(e){return false}}
 
 function registryName(id){
   id=norm(id);var r=load(REG,{}),name='';
@@ -28,6 +30,7 @@ function exactOwnerName(id,o){
   return '';
 }
 function writeName(id,name,ts){
+  if(serverActive())return false;
   id=norm(id);name=validName(name);if(!id||!name)return false;var changed=false,a=load(OPS,[]);if(!Array.isArray(a))a=[];
   a.forEach(function(o){if(ids(o).indexOf(id)<0)return;if(opName(o)!==name||o.manualProductName!==name){o.manualProductName=name;o.clienteFormulacao=name;o.produto=name;o.product=name;o.nomeProduto=name;o.opNome=name;changed=true}o.teamProductNameTs=Number(ts||Date.now())});
   if(changed)save(OPS,a);
@@ -39,7 +42,7 @@ function writeName(id,name,ts){
 }
 function ownerMap(){
   var a=load(OPS,[]),map={};if(!Array.isArray(a))return map;
-  a.forEach(function(o){if(!o||o.status!=='ok')return;var id=ids(o)[0];if(!id)return;var name=exactOwnerName(id,o);if(name){map[id]=name;writeName(id,name,Date.now())}});
+  a.forEach(function(o){if(!o||o.status!=='ok')return;var id=ids(o)[0];if(!id)return;var name=exactOwnerName(id,o);if(name){map[id]=name;if(!serverActive())writeName(id,name,Date.now())}});
   return map;
 }
 function cacheMap(){
@@ -47,11 +50,13 @@ function cacheMap(){
   snap.rows.forEach(function(r){var id=norm(r&&r[0]),name=validName(r&&r[1]);if(id&&name)map[id]=name});return map;
 }
 function applyMap(map){
+  if(serverActive())return false;
   var changed=false;Object.keys(map||{}).forEach(function(id){if(writeName(id,map[id],Date.now()))changed=true});
   if(changed){try{var m=document.getElementById('dfOpMonth');if(m)m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}try{window.dispatchEvent(new CustomEvent('df-op-code-product-applied'))}catch(e){}}
   return changed;
 }
 async function publishOwnerNames(forceMaster){
+  if(serverActive()){var s=serverApi();return s&&typeof s.sync==='function'?s.sync(false):true}
   if(!isOwner()||busy)return false;busy=true;
   try{
     ownerMap();
@@ -60,6 +65,7 @@ async function publishOwnerNames(forceMaster){
   }finally{busy=false}
 }
 async function pullOperatorNames(){
+  if(serverActive()){var s=serverApi();return s&&typeof s.sync==='function'?s.sync(false):true}
   if(isOwner()||busy)return false;busy=true;
   try{
     var master=window.DFOpTeamOwnerMaster;if(master&&typeof master.pull==='function')try{await master.pull(true)}catch(e){}
@@ -69,14 +75,15 @@ async function pullOperatorNames(){
     return true;
   }finally{busy=false}
 }
-function syncNow(){return isOwner()?publishOwnerNames(true):pullOperatorNames()}
+function syncNow(){var s=serverApi();if(serverActive()&&s&&typeof s.sync==='function')return s.sync(false);return isOwner()?publishOwnerNames(true):pullOperatorNames()}
 function queueSync(delay){clearTimeout(timer);timer=setTimeout(syncNow,delay==null?200:delay)}
 
 function boot(){
-  if(isOwner())ownerMap();else applyMap(cacheMap());
+  if(!serverActive()){if(isOwner())ownerMap();else applyMap(cacheMap())}
   document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#dfCloudRefresh'):null;if(b)queueSync(300)},true);
-  window.addEventListener('df-prontas-products-synced',function(e){var d=e&&e.detail||{};if(isOwner()&&d.id&&d.name){writeName(d.id,d.name,Date.now());queueSync(100)}else if(!isOwner())setTimeout(function(){applyMap(cacheMap())},80)});
-  window.addEventListener('df-owner-master-applied',function(){if(!isOwner())setTimeout(function(){applyMap(cacheMap())},30)});
+  window.addEventListener('df-prontas-products-synced',function(e){var d=e&&e.detail||{};if(serverActive())return;if(isOwner()&&d.id&&d.name){writeName(d.id,d.name,Date.now());queueSync(100)}else if(!isOwner())setTimeout(function(){applyMap(cacheMap())},80)});
+  window.addEventListener('df-owner-master-applied',function(){if(!serverActive()&&!isOwner())setTimeout(function(){applyMap(cacheMap())},30)});
+  window.addEventListener('df-product-server-applied',function(){/* D1 passou a ser a fonte oficial; fallback fica em espera. */});
   window.addEventListener('pageshow',function(){queueSync(250)});
   window.addEventListener('focus',function(){queueSync(250)});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)queueSync(250)});
@@ -84,6 +91,6 @@ function boot(){
   setTimeout(syncNow,1200);setTimeout(syncNow,3500);
   setInterval(function(){if(!document.hidden)syncNow()},7000);
 }
-window.DFOpTeamCodeProductMap={sync:syncNow,apply:function(){return applyMap(cacheMap())},ownerMap:ownerMap};
+window.DFOpTeamCodeProductMap={sync:syncNow,apply:function(){return serverActive()?false:applyMap(cacheMap())},ownerMap:ownerMap};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
