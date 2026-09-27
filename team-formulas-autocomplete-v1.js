@@ -75,12 +75,12 @@ try{const previousSetItem=Storage.prototype.setItem;Storage.prototype.setItem=fu
 async function deleteTeamFormula(f){const t=team();if(!t?.teamId||!f)return false;if(!isOwner()){alert('Somente o dono pode excluir uma formulação da biblioteca da equipe.');return false}if(!confirm('Excluir a formulação "'+String(f.nome||'Formulação')+'" para toda a equipe?'))return false;try{const j=await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:String(f.id||'')});applyServer(j.formulas||[]);status('✅ Formulação excluída da biblioteca da equipe.','ok');return true}catch(e){alert(String(e?.message||e));return false}}
 function selectedFormula(){const id=$('foSavedSelect')?.value;return localForms().find(f=>String(f?.id)===String(id))}
 
-function boot(){addStyle();lastLocalHash=hashForms(localForms());setTimeout(()=>{ensureStatus();ensureSuggest();sync(true)},850);setTimeout(()=>{ensureStatus();ensureSuggest()},1700);setTimeout(()=>{ensureStatus();ensureSuggest()},3200);
+function boot(){addStyle();lastLocalHash=hashForms(localForms());setTimeout(()=>{ensureStatus();ensureSuggest()},900);setTimeout(()=>{ensureStatus();ensureSuggest();sync(true)},1900);setTimeout(()=>{ensureStatus();ensureSuggest()},3200);
   document.addEventListener('input',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);
   document.addEventListener('focusin',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);
   document.addEventListener('click',e=>{const b=e.target?.closest?.('[data-dfformula]');if(b){e.preventDefault();e.stopPropagation();const f=localForms().find(x=>String(x?.id)===String(b.dataset.dfformula));applyFormula(f);return}if(!e.target?.closest?.('#foNome,#dfFormulaSuggest')){$('dfFormulaSuggest')?.classList.remove('on')}if(e.target?.closest?.('#btFo,#dfFormTabCore,#dfCloudRefresh'))schedule(200,true)},true);
   window.addEventListener('click',e=>{const b=e.target?.closest?.('[data-fosafe="del"]');if(!b||!team()?.teamId)return;e.preventDefault();e.stopImmediatePropagation();deleteTeamFormula(selectedFormula())},true);
-  ['df-team-joined','df-team-changed','online','pageshow','focus'].forEach(ev=>window.addEventListener(ev,()=>schedule(320,true)));
+  ['df-team-joined','df-team-changed','df-team-materials-updated','online','pageshow','focus'].forEach(ev=>window.addEventListener(ev,()=>schedule(320,true)));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(350,false)});
   setInterval(()=>{if(!document.hidden&&team()?.teamId&&Date.now()-lastPull>55000)sync(false)},60000);
 }
