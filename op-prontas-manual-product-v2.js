@@ -14,7 +14,46 @@ function validName(v){var s=String(v==null?'':v).trim();if(!s||/^(?:—|-|sem pr
 function ids(o){return [o&&o.id,o&&o.qr,o&&o.numero,o&&o.op,o&&o.codigo,o&&o.opId].map(norm).filter(Boolean)}
 function findOp(id){var a=load(OPS,[]),n=norm(id);if(!Array.isArray(a))return null;return a.find(function(o){return ids(o).indexOf(n)>=0})||null}
 function findRegName(id){var r=load(REG,{}),n=norm(id),name='';Object.keys(r||{}).some(function(k){var x=r[k]||{};if(norm(x.id||k)!==n)return false;var e=x.expected||{};name=validName(e.title)||validName(e.produto)||validName(e.product);return !!name});return name}
-function currentName(id){var m=load(MANUAL,{}),o=findOp(id)||{},n=norm(id);return validName(m[n])||validName(o.manualProductName)||validName(o.clienteFormulacao)||validName(o.produto)||validName(o.product)||findRegName(id)||''}
+function fold(v){return String(v==null?'':v).normalize?String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase():String(v==null?'':v).toUpperCase()}
+function cleanCandidate(v){
+  var s=String(v==null?'':v).replace(/[|]/g,' ').replace(/\s+/g,' ').trim();
+  s=s.replace(/\s+(?:UF|FASE|DATA(?:\s+EMISSAO)?|PREVISAO|PEDIDO|CLIENTE|FORMULACAO|LARGURA|ESPESSURA|GRAMATURA|PESO\s+LIQUIDO)\s*[:\-].*$/i,'').trim();
+  s=s.replace(/^[\-:;,.\s]+|[\-:;,.\s]+$/g,'').trim();
+  if(s.length>80)s=s.slice(0,80).trim();
+  return validName(s);
+}
+function nameFromOcr(o){
+  var text=String(o&&o.ocrText||'').trim();if(!text)return'';
+  var lines=text.split(/\r?\n+/).map(function(x){return String(x||'').replace(/[|]/g,' ').replace(/\s+/g,' ').trim()}).filter(Boolean);
+  for(var i=0;i<lines.length;i++){
+    var raw=lines[i],f=fold(raw),m=null,c='';
+    m=raw.match(/(?:CLIENTE\s*\/\s*FORMULA(?:Ç|C)[AÃA]O|CLIENTE\s*\/\s*FORMULACAO|NOME\s+DO\s+PRODUTO|PRODUTO)\s*[:\-]?\s*(.+)$/i);
+    if(m&&m[1]){c=cleanCandidate(m[1]);if(c)return c}
+    if(/CLIENTE\s*\/\s*FORMULACAO|NOME\s+DO\s+PRODUTO|^PRODUTO\b/.test(f)){
+      for(var j=i+1;j<Math.min(lines.length,i+4);j++){
+        var next=cleanCandidate(lines[j]);
+        if(!next)continue;
+        var nf=fold(next);
+        if(/^(?:UF|FASE|DATA|PREVISAO|PEDIDO|LARGURA|ESPESSURA|GRAMATURA|PESO\s+LIQUIDO)\b/.test(nf))break;
+        return next;
+      }
+    }
+  }
+  return'';
+}
+function currentNameInfo(id){
+  var m=load(MANUAL,{}),o=findOp(id)||{},n=norm(id),v='';
+  if((v=validName(m[n])))return{name:v,source:'salvo'};
+  if((v=validName(o.serverProductName)))return{name:v,source:'servidor'};
+  if((v=validName(o.manualProductName)))return{name:v,source:'salvo'};
+  if((v=validName(o.clienteFormulacao)))return{name:v,source:'op'};
+  if((v=validName(o.produto)))return{name:v,source:'op'};
+  if((v=validName(o.product)))return{name:v,source:'op'};
+  if((v=findRegName(id)))return{name:v,source:'op original'};
+  if((v=nameFromOcr(o)))return{name:v,source:'foto'};
+  return{name:'',source:''};
+}
+function currentName(id){return currentNameInfo(id).name}
 function persistName(id,name){
   var n=norm(id),v=String(name||'').trim();if(!n||!v)return false;
   var a=load(OPS,[]),changed=false;
@@ -38,7 +77,6 @@ function saveReadyWithoutRevalidating(id,name){
   if(prod)op.produzido=num(prod.value);
   if(apara)op.apara=num(apara.value);
   op.manualProductName=name;op.clienteFormulacao=name;op.produto=name;op.product=name;op.nomeProduto=name;op.opNome=name;
-  // A OP já estava em Prontas. Alterar o nome NÃO pode reabrir validação nem mandar para Pendentes.
   op.status='ok';op.reasons=[];op.manualConfirmed=true;
   save(OPS,a);persistName(id,name);
   try{window.dispatchEvent(new CustomEvent('df-prontas-products-synced',{detail:{id:id,name:name,manual:true,keepReady:true}}))}catch(e){}
@@ -60,9 +98,10 @@ function mount(){
   if(!currentId)return false;
   var body=document.getElementById('dfModalBody'),saveBtn=document.getElementById('dfFixSave');if(!body||!saveBtn)return false;
   var old=document.getElementById('dfManualProductBox');if(old)old.remove();
-  var name=currentName(currentId),box=document.createElement('div');box.id='dfManualProductBox';
+  var info=currentNameInfo(currentId),name=info.name,box=document.createElement('div');box.id='dfManualProductBox';
   box.style.cssText='margin:12px 0;padding:12px;border:1px solid #f5a000;background:#211400;border-radius:12px';
-  box.innerHTML='<label for="dfManualProductName" style="display:block;color:#ffd36a;font-size:13px;font-weight:900;margin:0 0 7px">NOME DO PRODUTO</label><input id="dfManualProductName" value="'+esc(name)+'" placeholder="Digite o nome do produto" autocomplete="off" style="width:100%;box-sizing:border-box;border:1px solid #f5a000;background:#0f172a;color:#fff;border-radius:10px;padding:13px;font-size:17px"><div style="margin-top:7px;color:#cbd5e1;font-size:11px;line-height:1.4">Esta OP já está concluída. Salvar o nome do produto não altera o status: ela permanece em PRONTAS.</div>';
+  var hint=name&&info.source==='foto'?'✅ Nome sugerido automaticamente pela leitura da foto. Confira antes de salvar.':'Esta OP já está concluída. Salvar o nome do produto não altera o status: ela permanece em PRONTAS.';
+  box.innerHTML='<label for="dfManualProductName" style="display:block;color:#ffd36a;font-size:13px;font-weight:900;margin:0 0 7px">NOME DO PRODUTO</label><input id="dfManualProductName" value="'+esc(name)+'" placeholder="Digite o nome do produto" autocomplete="off" style="width:100%;box-sizing:border-box;border:1px solid #f5a000;background:#0f172a;color:#fff;border-radius:10px;padding:13px;font-size:17px"><div id="dfManualProductHint" style="margin-top:7px;color:'+(info.source==='foto'?'#86efac':'#cbd5e1')+';font-size:11px;line-height:1.4">'+esc(hint)+'</div>';
   saveBtn.parentNode.insertBefore(box,saveBtn);
   saveBtn.textContent=openedWasReady?'✅ SALVAR NOME E MANTER EM PRONTAS':'✅ SALVAR CORREÇÃO E CONCLUIR';
   return true;
