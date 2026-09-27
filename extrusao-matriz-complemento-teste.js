@@ -1,6 +1,6 @@
 (function(root){
   'use strict';
-  // A decisão e a matriz sugerida vêm exclusivamente de extrusao-matriz.js (produção).
+  // A decisão e a matriz sugerida vêm exclusivamente do módulo BUR usado na prévia.
   const refs={
     pead:{name:'PEAD',min:1.2,max:1.5},pebd:{name:'PEBD convencional',min:1.2,max:1.2},
     pelbd:{name:'PEBDL / Linear',min:1.8,max:2.1},stretch:{name:'Stretch',min:1.8,max:2.1},
@@ -31,15 +31,14 @@
     const balloonMm=width>0?20*width/Math.PI:NaN;
     const burFor=size=>Number.isFinite(balloonMm)&&size>0?balloonMm/size:NaN;
     const withinBur=value=>Number.isFinite(value)&&value>=burRef.min-1e-9&&value<=burRef.max+1e-9;
-    const withinGeometry=size=>base.ready&&size>=base.referenceMin&&size<=base.referenceMax;
     const suggestedBur=base.ready?burFor(base.recommended):NaN;
     const candidates=[...new Set([...diameters,die,base.recommended].filter(n=>Number.isFinite(n)&&n>0))].sort((a,b)=>a-b);
     const comparison=base.ready?candidates.map(size=>{
       const value=burFor(size);
       return {die:size,bur:value,ddr:wall>0&&gap>0?gap/(wall/1000*value):NaN,
-        geometric:withinGeometry(size),burOk:withinBur(value)};
+        burOk:withinBur(value)};
     }):[];
-    const acceptable=comparison.filter(c=>c.geometric&&c.burOk);
+    const acceptable=comparison.filter(c=>c.burOk);
     const compromise=acceptable.length?acceptable.reduce((a,b)=>
       Math.abs(b.die-base.recommended)<Math.abs(a.die-base.recommended)?b:a):null;
     const diameterMin=die>0?die*burRef.min:NaN;
@@ -74,7 +73,7 @@
     extra.innerHTML='<h3>Verificação técnica da matriz</h3>'+
       '<div class="dfDieTechGrid"><div>Matriz atual<strong id="dfDieCurrentTest">—</strong></div>'+
       '<div>BUR atual<strong id="dfDieCurrentBurTest">—</strong></div>'+
-      '<div>Sugerida pela tabela<strong id="dfDieSuggestedTest">—</strong></div>'+
+      '<div>Matriz recomendada<strong id="dfDieSuggestedTest">—</strong></div>'+
       '<div>BUR previsto<strong id="dfDieSuggestedBurTest">—</strong></div></div>'+
       '<div class="dfDieTechVerdict" id="dfDieSuggestedVerdictTest"></div>'+
       '<div class="dfDieTechCompromise" id="dfDieCompromiseTest"></div>'+
@@ -99,7 +98,7 @@
       '<option value="raschel80">Raschel 80 µm</option><option value="raschel120">Raschel 120 µm</option></select>'+
       '<p id="dfDieGapReferenceTest"></p>'+
       '<details class="dfDieHowTest"><summary>ⓘ Como funciona</summary>'+
-      '<p>Diâmetro do balão (mm) = 2 × largura achatada (mm) ÷ π. Matriz × BUR = diâmetro do balão; diâmetro do balão ÷ matriz = BUR. A tabela atual continua escolhendo e classificando a matriz.</p>'+
+      '<p>Diâmetro do balão (mm) = 2 × largura achatada (mm) ÷ π. Matriz × BUR = diâmetro do balão; diâmetro do balão ÷ matriz = BUR. Na prévia, a referência de BUR define a avaliação da matriz.</p>'+
       '<p>O DDR estimado é GAP ÷ (micra por parede ÷ 1000 × BUR); ele não decide sozinho se a matriz roda.</p>'+
       '<p>As faixas de GAP são referências, não limites obrigatórios. A linha de névoa depende de resina, temperatura da massa, vazão, refrigeração e produção.</p></details>';
     card.querySelector('.dfDieRecommendation').after(extra);
@@ -145,11 +144,10 @@
       const x=calculate({material:$('dfDieMaterial').value,widthCm:width.value,dieMm:$('dfDieDiameter').value,
         gapMm:$('dfDieGap').value,micra,micraMode:selected,application:$('dfDieGapAppTest').value});
       const b=x.base;
-      if(b.ready)$('dfDieSuggestedNote').textContent='Faixa geométrica: aproximadamente '+
+      if(b.ready)$('dfDieSuggestedNote').textContent='Diâmetros pela referência BUR: aproximadamente '+
         fmt(b.referenceMin,0)+'–'+fmt(b.referenceMax,0)+' mm.';
-      $('dfDieStatus').textContent=b.status==='No limite'?'🟡 NO LIMITE':
-        b.status==='Boa para testar'?'🟢 BOA PARA TESTAR':
-        b.status==='Não recomendada'?'🔴 NÃO RECOMENDADA':b.status;
+      $('dfDieStatus').textContent=b.status==='Recomendada'?'🟢 RECOMENDADA':
+        b.status==='Fora da referência'?'🔴 FORA DA REFERÊNCIA':b.status;
       $('dfDieReading').textContent='Largura achatada: '+(x.widthCm>0?fmtWidth(x.widthCm)+' cm':'—')+
         ' · Diâmetro do balão: '+(Number.isFinite(x.balloonMm)?fmt(x.balloonMm,0)+' mm':'—')+
         ' · Micra: '+(num(micra)>0?micra+' µm ('+(selected==='wall'?'por parede':'dupla')+')':'—');
@@ -170,24 +168,23 @@
         (b.bur>=x.burRef.min&&b.bur<=x.burRef.max?'🟢 BUR atual dentro da referência '+x.burRef.name:
         '🔴 BUR atual fora da referência '+x.burRef.name):'Informe largura e matriz para conferir o BUR.';
       $('dfDieSuggestedVerdictTest').textContent=Number.isFinite(x.suggestedBur)?
-        (x.suggestedWithinBur?'🟢 Matriz sugerida pela tabela também mantém o BUR na referência.':
-        '⚠️ Atenção: a matriz sugerida pela tabela geométrica produz BUR '+fmt(x.suggestedBur,2)+
+        (b.keepCurrent?'🟢 MANTENHA A MATRIZ ATUAL. O BUR está dentro da referência configurada.':
+        x.suggestedWithinBur?'🟢 Alternativa com BUR dentro da referência. Confira se essa matriz está disponível.':
+        '⚠️ A alternativa calculada produz BUR '+fmt(x.suggestedBur,2)+
         ':1, fora da referência '+fmt(x.burRef.min,2)+'–'+fmt(x.burRef.max,2)+':1.'):
         'Informe a largura para verificar a sugestão.';
-      $('dfDieCompromiseTest').textContent=x.compromise?
-        'Melhor compromisso técnico: '+fmt(x.compromise.die,0)+' mm → BUR '+fmt(x.compromise.bur,2)+
-        ':1 (dentro da faixa geométrica e da referência de BUR; confirme disponibilidade).':
-        b.ready?'Nenhuma matriz comparada atende às duas referências; confira outras medidas e o processo.':'';
-      $('dfDieCompromiseTest').hidden=!b.ready;
+      $('dfDieCompromiseTest').textContent=!b.keepCurrent&&x.compromise?
+        'Alternativa dentro da faixa BUR: '+fmt(x.compromise.die,0)+' mm → BUR '+fmt(x.compromise.bur,2)+
+        ':1. Confirme disponibilidade e condições do processo.':
+        !b.keepCurrent&&b.ready?'Nenhuma matriz comparada atende à referência BUR.':'';
+      $('dfDieCompromiseTest').hidden=!b.ready||b.keepCurrent;
       const rows=$('dfDieCompareRowsTest');rows.replaceChildren();
       for(const item of x.comparison){
         const tr=document.createElement('tr');
-        const situation=item.geometric&&item.burOk?'🟢 Dentro das duas':
-          !item.geometric&&!item.burOk?'🔴 Fora das duas':
-          !item.geometric?'🟡 Fora da faixa geométrica':'🔴 BUR fora da referência';
+        const situation=item.burOk?'🟢 BUR dentro':'🔴 BUR fora';
         for(const value of [
           fmt(item.die,0)+' mm'+(item.die===num($('dfDieDiameter').value)?' (atual)':
-            item.die===b.recommended?' (tabela)':''),
+            item.die===b.recommended?' (recomendada)':''),
           fmt(item.bur,2)+':1',Number.isFinite(item.ddr)?fmt(item.ddr,1)+':1':'—',situation]){
           const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
         }
