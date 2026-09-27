@@ -44,6 +44,7 @@
       name=realName(expected?.title)||realName(expected?.produto)||realName(expected?.product);
       if(name)return name;
     }
+    name=photoName(o);if(name)return name;
     name=realName(o?.produto);if(name)return name;
     for(const x of linkedProduction(o)){
       name=realName(x?.product)||realName(x?.produto)||realName(x?.nomeProduto)||realName(x?.opNome);
@@ -56,35 +57,27 @@
   try{localStorage.removeItem('df_test_photo_names_confirmed_v1');localStorage.removeItem('df_test_photo_names_confirmed_v2')}catch(e){}
   let photoNames={};
   try{photoNames=JSON.parse(localStorage.getItem(TEST_PHOTO_NAMES_KEY)||'{}')||{}}catch(e){}
-  const verifiedPhotoNames={'DFOP-20260921-123452-CW7X':'Koch 88 x 108 x 0,049','DFOP-20260915-122157-WF7L':'Koch 88 x 108 x 0,049','DFOP-20260916-151910-X1EA':'Canela 150 litros','DFOP-20260921-145718-LTIF':'Sacola amarela d2','DFOP-20260914-115415-HRU2':'Fundo reto','DFOP-20260921-150129-UWGN':'Volpini'};
   function photoName(o){
-    for(const id of opIds(o)){const name=realName(verifiedPhotoNames[id])||realName(photoNames[id]);if(name)return name}
+    for(const id of opIds(o)){const name=realName(photoNames[id]);if(name)return name}
     return '';
   }
+  // Lê apenas o valor ao lado de Cliente / Formulação ou Descrição do produto.
   function candidateFromPhoto(text){
     const lines=String(text||'').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
-    const reject=/^(?:ferreira|ordem|produ[cç][aã]o|fase|extrus[aã]o|tamanho|peso|quantidade|descri[cç][aã]o|cliente|formula[cç][aã]o|material|aparas?|kg\b|uf\b|cm\b|total|gramas|largura|data|operador|m[aá]quina|in[ií]cio|final|obs(?:erva[cç][oõ]es)?|c[oó]digo)\b/i;
-    const valid=x=>{
-      if(/\b(?:FASE|EXTRUS[AÃ]O|PRODU[CÇ][AÃ]O\s+(?:POR|DIA)|ORDEM\s+DE|MISTURA\s+CALCULADA)\b/i.test(String(x||'')))return '';
-      const value=String(x||'').replace(/^[^\p{L}\p{N}]+/u,'').replace(/\s+(?:TAMANHO|UF:|FASE\s*1|PESO|MISTURA|OS:|ORDEM)\b.*$/i,'').trim();
-      const words=(value.match(/[a-zà-ÿ]{2,}/gi)||[]);
-      if(/\d/.test(value)&&words.length<2&&!/\d\s*[x×]\s*\d/i.test(value)&&!/^\d+\s*(?:litros|lts)$/i.test(value))return '';
-      return value.length>=4&&value.length<=75&&words.length>0&&!reject.test(value)&&!/[=:]{2,}/.test(value)?value:'';
+    const label=/(?:cliente\s*\/?\s*formul[aá][cç][aã]o|descri[cç][aã]o\s+(?:do|de)\s+produto)/i;
+    const nextField=/\b(?:UF:|FASE\s*1|TAMANHO|PESO|MISTURA|OS:|ORDEM\s+DE|EXTRUS[AÃ]O)\b/i;
+    const clean=v=>{
+      const value=String(v||'').replace(nextField, '\n').split('\n')[0].replace(/^[\s:;|.-]+|[\s:;|.-]+$/g,'').trim();
+      if(value.length<3||value.length>80||!/[a-zà-ÿ]{2,}/i.test(value)||label.test(value)||/^(?:ferreira|ordem|fase|extrus[aã]o|sem produto)/i.test(value))return '';
+      return value;
     };
-    const found=[];
-    for(let i=0;i<lines.length-1;i++){
-      const label=lines[i];
-      if(!/(?:formul[aá][cç][aã]o|descri[cç][aã]o\s+(?:do|d0|de)\s+produt[oo])/i.test(label))continue;
-      if(label.length>65||/\b(?:fase|extrus[aã]o|m[aá]quina|produ[cç][aã]o\s+(?:por|dia)|parada)\b/i.test(label))continue;
-      const value=valid(lines[i+1]);
-      if(value)found.push(value);
-    }
-    if(!found.length)return '';
-    if(found.length<2)return '';
-    const norm=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-    for(let i=0;i<found.length;i++)for(let j=i+1;j<found.length;j++){
-      const x=norm(found[i]),y=norm(found[j]);
-      if(x===y)return found[i].length>=found[j].length?found[i]:found[j];
+    for(let i=0;i<lines.length;i++){
+      const match=lines[i].match(label);
+      if(!match)continue;
+      const same=clean(lines[i].slice(match.index+match[0].length));
+      if(same)return same;
+      const next=clean(lines[i+1]);
+      if(next)return next;
     }
     return '';
   }
@@ -343,7 +336,7 @@
   function upsert(rec){const a=load(),i=a.findIndex(x=>x.id===rec.id);if(i>=0)a[i]=rec;else a.unshift(rec);save(a)}
 
   function renderAll(){renderOk();renderPending();renderReport();renderArchive()}
-  function itemHtml(o,pending){return `<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${pending?'warn':'ok'}">${pending?'PENDENTE':'OK'}</span><div class="dfOpsTiny">${esc(o.data||'')} • ${esc(o.produto||'Sem produto')} • ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div>${pending?'<div class="dfPendingReason">'+esc((o.reasons||[]).join(' • '))+'</div>':''}<button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button></div>`}
+  function itemHtml(o,pending){return `<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${pending?'warn':'ok'}">${pending?'PENDENTE':'OK'}</span><div class="dfOpsTiny">${esc(o.data||'')} • ${esc(productFor(o))} • ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div>${pending?'<div class="dfPendingReason">'+esc((o.reasons||[]).join(' • '))+'</div>':''}<button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button></div>`}
   function bindViews(box){box?.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>openStored(b.dataset.view))}
   function renderOk(){const b=$('dfOkList');if(!b)return;const a=load().filter(x=>x.status==='ok');b.innerHTML=a.length?a.map(o=>itemHtml(o,false)).join(''):'<div class="dfOpsTiny">Nenhuma OP concluída ainda.</div>';bindViews(b)}
   function renderPending(){const b=$('dfPendingList');if(!b)return;const a=load().filter(x=>x.status==='pending');b.innerHTML=a.length?a.map(o=>itemHtml(o,true)).join(''):'<div class="dfOpsStatus ok">✅ Nenhuma pendência.</div>';bindViews(b)}
@@ -362,7 +355,48 @@
   function rows(obj){const a=Object.entries(obj).sort((x,y)=>y[1]-x[1]);return a.length?a.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${fmt(v,2)} kg</td></tr>`).join(''):'<tr><td colspan="2">—</td></tr>'}
   function renderReport(){const b=$('dfReport');if(!b)return;const list=monthRecords(),a=aggregate(list);b.innerHTML=`<div class="dfOpKpis" style="margin-top:10px"><div class="dfOpKpi"><span>OPs concluídas</span><b>${a.ok.length}</b></div><div class="dfOpKpi"><span>Pendentes</span><b>${a.pending}</b></div><div class="dfOpKpi"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="dfOpKpi"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="dfOpKpi"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="dfOpKpi"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div></div>${a.pending?'<div class="dfOpsStatus warn">⚠️ Há '+a.pending+' OP(s) pendente(s). Elas não entram nos totais até serem resolvidas.</div>':''}<button id="dfRecoverPhotoNamesTest" type="button" class="dfOpsBtn gray" style="margin-top:12px">🔎 BUSCAR PRODUTOS NAS FOTOS DA NUVEM</button><button id="dfReviewProductsTest" type="button" class="dfOpsBtn gray" style="margin-top:8px">📷 CONFERIR OP POR OP</button><button id="dfDownloadCloudPhotosTest" type="button" class="dfOpsBtn gray" style="margin-top:8px">⬇️ BAIXAR FOTOS DAS OPS (ZIP)</button><div id="dfPhotoRecoveryStatusTest" class="dfOpsTiny" style="margin-top:6px">Lê automaticamente o campo Cliente/Formulação das OPs sem produto, pelo QR.</div><h3 style="margin-top:15px">Materiais calculados</h3><table class="dfOpTable">${rows(a.mats)}</table>`;const recover=$('dfRecoverPhotoNamesTest');if(recover)recover.onclick=()=>recoverProductFromPhoto(true);const review=$('dfReviewProductsTest');if(review)review.onclick=reviewUnknownProducts;const zip=$('dfDownloadCloudPhotosTest');if(zip)zip.onclick=downloadCloudPhotoZip}
   function reportHtml(){const list=monthRecords(),a=aggregate(list),m=$('dfOpMonth').value||monthNow(),body=a.ok.map(o=>`<tr><td>${esc(o.data)}</td><td>${esc(o.numero||o.id)}</td><td>${esc(productFor(o))}</td><td>${esc(o.operador||'—')}</td><td>${esc(o.maquina||'—')}</td><td>${fmt(o.produzido,2)}</td><td>${fmt(o.apara,2)}</td></tr>`).join('');return `<!doctype html><html><head><meta charset="utf-8"><title>Relatório ${m}</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1{margin:0}.sub{color:#555;margin:4px 0 14px}.k{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}.c{border:1px solid #bbb;border-radius:7px;padding:8px}.c span{display:block;font-size:10px;color:#666}.c b{font-size:16px}table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px}td,th{border-bottom:1px solid #ddd;padding:5px;text-align:left}th{background:#eee}@media print{#dfVoltarFormula209{display:none!important}}</style></head><body><button id="dfVoltarFormula209" type="button" style="display:inline-flex;align-items:center;margin:0 0 14px;padding:10px 14px;border:1px solid #bbb;border-radius:9px;background:#fff;color:#111;font:700 14px Arial,sans-serif;cursor:pointer" onclick="try{if(window.opener)window.opener.focus()}catch(e){};try{window.close()}catch(e){};setTimeout(function(){try{if(!window.closed)history.back()}catch(e){}},120)">← VOLTAR PARA FORMULAÇÃO</button><h1>DF EXTRUSOR PRO</h1><div class="sub">Relatório automático de OPs — ${esc(m)} • Pendentes: ${a.pending}</div><div class="k"><div class="c"><span>OPs</span><b>${a.ok.length}</b></div><div class="c"><span>Produção</span><b>${fmt(a.prod,2)} kg</b></div><div class="c"><span>Apara</span><b>${fmt(a.ap,2)} kg</b></div><div class="c"><span>Líquido</span><b>${fmt(a.liquid,2)} kg</b></div><div class="c"><span>Rendimento</span><b>${fmt(a.yieldPct,2)}%</b></div><div class="c"><span>Metros est.</span><b>${fmt(a.meters,0)}</b></div></div><h2>OPs concluídas</h2><table><thead><tr><th>Data</th><th>OP/QR</th><th>Produto</th><th>Operador</th><th>Máquina</th><th>Produzido kg</th><th>Apara kg</th></tr></thead><tbody>${body||'<tr><td colspan="7">Nenhuma OP concluída.</td></tr>'}</tbody></table><h2>Materiais</h2><table>${rows(a.mats)}</table><h2>Produção por operador</h2><table>${rows(a.operators)}</table><h2>Produção por máquina</h2><table>${rows(a.machines)}</table></body></html>`}
-  async function printReport(){const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}try{await window.DFOpRegistryCloudTestV174?.sync?.()}catch(e){}await readOriginalProducts();w.document.open();w.document.write(reportHtml());w.document.close();setTimeout(()=>w.print(),450)}
+  async function recoverCompletedNames(progress){
+    const missing=monthRecords().filter(o=>o.status==='ok'&&productFor(o)==='Produto não informado');
+    if(!missing.length)return 0;
+    let worker=null,found=0;
+    try{
+      await loadTess();
+      if(typeof window.Tesseract.createWorker==='function')worker=await window.Tesseract.createWorker('por');
+      for(let i=0;i<missing.length;i++){
+        const o=missing[i],id=opIds(o)[0];
+        progress?.('Conferindo Cliente / Formulação da OP '+(i+1)+' de '+missing.length+' • '+id);
+        let name=candidateFromPhoto(o.ocrText);
+        if(!name){
+          const photo=await photoForReport(o).catch(()=>null);
+          if(photo){
+            const canvas=await imageCanvas(photo,2200);
+            const sources=canvas.height>canvas.width*1.1?[rotatePhotoCanvas(canvas,true),rotatePhotoCanvas(canvas,false),canvas]:[canvas,rotatePhotoCanvas(canvas,true),rotatePhotoCanvas(canvas,false)];
+            for(const source of sources){
+              const crop=headerCanvas(source);
+              try{await worker?.setParameters?.({tessedit_pageseg_mode:6})}catch(e){}
+              const result=worker?await worker.recognize(crop):await window.Tesseract.recognize(crop,'por');
+              name=candidateFromPhoto(result?.data?.text);
+              if(name)break;
+            }
+          }
+        }
+        if(name&&id){photoNames[id]=name;found++;try{localStorage.setItem(TEST_PHOTO_NAMES_KEY,JSON.stringify(photoNames))}catch(e){}}
+      }
+    }finally{try{await worker?.terminate?.()}catch(e){}}
+    renderAll();return found;
+  }
+  async function printReport(){
+    const w=window.open('','_blank');if(!w){alert('Libere pop-up.');return}
+    const progress=message=>{try{w.document.body.textContent=message}catch(e){}};
+    progress('Conferindo os nomes das OPs concluídas pelo código...');
+    try{await window.DFOpRegistryCloudTestV174?.sync?.()}catch(e){}
+    await readOriginalProducts();
+    try{await recoverCompletedNames(progress)}catch(e){console.warn('Falha ao consultar OPs concluídas',e)}
+    const remaining=monthRecords().filter(o=>o.status==='ok'&&productFor(o)==='Produto não informado');
+    if(remaining.length){w.close();switchPane('month');alert('Faltam '+remaining.length+' nome(s) nas OPs de Prontas. Vou abrir cada OP para conferir Cliente / Formulação antes de gerar o relatório.');await reviewUnknownProducts();return}
+    w.document.open();w.document.write(reportHtml());w.document.close();
+    setTimeout(()=>w.print(),450);
+  }
 
   async function renderArchive(){const b=$('dfArchiveList');if(!b)return;const list=monthRecords();b.innerHTML=list.length?list.map(o=>`<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge ${o.status==='ok'?'ok':'warn'}">${o.status==='ok'?'OK':'PENDENTE'}</span><div class="dfOpsTiny">Foto ligada ao QR ${esc(o.qr||'sem QR')}</div><div class="dfArchiveBtns"><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><button class="dfOpsBtn danger" data-delphoto="${esc(o.id)}">EXCLUIR FOTO + OP</button></div></div>`).join(''):'<div class="dfOpsTiny">Nenhuma foto neste mês.</div>';bindViews(b);b.querySelectorAll('[data-delphoto]').forEach(x=>x.onclick=async()=>{if(!confirm('Excluir esta OP e a foto arquivada?'))return;await photoDelete(x.dataset.delphoto);save(load().filter(o=>o.id!==x.dataset.delphoto))})}
   function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
