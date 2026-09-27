@@ -16,6 +16,7 @@
   const diameters=[60,75,90,100,125,135,150,165,175,180,200,225,250,300,350,400,450,500,600,750,900];
   const num=v=>{const t=String(v??'').trim().replace(/\s/g,'');return t?Number(t.includes(',')&&t.includes('.')?t.replace(/\./g,'').replace(',','.'):t.replace(',','.')):NaN};
   const fmt=(v,d=1)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const fmtWidth=v=>Number(v).toLocaleString('pt-BR',{maximumFractionDigits:2});
   function calculate({material,widthCm,dieMm,gapMm,micra,micraMode,application}){
     const base=root.DFDieAdvisorTest.analyze({
       material,widthCm,dieMm,gapMm,
@@ -26,7 +27,9 @@
       material==='pead'?'pead':material==='pelbd'?'pelbd':'pebd';
     const ref=refs[key],bur=base.bur;
     const width=num(widthCm),die=num(dieMm),burRef=burRefs[material]||burRefs.pebd;
-    const burFor=size=>width>0&&size>0?20*width/(Math.PI*size):NaN;
+    // Largura achatada é metade da circunferência do balão redondo.
+    const balloonMm=width>0?20*width/Math.PI:NaN;
+    const burFor=size=>Number.isFinite(balloonMm)&&size>0?balloonMm/size:NaN;
     const withinBur=value=>Number.isFinite(value)&&value>=burRef.min-1e-9&&value<=burRef.max+1e-9;
     const withinGeometry=size=>base.ready&&size>=base.referenceMin&&size<=base.referenceMax;
     const suggestedBur=base.ready?burFor(base.recommended):NaN;
@@ -39,7 +42,11 @@
     const acceptable=comparison.filter(c=>c.geometric&&c.burOk);
     const compromise=acceptable.length?acceptable.reduce((a,b)=>
       Math.abs(b.die-base.recommended)<Math.abs(a.die-base.recommended)?b:a):null;
-    return {base,wall,gap,ref,burRef,suggestedBur,compromise,comparison,
+    const diameterMin=die>0?die*burRef.min:NaN;
+    const diameterMax=die>0?die*burRef.max:NaN;
+    return {base,wall,gap,ref,burRef,widthCm:width,balloonMm,dieMm:die,
+      diameterMin,diameterMax,flatMinCm:diameterMin*Math.PI/20,
+      flatMaxCm:diameterMax*Math.PI/20,suggestedBur,compromise,comparison,
       suggestedWithinBur:withinBur(suggestedBur),
       ddr:wall>0&&gap>0&&Number.isFinite(bur)?gap/(wall/1000*bur):NaN,
       gapStatus:gap>0?(gap<ref.min?'abaixo':gap>ref.max?'acima':'dentro'):null};
@@ -73,9 +80,16 @@
       '<div class="dfDieTechCompromise" id="dfDieCompromiseTest"></div>'+
       '<button type="button" id="dfDieCompareButtonTest" aria-expanded="false">Ver efeito de outras matrizes</button>'+
       '<div id="dfDieCompareTest" hidden><div class="dfDieCompareScroll"><table><thead><tr><th>Diâmetro</th><th>BUR</th><th>DDR</th><th>Situação</th></tr></thead><tbody id="dfDieCompareRowsTest"></tbody></table></div></div>'+
-      '<h3>EXPANSÃO</h3><div class="dfDieTechGrid"><div>BUR atual<strong id="dfDieBurTest">—</strong></div>'+
-      '<div>Faixa de referência<strong id="dfDieBurRangeTest">—</strong></div></div>'+
+      '<h3>EXPANSÃO</h3><div class="dfDieTechGrid">'+
+      '<div>Largura achatada<strong id="dfDieFlatWidthTest">—</strong></div>'+
+      '<div>Diâmetro real do balão<strong id="dfDieBalloonTest">—</strong></div>'+
+      '<div>Matriz instalada<strong id="dfDieMatrixDiameterTest">—</strong></div>'+
+      '<div>BUR atual<strong id="dfDieBurTest">—</strong></div>'+
+      '<div>Faixa de BUR<strong id="dfDieBurRangeTest">—</strong></div></div>'+
       '<div class="dfDieTechVerdict" id="dfDieBurStatusTest"></div>'+
+      '<div class="dfDieBalloonRange"><b>Capacidade desta matriz em diâmetro de balão</b>'+
+      '<strong id="dfDieBalloonRangeTest">—</strong>'+
+      '<small id="dfDieFlatRangeTest">—</small></div>'+
       '<h3>ESTIRAMENTO</h3><div class="dfDieTechGrid"><div>GAP<strong id="dfDieGapOutputTest">—</strong></div>'+
       '<div>Micra por parede<strong id="dfDieWallOutputTest">—</strong></div>'+
       '<div>DDR estimado<strong id="dfDieDdrTest">—</strong></div></div>'+
@@ -85,7 +99,8 @@
       '<option value="raschel80">Raschel 80 µm</option><option value="raschel120">Raschel 120 µm</option></select>'+
       '<p id="dfDieGapReferenceTest"></p>'+
       '<details class="dfDieHowTest"><summary>ⓘ Como funciona</summary>'+
-      '<p>A tabela atual escolhe a matriz e classifica seu uso. BUR verifica a expansão do balão sem mudar essa escolha. O DDR estimado é GAP ÷ (micra por parede ÷ 1000 × BUR); ele não decide sozinho se a matriz roda.</p>'+
+      '<p>Diâmetro do balão (mm) = 2 × largura achatada (mm) ÷ π. Matriz × BUR = diâmetro do balão; diâmetro do balão ÷ matriz = BUR. A tabela atual continua escolhendo e classificando a matriz.</p>'+
+      '<p>O DDR estimado é GAP ÷ (micra por parede ÷ 1000 × BUR); ele não decide sozinho se a matriz roda.</p>'+
       '<p>As faixas de GAP são referências, não limites obrigatórios. A linha de névoa depende de resina, temperatura da massa, vazão, refrigeração e produção.</p></details>';
     card.querySelector('.dfDieRecommendation').after(extra);
     const style=document.createElement('style');
@@ -96,6 +111,11 @@
       '#dfDieAdvisorTest .dfDieTechGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}'+
       '#dfDieAdvisorTest .dfDieTechGrid>div{background:#121e30;border:1px solid #33455b;border-radius:10px;padding:9px;font-size:11px;color:#aebcd0}'+
       '#dfDieAdvisorTest .dfDieTechGrid strong{display:block;color:#fff;font-size:18px;margin-top:5px}'+
+      '#dfDieAdvisorTest .dfDieBalloonRange{background:#13243a;border:1px solid #47617d;border-radius:11px;padding:12px;margin:12px 0}'+
+      '#dfDieAdvisorTest .dfDieBalloonRange b,#dfDieAdvisorTest .dfDieBalloonRange strong,#dfDieAdvisorTest .dfDieBalloonRange small{display:block}'+
+      '#dfDieAdvisorTest .dfDieBalloonRange b{color:#ffd36a;font-size:13px}'+
+      '#dfDieAdvisorTest .dfDieBalloonRange strong{color:#fff;font-size:21px;margin:6px 0}'+
+      '#dfDieAdvisorTest .dfDieBalloonRange small{color:#cbd5e1;font-size:12px}'+
       '#dfDieAdvisorTest #dfDieTechTest p{font-size:13px;line-height:1.5;color:#cbd5e1}'+
       '#dfDieAdvisorTest .dfDieIntro,#dfDieAdvisorTest .dfDieLimit,#dfDieAdvisorTest .dfDieGuidance{display:none}'+
       '#dfDieAdvisorTest .dfDieTechVerdict{font-size:14px;font-weight:800;line-height:1.45;margin:10px 0}'+
@@ -130,14 +150,22 @@
       $('dfDieStatus').textContent=b.status==='No limite'?'🟡 NO LIMITE':
         b.status==='Boa para testar'?'🟢 BOA PARA TESTAR':
         b.status==='Não recomendada'?'🔴 NÃO RECOMENDADA':b.status;
-      $('dfDieReading').textContent='Largura: '+(num(width.value)>0?width.value+' cm':'—')+
+      $('dfDieReading').textContent='Largura achatada: '+(x.widthCm>0?fmtWidth(x.widthCm)+' cm':'—')+
+        ' · Diâmetro do balão: '+(Number.isFinite(x.balloonMm)?fmt(x.balloonMm,0)+' mm':'—')+
         ' · Micra: '+(num(micra)>0?micra+' µm ('+(selected==='wall'?'por parede':'dupla')+')':'—');
       $('dfDieBurTest').textContent=Number.isFinite(b.bur)?fmt(b.bur,2)+' : 1':'—';
+      $('dfDieFlatWidthTest').textContent=x.widthCm>0?fmtWidth(x.widthCm)+' cm':'—';
+      $('dfDieBalloonTest').textContent=Number.isFinite(x.balloonMm)?fmt(x.balloonMm,0)+' mm':'—';
+      $('dfDieMatrixDiameterTest').textContent=x.dieMm>0?fmtWidth(x.dieMm)+' mm':'—';
       $('dfDieCurrentTest').textContent=num($('dfDieDiameter').value)>0?fmt(num($('dfDieDiameter').value),0)+' mm':'—';
       $('dfDieCurrentBurTest').textContent=Number.isFinite(b.bur)?fmt(b.bur,2)+' : 1':'—';
       $('dfDieSuggestedTest').textContent=b.ready?fmt(b.recommended,0)+' mm':'—';
       $('dfDieSuggestedBurTest').textContent=Number.isFinite(x.suggestedBur)?fmt(x.suggestedBur,2)+' : 1':'—';
       $('dfDieBurRangeTest').textContent=fmt(x.burRef.min,2)+'–'+fmt(x.burRef.max,2)+' : 1';
+      $('dfDieBalloonRangeTest').textContent=Number.isFinite(x.diameterMin)?
+        fmt(x.diameterMin,0)+' a '+fmt(x.diameterMax,0)+' mm':'Informe o diâmetro da matriz.';
+      $('dfDieFlatRangeTest').textContent=Number.isFinite(x.flatMinCm)?
+        'Equivale a aproximadamente '+fmt(x.flatMinCm,1)+' a '+fmt(x.flatMaxCm,1)+' cm de largura achatada.':'';
       $('dfDieBurStatusTest').textContent=Number.isFinite(b.bur)?
         (b.bur>=x.burRef.min&&b.bur<=x.burRef.max?'🟢 BUR atual dentro da referência '+x.burRef.name:
         '🔴 BUR atual fora da referência '+x.burRef.name):'Informe largura e matriz para conferir o BUR.';
