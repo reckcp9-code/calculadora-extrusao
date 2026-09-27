@@ -76,13 +76,15 @@
   }
 
   function machineKey(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
-  function saveForm(){
+  async function saveForm(){
     if(!owner())return;
     var m=$('dfNowMachine'),st=$('dfNowStatus'),os=$('dfNowOpSelect'),opn=$('dfNowOperator'),ti=$('dfNowStart');
     if(!m||!st||!os)return;
     var machine=String(m.value||'').trim(),status=st.value,op=os.value,operator=String(opn&&opn.value||'').trim();
     if(!machine){alert('Digite a máquina.');return}if(status==='RODANDO'&&!op){alert('Selecione a OP que está rodando.');return}
-    var ent=registry()[op]||{},exp=ent.expected||{},tv=ti&&ti.value||new Date().toTimeString().slice(0,5),d=new Date(),parts=tv.split(':');d.setHours(Number(parts[0])||0,Number(parts[1])||0,0,0);
+    if(op){try{var cloud=window.DFOpRegistryCloudTestV174;if(cloud&&typeof cloud.sync==='function')await cloud.sync()}catch(e){}}
+    var ent=registry()[op]||{},exp=ent.expected||{};if(op&&!String(exp.title||'').trim()){alert('Produto da OP não encontrado no cadastro compartilhado. Atualize a OP e tente novamente.');return}
+    var tv=ti&&ti.value||new Date().toTimeString().slice(0,5),d=new Date(),parts=tv.split(':');d.setHours(Number(parts[0])||0,Number(parts[1])||0,0,0);
     var key=machineKey(machine)||('m-'+Date.now()),a=load(),old=null;a.forEach(function(x){if(x&&x.machineKey===key)old=x});
     var rec={machineKey:key,machine:machine,status:status,op:op||'',product:exp.title||(old&&old.product)||'',operator:operator,startedAt:old&&old.status==='RODANDO'&&status==='RODANDO'?old.startedAt:d.toISOString(),updatedAt:now()};
     a=a.filter(function(x){return !x||x.machineKey!==key});a.unshift(rec);save(a);
