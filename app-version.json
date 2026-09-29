@@ -1,6 +1,6 @@
 {
-  "version": "1.0.189",
-  "title": "DF EXTRUSOR PRO — limpeza final D1",
-  "message": "Limpeza final após a migração para o D1: módulos antigos de reparo deixaram de carregar, salvamento de OP ficou direto e event-driven, recuperação antiga virou modo de emergência, fotos oficiais foram separadas do arquivo e os loops pesados foram reduzidos.",
-  "updatedAt": "2026-09-28T23:24:00-03:00"
+  "version": "1.0.190",
+  "title": "DF EXTRUSOR PRO — fotos isoladas do D1",
+  "message": "Correção de estabilidade: a sincronização de fotos não altera mais OPs, Prontas ou produção. O D1 ficou como única autoridade das OPs, evitando reconstrução da lista e salto automático da tela durante a rolagem.",
+  "updatedAt": "2026-09-28T23:31:00-03:00"
 }
