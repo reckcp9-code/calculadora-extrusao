@@ -59,7 +59,7 @@ function applyServerMonth(month,records,summary){
   for(const [id,t] of Object.entries(tombs)){if(!t?.server)continue;const base=oldBy.get(id);if(base&&recordMonth(base)===month&&!serverIds.has(id)){delete tombs[id];changed=true}}
   try{const before=JSON.stringify(old),after=JSON.stringify(next);if(before!==after){save(OPS_KEY,next);changed=true}}catch(e){save(OPS_KEY,next);changed=true}
   save(TOMB_KEY,tombs);lastSummary=summary||lastSummary;currentMonth=month;
-  if(changed){const y=window.scrollY||window.pageYOffset||0,m=$('dfOpMonth');if(m)try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){};try{window.DFOpTeamDateCanonical?.run?.()}catch(e){};requestAnimationFrame(()=>requestAnimationFrame(()=>{try{window.scrollTo(0,y)}catch(e){}}));try{window.dispatchEvent(new CustomEvent('df-op-d1-applied',{detail:{month,summary:lastSummary}}))}catch(e){}}
+  if(changed){const m=$('dfOpMonth');if(m)try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){};try{window.DFOpTeamDateCanonical?.run?.()}catch(e){};try{window.dispatchEvent(new CustomEvent('df-op-d1-applied',{detail:{month,summary:lastSummary}}))}catch(e){}}
   emitStatus();return changed
 }
 
