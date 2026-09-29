@@ -1,6 +1,6 @@
 {
-  "version": "1.0.187",
-  "title": "DF EXTRUSOR PRO — estabilidade geral",
-  "message": "Atualização geral de estabilidade: baixa de OP, PRONTAS, produção mensal, exclusão e nova baixa da mesma OP, sincronização entre celulares, datas locais, rolagem e redução de processos pesados em segundo plano.",
-  "updatedAt": "2026-09-28T21:55:00-03:00"
+  "version": "1.0.188",
+  "title": "DF EXTRUSOR PRO — OP oficial no D1",
+  "message": "Nova arquitetura das OPs: uma OP oficial por equipe, totais centralizados, exclusão/rebaixa controladas, fila offline, histórico de alterações e tela de saúde do sistema.",
+  "updatedAt": "2026-09-28T23:05:00-03:00"
 }
