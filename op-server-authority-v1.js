@@ -84,6 +84,6 @@ function install(){if(booted)return;booted=true;
   setTimeout(()=>{migrateOnce().then(()=>schedule(300,true))},1300);
 }
 
-window.DFOpServerAuthority={sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})}};
+window.DFOpServerAuthority={sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
