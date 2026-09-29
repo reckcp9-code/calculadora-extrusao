@@ -10,7 +10,7 @@ const OPS_KEY='df_formula_ops_auto_v2';
 const TEAM_KEY='df_op_team_v1';
 const TOMBSTONE_KEY='df_deleted_ops_v1';
 const DB='df_ops_fotos_v2';
-let busy=false,timer=0,observer=null,retryBusy=false;
+let busy=false,timer=0,retryBusy=false;
 
 const $=id=>document.getElementById(id);
 const validQr=v=>/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim());
@@ -136,7 +136,6 @@ function enhance(){
   });
 }
 function schedule(ms){clearTimeout(timer);timer=setTimeout(enhance,ms==null?80:ms)}
-function attachObserver(){const root=$('dfFormulaOps');if(!root||observer?.__root===root)return;if(observer)try{observer.disconnect()}catch(e){};observer=new MutationObserver(()=>schedule(90));observer.__root=root;observer.observe(root,{childList:true,subtree:true})}
 function afterManualSave(){setTimeout(()=>{reconcile();refresh();schedule(40)},80);setTimeout(()=>{reconcile();refresh();schedule(40)},350)}
 
 document.addEventListener('click',e=>{
@@ -147,13 +146,13 @@ document.addEventListener('click',e=>{
   if(e.target?.closest?.('#dfFormulaOps,[data-pane="ok"],[data-pane="pending"],[data-pane="archive"],[data-pane="month"]'))schedule(100);
 },true);
 
-['df-op-saved','df-op-save-ui-refresh','df-op-remote-merged','df-op-cloud-synced','df-op-phantoms-cleaned'].forEach(ev=>window.addEventListener(ev,()=>{reconcile();schedule(70)}));
+['df-op-saved','df-op-save-ui-refresh','df-op-remote-merged','df-op-cloud-synced','df-op-phantoms-cleaned','df-cloud-photos-rendered'].forEach(ev=>window.addEventListener(ev,()=>{reconcile();schedule(70)}));
 window.addEventListener('online',()=>{retryCloudDeletes();schedule(150)});
 window.addEventListener('pageshow',()=>{reconcile();retryCloudDeletes();schedule(150)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){reconcile();retryCloudDeletes();schedule(180)}});
-window.addEventListener('df-ui-ready',()=>{attachObserver();reconcile();schedule(120)});
+window.addEventListener('df-ui-ready',()=>{reconcile();schedule(120)});
 
-function boot(){addStyle();reconcile();attachObserver();setTimeout(()=>{attachObserver();reconcile();enhance()},350);setTimeout(()=>{reconcile();enhance()},1200)}
+function boot(){addStyle();reconcile();setTimeout(()=>{reconcile();enhance()},350);setTimeout(()=>{reconcile();enhance()},1200)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 window.DFOpLifecycleAuthority={reconcile,clearTombstone,deleteSource};
 })();
