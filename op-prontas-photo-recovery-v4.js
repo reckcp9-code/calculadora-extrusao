@@ -1,0 +1,86 @@
+(function(){
+'use strict';
+if(window.DFOpProntasPhotoRecoveryV4)return;window.DFOpProntasPhotoRecoveryV4=true;
+
+const OPS_KEY='df_formula_ops_auto_v2';
+const REG_KEY='df_op_qr_registry_v1';
+const TOMBSTONE_KEY='df_deleted_ops_v1';
+const DB='df_ops_fotos_v2';
+let running=false,timer=0,lastScanAt=0,scannedOnce=false;
+const $=id=>document.getElementById(id);
+function load(k,f){try{const v=JSON.parse(localStorage.getItem(k)||'');return v==null?f:v}catch(e){return f}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function validQr(v){return /^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim())}
+function norm(v){return String(v||'').trim().toUpperCase()}
+function registry(){const r=load(REG_KEY,{});return r&&typeof r==='object'&&!Array.isArray(r)?r:{}}
+function deleted(){const d=load(TOMBSTONE_KEY,{});return d&&typeof d==='object'&&!Array.isArray(d)?d:{}}
+function expectedFor(id){return registry()[id]?.expected||null}
+function buildMaterials(exp,prod){return (Array.isArray(exp?.materials)?exp.materials:[]).map(m=>({name:m.name,pct:+m.pct||0,kg:prod>0?prod*(+m.pct||0)/100:0}))}
+function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function localYmd(v){const d=v?new Date(v):new Date();if(Number.isNaN(d.getTime()))return '';const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+function stamp(v){const n=Date.parse(String(v||''));return Number.isFinite(n)?n:0}
+
+async function scanPhotoMetadata(existing,tombs){
+  const found=[];
+  try{
+    const d=await dbOpen();
+    await new Promise((resolve,reject)=>{
+      const tx=d.transaction('photos','readonly'),st=tx.objectStore('photos'),rq=st.openCursor();
+      rq.onsuccess=()=>{
+        const c=rq.result;if(!c)return resolve();
+        const p=c.value||{},id=String(p.qr||p.id||'').trim(),key=norm(id);
+        if(validQr(id)&&!existing.has(key)&&p.manualPending!==true){
+          const prod=Number(p.produzido??p.production),ap=Number(p.apara??p.scrap),savedAt=p.savedAt||'',savedStamp=stamp(savedAt),delAt=Number(tombs[key]?.at)||0;
+          if(prod>0&&Number.isFinite(ap)&&ap>=0){
+            // Foto anterior à exclusão: continua excluída. Foto nova após a exclusão: é uma nova baixa válida.
+            if(!delAt||savedStamp>delAt+250){found.push({id,prod,ap,savedAt,revive:!!delAt});existing.add(key)}
+          }
+        }
+        c.continue();
+      };
+      rq.onerror=()=>reject(rq.error);
+    });
+  }catch(e){}
+  return found;
+}
+function refreshUi(){
+  const y=window.scrollY||window.pageYOffset||0,m=$('dfOpMonth');
+  if(m)try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}
+  try{window.DFOpTeamDateCanonical?.run?.()}catch(e){}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{try{window.scrollTo(0,y)}catch(e){}}));
+}
+function emit(rec){
+  try{window.dispatchEvent(new CustomEvent('df-op-save-ui-refresh',{detail:{record:rec,recovered:true}}))}catch(e){}
+  try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:rec,recovered:true}}))}catch(e){}
+}
+async function recover(force){
+  if(running||document.hidden)return false;
+  const now=Date.now();if(!force&&scannedOnce&&now-lastScanAt<30000)return false;
+  running=true;lastScanAt=now;
+  try{
+    let ops=load(OPS_KEY,[]);if(!Array.isArray(ops))ops=[];
+    const existing=new Set();ops.forEach(o=>{[o?.id,o?.qr].forEach(v=>{const k=norm(v);if(k)existing.add(k)})});
+    const tombs=deleted(),missing=await scanPhotoMetadata(existing,tombs);scannedOnce=true;if(!missing.length)return false;
+    let last=null,tombChanged=false;
+    for(const p of missing){
+      const exp=expectedFor(p.id)||{},ts=p.savedAt||new Date().toISOString();
+      if(p.revive&&tombs[norm(p.id)]){delete tombs[norm(p.id)];tombChanged=true}
+      const rec={id:p.id,qr:p.id,createdAt:ts,updatedAt:ts,data:localYmd(ts),numero:'',operador:'',maquina:'',produto:exp.title||'',largura:+exp.largura||0,micra:+exp.micra||0,gm:+exp.gm||0,produzido:p.prod,apara:p.ap,bobinas:0,materials:buildMaterials(exp,p.prod),expectedTotal:+exp.totalKg||0,ocrConfidence:100,status:'ok',reasons:[],manualConfirmed:true,manualConfirmedAt:ts,source:'foto+recuperacao-prontas-v4'};
+      ops.unshift(rec);last=rec;
+    }
+    if(tombChanged)save(TOMBSTONE_KEY,tombs);
+    save(OPS_KEY,ops);refreshUi();if(last)emit(last);return true;
+  }finally{running=false}
+}
+function schedule(ms,force){clearTimeout(timer);timer=setTimeout(()=>recover(!!force),ms==null?120:ms)}
+
+// Leitura sob demanda, sem loop contínuo.
+document.addEventListener('click',e=>{if(e.target?.closest?.('[data-pane="ok"]'))schedule(80,false)},true);
+window.addEventListener('df-op-record-deleted',()=>{scannedOnce=false;lastScanAt=Date.now()});
+window.addEventListener('df-op-revived',()=>{scannedOnce=false;schedule(120,true)});
+window.addEventListener('pageshow',()=>schedule(300,false));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(350,false)});
+function boot(){setTimeout(()=>recover(false),900)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.DFOpProntasPhotoRecovery={recover:()=>recover(true)};
+})();
