@@ -1,6 +1,6 @@
 {
-  "version": "1.0.190",
-  "title": "DF EXTRUSOR PRO — fotos isoladas do D1",
-  "message": "Correção de estabilidade: a sincronização de fotos não altera mais OPs, Prontas ou produção. O D1 ficou como única autoridade das OPs, evitando reconstrução da lista e salto automático da tela durante a rolagem.",
-  "updatedAt": "2026-09-28T23:31:00-03:00"
+  "version": "1.0.191",
+  "title": "DF EXTRUSOR PRO — arquivo de fotos reconstruído",
+  "message": "Correção definitiva do salto na aba FOTOS: a sincronização de fotos foi separada do estado das OPs, a lista deixou de ser reconstruída durante a rolagem, os observadores antigos foram retirados da produção e atualizações de fundo agora aguardam o fim do gesto do usuário.",
+  "updatedAt": "2026-09-29T00:08:00-03:00"
 }
