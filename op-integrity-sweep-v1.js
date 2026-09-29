@@ -18,10 +18,11 @@ function completed(o){return !!(o&&validQr(o.qr||o.id)&&n(o.produzido)>0&&Number
 function completionValue(o){return o?.manualConfirmedAt||o?.cloudSyncedAt||o?.updatedAt||o?.createdAt||''}
 function completionStamp(o){return stamp(completionValue(o))}
 function idOf(o){const a=norm(o?.id),q=norm(o?.qr);return validQr(a)?a:(validQr(q)?q:a||q)}
-function score(o){let s=0;if(completed(o))s+=1000;if(o?.manualConfirmed)s+=300;if(o?.cloudPhotoId)s+=100;if(String(o?.produto||'').trim())s+=30;if(Array.isArray(o?.materials)&&o.materials.length)s+=20;s+=Math.min(99,Math.floor(completionStamp(o)/1e10));return s}
+function score(o){let s=0;if(completed(o))s+=1000;if(o?.manualConfirmed)s+=300;if(o?.cloudPhotoId)s+=100;if(String(o?.produto||'').trim())s+=30;if(Array.isArray(o?.materials)&&o.materials.length)s+=20;return s}
 function realText(v){const s=String(v??'').trim();return s&&s!=='—'?s:''}
 function mergeWinner(a,b){
-  const win=score(b)>score(a)?{...b}:{...a},other=score(b)>score(a)?a:b;
+  const sa=score(a),sb=score(b),preferB=sb>sa||(sb===sa&&completionStamp(b)>completionStamp(a));
+  const win=preferB?{...b}:{...a},other=preferB?a:b;
   const fields=['qr','numero','operador','maquina','produto','serverProductName','manualProductName','clienteFormulacao','cloudPhotoId','cloudTeamId','cloudSyncedAt'];
   for(const k of fields)if(!realText(win[k])&&realText(other?.[k]))win[k]=other[k];
   for(const k of ['largura','micra','gm','bobinas','expectedTotal'])if(!(n(win[k])>0)&&n(other?.[k])>0)win[k]=other[k];
@@ -52,7 +53,7 @@ function sweep(emit){
         else{by.set(id,out.length);out.push(o)}
       }else out.push(o);
     }
-    const before=quickHash(ops),after=quickHash(out);let changed=before!==after;
+    const before=quickHash(ops),after=quickHash(out),changed=before!==after;
     if(tombChanged)save(TOMBSTONE_KEY,tombs);
     if(changed)save(OPS_KEY,out);
     if((changed||tombChanged)&&emit!==false){
