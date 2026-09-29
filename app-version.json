@@ -1,6 +1,6 @@
 {
-  "version": "1.0.193",
-  "title": "DF EXTRUSOR PRO — arquivo de fotos inteligente",
-  "message": "Nova manutenção do arquivo de fotos: paginação de 20 em 20, análise de duplicadas e órfãs, correção de vínculos quebrados com as OPs oficiais e limpeza segura de duplicadas sem excluir produção ou apara.",
-  "updatedAt": "2026-09-29T00:41:00-03:00"
+  "version": "1.0.194",
+  "title": "DF EXTRUSOR PRO — fotos em uma única lista",
+  "message": "A aba FOTOS agora usa somente a lista oficial da nuvem/D1. A lista local antiga, o aviso de teste e o backup legado foram retirados da interface. Cada foto oficial mantém abrir, baixar, histórico da OP e exclusão em um único card, com paginação e rolagem estabilizada.",
+  "updatedAt": "2026-09-29T00:49:00-03:00"
 }
