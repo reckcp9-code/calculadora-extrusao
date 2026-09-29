@@ -1,6 +1,6 @@
 {
-  "version": "1.0.191",
-  "title": "DF EXTRUSOR PRO — arquivo de fotos reconstruído",
-  "message": "Correção definitiva do salto na aba FOTOS: a sincronização de fotos foi separada do estado das OPs, a lista deixou de ser reconstruída durante a rolagem, os observadores antigos foram retirados da produção e atualizações de fundo agora aguardam o fim do gesto do usuário.",
-  "updatedAt": "2026-09-29T00:08:00-03:00"
+  "version": "1.0.192",
+  "title": "DF EXTRUSOR PRO — rolagem de OP estabilizada",
+  "message": "Correção final da rolagem nas OPs/FOTOS: a lista de fotos agora atualiza por linha sem reconstruir tudo durante o gesto, mantém a OP visível ancorada na mesma posição e bloqueia saltos programáticos grandes para o topo enquanto o usuário está rolando.",
+  "updatedAt": "2026-09-29T00:12:00-03:00"
 }
