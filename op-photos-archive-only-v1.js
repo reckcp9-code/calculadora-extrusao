@@ -1,23 +1,19 @@
 (function(){
 'use strict';
 if(window.DFOpPhotosArchiveOnlyV1)return;window.DFOpPhotosArchiveOnlyV1=true;
-var timer=0,observer=null;
+let timer=0;
 function realCode(v){return /^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim())}
 function clean(){
-  var box=document.getElementById('dfCloudPhotosBox');
-  if(!box)return false;
-  var h=box.querySelector('h3');if(h)h.textContent='📦 Fotos arquivadas';
-  var note=box.querySelector('.dfOpsTiny');if(note)note.textContent='Somente fotos reais das OPs arquivadas.';
-  box.querySelectorAll('.dfCloudPhotoRow').forEach(function(row){var b=row.querySelector('b'),code=String(b&&b.textContent||'').trim();if(!realCode(code))row.remove()});
-  return true
+  const box=document.getElementById('dfCloudPhotosBox');if(!box)return false;
+  const h=box.querySelector('h3');if(h&&h.textContent!=='📦 Fotos arquivadas')h.textContent='📦 Fotos arquivadas';
+  const note=box.querySelector('.dfOpsTiny');if(note&&note.textContent!=='Somente fotos reais das OPs arquivadas.')note.textContent='Somente fotos reais das OPs arquivadas.';
+  box.querySelectorAll('.dfCloudPhotoRow').forEach(row=>{const code=String(row.querySelector('b')?.textContent||'').trim();if(!realCode(code))row.remove()});
+  return true;
 }
-function schedule(ms){clearTimeout(timer);timer=setTimeout(clean,ms==null?60:ms)}
-function attach(){
-  var pane=document.getElementById('dfPaneArchive');if(!pane)return false;
-  if(observer&&observer.__pane===pane)return true;
-  if(observer)try{observer.disconnect()}catch(e){}
-  observer=new MutationObserver(function(){schedule(20)});observer.__pane=pane;observer.observe(pane,{childList:true,subtree:true});return true
-}
-function boot(){clean();if(!attach()){var tries=0,t=setInterval(function(){tries++;if(attach()||tries>20)clearInterval(t)},250)}document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('[data-pane="archive"]'):null;if(b){schedule(30);setTimeout(clean,250)}},true);window.addEventListener('df-ui-ready',function(){attach();schedule(80)});window.addEventListener('pageshow',function(){schedule(80)})}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+function schedule(ms){clearTimeout(timer);timer=setTimeout(clean,ms==null?80:ms)}
+document.addEventListener('click',e=>{if(e.target?.closest?.('[data-pane="archive"],#dfCloudRefresh')){schedule(80);setTimeout(clean,500)}},true);
+window.addEventListener('df-ui-ready',()=>schedule(300));
+window.addEventListener('pageshow',()=>schedule(200));
+window.addEventListener('df-op-cloud-synced',()=>schedule(350));
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>schedule(300),{once:true});else schedule(300);
 })();
