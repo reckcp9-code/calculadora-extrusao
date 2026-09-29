@@ -26,7 +26,7 @@ function sortDom(ops){
   var rows=Array.from(box.children).filter(function(row){return !!(row&&row.querySelector&&row.querySelector('[data-view]'))});if(rows.length<2)return false;
   var sorted=rows.slice().sort(function(ra,rb){var ia=norm(ra.querySelector('[data-view]')&&ra.querySelector('[data-view]').getAttribute('data-view')),ib=norm(rb.querySelector('[data-view]')&&rb.querySelector('[data-view]').getAttribute('data-view'));return compare(by[ia]||{id:ia},by[ib]||{id:ib})});
   var changed=false;for(var i=0;i<rows.length;i++){if(rows[i]!==sorted[i]){changed=true;break}}if(!changed)return false;
-  busy=true;try{var frag=document.createDocumentFragment();sorted.forEach(function(row){frag.appendChild(row)});box.appendChild(frag);return true}finally{busy=false}
+  busy=true;try{var cursor=box.firstElementChild;sorted.forEach(function(row){if(row!==cursor)box.insertBefore(row,cursor||null);cursor=row.nextElementSibling});return true}finally{busy=false}
 }
 function run(){var ok=sortStore();sortDom(ok);attachListObserver();return true}
 function schedule(ms){clearTimeout(timer);timer=setTimeout(run,ms==null?90:ms)}
