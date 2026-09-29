@@ -1,6 +1,6 @@
 {
-  "version": "1.0.186",
-  "title": "DF EXTRUSOR PRO — permissões por aparelho",
-  "message": "Publica a correção das permissões somente para os aparelhos operadores selecionados da equipe. O dono mantém todas as abas e clientes fora da equipe não recebem alteração.",
-  "updatedAt": "2026-09-16T10:25:00-03:00"
+  "version": "1.0.187",
+  "title": "DF EXTRUSOR PRO — estabilidade geral",
+  "message": "Atualização geral de estabilidade: baixa de OP, PRONTAS, produção mensal, exclusão e nova baixa da mesma OP, sincronização entre celulares, datas locais, rolagem e redução de processos pesados em segundo plano.",
+  "updatedAt": "2026-09-28T21:55:00-03:00"
 }
