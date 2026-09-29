@@ -1,6 +1,6 @@
 {
-  "version": "1.0.194",
-  "title": "DF EXTRUSOR PRO — fotos em uma única lista",
-  "message": "A aba FOTOS agora usa somente a lista oficial da nuvem/D1. A lista local antiga, o aviso de teste e o backup legado foram retirados da interface. Cada foto oficial mantém abrir, baixar, histórico da OP e exclusão em um único card, com paginação e rolagem estabilizada.",
-  "updatedAt": "2026-09-29T00:49:00-03:00"
+  "version": "1.0.195",
+  "title": "DF EXTRUSOR PRO — estabilidade da aba Fotos",
+  "message": "Correção estrutural da aba FOTOS: sincronização sem desmontar a lista, paginação sem disputar a rolagem e manutenção de fotos separada do layout.",
+  "updatedAt": "2026-09-29T01:12:00-03:00"
 }
