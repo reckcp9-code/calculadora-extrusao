@@ -25,6 +25,7 @@ function saveMissing(v){save('df_team_missing_cloud_v1',v)}
 async function reconcile(force){
   const t=team();if(!t||busy||navigator.onLine===false||document.hidden)return false;
   const now=Date.now();if(!force&&now-lastRun<15000)return false;lastRun=now;busy=true;
+  let confirmAgain=false;
   try{
     const month=selectedMonth(),j=await apiPost('/op/photo/list',{teamId:t.teamId,month});
     const photos=Array.isArray(j.photos)?j.photos:[],bySource=new Map();for(const p of photos){const id=norm(p?.sourceId||p?.qr);if(id)bySource.set(id,p)}
@@ -39,22 +40,25 @@ async function reconcile(force){
         if(miss[id]){delete miss[id];missChanged=true}
         next.push(o);continue;
       }
-      // Se houve uma nova baixa local depois do último envio, não apaga: limpa o ID antigo e reenvia.
+      // Nova baixa local depois do último envio: mantém a OP e agenda reenvio da foto nova.
       if(ts(o.manualConfirmedAt||o.updatedAt)>ts(o.cloudSyncedAt)+1000){o.cloudPhotoId='';o.cloudSyncedAt='';changed=true;needUpload.push(o);if(miss[id]){delete miss[id];missChanged=true}next.push(o);continue}
       const m=miss[id];
-      if(!m){miss[id]={first:now,count:1};missChanged=true;next.push(o);continue}
+      if(!m){miss[id]={first:now,count:1};missChanged=true;confirmAgain=true;next.push(o);continue}
       m.count=(Number(m.count)||1)+1;missChanged=true;
       if(m.count>=2&&now-Number(m.first||now)>1200){
         tombs[id]={at:now,cloudIds:[String(o.cloudPhotoId)],produto:String(o.produto||''),produzido:Number(o.produzido)||0,apara:Number(o.apara)||0,remoteDelete:true};tombChanged=true;changed=true;delete miss[id];
         continue;
       }
-      next.push(o);
+      confirmAgain=true;next.push(o);
     }
     if(changed)save(OPS_KEY,next);if(tombChanged)save(TOMB_KEY,tombs);if(missChanged)saveMissing(miss);
     if(changed||tombChanged){refresh();try{window.dispatchEvent(new CustomEvent('df-op-team-consistency-updated'))}catch(e){}}
     if(needUpload.length){try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:needUpload[0],resync:true}}))}catch(e){}}
     return changed||tombChanged;
-  }catch(e){return false}finally{busy=false}
+  }catch(e){return false}finally{
+    busy=false;
+    if(confirmAgain&&!document.hidden&&navigator.onLine!==false)setTimeout(()=>reconcile(true),1800);
+  }
 }
 function schedule(ms,force){clearTimeout(timer);timer=setTimeout(()=>reconcile(!!force),ms==null?300:ms)}
 
