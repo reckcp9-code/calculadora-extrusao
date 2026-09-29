@@ -8,16 +8,21 @@
 
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const today=()=>new Date().toISOString().slice(0,10);
+  function localYmd(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
   function num(v){let s=String(v??'').trim().replace(/\s/g,'');if(!s)return NaN;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:NaN}
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
   function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}}
   function registry(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){return{}}}
+  function saveRegistry(r){try{localStorage.setItem(REG_KEY,JSON.stringify(r))}catch(e){}}
   function expectedFor(id){return registry()[id]?.expected||null}
   function buildMaterials(exp,produzido){return (exp?.materials||[]).map(m=>({name:m.name,pct:+m.pct||0,kg:produzido>0?produzido*(+m.pct||0)/100:0}))}
+  function validQr(v){return /^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim())}
+  function normalizeQr(v){return String(v||'').trim().toUpperCase()}
+  function ensureRegistered(code){code=normalizeQr(code);if(!validQr(code))return;const r=registry();if(!r[code]){r[code]={id:code,createdAt:new Date().toISOString(),source:'qr-manual-ou-remoto',expected:{}};saveRegistry(r);try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:r[code]}))}catch(e){}}}
 
   function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
   async function photoPut(id,blob,meta={}){const d=await dbOpen();return new Promise((res,rej)=>{const tx=d.transaction('photos','readwrite');tx.objectStore('photos').put({id,blob,mime:blob.type||'image/jpeg',savedAt:new Date().toISOString(),...meta});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+  async function photoDelete(id){if(!id)return;try{const d=await dbOpen();await new Promise((res,rej)=>{const tx=d.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}catch(e){}}
 
   function ensureStyle(){
     if($('dfManualConfirmStyle'))return;
@@ -28,36 +33,31 @@
       #dfManualConfirm .mcQr{border:1px solid #334155;background:#0f172a;border-radius:11px;padding:9px 10px;margin-bottom:10px;color:#86efac;font-size:11px;word-break:break-all;font-weight:850}
       #dfManualConfirm .mcGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
       #dfManualConfirm label{display:block;color:#cbd5e1;font-size:11px;font-weight:850;margin-bottom:5px}
-      #dfManualConfirm input{width:100%;border:1px solid #475569;background:#080f1d;color:#fff;border-radius:12px;padding:13px;font-size:20px;font-weight:900;text-align:center}
+      #dfManualConfirm input{width:100%;box-sizing:border-box;border:1px solid #475569;background:#080f1d;color:#fff;border-radius:12px;padding:13px;font-size:20px;font-weight:900;text-align:center}
       #dfManualConfirm input:focus{outline:none;border-color:#f5a000;box-shadow:0 0 0 2px #f5a00022}
+      #dfManualQrBox{margin:0 0 10px;border:1px dashed #f5a000;background:#16110a;border-radius:11px;padding:10px}
+      #dfManualQrBox input{font-size:14px;text-transform:uppercase}
+      #dfManualQrBox small{display:block;color:#94a3b8;font-size:10px;line-height:1.35;margin-top:5px}
       #dfManualSave{width:100%;margin-top:11px;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:13px;padding:14px 10px;font-size:15px;font-weight:950}
+      #dfManualSave:disabled{opacity:.55}
       #dfManualCancel{width:100%;margin-top:7px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;border-radius:13px;padding:11px 10px;font-size:13px;font-weight:850}
       .dfManualBadge{margin-top:10px;border:1px solid #166534;background:#0c321c;color:#86efac;border-radius:12px;padding:10px;font-size:12px;font-weight:900}
       @media(max-width:430px){#dfManualConfirm .mcGrid{grid-template-columns:1fr 1fr}}
     `;document.head.appendChild(s);
   }
 
-  function status(t,c='warn'){
-    const b=$('dfOpStatus');if(!b)return;b.className='dfOpsStatus '+c;b.innerHTML=t;
-  }
+  function status(t,c='warn'){const b=$('dfOpStatus');if(!b)return;b.className='dfOpsStatus '+c;b.innerHTML=t}
   function removeForm(){const x=$('dfManualConfirm');if(x)x.remove()}
   function showForm(qr,exp){
     removeForm();
     const host=$('dfOpStatus')?.parentNode;if(!host)return;
     const box=document.createElement('div');box.id='dfManualConfirm';
-    box.innerHTML=`<h3>✍️ CONFIRMAR PRODUÇÃO E APARA</h3>
-      <div class="mcSub">A foto já foi arquivada. Agora digite somente os dois totais e salve.</div>
-      <div class="mcQr">${qr?('✅ OP identificada: '+esc(qr)):'⚠️ QR não identificado'}${exp?.title?('<br>Produto: '+esc(exp.title)):''}</div>
-      <div class="mcGrid">
-        <div><label>PRODUÇÃO TOTAL (kg)</label><input id="dfManualProd" inputmode="decimal" autocomplete="off" placeholder="Ex.: 558"></div>
-        <div><label>APARA TOTAL (kg)</label><input id="dfManualApara" inputmode="decimal" autocomplete="off" placeholder="Ex.: 11"></div>
-      </div>
-      <button id="dfManualSave" type="button">✅ SALVAR OP</button>
-      <button id="dfManualCancel" type="button">↩️ TIRAR / ENVIAR OUTRA FOTO</button>`;
+    const manualQr=qr?'':`<div id="dfManualQrBox"><label>CÓDIGO DA OP / QR</label><input id="dfManualQrCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DFOP-20260928-123456-ABCD"><small>O QR não foi reconhecido. Digite o código impresso abaixo dele para salvar esta OP corretamente.</small></div>`;
+    box.innerHTML=`<h3>✍️ CONFIRMAR PRODUÇÃO E APARA</h3><div class="mcSub">A foto já foi arquivada. Agora digite somente os dois totais e salve.</div><div class="mcQr">${qr?('✅ OP identificada: '+esc(qr)):'⚠️ QR não identificado'}${exp?.title?('<br>Produto: '+esc(exp.title)):''}</div>${manualQr}<div class="mcGrid"><div><label>PRODUÇÃO TOTAL (kg)</label><input id="dfManualProd" inputmode="decimal" autocomplete="off" placeholder="Ex.: 558"></div><div><label>APARA TOTAL (kg)</label><input id="dfManualApara" inputmode="decimal" autocomplete="off" placeholder="Ex.: 11"></div></div><button id="dfManualSave" type="button">✅ SALVAR OP</button><button id="dfManualCancel" type="button">↩️ TIRAR / ENVIAR OUTRA FOTO</button>`;
     const demo=host.querySelector('.dfQrDemo');host.insertBefore(box,demo||null);
     $('dfManualSave').onclick=saveManual;
     $('dfManualCancel').onclick=()=>{removeForm();currentFile=null;currentQr='';currentId='';const input=$('dfOpPhoto');if(input){try{input.value=''}catch(e){}}status('Escolha ou tire outra foto.','')};
-    setTimeout(()=>$('dfManualProd')?.focus(),120);
+    setTimeout(()=>$(qr?'dfManualProd':'dfManualQrCode')?.focus(),120);
   }
 
   function mk(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c}
@@ -66,32 +66,13 @@
   function imageCanvas(file,max=2200){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=mk(img.width*scale,img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Foto inválida'))};img.src=u})}
   function loadQR(){return new Promise((resolve,reject)=>{if(window.jsQR)return resolve();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';s.onload=resolve;s.onerror=()=>reject(new Error('Falha ao carregar leitor QR'));document.head.appendChild(s)})}
   function scanCanvas(c){try{const x=c.getContext('2d',{willReadFrequently:true}),d=x.getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});return r?.data||''}catch(e){return''}}
-  async function decodeQR(file){
-    await loadQR();const base=await imageCanvas(file,2400);
-    for(const deg of [0,90,180,270]){
-      const c=rot(base,deg),tries=[c,crop(c,0,0,c.width,c.height*.58,2),crop(c,c.width*.15,0,c.width*.70,c.height*.62,2.4),crop(c,0,0,c.width*.70,c.height*.72,2),crop(c,c.width*.30,0,c.width*.70,c.height*.72,2)];
-      for(const t of tries){const q=scanCanvas(t);if(q&&/^DFOP-/i.test(q))return q;}
-    }
-    return'';
-  }
+  async function decodeQR(file){await loadQR();const base=await imageCanvas(file,2400);for(const deg of [0,90,180,270]){const c=rot(base,deg),tries=[c,crop(c,0,0,c.width,c.height*.58,2),crop(c,c.width*.15,0,c.width*.70,c.height*.62,2.4),crop(c,0,0,c.width*.70,c.height*.72,2),crop(c,c.width*.30,0,c.width*.70,c.height*.72,2)];for(const t of tries){const q=scanCanvas(t);if(q&&/^DFOP-/i.test(q))return normalizeQr(q)}}return''}
 
   async function handlePhoto(file){
     if(!file||busy)return;busy=true;currentFile=file;removeForm();
     const preview=$('dfOpPreview');if(preview){preview.src=URL.createObjectURL(file);preview.style.display='block'}
     status('📷 Foto recebida. Identificando o QR da OP...','warn');
-    try{
-      currentQr=await decodeQR(file);
-      currentId=currentQr||('SEMQR-'+Date.now());
-      await photoPut(currentId,file,{qr:currentQr||'',month:today().slice(0,7),manualPending:true});
-      const exp=currentQr?expectedFor(currentQr):null;
-      if(currentQr){
-        status('✅ <b>OP identificada.</b> Foto arquivada.<br>Digite a produção total e a apara total abaixo.','ok');
-      }else{
-        status('⚠️ Foto arquivada, mas o QR não foi identificado. Você pode digitar os totais, porém a OP ficará como pendente até identificar o QR.','warn');
-      }
-      showForm(currentQr,exp);
-    }catch(err){status('❌ Não consegui preparar a OP: '+esc(err.message||err),'bad')}
-    finally{busy=false}
+    try{currentQr=await decodeQR(file);currentId=currentQr||('SEMQR-'+Date.now());await photoPut(currentId,file,{qr:currentQr||'',month:localYmd().slice(0,7),manualPending:true});const exp=currentQr?expectedFor(currentQr):null;if(currentQr){ensureRegistered(currentQr);status('✅ <b>OP identificada.</b> Foto arquivada.<br>Digite a produção total e a apara total abaixo.','ok')}else status('⚠️ Foto arquivada, mas o QR não foi identificado. Digite o código da OP impresso abaixo do QR.','warn');showForm(currentQr,exp)}catch(err){status('❌ Não consegui preparar a OP: '+esc(err.message||err),'bad')}finally{busy=false}
   }
 
   function upsert(rec){const a=load(),i=a.findIndex(x=>x.id===rec.id);if(i>=0)a[i]=rec;else a.unshift(rec);save(a)}
@@ -100,38 +81,30 @@
     if(!(prod>0)){alert('Digite a PRODUÇÃO TOTAL em kg.');$('dfManualProd')?.focus();return}
     if(!Number.isFinite(ap)||ap<0){alert('Digite a APARA TOTAL em kg. Pode ser 0.');$('dfManualApara')?.focus();return}
     if(ap>prod){alert('A apara não pode ser maior que a produção. Confira os valores.');return}
-    const exp=currentQr?expectedFor(currentQr):null;
-    const old=load().find(x=>x.id===currentId)||{};
-    const reasons=currentQr?[]:['QR da OP não foi identificado'];
-    const rec={...old,id:currentId,qr:currentQr||'',createdAt:old.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),data:old.data||today(),numero:old.numero||'',operador:old.operador||'',maquina:old.maquina||'',produto:exp?.title||old.produto||'',largura:+exp?.largura||old.largura||0,micra:+exp?.micra||old.micra||0,gm:+exp?.gm||old.gm||0,produzido:prod,apara:ap,bobinas:old.bobinas||0,materials:buildMaterials(exp,prod),expectedTotal:+exp?.totalKg||old.expectedTotal||0,ocrConfidence:100,status:reasons.length?'pending':'ok',reasons,manualConfirmed:true,manualConfirmedAt:new Date().toISOString(),source:'foto+confirmacao-manual'};
+    const oldId=currentId;
+    if(!currentQr){const typed=normalizeQr($('dfManualQrCode')?.value);if(!validQr(typed)){alert('Digite o código DFOP impresso abaixo do QR antes de salvar.');$('dfManualQrCode')?.focus();return}currentQr=typed;currentId=typed;ensureRegistered(typed)}
+    const exp=expectedFor(currentQr),old=load().find(x=>x.id===currentId)||{},now=new Date().toISOString();
+    const rec={...old,id:currentId,qr:currentQr,createdAt:old.createdAt||now,updatedAt:now,data:localYmd(),numero:old.numero||'',operador:old.operador||'',maquina:old.maquina||'',produto:exp?.title||old.produto||'',largura:+exp?.largura||old.largura||0,micra:+exp?.micra||old.micra||0,gm:+exp?.gm||old.gm||0,produzido:prod,apara:ap,bobinas:old.bobinas||0,materials:buildMaterials(exp,prod),expectedTotal:+exp?.totalKg||old.expectedTotal||0,ocrConfidence:100,status:'ok',reasons:[],manualConfirmed:true,manualConfirmedAt:now,source:'foto+confirmacao-manual'};
+    const btn=$('dfManualSave');if(btn){btn.disabled=true;btn.textContent='⏳ SALVANDO...'}
     upsert(rec);
-    try{await photoPut(currentId,currentFile,{qr:currentQr||'',month:today().slice(0,7),manualPending:false,produzido:prod,apara:ap})}catch(e){}
-    status('✅ <b>OP SALVA.</b><br>Produção total: <b>'+prod.toLocaleString('pt-BR')+' kg</b><br>Apara total: <b>'+ap.toLocaleString('pt-BR')+' kg</b>','ok');
-    removeForm();
-    const host=$('dfOpStatus')?.parentNode;if(host){const d=document.createElement('div');d.className='dfManualBadge';d.innerHTML='✅ Foto + produção + apara vinculados à '+esc(currentQr||currentId);host.insertBefore(d,host.querySelector('.dfQrDemo')||null)}
+    try{await photoPut(currentId,currentFile,{qr:currentQr,month:localYmd().slice(0,7),manualPending:false,produzido:prod,apara:ap});if(oldId&&oldId!==currentId)await photoDelete(oldId)}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:rec,manual:true}}))}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('df-op-save-ui-refresh',{detail:{record:rec}}))}catch(e){}
+    status('✅ <b>OP SALVA E ENVIADA PARA SINCRONIZAÇÃO.</b><br>Produção total: <b>'+prod.toLocaleString('pt-BR')+' kg</b><br>Apara total: <b>'+ap.toLocaleString('pt-BR')+' kg</b>','ok');
+    removeForm();const host=$('dfOpStatus')?.parentNode;if(host){const d=document.createElement('div');d.className='dfManualBadge';d.innerHTML='✅ Foto + produção + apara vinculados à '+esc(currentQr);host.insertBefore(d,host.querySelector('.dfQrDemo')||null)}
     const input=$('dfOpPhoto');if(input){try{input.value=''}catch(e){}}
-    try{sessionStorage.setItem('df_op_manual_saved','1')}catch(e){}
-    setTimeout(()=>{try{location.reload()}catch(e){}},900);
+    currentFile=null;currentQr='';currentId='';
   }
 
   function install(){
-    ensureStyle();
-    const input=$('dfOpPhoto');if(!input)return false;
-    if(input.dataset.dfManualConfirm==='1')return true;
-    input.dataset.dfManualConfirm='1';
-    document.addEventListener('change',function onManualPhoto(e){
-      if(e.target!==input)return;
-      e.preventDefault();e.stopImmediatePropagation();
-      const f=input.files?.[0];if(f)handlePhoto(f);
-    },true);
+    ensureStyle();const input=$('dfOpPhoto');if(!input)return false;if(input.dataset.dfManualConfirm==='1')return true;input.dataset.dfManualConfirm='1';
+    document.addEventListener('change',function onManualPhoto(e){if(e.target!==input)return;e.preventDefault();e.stopImmediatePropagation();const f=input.files?.[0];if(f)handlePhoto(f)},true);
     const take=$('dfOpTakePhoto');if(take)take.textContent='📷 TIRAR FOTO DE LADO';
-    const hero=document.querySelector('.dfOpsHero p');if(hero)hero.textContent='Fotografe a OP, confirme manualmente somente PRODUÇÃO TOTAL e APARA TOTAL e salve. A foto fica vinculada ao QR da OP.';
-    const demo=document.querySelector('.dfQrDemo');if(demo)demo.innerHTML='✅ Fluxo simples: <b>foto → QR → digitar produção + apara → SALVAR OP.</b> Sem depender da leitura automática da caneta.';
-    try{if(sessionStorage.getItem('df_op_manual_saved')==='1'){sessionStorage.removeItem('df_op_manual_saved');setTimeout(()=>{document.getElementById('dfFormTabOps')?.click();setTimeout(()=>document.querySelector('[data-pane="ok"]')?.click(),250)},300)}}catch(e){}
+    const hero=document.querySelector('.dfOpsHero p');if(hero)hero.textContent='Fotografe a OP, confirme manualmente somente PRODUÇÃO TOTAL e APARA TOTAL e salve. O D1 mantém a OP oficial entre os aparelhos.';
+    const demo=document.querySelector('.dfQrDemo');if(demo)demo.innerHTML='✅ Fluxo simples: <b>foto → QR → produção + apara → SALVAR OP → D1.</b>';
     return true;
   }
 
   function boot(){if(install())return;const root=document.body||document.documentElement;if(!root)return;const obs=new MutationObserver(()=>{if(install())obs.disconnect()});obs.observe(root,{childList:true,subtree:true});setTimeout(()=>{if(install())obs.disconnect()},800);setTimeout(()=>{if(install())obs.disconnect()},1800);setTimeout(()=>{if(install())obs.disconnect()},3500)}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-  window.addEventListener('df-ui-ready',()=>setTimeout(install,180));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.addEventListener('df-ui-ready',()=>setTimeout(install,180));
 })();
