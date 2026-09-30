@@ -1,44 +1,12 @@
 (function(){
-  const q=id=>document.getElementById(id);
-  function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-  function fm(v,d){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
-  function money(v){const n=Number(v);return n>0?'R$ '+fm(n,2):'sem custo'}
-  function load(){try{return window.loadForms?window.loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}}
-  function save(a){try{if(window.saveForms){window.saveForms(a);return}}catch(e){}localStorage.setItem('df_formulacoes_v2',JSON.stringify(a));try{window.renderForms&&window.renderForms()}catch(e){}}
-  function selected(){const id=q('foSavedSelect')&&q('foSavedSelect').value;return load().find(f=>String(f.id)===String(id))}
-  function manualOpen(f){if(!f)return;if(q('foNome'))q('foNome').value=f.nome||'';if(q('foTotal'))q('foTotal').value=String(f.total||'').replace('.',',');try{window.renderMixRows&&window.renderMixRows(f.rows||[])}catch(e){}try{window.calcFo&&window.calcFo()}catch(e){}try{window.show&&window.show('fo')}catch(e){}}
-  function updateInfo(){const box=q('foSavedInfo'),f=selected();if(!box)return;if(!f){box.innerHTML='Selecione uma formulação salva.';return}box.innerHTML='<b>'+esc(f.nome||'Formulação')+'</b><br>'+fm(f.total||0,2)+' kg • '+((f.rows||[]).length)+' materiais • '+money(f.custo||0)}
-  window.renderForms=function(){
-    const b=q('foSaved'),a=load();
-    if(!b)return;
-    if(!a.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return}
-    const opts=a.map((f,i)=>'<option value="'+esc(f.id)+'" '+(i===0?'selected':'')+'>'+esc(f.nome||'Formulação')+' — '+fm(f.total||0,2)+' kg</option>').join('');
-    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(5,1fr)"><button class="miniBtn" data-foaction="open">ABRIR</button><button class="miniBtn" data-foaction="pdf">PDF</button><button class="miniBtn" data-foaction="op">OP</button><button class="miniBtn" data-foaction="dup">DUPLICAR</button><button class="delBtn" data-foaction="del">EXCLUIR</button></div></div>';
-    q('foSavedSelect')&&q('foSavedSelect').addEventListener('change',updateInfo);
-    updateInfo();
-  };
-  document.addEventListener('click',function(ev){
-    const act=ev.target&&ev.target.dataset?ev.target.dataset.foaction:null;
-    if(!act)return;
-    ev.preventDefault();ev.stopImmediatePropagation();
-    const f=selected();
-    if(!f){alert('Selecione uma formulação.');return}
-    if(act==='open'){ if(window.abrirFormula)window.abrirFormula(f,false); else manualOpen(f); return }
-    if(act==='pdf'){ if(window.printFormulaPdf)window.printFormulaPdf(f); else alert('Função PDF não carregou. Atualize a página.'); return }
-    if(act==='op'){ if(window.printFormulaOp)window.printFormulaOp(f); else alert('Função OP não carregou. Atualize a página.'); return }
-    if(act==='dup'){
-      const a=load();
-      const cp=JSON.parse(JSON.stringify(f));
-      cp.id=Date.now();cp.nome=(f.nome||'Formulação')+' cópia';cp.criado=new Date().toISOString();
-      a.unshift(cp);save(a);return;
-    }
-    if(act==='del'){
-      if(!confirm('Excluir esta formulação?'))return;
-      save(load().filter(x=>String(x.id)!==String(f.id)));return;
-    }
-  },true);
-  function start(){try{window.renderForms&&window.renderForms()}catch(e){}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,200));else setTimeout(start,200);
-  setTimeout(start,800);
-  setTimeout(start,1600);
+const q=id=>document.getElementById(id),esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'),norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const fm=(v,d)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'},money=v=>Number(v)>0?'R$ '+fm(v,2):'sem custo';
+function load(){try{return window.loadForms?window.loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}}function save(a){try{if(window.saveForms){window.saveForms(a);return}}catch(e){}localStorage.setItem('df_formulacoes_v2',JSON.stringify(a));window.renderForms&&window.renderForms()}
+let active=null,mode='all';const getIds=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}},setIds=(k,a)=>localStorage.setItem(k,JSON.stringify(a));
+function selected(){return load().find(f=>String(f.id)===String(active))}function recent(id){let a=getIds('df_form_recent_v1').filter(x=>String(x)!==String(id));a.unshift(id);setIds('df_form_recent_v1',a.slice(0,8))}
+function css(){if(q('dfFormCss'))return;let s=document.createElement('style');s.id='dfFormCss';s.textContent='.dfFs{width:100%;box-sizing:border-box;padding:14px;border:1px solid #2f6fed;border-radius:12px;background:#0b172b;color:#fff;font-size:16px}.dfFtabs{display:flex;gap:7px;margin:10px 0;overflow:auto}.dfFtab{border:1px solid #334155;border-radius:999px;padding:8px 12px;background:#111827;color:#cbd5e1;font-weight:700;white-space:nowrap}.dfFtab.on{border-color:#2f6fed;background:#10264b;color:#fff}.dfFlist{display:grid;gap:8px;max-height:350px;overflow:auto}.dfFitem{display:grid;grid-template-columns:1fr auto;align-items:center;border:1px solid #334155;border-radius:12px;padding:11px;background:#0c1423;color:#fff}.dfFitem.on{border-color:#2f6fed;background:#10203b}.dfFitem b,.dfFitem small{display:block}.dfFitem small{color:#94a3b8;margin-top:3px}.dfStar{border:0;background:none;color:#fbbf24;font-size:23px}.dfFact{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}.dfMore{display:none;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}@media(max-width:520px){.dfFact{grid-template-columns:repeat(3,1fr)}.dfFact [data-foaction=more]{grid-column:1/-1}}';document.head.appendChild(s)}
+function draw(){let box=q('dfFlist');if(!box)return;let a=load(),term=norm(q('dfFs')?.value),fav=getIds('df_form_fav_v1'),rec=getIds('df_form_recent_v1');a=a.filter(f=>!term||norm(f.nome).includes(term));if(mode==='fav')a=a.filter(f=>fav.some(x=>String(x)===String(f.id)));if(mode==='recent')a=a.filter(f=>rec.some(x=>String(x)===String(f.id))).sort((x,y)=>rec.findIndex(i=>String(i)===String(x.id))-rec.findIndex(i=>String(i)===String(y.id)));box.innerHTML=a.length?a.map(f=>'<div class="dfFitem '+(String(active)===String(f.id)?'on':'')+'" data-fid="'+esc(f.id)+'"><div><b>'+esc(f.nome||'Formulação')+'</b><small>'+fm(f.total||0,2)+' kg • '+((f.rows||[]).length)+' materiais • '+money(f.custo||0)+'</small></div><button class="dfStar" data-star="'+esc(f.id)+'">'+(fav.some(x=>String(x)===String(f.id))?'★':'☆')+'</button></div>').join(''):'<div class="formNote">Nenhuma formulação encontrada.</div>'}
+window.renderForms=function(){css();let b=q('foSaved'),a=load();if(!b)return;if(!a.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return}if(!a.some(f=>String(f.id)===String(active)))active=a[0].id;b.innerHTML='<div class="formRow"><label>Formulações salvas</label><input id="dfFs" class="dfFs" type="search" placeholder="🔎 Buscar formulação"><div class="dfFtabs"><button class="dfFtab on" data-mode="all">Todas</button><button class="dfFtab" data-mode="recent">Recentes</button><button class="dfFtab" data-mode="fav">★ Favoritas</button></div><div id="dfFlist" class="dfFlist"></div><div class="dfFact"><button class="miniBtn" data-foaction="open">ABRIR</button><button class="miniBtn" data-foaction="op">GERAR OP</button><button class="miniBtn" data-foaction="pdf">PDF</button><button class="miniBtn" data-foaction="more">••• MAIS</button></div><div id="dfMore" class="dfMore"><button class="miniBtn" data-foaction="dup">DUPLICAR</button><button class="delBtn" data-foaction="del">EXCLUIR</button></div></div>';q('dfFs').oninput=draw;draw()};
+document.addEventListener('click',e=>{let st=e.target.closest?.('[data-star]');if(st){e.preventDefault();e.stopImmediatePropagation();let id=st.dataset.star,a=getIds('df_form_fav_v1');a=a.some(x=>String(x)===String(id))?a.filter(x=>String(x)!==String(id)):[id,...a];setIds('df_form_fav_v1',a);draw();return}let it=e.target.closest?.('[data-fid]');if(it){active=it.dataset.fid;draw();return}let tab=e.target.closest?.('[data-mode]');if(tab){mode=tab.dataset.mode;document.querySelectorAll('.dfFtab').forEach(x=>x.classList.toggle('on',x===tab));draw();return}let act=e.target.dataset?.foaction;if(!act)return;e.preventDefault();e.stopImmediatePropagation();if(act==='more'){q('dfMore').style.display=q('dfMore').style.display==='grid'?'none':'grid';return}let f=selected();if(!f)return alert('Selecione uma formulação.');if(['open','op','pdf'].includes(act))recent(f.id);if(act==='open'){if(window.abrirFormula)window.abrirFormula(f,false);return}if(act==='pdf'){if(window.printFormulaPdf)window.printFormulaPdf(f);return}if(act==='op'){if(window.printFormulaOp)window.printFormulaOp(f);return}if(act==='dup'){let a=load(),cp=JSON.parse(JSON.stringify(f));cp.id=Date.now();cp.nome=(f.nome||'Formulação')+' cópia';cp.criado=new Date().toISOString();a.unshift(cp);active=cp.id;save(a);return}if(act==='del'&&confirm('Excluir esta formulação?')){let a=load().filter(x=>String(x.id)!==String(f.id));active=a[0]?.id||null;save(a)}},true);
+function start(){try{window.renderForms&&window.renderForms()}catch(e){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(start,200));else setTimeout(start,200);setTimeout(start,800);setTimeout(start,1600);
 })();
