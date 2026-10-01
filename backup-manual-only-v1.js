@@ -1,5 +1,16 @@
 (function(){
   'use strict';
+
+  // Camada preventiva: entra antes dos módulos carregados sob demanda (OP/relatórios)
+  // e monitora falhas de carregamento dos módulos críticos.
+  if(!window.DFProductionStabilityV1 && !document.getElementById('dfProductionStabilityLoader')){
+    var stability=document.createElement('script');
+    stability.id='dfProductionStabilityLoader';
+    stability.src='./production-stability-v1.js?v=20260930-stability-test-v1';
+    stability.defer=true;
+    document.head.appendChild(stability);
+  }
+
   var s=document.createElement('script');
   s.src='./backup-manual-lite-v2.js?v=20260912-hotfix-trava-v148';
   s.defer=true;
