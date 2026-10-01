@@ -7,101 +7,154 @@
     const s=document.createElement('style');
     s.id='dfHomePraticoTestStyle';
     s.textContent=`
-      /* TESTE: tela inicial prática — não altera produção */
-      body{padding-bottom:78px!important}
+      /* TESTE V2: home limpa, com foco total nas 4 funções principais */
+      body{padding-bottom:24px!important}
+
+      body.dfHomeCompact .brand,
+      body:not(.dfSectionMode) .brand{
+        padding:14px 12px 16px!important;
+        margin:2px 0 12px!important;
+        border-radius:20px!important;
+      }
+      body.dfHomeCompact .brand .logo,
+      body:not(.dfSectionMode) .brand .logo{
+        width:min(190px,58vw)!important;
+        margin-bottom:5px!important;
+      }
+      body.dfHomeCompact .brand .tag,
+      body:not(.dfSectionMode) .brand .tag{
+        padding:5px 10px!important;
+        font-size:10px!important;
+        margin-top:4px!important;
+      }
+      body.dfHomeCompact .brand h1,
+      body:not(.dfSectionMode) .brand h1{
+        font-size:27px!important;
+        margin:11px 0 5px!important;
+      }
+      body.dfHomeCompact .brand .sub,
+      body:not(.dfSectionMode) .brand .sub{
+        font-size:11px!important;
+        line-height:1.3!important;
+      }
+
+      #dfHomeLead{
+        margin:2px 2px 8px;
+        display:flex;align-items:end;justify-content:space-between;gap:10px;
+      }
+      #dfHomeLead b{display:block;font-size:19px;color:#f8fafc;line-height:1.1}
+      #dfHomeLead span{display:block;margin-top:3px;font-size:11px;color:#94a3b8;font-weight:700}
+      #dfHomeLead em{font-style:normal;font-size:9px;font-weight:900;color:#ffd36a;border:1px solid #7c4a03;background:#211400;border-radius:999px;padding:5px 8px;white-space:nowrap}
 
       body.dfHomeCompact #appContent>.tabs,
       body:not(.dfSectionMode) #appContent>.tabs{
         display:grid!important;
         grid-template-columns:repeat(2,minmax(0,1fr))!important;
-        gap:12px!important;
-        padding:10px!important;
-        margin:12px 0 12px!important;
+        gap:11px!important;
+        padding:8px!important;
+        margin:0 0 10px!important;
         border-radius:20px!important;
         background:#090d16!important;
         border:1px solid #263244!important;
         position:relative!important;
         top:auto!important;
+        box-shadow:0 12px 30px rgba(0,0,0,.20)!important;
       }
       body.dfHomeCompact #appContent>.tabs .tab,
       body:not(.dfSectionMode) #appContent>.tabs .tab{
-        min-height:82px!important;
+        min-height:104px!important;
         border-radius:17px!important;
-        padding:13px 8px!important;
-        font-size:14px!important;
-        line-height:1.12!important;
+        padding:13px 8px 11px!important;
+        font-size:15px!important;
+        line-height:1.08!important;
         letter-spacing:.02em!important;
         display:flex!important;
         flex-direction:column!important;
         align-items:center!important;
         justify-content:center!important;
-        gap:7px!important;
-        box-shadow:0 8px 20px rgba(0,0,0,.18)!important;
+        gap:5px!important;
+        position:relative!important;
+        overflow:hidden!important;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 8px 20px rgba(0,0,0,.22)!important;
       }
-      #btEx{order:1} #btFo{order:2} #btSa{order:3} #btCu{order:4}
-      #btEx::before{content:'⚙️';font-size:23px;line-height:1}
-      #btFo::before{content:'🧪';font-size:23px;line-height:1}
-      #btSa::before{content:'🛍️';font-size:23px;line-height:1}
-      #btCu::before{content:'💰';font-size:23px;line-height:1}
+      body.dfHomeCompact #appContent>.tabs .tab::before,
+      body:not(.dfSectionMode) #appContent>.tabs .tab::before{font-size:27px;line-height:1;margin-bottom:3px}
+      body.dfHomeCompact #appContent>.tabs .tab::after,
+      body:not(.dfSectionMode) #appContent>.tabs .tab::after{
+        display:block;font:750 9px/1.25 system-ui;color:#94a3b8;text-transform:none;letter-spacing:0;text-align:center
+      }
+      #btEx{order:1;border-color:#f59e0b!important;background:linear-gradient(180deg,#2b1b05,#171109)!important;color:#ffd36a!important}
+      #btFo{order:2;border-color:#2563eb!important;background:linear-gradient(180deg,#10264b,#0d1729)!important;color:#dbeafe!important}
+      #btSa{order:3;border-color:#334155!important;background:linear-gradient(180deg,#142033,#101827)!important}
+      #btCu{order:4;border-color:#16a34a!important;background:linear-gradient(180deg,#0d2919,#0b1c13)!important;color:#bbf7d0!important}
+      #btEx::before{content:'⚙️'} #btFo::before{content:'🧪'} #btSa::before{content:'🛍️'} #btCu::before{content:'💰'}
+      #btEx::after{content:'Micra • peso/m • processo'}
+      #btFo::after{content:'Misturas • OP • PDF'}
+      #btSa::after{content:'Medidas • produção'}
+      #btCu::after{content:'Preço • margem • kg'}
       body.dfSectionMode #appContent>.tabs{display:none!important}
 
       #dfBetaApp{
         cursor:pointer!important;
-        padding:10px 13px!important;
-        margin:0 0 10px!important;
-        border-radius:14px!important;
+        padding:8px 11px!important;
+        margin:0 0 8px!important;
+        border-radius:12px!important;
+        min-height:38px!important;
       }
-      #dfBetaApp strong{font-size:12px!important;padding-right:24px;position:relative}
-      #dfBetaApp strong::after{content:'▾';position:absolute;right:0;top:-1px;font-size:16px;color:#facc15}
+      #dfBetaApp strong{font-size:10.5px!important;padding-right:22px;position:relative;line-height:1.2!important}
+      #dfBetaApp strong::after{content:'▾';position:absolute;right:0;top:-2px;font-size:15px;color:#facc15}
       #dfBetaApp span,#dfBetaApp small{display:none!important}
       #dfBetaApp.dfBetaOpen span,#dfBetaApp.dfBetaOpen small{display:block!important}
+      #dfBetaApp.dfBetaOpen span{font-size:10.5px!important;margin-top:6px!important}
+      #dfBetaApp.dfBetaOpen small{font-size:9.5px!important}
       #dfBetaApp.dfBetaOpen strong::after{content:'▴'}
 
       #dfSystemBar{
-        padding:8px 10px!important;
-        margin:0 0 10px!important;
-        border-radius:14px!important;
+        padding:7px 9px!important;
+        margin:0 0 8px!important;
+        border-radius:12px!important;
         align-items:center!important;
+        gap:6px!important;
       }
-      #dfSystemBar .dfSystemVer{font-size:10.5px!important;padding:0!important}
-      #dfSystemBar .dfSystemActions{
-        flex-direction:row!important;
-        flex-wrap:wrap!important;
-        justify-content:flex-end!important;
-        gap:5px!important;
-      }
-      #dfSystemBar .dfSystemBtn{font-size:9px!important;padding:7px 9px!important;min-height:31px!important}
-      #dfNetBadge{font-size:9px!important;padding:5px 7px!important}
+      #dfSystemBar .dfSystemVer{font-size:9.5px!important;padding:0!important}
+      #dfSystemBar .dfSystemActions{flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:4px!important}
+      #dfSystemBar .dfSystemBtn{font-size:8.5px!important;padding:6px 8px!important;min-height:28px!important;border-radius:9px!important}
+      #dfNetBadge{font-size:8.5px!important;padding:4px 6px!important}
 
       #dfHomeMoreToggle{
-        width:100%;min-height:48px;margin:2px 0 0;border:1px solid #334155;background:#111827;color:#e2e8f0;
-        border-radius:14px;padding:11px 14px;font:950 12px system-ui;letter-spacing:.03em;cursor:pointer
+        width:100%;min-height:44px;margin:0;border:1px solid #334155;background:#111827;color:#e2e8f0;
+        border-radius:12px;padding:10px 12px;font:950 11px system-ui;letter-spacing:.03em;cursor:pointer
       }
       #dfHomeMoreToggle::before{content:'☰ ';color:#facc15}
       #dfHomeMoreToggle.on{border-color:#f59e0b;background:#211400;color:#ffd36a}
-      #dfQuickAccess.dfTestMorePanel{display:none!important;margin-top:8px!important}
+      #dfQuickAccess.dfTestMorePanel{display:none!important;margin-top:7px!important}
       #dfQuickAccess.dfTestMorePanel.dfMoreOpen{display:grid!important}
+      #dfBottomTestNav{display:none!important}
 
-      #dfBottomTestNav{
-        position:fixed;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom));z-index:99990;
-        width:min(730px,calc(100% - 20px));display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
-        padding:7px;border:1px solid #334155;background:rgba(8,11,19,.96);backdrop-filter:blur(12px);
-        border-radius:18px;box-shadow:0 12px 35px rgba(0,0,0,.45)
+      @media(max-width:390px){
+        body.dfHomeCompact #appContent>.tabs .tab,
+        body:not(.dfSectionMode) #appContent>.tabs .tab{min-height:98px!important;font-size:14px!important}
+        body.dfHomeCompact #appContent>.tabs .tab::after,
+        body:not(.dfSectionMode) #appContent>.tabs .tab::after{font-size:8.5px}
       }
-      #dfBottomTestNav button{
-        border:1px solid #334155;background:#111827;color:#cbd5e1;border-radius:12px;min-height:47px;padding:6px 2px;
-        font:900 9.5px system-ui;line-height:1.15
-      }
-      #dfBottomTestNav button b{display:block;font-size:17px;line-height:1.1;margin-bottom:2px}
-      #dfBottomTestNav button:active{transform:scale(.97)}
-      #dfBottomTestNav .hot{border-color:#f59e0b;color:#ffd36a;background:#211400}
-
       @media(min-width:700px){
         body.dfHomeCompact #appContent>.tabs .tab,
-        body:not(.dfSectionMode) #appContent>.tabs .tab{min-height:92px!important;font-size:15px!important}
+        body:not(.dfSectionMode) #appContent>.tabs .tab{min-height:116px!important;font-size:17px!important}
       }
     `;
     document.head.appendChild(s);
+  }
+
+  function lead(){
+    const app=$('appContent'),tabs=app&&app.querySelector(':scope > .tabs');
+    if(!app||!tabs)return false;
+    let l=$('dfHomeLead');
+    if(!l){
+      l=document.createElement('div');l.id='dfHomeLead';
+      l.innerHTML='<div><b>Acesso rápido</b><span>Escolha a função que você precisa</span></div><em>4 PRINCIPAIS</em>';
+    }
+    if(l.nextElementSibling!==tabs)tabs.parentNode.insertBefore(l,tabs);
+    return true;
   }
 
   function mainTabs(){
@@ -115,9 +168,7 @@
     const b=$('dfBetaApp');
     if(!b||b.dataset.dfCompactBound==='1')return !!b;
     b.dataset.dfCompactBound='1';
-    b.setAttribute('role','button');
-    b.setAttribute('tabindex','0');
-    b.setAttribute('aria-label','Abrir detalhes do período beta');
+    b.setAttribute('role','button');b.setAttribute('tabindex','0');b.setAttribute('aria-label','Abrir detalhes do período beta');
     const toggle=()=>b.classList.toggle('dfBetaOpen');
     b.addEventListener('click',toggle);
     b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
@@ -125,68 +176,40 @@
   }
 
   function more(){
-    const q=$('dfQuickAccess');
-    if(!q)return false;
+    const q=$('dfQuickAccess');if(!q)return false;
     q.classList.add('dfTestMorePanel');
     let b=$('dfHomeMoreToggle');
     if(!b){
-      b=document.createElement('button');
-      b.id='dfHomeMoreToggle';
-      b.type='button';
-      b.textContent='MAIS — AJUDA, FEEDBACK E WHATSAPP';
-      q.parentNode.insertBefore(b,q);
+      b=document.createElement('button');b.id='dfHomeMoreToggle';b.type='button';b.textContent='MAIS — AJUDA, FEEDBACK E WHATSAPP';
       b.addEventListener('click',()=>{
-        const open=q.classList.toggle('dfMoreOpen');
-        b.classList.toggle('on',open);
+        const open=q.classList.toggle('dfMoreOpen');b.classList.toggle('on',open);
         b.textContent=open?'FECHAR MAIS':'MAIS — AJUDA, FEEDBACK E WHATSAPP';
         if(open)setTimeout(()=>q.scrollIntoView({behavior:'smooth',block:'nearest'}),40);
       });
     }
+    if(b.nextElementSibling!==q)q.parentNode.insertBefore(b,q);
     return true;
   }
 
-  function goHome(){
-    const menu=document.querySelector('[data-df-persistent-menu="1"]');
-    if(menu){menu.click();return}
-    try{history.replaceState(null,'','./teste-formulacoes.html')}catch(e){}
-    window.scrollTo({top:0,behavior:'smooth'});
+  function order(){
+    const app=$('appContent'),tabs=app&&app.querySelector(':scope > .tabs');if(!app||!tabs)return;
+    const l=$('dfHomeLead');if(l&&l.nextElementSibling!==tabs)tabs.parentNode.insertBefore(l,tabs);
+    const beta=$('dfBetaApp');if(beta&&tabs.nextElementSibling!==beta)tabs.insertAdjacentElement('afterend',beta);
+    const sys=$('dfSystemBar');if(sys&&beta&&beta.nextElementSibling!==sys)beta.insertAdjacentElement('afterend',sys);
+    const moreBtn=$('dfHomeMoreToggle');if(moreBtn&&sys&&sys.nextElementSibling!==moreBtn)sys.insertAdjacentElement('afterend',moreBtn);
+    const quick=$('dfQuickAccess');if(quick&&moreBtn&&moreBtn.nextElementSibling!==quick)moreBtn.insertAdjacentElement('afterend',quick);
+    const bottom=$('dfBottomTestNav');if(bottom)bottom.remove();
   }
 
-  function openMore(){
-    const run=()=>{
-      const b=$('dfHomeMoreToggle'),q=$('dfQuickAccess');
-      if(b&&q){if(!q.classList.contains('dfMoreOpen'))b.click();setTimeout(()=>b.scrollIntoView({behavior:'smooth',block:'center'}),50)}
-    };
-    const menu=document.querySelector('[data-df-persistent-menu="1"]');
-    if(menu){menu.click();setTimeout(run,120)}else run();
-  }
-
-  function bottom(){
-    if($('dfBottomTestNav'))return true;
-    const nav=document.createElement('div');
-    nav.id='dfBottomTestNav';
-    nav.innerHTML='<button type="button" data-home><b>⌂</b>INÍCIO</button><button type="button" data-go="btEx"><b>⚙️</b>EXTRUSÃO</button><button type="button" class="hot" data-go="btFo"><b>🧪</b>FORMULAÇÃO</button><button type="button" data-more><b>☰</b>MAIS</button>';
-    nav.addEventListener('click',e=>{
-      const b=e.target.closest('button');if(!b)return;
-      if(b.hasAttribute('data-home')){goHome();return}
-      if(b.hasAttribute('data-more')){openMore();return}
-      const id=b.dataset.go,el=$(id);if(el)el.click();
-    });
-    document.body.appendChild(nav);
-    return true;
-  }
-
-  function ensure(){addStyle();mainTabs();beta();more();bottom()}
+  function ensure(){addStyle();lead();mainTabs();beta();more();order()}
 
   function start(){
     ensure();
-    let tries=0;
-    const t=setInterval(()=>{tries++;ensure();if(tries>60)clearInterval(t)},120);
+    let tries=0;const t=setInterval(()=>{tries++;ensure();if(tries>70)clearInterval(t)},120);
     window.addEventListener('df-ui-ready',()=>setTimeout(ensure,30));
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(ensure,30)});
     const mo=new MutationObserver(()=>requestAnimationFrame(ensure));
-    mo.observe(document.documentElement,{childList:true,subtree:true});
-    setTimeout(()=>mo.disconnect(),12000);
+    mo.observe(document.documentElement,{childList:true,subtree:true});setTimeout(()=>mo.disconnect(),15000);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
