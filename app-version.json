@@ -1,6 +1,6 @@
 {
-  "version": "1.0.195",
-  "title": "DF EXTRUSOR PRO — estabilidade da aba Fotos",
-  "message": "Correção estrutural da aba FOTOS: sincronização sem desmontar a lista, paginação sem disputar a rolagem e manutenção de fotos separada do layout.",
-  "updatedAt": "2026-09-29T01:12:00-03:00"
+  "version": "1.0.196",
+  "title": "DF EXTRUSOR PRO — correção preventiva de estabilidade",
+  "message": "Melhorias de confiabilidade: ordem consistente dos módulos críticos, recuperação controlada em falha de carregamento e cache offline alinhado com a versão atual.",
+  "updatedAt": "2026-09-30T22:19:00-03:00"
 }
