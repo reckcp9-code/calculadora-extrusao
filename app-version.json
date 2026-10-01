@@ -1,6 +1,6 @@
 {
-  "version": "1.0.196",
-  "title": "DF EXTRUSOR PRO — correção preventiva de estabilidade",
-  "message": "Melhorias de confiabilidade: ordem consistente dos módulos críticos, recuperação controlada em falha de carregamento e cache offline alinhado com a versão atual.",
-  "updatedAt": "2026-09-30T22:19:00-03:00"
+  "version": "1.0.197",
+  "title": "DF EXTRUSOR PRO — formulações prontas da equipe",
+  "message": "Nova biblioteca com 60 formulações por aplicação: Fundo estrela, Fundo reto e Sacolas. Recurso liberado somente para a equipe interna; assinantes continuam sem acesso.",
+  "updatedAt": "2026-10-01T19:40:00-03:00"
 }
