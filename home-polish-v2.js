@@ -55,7 +55,17 @@
     if(beta)beta.remove();
   }
 
-  function sync(){addStyle();removeHomeBeta()}
+  function loadVoiceAssistant(){
+    if(window.DFVoiceAssistantV1||document.getElementById('dfVoiceAssistantScript'))return;
+    const s=document.createElement('script');
+    s.id='dfVoiceAssistantScript';
+    s.src='./voice-assistant-v1.js?v=20261001-voice-test-v1';
+    s.defer=true;
+    s.onerror=()=>{try{s.remove()}catch(e){}};
+    document.head.appendChild(s);
+  }
+
+  function sync(){addStyle();removeHomeBeta();loadVoiceAssistant()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});
   else sync();
   window.addEventListener('df-ui-ready',sync);

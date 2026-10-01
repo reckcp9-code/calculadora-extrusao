@@ -1,0 +1,65 @@
+name: DF Stability Smoke
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar sintaxe dos módulos críticos
+        run: |
+          set -e
+          for f in \
+            app-bundle.js \
+            performance-guard-v3.js \
+            production-stability-v1.js \
+            data-integrity-v1.js \
+            runtime-stability-v5.js \
+            backup-manual-only-v1.js \
+            backup-manual-lite-v2.js \
+            formula-allow-same-name-v1.js \
+            formula-tabs-clean-v1.js \
+            formula-saved-search-v1.js \
+            op-unique-qr-guard-v1.js \
+            op-server-authority-v1.js \
+            op-lifecycle-authority-v2.js \
+            error-monitor-v1.js \
+            sw.js
+          do
+            test -s "$f" || { echo "Arquivo ausente/vazio: $f"; exit 1; }
+            node --check "$f"
+          done
+      - name: Validar integridade básica do app
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const fail=m=>{console.error('FALHA:',m);process.exitCode=1};
+          const index=fs.readFileSync('index.html','utf8');
+          const backup=fs.readFileSync('backup-manual-only-v1.js','utf8');
+          const guard=fs.readFileSync('data-integrity-v1.js','utf8');
+          const sw=fs.readFileSync('sw.js','utf8');
+          let version;
+          try{version=JSON.parse(fs.readFileSync('app-version.json','utf8'))}catch(e){fail('app-version.json inválido')}
+          if(!version?.version) fail('versão do app ausente');
+          for(const name of ['performance-guard-v3.js','app-bundle.js','runtime-stability-v5.js','backup-manual-only-v1.js']){
+            if(!index.includes(name)) fail('index não carrega '+name);
+          }
+          if(!backup.includes('production-stability-v1.js')) fail('camada production-stability não está ativada');
+          if(!backup.includes('data-integrity-v1.js')) fail('proteção de dados não está ativada');
+          for(const key of ['df_formula_materiais_v2','df_formulacoes_v2','df_formula_ops_auto_v2']){
+            if(!guard.includes(key)) fail('proteção não cobre '+key);
+          }
+          if(!sw.includes('production-stability-v1.js')) fail('service worker não mantém production-stability no cache');
+          if(!sw.includes('runtime-stability-v5.js')) fail('service worker não mantém runtime-stability no cache');
+          if(process.exitCode) process.exit(process.exitCode);
+          console.log('Smoke test OK — versão',version.version);
+          NODE
