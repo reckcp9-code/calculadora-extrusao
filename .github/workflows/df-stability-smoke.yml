@@ -22,6 +22,7 @@ jobs:
             app-bundle.js \
             performance-guard-v3.js \
             production-stability-v1.js \
+            data-integrity-v1.js \
             runtime-stability-v5.js \
             backup-manual-only-v1.js \
             backup-manual-lite-v2.js \
@@ -44,6 +45,7 @@ jobs:
           const fail=m=>{console.error('FALHA:',m);process.exitCode=1};
           const index=fs.readFileSync('index.html','utf8');
           const backup=fs.readFileSync('backup-manual-only-v1.js','utf8');
+          const guard=fs.readFileSync('data-integrity-v1.js','utf8');
           const sw=fs.readFileSync('sw.js','utf8');
           let version;
           try{version=JSON.parse(fs.readFileSync('app-version.json','utf8'))}catch(e){fail('app-version.json inválido')}
@@ -52,6 +54,10 @@ jobs:
             if(!index.includes(name)) fail('index não carrega '+name);
           }
           if(!backup.includes('production-stability-v1.js')) fail('camada production-stability não está ativada');
+          if(!backup.includes('data-integrity-v1.js')) fail('proteção de dados não está ativada');
+          for(const key of ['df_formula_materiais_v2','df_formulacoes_v2','df_formula_ops_auto_v2']){
+            if(!guard.includes(key)) fail('proteção não cobre '+key);
+          }
           if(!sw.includes('production-stability-v1.js')) fail('service worker não mantém production-stability no cache');
           if(!sw.includes('runtime-stability-v5.js')) fail('service worker não mantém runtime-stability no cache');
           if(process.exitCode) process.exit(process.exitCode);
