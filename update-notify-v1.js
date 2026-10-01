@@ -6,7 +6,19 @@
   const SEEN_KEY='df_update_seen_version_v1';
   const AUTO_KEY='df_update_auto_applied_v1';
   const CHECK_MS=2*60*1000;
-  let timer=0,updating=false,permHotfixLoaded=false;
+  let timer=0,updating=false,permHotfixLoaded=false,stabilityLoaded=false;
+
+  function loadStability(){
+    if(stabilityLoaded||window.DFProductionStabilityV1)return;
+    stabilityLoaded=true;
+    try{
+      const s=document.createElement('script');
+      s.src='./production-stability-v1.js?v=20260930-stability-v1';
+      s.async=false;
+      s.onerror=()=>{stabilityLoaded=false};
+      document.head.appendChild(s);
+    }catch(e){stabilityLoaded=false}
+  }
 
   function loadPermissionHotfix(){
     if(permHotfixLoaded||window.DFTeamTabPermissionsHotfixV195)return;
@@ -64,6 +76,7 @@
   }
 
   async function check(){
+    loadStability();
     loadPermissionHotfix();
     if(updating||document.hidden)return;
     try{
@@ -81,6 +94,7 @@
   }
 
   function start(){
+    loadStability();
     loadPermissionHotfix();
     check();
     clearInterval(timer);
@@ -88,9 +102,10 @@
   }
 
   window.dfCheckForUpdate=check;
+  loadStability();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  window.addEventListener('pageshow',()=>{loadPermissionHotfix();setTimeout(check,250)});
-  window.addEventListener('focus',()=>{loadPermissionHotfix();setTimeout(check,150)});
-  window.addEventListener('online',()=>{loadPermissionHotfix();setTimeout(check,150)});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadPermissionHotfix();setTimeout(check,120)}});
+  window.addEventListener('pageshow',()=>{loadStability();loadPermissionHotfix();setTimeout(check,250)});
+  window.addEventListener('focus',()=>{loadStability();loadPermissionHotfix();setTimeout(check,150)});
+  window.addEventListener('online',()=>{loadStability();loadPermissionHotfix();setTimeout(check,150)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadStability();loadPermissionHotfix();setTimeout(check,120)}});
 })();
