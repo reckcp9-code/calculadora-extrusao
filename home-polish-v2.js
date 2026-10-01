@@ -9,7 +9,7 @@
       /* Banner beta removido somente da tela principal. */
       #dfBetaApp{display:none!important}
 
-      /* Quatro botoes principais mais altos, fortes e com contorno visivel. */
+      /* Quatro botoes principais levemente maiores, mantendo o layout compacto. */
       #appContent > .tabs{
         gap:10px!important;
         padding:8px!important;
@@ -18,8 +18,8 @@
         background:#090d14f2!important;
       }
       #appContent > .tabs > .tab{
-        min-height:58px!important;
-        padding:12px 7px!important;
+        min-height:64px!important;
+        padding:14px 7px!important;
         border:2px solid #40516b!important;
         border-radius:14px!important;
         background:linear-gradient(180deg,#162033 0%,#111827 100%)!important;
@@ -40,8 +40,8 @@
       @media(max-width:560px){
         #appContent > .tabs{gap:8px!important;padding:7px!important}
         #appContent > .tabs > .tab{
-          min-height:56px!important;
-          padding:10px 4px!important;
+          min-height:62px!important;
+          padding:12px 4px!important;
           font-size:11.5px!important;
           border-width:2px!important;
         }
