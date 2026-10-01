@@ -1,65 +1,200 @@
 (function(){
 'use strict';
-if(window.DFAssistenteSuporteV5)return;
+if(window.DFAssistenteAoVivoV6)return;
+
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const BRIDGE_ORIGIN='https://df-assistente-ai-bridge-ch5rh9.v2.appdeploy.ai';
+const BRIDGE_URL=BRIDGE_ORIGIN+'/';
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9%.,+\- ]/g,' ').replace(/\s+/g,' ').trim();
-let rec=null,listening=false,restart=false,speaking=false;
+let rec=null,listening=false,speaking=false,bridge=null,bridgeReady=false;
+let history=[];
+const pending=new Map();
 
 const css=`
-#dfSupportFab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:99998;width:58px;height:58px;border-radius:50%;border:1.5px solid #f5a000;background:#111827;color:#ffd36a;box-shadow:0 12px 35px #0009;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer}
+#dfSupportFab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:99998;width:60px;height:60px;border-radius:50%;border:1.5px solid #f5a000;background:#111827;color:#ffd36a;box-shadow:0 12px 35px #0009;display:flex;align-items:center;justify-content:center;font-size:27px;cursor:pointer}
 #dfSupportFab.on{background:#2b1a00;box-shadow:0 0 0 5px #f5a00022,0 12px 35px #0009}
 #dfSupportPanel{position:fixed;inset:0;z-index:99997;background:#080b13;display:none;flex-direction:column;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-#dfSupportPanel.open{display:flex}.dfspHead{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #263244;background:#0c111b}.dfspMark{width:42px;height:42px;border:1px solid #f5a000;border-radius:13px;display:grid;place-items:center;color:#ffd36a;font-size:21px}.dfspTitle{flex:1}.dfspTitle b{display:block;font-size:19px}.dfspTitle span{display:block;color:#94a3b8;font-size:12px;margin-top:2px}.dfspClose{border:1px solid #334155;background:#111827;color:#fff;border-radius:12px;width:42px;height:42px;font-size:22px}.dfspMsgs{flex:1;overflow:auto;padding:18px 14px 120px;max-width:760px;width:100%;margin:auto}.dfspMsg{max-width:88%;padding:12px 14px;border-radius:16px;margin:0 0 12px;line-height:1.45;font-size:15px;white-space:pre-wrap}.dfspBot{background:#111827;border:1px solid #263244;color:#e5e7eb;border-top-left-radius:5px}.dfspUser{background:#2a1b02;border:1px solid #7a5300;color:#fff;margin-left:auto;border-top-right-radius:5px}.dfspQuick{display:flex;gap:7px;overflow:auto;padding:0 14px 10px;max-width:760px;width:100%;margin:auto}.dfspQuick button{white-space:nowrap;border:1px solid #334155;background:#0f172a;color:#cbd5e1;border-radius:999px;padding:8px 11px;font-weight:750}.dfspBar{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#080b1300,#080b13 18%,#080b13);}.dfspCompose{max-width:760px;margin:auto;display:grid;grid-template-columns:46px 1fr 72px;gap:8px}.dfspMic,.dfspSend{border:1px solid #f5a000;background:#211400;color:#ffd36a;border-radius:13px;font-weight:900}.dfspMic.on{background:#f5a000;color:#111827}.dfspInput{border:1px solid #334155!important;background:#0f172a!important;color:#fff!important;border-radius:13px!important;padding:12px!important;font-size:16px!important;width:100%!important;margin:0!important}.dfspListen{max-width:760px;margin:0 auto 7px;color:#94a3b8;font-size:12px;min-height:16px;padding:0 2px}.dfspListen.on{color:#ffd36a}
+#dfSupportPanel.open{display:flex}.dfspHead{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #263244;background:#0c111b}.dfspMark{width:42px;height:42px;border:1px solid #f5a000;border-radius:13px;display:grid;place-items:center;color:#ffd36a;font-size:21px}.dfspTitle{flex:1}.dfspTitle b{display:block;font-size:19px}.dfspTitle span{display:block;color:#94a3b8;font-size:12px;margin-top:2px}.dfspClose{border:1px solid #334155;background:#111827;color:#fff;border-radius:12px;width:42px;height:42px;font-size:22px}.dfspMsgs{flex:1;overflow:auto;padding:18px 14px 128px;max-width:760px;width:100%;margin:auto;box-sizing:border-box}.dfspMsg{max-width:88%;padding:12px 14px;border-radius:16px;margin:0 0 12px;line-height:1.45;font-size:15px;white-space:pre-wrap}.dfspBot{background:#111827;border:1px solid #263244;color:#e5e7eb;border-top-left-radius:5px}.dfspUser{background:#2a1b02;border:1px solid #7a5300;color:#fff;margin-left:auto;border-top-right-radius:5px}.dfspThinking{opacity:.72}.dfspQuick{display:flex;gap:7px;overflow:auto;padding:0 14px 10px;max-width:760px;width:100%;margin:auto;box-sizing:border-box}.dfspQuick button{white-space:nowrap;border:1px solid #334155;background:#0f172a;color:#cbd5e1;border-radius:999px;padding:8px 11px;font-weight:750}.dfspBar{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#080b1300,#080b13 18%,#080b13)}.dfspCompose{max-width:760px;margin:auto;display:grid;grid-template-columns:46px 1fr 72px;gap:8px}.dfspMic,.dfspSend{border:1px solid #f5a000;background:#211400;color:#ffd36a;border-radius:13px;font-weight:900}.dfspMic.on{background:#f5a000;color:#111827}.dfspInput{border:1px solid #334155!important;background:#0f172a!important;color:#fff!important;border-radius:13px!important;padding:12px!important;font-size:16px!important;width:100%!important;margin:0!important;box-sizing:border-box}.dfspListen{max-width:760px;margin:0 auto 7px;color:#94a3b8;font-size:12px;min-height:16px;padding:0 2px}.dfspListen.on{color:#ffd36a}
+.dfspAction{font-size:12px;color:#f6c453;margin:-5px 0 12px 4px}
 @media(min-width:800px){#dfSupportPanel{inset:5vh calc(50% - 390px);border:1px solid #263244;border-radius:22px;overflow:hidden;box-shadow:0 30px 100px #000c}}
 `;
 const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 
-function appTerms(){
- const labels=[...document.querySelectorAll('label,h2,.tag,button')].map(e=>(e.textContent||'').trim()).filter(Boolean);
- return labels.slice(0,220).join(' • ');
+function visible(el){
+ if(!el)return false;
+ const s=getComputedStyle(el);
+ return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0';
 }
-function answer(raw){
+function appContext(){
+ const clickables=[...document.querySelectorAll('button,a,[role="button"],[onclick],.tab,.card,.menu-item')].filter(visible).map(e=>(e.innerText||e.textContent||e.getAttribute('aria-label')||'').trim()).filter(Boolean).slice(0,180);
+ const fields=[...document.querySelectorAll('input,select,textarea')].filter(visible).map(e=>{
+   const id=e.id||'';
+   const label=id?document.querySelector(`label[for="${CSS.escape(id)}"]`):null;
+   const name=(label?.textContent||e.getAttribute('aria-label')||e.getAttribute('placeholder')||e.name||id||e.tagName).trim();
+   const value=e.type==='password'?'[protegido]':String(e.value||'').slice(0,120);
+   return `${name}: ${value}`;
+ }).slice(0,100);
+ const headings=[...document.querySelectorAll('h1,h2,h3,.title,.section-title')].filter(visible).map(e=>(e.textContent||'').trim()).filter(Boolean).slice(0,60);
+ const bodyText=(document.body?.innerText||'').replace(/\s+/g,' ').slice(0,4500);
+ return [
+   `URL: ${location.pathname}${location.search}`,
+   `Títulos: ${headings.join(' | ')}`,
+   `Itens clicáveis: ${clickables.join(' | ')}`,
+   `Campos atuais: ${fields.join(' | ')}`,
+   `Texto visível: ${bodyText}`
+ ].join('\n').slice(0,8500);
+}
+function ensureBridge(){
+ if(bridge&&document.body.contains(bridge))return bridge;
+ bridge=document.createElement('iframe');
+ bridge.src=BRIDGE_URL;
+ bridge.title='DF Assistente AI';
+ bridge.setAttribute('aria-hidden','true');
+ bridge.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px;border:0';
+ bridge.onload=()=>{bridgeReady=true};
+ document.body.appendChild(bridge);
+ return bridge;
+}
+window.addEventListener('message',e=>{
+ if(e.origin!==BRIDGE_ORIGIN||e.data?.type!=='df-assistant-response'||!e.data?.id)return;
+ const p=pending.get(e.data.id);if(!p)return;
+ pending.delete(e.data.id);clearTimeout(p.timer);
+ if(e.data.error)p.reject(new Error(e.data.error));else p.resolve(e.data);
+});
+function askAI(message){
+ ensureBridge();
+ return new Promise((resolve,reject)=>{
+   const id='df-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+   const timer=setTimeout(()=>{pending.delete(id);reject(new Error('timeout'))},18000);
+   pending.set(id,{resolve,reject,timer});
+   const send=()=>bridge?.contentWindow?.postMessage({type:'df-assistant-request',id,message,history:history.slice(-12),appContext:appContext()},BRIDGE_ORIGIN);
+   if(bridgeReady)send();else setTimeout(send,650);
+ });
+}
+function fallback(raw){
  const q=norm(raw);
- if(!q)return 'Pode perguntar. Eu explico como usar o DF EXTRUSOR PRO passo a passo.';
- if(/(o que voce faz|o que faz|ajuda|pode fazer|como funciona o assistente)/.test(q))return 'Eu sou o Assistente DF. Minha função é tirar dúvidas e ensinar a usar o DF EXTRUSOR PRO. Posso explicar Formulação, cadastro de matéria-prima, Extrusão, Sacolas, Custo, OP, PDF, fórmulas salvas e os cálculos do aplicativo. Eu não altero seus dados sozinho.';
- if(/(cadastrar|cadastro|adicionar|nova).*materia|materia.*(cadastrar|cadastro|adicionar)/.test(q))return 'Para cadastrar uma matéria-prima:\n1. Entre em FORMULAÇÃO.\n2. Abra a área de matérias-primas/cadastro.\n3. Toque em cadastrar ou adicionar matéria-prima.\n4. Informe o nome do material e, quando disponível, o custo por kg e os demais dados.\n5. Salve.\nDepois o material passa a aparecer na seleção da formulação.';
- if(/(montar|criar|fazer|nova|como).*formul|formul.*(montar|criar|fazer|como)/.test(q))return 'Para montar uma formulação:\n1. Entre em FORMULAÇÃO.\n2. Informe o nome/cliente e o total em kg.\n3. Selecione uma matéria-prima cadastrada, informe a porcentagem e adicione.\n4. Repita para os outros materiais.\n5. Confira se a soma fechou em 100%.\n6. Revise o total em kg e o custo.\n7. Toque em SALVAR FORMULAÇÃO.\nDepois você pode abrir a formulação salva e gerar a OP/PDF.';
- if(/(abrir|usar|editar|alterar).*formul.*salv|formul.*salv.*(abrir|usar|editar|alterar)/.test(q))return 'Na área de Formulações salvas, localize a formulação pela busca, selecione-a e toque em ABRIR. Você pode revisar os dados e trabalhar a partir dela. Se a ideia for criar uma variação sem perder a anterior, use DUPLICAR quando essa opção estiver disponível.';
- if(/favorit/.test(q))return 'Em Formulações salvas, use a estrela da formulação para marcar como favorita. Depois use o filtro FAVORITAS para mostrar primeiro as formulações que você mais usa.';
- if(/(gerar|fazer|criar|imprimir).*\bop\b|ordem de producao|\bop\b.*(gerar|fazer|criar|imprimir)/.test(q))return 'Para gerar uma OP, abra a formulação salva que será produzida, confira os dados e toque em OP/GERAR OP. Revise cliente/produto, peso, largura, micra e matérias-primas antes de imprimir ou salvar em PDF.';
- if(/pdf|imprimir|impressao/.test(q))return 'Abra a formulação ou a OP desejada e toque em PDF. O sistema monta o documento para conferência. Antes de imprimir, confira nome do produto, peso, porcentagens, largura e micra.';
- if(/(como|calcular|usar|serve).*extrus|extrus.*(como|calcular|usar|serve)|peso.*metro|micra.*peso/.test(q))return 'Na aba EXTRUSÃO você trabalha com largura, micra e densidade. Para peso ideal por metro, informe a largura do filme fechado, a micra desejada e a densidade. O resultado sai em g/m. Para descobrir a micra real, pese 1 metro do filme e informe esse peso no campo correspondente.';
- if(/(corrigir|ajustar).*micra|micra.*(corrigir|ajustar)|puxador|motor de massa/.test(q))return 'Na EXTRUSÃO, o modo de correção compara o peso ideal com o peso medido. Informe os RPM atuais e escolha se quer a referência de correção pelo puxador ou pela massa. Use o resultado como referência de ajuste e confirme o filme na medição real.';
- if(/sacola|sacolas|sacaria/.test(q))return 'Na aba SACOLAS, informe as medidas pedidas pelo módulo, como largura e comprimento, e os dados de espessura/material quando aplicável. O aplicativo calcula as referências de peso e produção. Se você me disser qual cálculo de sacola quer fazer, eu explico campo por campo.';
- if(/(custo|preco|margem|valor por kg|custo por kg)/.test(q))return 'Na aba CUSTO, preencha os custos e quantidades solicitados pelo módulo. O objetivo é chegar ao custo por kg e às referências de preço/margem. Se a dúvida for sobre um campo específico, diga o nome que aparece na tela e eu explico.';
- if(/densidade/.test(q))return 'Na Extrusão, a densidade entra no cálculo do peso do filme. Selecione a referência do material ou use densidade manual quando souber o valor correto da resina/mistura. Quanto maior a densidade, maior tende a ser o peso para a mesma largura e espessura.';
- if(/mfi|indice de fluidez|fluidez/.test(q))return 'MFI é o índice de fluidez da resina. Em termos práticos, ajuda a indicar o quanto o polímero flui sob condições padronizadas. Ele é uma característica do material, não uma porcentagem da formulação. Para escolher uma resina, compare o MFI da ficha técnica com o processo e o tipo de filme desejado.';
- if(/(onde|qual aba|onde fica).*(formul|extrus|sacola|custo|op|materia)/.test(q))return 'As funções principais ficam nos módulos EXTRUSÃO, SACOLAS, CUSTO e FORMULAÇÃO. Entre no módulo relacionado à tarefa. Se você me disser exatamente o que quer fazer, por exemplo “onde cadastro material?” ou “onde gero a OP?”, eu passo o caminho exato.';
- if(/ola|oi|bom dia|boa tarde|boa noite/.test(q))return 'Olá! Eu sou o Assistente DF. Pergunte como fazer qualquer operação no DF EXTRUSOR PRO e eu explico passo a passo.';
- const terms=norm(appTerms());
- if(q.split(' ').some(w=>w.length>5&&terms.includes(w)))return 'Esse item faz parte do DF EXTRUSOR PRO. Me diga o que você quer fazer com ele — por exemplo cadastrar, calcular, abrir, salvar, gerar OP ou imprimir — que eu te passo o procedimento passo a passo.';
- return 'Ainda não tenho uma orientação segura para essa pergunta. Posso te ajudar com o uso do DF EXTRUSOR PRO: Formulação, matéria-prima, Extrusão, Sacolas, Custo, OP, PDF e formulações salvas. Tente me perguntar usando o nome da função que aparece na tela.';
+ if(/formul/.test(q))return 'Posso te guiar na Formulação. Entre em FORMULAÇÃO e me diga o que você quer fazer: cadastrar material, montar uma fórmula ou abrir uma fórmula salva.';
+ if(/materia|material/.test(q))return 'Para cadastrar material, abra a área de cadastro de matéria-prima dentro de Formulação, preencha os dados do material e salve.';
+ if(/extrus/.test(q))return 'Na Extrusão eu posso te orientar por largura, micra, densidade, matriz, BUR, GAP e DDR. Me diga qual cálculo você quer fazer.';
+ return 'Estou com dificuldade para acessar a inteligência ao vivo agora. Tente de novo em alguns segundos.';
 }
-
+function addMsg(text,who,extra=''){
+ const box=document.getElementById('dfspMsgs');if(!box)return null;
+ const d=document.createElement('div');d.className='dfspMsg '+(who==='user'?'dfspUser':'dfspBot')+(extra?' '+extra:'');d.textContent=text;box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
+}
+function findTarget(target){
+ const t=norm(target);if(!t)return null;
+ const els=[...document.querySelectorAll('button,a,[role="button"],[onclick],.tab,.card,.menu-item,label')].filter(visible);
+ let hit=els.find(e=>norm(e.innerText||e.textContent||e.getAttribute('aria-label'))===t);
+ if(!hit)hit=els.find(e=>norm(e.innerText||e.textContent||e.getAttribute('aria-label')).includes(t));
+ if(!hit)hit=els.find(e=>t.includes(norm(e.innerText||e.textContent||e.getAttribute('aria-label')))&&norm(e.innerText||e.textContent||e.getAttribute('aria-label')).length>3);
+ return hit||null;
+}
+function executeActions(actions){
+ if(!Array.isArray(actions))return;
+ actions.forEach((a,i)=>setTimeout(()=>{
+   if(!a||!a.type||a.type==='none')return;
+   const el=findTarget(a.target||'');
+   if(!el)return;
+   if(a.type==='highlight'){
+     el.scrollIntoView({behavior:'smooth',block:'center'});
+     const old=el.style.outline;el.style.outline='3px solid #f5a000';setTimeout(()=>{el.style.outline=old},2200);
+     return;
+   }
+   if(a.type==='navigate'){
+     try{el.click();const note=document.createElement('div');note.className='dfspAction';note.textContent='✓ Abri: '+(a.target||'área solicitada');document.getElementById('dfspMsgs')?.appendChild(note)}catch(_){}
+   }
+ },450+i*350));
+}
+async function ask(text,voice){
+ text=String(text||'').trim();if(!text)return;
+ addMsg(text,'user');
+ const wait=addMsg('Pensando...','bot','dfspThinking');
+ try{
+   const result=await askAI(text);
+   wait?.remove();
+   const reply=String(result.reply||fallback(text));
+   addMsg(reply,'bot');
+   history.push({role:'user',content:text},{role:'assistant',content:reply});
+   history=history.slice(-16);
+   executeActions(result.actions);
+   if(voice)speak(reply);
+ }catch(_){
+   wait?.remove();
+   const reply=fallback(text);addMsg(reply,'bot');if(voice)speak(reply);
+ }
+}
 function speak(text){
  if(!('speechSynthesis' in window))return;
- try{speaking=true;if(rec&&listening){restart=true;rec.stop()}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text).replace(/\n/g,' '));u.lang='pt-BR';u.rate=1.02;u.onend=u.onerror=()=>{speaking=false;if(listening)setTimeout(startRec,180)};speechSynthesis.speak(u)}catch(_){speaking=false}
+ try{
+   speaking=true;
+   if(rec&&listening){try{rec.stop()}catch(_){}}
+   speechSynthesis.cancel();
+   const u=new SpeechSynthesisUtterance(String(text).replace(/\n/g,' '));u.lang='pt-BR';u.rate=1.03;
+   u.onend=u.onerror=()=>{speaking=false;if(listening)setTimeout(startRec,220)};
+   speechSynthesis.speak(u);
+ }catch(_){speaking=false}
 }
-function addMsg(text,who){const box=document.getElementById('dfspMsgs');if(!box)return;const d=document.createElement('div');d.className='dfspMsg '+(who==='user'?'dfspUser':'dfspBot');d.textContent=text;box.appendChild(d);box.scrollTop=box.scrollHeight}
-function ask(text,voice){text=String(text||'').trim();if(!text)return;addMsg(text,'user');const a=answer(text);setTimeout(()=>{addMsg(a,'bot');if(voice)speak(a)},120)}
-function setListen(on){listening=!!on;document.getElementById('dfSupportFab')?.classList.toggle('on',listening);document.getElementById('dfspMic')?.classList.toggle('on',listening);const s=document.getElementById('dfspListen');if(s){s.classList.toggle('on',listening);s.textContent=listening?'● Ouvindo — fale sua dúvida':'Toque no microfone para falar'}}
-function makeRec(){if(!SR)return null;const r=new SR();r.lang='pt-BR';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;r.onstart=()=>setListen(true);r.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=(e.results[i][0]?.transcript||'').trim();if(!t)continue;if(e.results[i].isFinal)ask(t,true);else interim+=t+' '}const s=document.getElementById('dfspListen');if(s&&interim)s.textContent='Ouvindo: '+interim.trim()};r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){setListen(false);addMsg('Permita o acesso ao microfone no navegador para falar comigo.','bot')}};r.onend=()=>{if(listening&&!speaking)setTimeout(startRec,220)};return r}
-function startRec(){if(!listening||speaking)return;if(!SR){setListen(false);addMsg('O reconhecimento de voz não está disponível neste navegador. Você pode digitar sua dúvida abaixo.','bot');return}try{if(!rec)rec=makeRec();rec.start()}catch(_){}}
-function toggleRec(){if(listening){setListen(false);restart=false;try{rec?.stop()}catch(_){}}else{setListen(true);startRec()}}
-function open(){document.getElementById('dfSupportPanel')?.classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('dfspInput')?.focus(),80)}
-function close(){document.getElementById('dfSupportPanel')?.classList.remove('open');document.body.style.overflow='';if(listening)toggleRec();try{speechSynthesis?.cancel()}catch(_){}}
+function setListen(on){
+ listening=!!on;
+ document.getElementById('dfSupportFab')?.classList.toggle('on',listening);
+ document.getElementById('dfspMic')?.classList.toggle('on',listening);
+ const s=document.getElementById('dfspListen');
+ if(s){s.classList.toggle('on',listening);s.textContent=listening?'● Ouvindo — fale normalmente':'Toque no microfone para falar'}
+}
+function makeRec(){
+ if(!SR)return null;
+ const r=new SR();r.lang='pt-BR';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+ r.onstart=()=>setListen(true);
+ r.onresult=e=>{
+   let interim='';
+   for(let i=e.resultIndex;i<e.results.length;i++){
+     const t=(e.results[i][0]?.transcript||'').trim();if(!t)continue;
+     if(e.results[i].isFinal)ask(t,true);else interim+=t+' ';
+   }
+   const s=document.getElementById('dfspListen');if(s&&interim)s.textContent='Ouvindo: '+interim.trim();
+ };
+ r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){setListen(false);addMsg('Permita o acesso ao microfone para conversar comigo.','bot')}};
+ r.onend=()=>{if(listening&&!speaking)setTimeout(startRec,250)};
+ return r;
+}
+function startRec(){
+ if(!listening||speaking)return;
+ if(!SR){setListen(false);addMsg('O reconhecimento de voz não está disponível neste navegador. Você pode digitar sua pergunta.','bot');return}
+ try{if(!rec)rec=makeRec();rec.start()}catch(_){}
+}
+function toggleRec(){
+ if(listening){setListen(false);try{rec?.stop()}catch(_){}}
+ else{setListen(true);startRec()}
+}
+function open(){
+ ensureBridge();
+ document.getElementById('dfSupportPanel')?.classList.add('open');
+ document.body.style.overflow='hidden';
+ setTimeout(()=>document.getElementById('dfspInput')?.focus(),80);
+}
+function close(){
+ document.getElementById('dfSupportPanel')?.classList.remove('open');
+ document.body.style.overflow='';
+ if(listening)toggleRec();
+ try{speechSynthesis?.cancel()}catch(_){}
+}
 function ensure(){
  if(document.getElementById('dfSupportFab'))return;
- const panel=document.createElement('div');panel.id='dfSupportPanel';panel.innerHTML=`<div class="dfspHead"><div class="dfspMark">🎙</div><div class="dfspTitle"><b>Assistente DF</b><span>Suporte inteligente do DF EXTRUSOR PRO</span></div><button class="dfspClose" id="dfspClose" aria-label="Fechar">×</button></div><div class="dfspMsgs" id="dfspMsgs"><div class="dfspMsg dfspBot">Olá! Eu sou o Assistente DF. Pergunte como usar qualquer função do DF EXTRUSOR PRO e eu explico passo a passo.</div></div><div class="dfspQuick"><button data-q="Como faço uma formulação?">Criar formulação</button><button data-q="Como cadastro matéria-prima?">Cadastrar material</button><button data-q="Como faço o cálculo de extrusão?">Extrusão</button><button data-q="Como gero uma OP?">Gerar OP</button></div><div class="dfspBar"><div class="dfspListen" id="dfspListen">Toque no microfone para falar</div><div class="dfspCompose"><button class="dfspMic" id="dfspMic" aria-label="Falar">🎙</button><input class="dfspInput" id="dfspInput" placeholder="Pergunte como usar o aplicativo"><button class="dfspSend" id="dfspSend">ENVIAR</button></div></div>`;document.body.appendChild(panel);
+ ensureBridge();
+ const panel=document.createElement('div');panel.id='dfSupportPanel';
+ panel.innerHTML=`<div class="dfspHead"><div class="dfspMark">🎙</div><div class="dfspTitle"><b>Assistente DF — ao vivo</b><span>Conversa, explica e navega pelo DF EXTRUSOR PRO</span></div><button class="dfspClose" id="dfspClose" aria-label="Fechar">×</button></div><div class="dfspMsgs" id="dfspMsgs"><div class="dfspMsg dfspBot">Fala! Eu sou o Assistente DF. Pode falar normalmente comigo. Posso explicar o aplicativo e também abrir as áreas pra você.</div></div><div class="dfspQuick"><button data-q="Entra na Formulação pra mim">Abrir Formulação</button><button data-q="Me explica como fazer uma formulação">Como formular</button><button data-q="Abre o cadastro de material">Cadastro material</button><button data-q="Entra na Extrusão">Abrir Extrusão</button></div><div class="dfspBar"><div class="dfspListen" id="dfspListen">Toque no microfone para falar</div><div class="dfspCompose"><button class="dfspMic" id="dfspMic" aria-label="Falar">🎙</button><input class="dfspInput" id="dfspInput" placeholder="Fale ou digite o que quer fazer"><button class="dfspSend" id="dfspSend">ENVIAR</button></div></div>`;
+ document.body.appendChild(panel);
  const fab=document.createElement('button');fab.id='dfSupportFab';fab.type='button';fab.setAttribute('aria-label','Abrir Assistente DF');fab.textContent='🎙';document.body.appendChild(fab);
- fab.onclick=()=>{open();if(!listening)toggleRec()};document.getElementById('dfspClose').onclick=close;document.getElementById('dfspMic').onclick=toggleRec;
- const send=()=>{const i=document.getElementById('dfspInput');const v=i.value;i.value='';ask(v,false)};document.getElementById('dfspSend').onclick=send;document.getElementById('dfspInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});panel.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q,false));
+ fab.onclick=()=>{open();if(!listening)toggleRec()};
+ document.getElementById('dfspClose').onclick=close;
+ document.getElementById('dfspMic').onclick=toggleRec;
+ const send=()=>{const i=document.getElementById('dfspInput');const v=i.value;i.value='';ask(v,false)};
+ document.getElementById('dfspSend').onclick=send;
+ document.getElementById('dfspInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});
+ panel.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>ask(b.dataset.q,false));
 }
-window.DFAssistenteSuporteV5={ensure,answer,open};
+window.DFAssistenteAoVivoV6={ensure,open,ask,appContext};
+window.DFAssistenteSuporteV5=window.DFAssistenteAoVivoV6;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ensure,900));else setTimeout(ensure,900);
 })();
