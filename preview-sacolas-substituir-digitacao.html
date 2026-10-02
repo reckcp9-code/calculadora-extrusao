@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<title>DF EXTRUSOR PRO — Teste Sacolas</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b13}iframe{display:block;width:100%;height:100%;border:0;background:#080b13}.badge{position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#211400;color:#ffd36a;border:1px solid #f5a000;border-radius:999px;padding:5px 8px;font:800 10px system-ui;pointer-events:none;opacity:.9}
+</style>
+</head>
+<body>
+<iframe id="app" src="./#sacolas" allow="clipboard-read;clipboard-write"></iframe>
+<div class="badge">TESTE • DIGITAÇÃO RÁPIDA</div>
+<script>
+(function(){
+  'use strict';
+  const ids=new Set(['saL','saC','saDes','saM','saQ','saDm']);
+  const frame=document.getElementById('app');
+  let boundDoc=null;
+
+  function bind(doc){
+    if(!doc||doc===boundDoc)return;
+    boundDoc=doc;
+
+    function eligible(el){return !!(el&&ids.has(el.id));}
+    function arm(el){
+      if(!eligible(el))return;
+      el.dataset.dfReplaceOnNextType='1';
+    }
+    function disarm(el){if(eligible(el))el.dataset.dfReplaceOnNextType='0';}
+
+    doc.addEventListener('pointerdown',function(e){arm(e.target)},true);
+    doc.addEventListener('touchstart',function(e){arm(e.target)},true);
+    doc.addEventListener('focusin',function(e){arm(e.target)},true);
+    doc.addEventListener('focusout',function(e){disarm(e.target)},true);
+
+    doc.addEventListener('beforeinput',function(e){
+      const el=e.target;
+      if(!eligible(el)||el.dataset.dfReplaceOnNextType!=='1')return;
+      const t=String(e.inputType||'');
+      if(t.indexOf('insert')===0){
+        let text='';
+        if(typeof e.data==='string')text=e.data;
+        else if(e.dataTransfer)text=e.dataTransfer.getData('text/plain')||'';
+        if(text==='')return;
+        e.preventDefault();
+        el.value=text;
+        el.dataset.dfReplaceOnNextType='0';
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+        try{el.setSelectionRange(el.value.length,el.value.length)}catch(_e){}
+      }else if(t.indexOf('delete')===0){
+        e.preventDefault();
+        el.value='';
+        el.dataset.dfReplaceOnNextType='0';
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+    },true);
+  }
+
+  function scan(){
+    try{
+      const doc=frame.contentDocument;
+      if(doc&&doc.documentElement)bind(doc);
+    }catch(e){}
+  }
+  frame.addEventListener('load',()=>{boundDoc=null;setTimeout(scan,100);setTimeout(scan,700);setTimeout(scan,1600)});
+  setInterval(scan,800);
+})();
+</script>
+</body>
+</html>
