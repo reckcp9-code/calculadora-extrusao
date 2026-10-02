@@ -15,12 +15,30 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b13}ifr
 <script>
 (function(){
   'use strict';
-  const ids=new Set(['saL','saC','saDes','saM','saQ','saDm']);
+  const ids=new Set(['saL','saC','saDes','saM','saQ','saDm','saPesoAlvo']);
   const frame=document.getElementById('app');
   let boundDoc=null;
 
+  function relabel(doc){
+    if(!doc)return;
+    const q=doc.getElementById('saQ');
+    if(q&&q.previousElementSibling&&q.previousElementSibling.tagName==='LABEL'){
+      q.previousElementSibling.textContent='Quantidade de sacos na caixa / fardo';
+    }
+    const pesoAlvo=doc.getElementById('saPesoAlvo');
+    if(pesoAlvo&&pesoAlvo.previousElementSibling&&pesoAlvo.previousElementSibling.tagName==='LABEL'){
+      pesoAlvo.previousElementSibling.textContent='Peso desejado na caixa / fardo (kg)';
+    }
+    const rolo=doc.getElementById('saRoM');
+    const result=rolo&&rolo.closest('.result');
+    const span=result&&result.querySelector('span');
+    if(span)span.textContent='PESO DO FARDO / CAIXA';
+  }
+
   function bind(doc){
-    if(!doc||doc===boundDoc)return;
+    if(!doc)return;
+    relabel(doc);
+    if(doc===boundDoc)return;
     boundDoc=doc;
 
     function eligible(el){return !!(el&&ids.has(el.id));}
@@ -61,7 +79,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b13}ifr
   function scan(){
     try{
       const doc=frame.contentDocument;
-      if(doc&&doc.documentElement)bind(doc);
+      if(doc&&doc.documentElement){bind(doc);relabel(doc);}
     }catch(e){}
   }
   frame.addEventListener('load',()=>{boundDoc=null;setTimeout(scan,100);setTimeout(scan,700);setTimeout(scan,1600)});
