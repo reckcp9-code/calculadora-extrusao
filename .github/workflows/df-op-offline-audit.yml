@@ -1,0 +1,39 @@
+name: DF OP Offline Audit
+
+on:
+  push:
+    branches:
+      - teste-estabilidade-geral-20261002
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar correcoes OP e offline
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),cp=require('child_process');
+          const files=['teste/op-delete-stability-v1.js','teste/preview-loader-op-offline-v2.js'];
+          for(const f of files){if(!fs.existsSync(f))throw Error('arquivo ausente: '+f);cp.execFileSync(process.execPath,['--check',f],{stdio:'inherit'});console.log('OK sintaxe',f)}
+          const loader=fs.readFileSync(files[1],'utf8');
+          const del=fs.readFileSync(files[0],'utf8');
+          if(!loader.includes('navigator.onLine===false'))throw Error('loader sem fallback offline imediato');
+          if(!loader.includes('Promise.race'))throw Error('loader sem corrida curta rede/cache');
+          if(!loader.includes("teste/op-delete-stability-v1.js"))throw Error('protecao de exclusao nao carregada');
+          if(loader.indexOf('teste/op-delete-stability-v1.js')>loader.indexOf('op-server-authority-v1.js'))throw Error('protecao de exclusao precisa carregar antes da autoridade do servidor');
+          if(!del.includes("GUARD='df_deleted_ops_guard_v1'"))throw Error('exclusao sem guarda persistente');
+          if(!del.includes("df-op-d1-applied"))throw Error('exclusao sem protecao contra retorno do D1');
+          if(!del.includes("df-op-record-deleted"))throw Error('exclusao nao sinaliza fila do servidor');
+          const refs=[...loader.matchAll(/["']([A-Za-z0-9_./-]+\.js)(?:\?[^"']*)?["']/g)].map(m=>m[1]);
+          const missing=[...new Set(refs)].filter(f=>!fs.existsSync(f));
+          if(missing.length)throw Error('JS referenciado ausente: '+missing.join(', '));
+          console.log('DF OP Offline Audit: OK');
+          NODE
