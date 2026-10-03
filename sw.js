@@ -1,11 +1,17 @@
-const DF_CACHE='df-extrusor-shell-v27-stability-test';
+const DF_CACHE='df-extrusor-shell-v28-enterprise-audit';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
-  './','./index.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './device-identity.js','./performance-guard-v3.js','./error-monitor-v1.js','./production-stability-v1.js','./app-bundle.js','./access-reinstall-recovery-v2.js',
-  './backup-manual-only-v1.js','./local-calculations.js','./data-integrity-v2.js','./runtime-stability-v5.js','./medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./update-notify-v1.js','./team-tab-permissions-v182.js',
-  './material-manager.js','./team-materials-shared-v1.js'
+  './','./index.html','./acessar.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
+  './device-identity.js','./ios-reinstall-bridge.js','./access-recovery-v1.js','./auth-self-heal-v1.js','./auto-access.js',
+  './performance-guard-v3.js','./error-monitor-v1.js','./production-stability-v1.js','./app-bundle.js',
+  './sacolas-density-prod-0980-v1.js','./sacolas-caixa-fardo-fast-input-v1.js','./home-polish-v2.js',
+  './cost-simple-v154.js','./cost-roll-profit-v1.js','./cost-back-v155.js','./push-background-repair-v1.js','./access-reinstall-recovery-v2.js',
+  './backup-manual-only-v1.js','./local-calculations.js','./data-integrity-v2.js','./runtime-stability-v5.js','./team-tab-permissions-v182.js','./update-notify-v1.js',
+  './medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./formula-mobile-nav-fix-test-v1.js','./formula-mobile-nav-fix-v1.js',
+  './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./teste/team-formulas-duplicates-v2.js','./team-formulas-duplicates-v2.js',
+  './formula-saved-search-v1.js','./formula-material-picker-test-v1.js','./formula-material-picker-v1.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
+  './op-team-date-canonical-v1.js','./op-product-d1-authority-v1.js','./extrusao-matriz-bur.js','./extrusao-matriz-complemento.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
@@ -26,17 +32,21 @@ async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — N
 
 async function precache(){const cache=await caches.open(DF_CACHE);await Promise.allSettled(CORE.map(async url=>{try{const req=new Request(url,{cache:'reload'});const res=await fetch(req,{cache:'no-store'});if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone())}catch(e){}}))}
 async function cached(req){const cache=await caches.open(DF_CACHE);return cache.match(req,{ignoreSearch:true})}
-async function networkFirst(req){const cache=await caches.open(DF_CACHE);try{let netReq=req;try{netReq=new Request(req,{cache:'no-store'})}catch(e){}const res=await fetch(netReq,{cache:'no-store'});if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});return res}catch(e){const hit=await cache.match(req,{ignoreSearch:true});if(hit)return hit;throw e}}
-async function staleWhileRevalidate(req){const cache=await caches.open(DF_CACHE);const hit=await cache.match(req);const refresh=fetch(new Request(req,{cache:'no-store'})).then(res=>{if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});return res}).catch(()=>null);return hit||(await refresh)||new Response('Recurso indisponível.',{status:503})}
+async function fetchWithTimeout(req,timeout=3500){let controller=null,timer=null;try{if('AbortController'in self){controller=new AbortController();timer=setTimeout(()=>controller.abort(),timeout)}let netReq=req;try{netReq=new Request(req,{cache:'no-store',signal:controller?controller.signal:undefined})}catch(e){}return await fetch(netReq,{cache:'no-store',signal:controller?controller.signal:undefined})}finally{if(timer)clearTimeout(timer)}}
+async function updateCached(req){try{const cache=await caches.open(DF_CACHE);const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone());return res}catch(e){return null}}
+async function networkFirst(req){const cache=await caches.open(DF_CACHE);try{const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});return res}catch(e){const hit=await cache.match(req,{ignoreSearch:true});if(hit)return hit;throw e}}
+async function staleWhileRevalidate(req){const cache=await caches.open(DF_CACHE);const hit=await cache.match(req,{ignoreSearch:true});const refresh=updateCached(req);return hit||(await refresh)||new Response('Recurso indisponível.',{status:503})}
+async function navigationCached(req){const cache=await caches.open(DF_CACHE),url=new URL(req.url);let hit=await cache.match(req,{ignoreSearch:true});if(!hit){const fallback=url.pathname.endsWith('/acessar.html')?'./acessar.html':'./index.html';hit=await cache.match(fallback,{ignoreSearch:true})}if(hit)return{response:hit,refresh:updateCached(req)};const net=await updateCached(req);if(net)return{response:net,refresh:null};const index=await cache.match('./index.html',{ignoreSearch:true});return{response:index||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}}),refresh:null}}
 
 self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('df-extrusor-shell-')&&k!==DF_CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});
 self.addEventListener('fetch',event=>{
   const req=event.request;if(req.method!=='GET')return;
   const url=new URL(req.url),same=url.origin===self.location.origin;if(!same)return;
-  if(req.mode==='navigate'){event.respondWith((async()=>{try{return await networkFirst(req)}catch(e){return(await cached('./index.html'))||(await cached('./'))||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}})}})());return}
+  if(req.mode==='navigate'){event.respondWith((async()=>{const out=await navigationCached(req);if(out.refresh)event.waitUntil(out.refresh);return out.response})());return}
   const p=url.pathname;
-  if(p.endsWith('/app-version.json')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')||p.endsWith('/update-notify-v1.js')||p.endsWith('/production-stability-v1.js')||p.endsWith('/performance-guard-v3.js')||p.endsWith('/error-monitor-v1.js')||p.endsWith('/data-integrity-v2.js')||p.endsWith('/runtime-stability-v5.js')||p.endsWith('/material-manager.js')||p.endsWith('/team-materials-shared-v1.js')||p.endsWith('/team-tab-permissions-v182.js')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
+  if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
+  if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(staleWhileRevalidate(req));return}
   event.respondWith(staleWhileRevalidate(req));
 });
 self.addEventListener('message',event=>{const data=event.data||{};if(data.type==='DF_SHOW_NOTIFICATION')event.waitUntil((async()=>{await notifyUpdate({title:data.title,body:data.body,message:data.body});await increaseBadge()})());if(data.type==='DF_SET_VERSION')event.waitUntil(setStoredVersion(data.version));if(data.type==='DF_CLEAR_BADGE')event.waitUntil(clearBadge());if(data.type==='DF_CACHE_NOW')event.waitUntil(precache());if(data.type==='SKIP_WAITING')self.skipWaiting()});

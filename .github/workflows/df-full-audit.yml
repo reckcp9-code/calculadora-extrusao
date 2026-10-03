@@ -3,7 +3,8 @@ name: DF Full Stability Audit
 on:
   push:
     branches:
-      - teste-estabilidade-geral-20261002
+      - auditoria-completa-20261002
+      - main
   pull_request:
 
 permissions:
@@ -17,61 +18,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
       - name: Auditoria estrutural e sintaxe
         run: |
           node <<'NODE'
-          const fs=require('fs');
-          const cp=require('child_process');
-          const fail=[];
-          const ok=m=>console.log('OK:',m);
-          const bad=m=>{console.error('FALHA:',m);fail.push(m)};
-          const read=f=>fs.readFileSync(f,'utf8');
-
-          for(const f of ['index.html','app-shell.html','app-bundle.js','sw.js','performance-guard-v3.js','error-monitor-v1.js','production-stability-v1.js','data-integrity-v2.js','runtime-stability-v5.js','material-manager.js','team-materials-shared-v1.js']){
-            if(!fs.existsSync(f)||!fs.statSync(f).size) bad('arquivo ausente/vazio: '+f);
-          }
-
-          const index=read('index.html');
-          const sw=read('sw.js');
-          const version=JSON.parse(read('app-version.json'));
-          if(!version.version) bad('app-version.json sem versão'); else ok('versão base '+version.version);
-
-          const refs=new Set();
-          for(const m of index.matchAll(/["'](?:\.\/)?([A-Za-z0-9_./-]+\.js)(?:\?[^"']*)?["']/g)) refs.add(m[1]);
-          for(const f of refs){
-            if(!fs.existsSync(f)){bad('JS referenciado e ausente: '+f);continue}
-            try{cp.execFileSync(process.execPath,['--check',f],{stdio:'pipe'});ok('sintaxe '+f)}catch(e){bad('erro de sintaxe em '+f+'\n'+String(e.stderr||e.message))}
-          }
-
-          for(const f of ['data-integrity-v2.js','production-stability-v1.js','error-monitor-v1.js','sw.js']){
-            try{cp.execFileSync(process.execPath,['--check',f],{stdio:'pipe'});ok('sintaxe crítica '+f)}catch(e){bad('erro de sintaxe crítico em '+f+'\n'+String(e.stderr||e.message))}
-          }
-
-          const order=['performance-guard-v3.js','error-monitor-v1.js','production-stability-v1.js','app-bundle.js'];
-          let prev=-1;
+          const fs=require('fs'),cp=require('child_process');
+          const fail=[];const ok=m=>console.log('OK:',m);const bad=m=>{console.error('FALHA:',m);fail.push(m)};const read=f=>fs.readFileSync(f,'utf8');
+          const required=['index.html','app-shell.html','app-bundle.js','sw.js','performance-guard-v3.js','error-monitor-v1.js','production-stability-v1.js','data-integrity-v2.js','runtime-stability-v5.js','material-manager.js','team-materials-shared-v1.js','formula-delete-tombstone-v1.js'];
+          required.forEach(f=>{if(!fs.existsSync(f)||!fs.statSync(f).size)bad('arquivo ausente/vazio: '+f)});
+          const index=read('index.html'),sw=read('sw.js'),version=JSON.parse(read('app-version.json'));
+          if(!version.version)bad('app-version.json sem versão');else ok('versão base '+version.version);
+          const refs=new Set([...index.matchAll(/["'](?:\.\/)?([A-Za-z0-9_./-]+\.js)(?:\?[^"']*)?["']/g)].map(m=>m[1]));
+          for(const f of refs){if(!fs.existsSync(f)){bad('JS referenciado e ausente: '+f);continue}try{cp.execFileSync(process.execPath,['--check',f],{stdio:'pipe'});ok('sintaxe '+f)}catch(e){bad('erro de sintaxe em '+f)}}
+          for(const f of ['data-integrity-v2.js','production-stability-v1.js','error-monitor-v1.js','sw.js']){try{cp.execFileSync(process.execPath,['--check',f],{stdio:'pipe'});ok('sintaxe crítica '+f)}catch(e){bad('erro de sintaxe crítico em '+f)}}
+          const order=['performance-guard-v3.js','error-monitor-v1.js','production-stability-v1.js','app-bundle.js'];let prev=-1;
           for(const f of order){const at=index.indexOf("'"+f);if(at<0)bad('módulo crítico não carregado: '+f);else if(at<=prev)bad('ordem crítica incorreta em '+f);else{prev=at;ok('ordem '+f)}}
-
-          if(!index.includes("x.async=false")) bad('carregador dinâmico não força ordem dos scripts');
-          if(/const optional=\[[^\]]*error-monitor-v1\.js/.test(index)) bad('monitor de erros ainda está carregando atrasado');
-          for(const f of ['production-stability-v1.js','data-integrity-v2.js','error-monitor-v1.js','runtime-stability-v5.js','material-manager.js','team-materials-shared-v1.js']){
-            if(!sw.includes("'./"+f+"'")) bad('service worker não precacheia '+f); else ok('cache '+f);
-          }
-          if(!/df-extrusor-shell-v27-stability-test/.test(sw)) bad('cache PWA de teste não foi renovado');
-          if(!/20261002-stability-test-v1/.test(index)) bad('BUILD de estabilidade não aplicado');
-
-          const arrays=[];
-          for(const name of ['core','optional','op']){
-            const re=new RegExp('const '+name+'=\\[([\\s\\S]*?)\\];');
-            const m=index.match(re);if(!m){bad('array '+name+' não encontrado');continue}
-            const names=[...m[1].matchAll(/["']([A-Za-z0-9_./-]+\.js)/g)].map(x=>x[1]);
-            const dup=names.filter((x,i)=>names.indexOf(x)!==i);
-            if(dup.length)bad('duplicados em '+name+': '+[...new Set(dup)].join(', ')); else ok('sem duplicados em '+name);
-            arrays.push(...names);
-          }
-          const cross=arrays.filter((x,i)=>arrays.indexOf(x)!==i);
-          if(cross.length)bad('módulos repetidos entre grupos: '+[...new Set(cross)].join(', '));
-
-          if(fail.length){console.error('\nTOTAL DE FALHAS:',fail.length);process.exit(1)}
-          console.log('\nDF Full Stability Audit: OK');
+          if(!index.includes('x.async=false'))bad('carregador dinâmico não força ordem dos scripts');
+          if(/const optional=\[[^\]]*error-monitor-v1\.js/.test(index))bad('monitor de erros ainda carrega atrasado');
+          for(const f of ['production-stability-v1.js','data-integrity-v2.js','error-monitor-v1.js','runtime-stability-v5.js','material-manager.js','team-materials-shared-v1.js','acessar.html']){if(!sw.includes("'./"+f+"'"))bad('service worker não precacheia '+f);else ok('cache '+f)}
+          if(/stability-test/i.test(sw))bad('service worker ainda usa cache com nome de teste');
+          if(/BUILD='[^']*(?:test|teste)/i.test(index))bad('BUILD ativo ainda usa nome de teste');
+          const arrays=[];for(const name of ['core','optional','op']){const re=new RegExp('const '+name+'=\\[([\\s\\S]*?)\\];');const m=index.match(re);if(!m){bad('array '+name+' não encontrado');continue}const names=[...m[1].matchAll(/["']([A-Za-z0-9_./-]+\.js)/g)].map(x=>x[1]);const dup=names.filter((x,i)=>names.indexOf(x)!==i);if(dup.length)bad('duplicados em '+name+': '+[...new Set(dup)].join(', '));else ok('sem duplicados em '+name);arrays.push(...names)}
+          const cross=arrays.filter((x,i)=>arrays.indexOf(x)!==i);if(cross.length)bad('módulos repetidos entre grupos: '+[...new Set(cross)].join(', '));
+          const activeTest=arrays.filter(f=>/(^|\/)(teste|test)|-test/i.test(f));if(activeTest.length)bad('módulos de teste ainda ativos: '+activeTest.join(', '));
+          if(fail.length){console.error('\nTOTAL DE FALHAS:',fail.length);process.exit(1)}console.log('\nDF Full Stability Audit: OK');
           NODE
