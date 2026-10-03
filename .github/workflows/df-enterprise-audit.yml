@@ -1,0 +1,55 @@
+name: DF Enterprise Audit
+
+on:
+  push:
+    branches: [auditoria-completa-20261002]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Auditoria completa
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),path=require('path'),cp=require('child_process');
+          const errors=[],warnings=[],ok=[];
+          const fail=m=>errors.push(m),warn=m=>warnings.push(m),pass=m=>ok.push(m);
+          const walk=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.name==='.git'?[]:e.isDirectory()?walk(path.join(d,e.name)):[path.join(d,e.name)]);
+          const files=walk('.').map(f=>f.replace(/^\.\//,''));
+          const js=files.filter(f=>f.endsWith('.js'));
+          const json=files.filter(f=>f.endsWith('.json'));
+          for(const f of js){try{cp.execFileSync(process.execPath,['--check',f],{stdio:'pipe'});pass('JS '+f)}catch(e){fail('Sintaxe JS: '+f+' — '+String(e.stderr||e.message).split('\n')[0])}}
+          for(const f of json){try{JSON.parse(fs.readFileSync(f,'utf8'));pass('JSON '+f)}catch(e){fail('JSON inválido: '+f+' — '+e.message)}}
+          const required=['index.html','app-shell.html','app-bundle.js','sw.js','manifest.webmanifest','app-version.json','auto-access.js','production-stability-v1.js','data-integrity-v2.js','runtime-stability-v5.js','material-manager.js','team-materials-shared-v1.js'];
+          required.forEach(f=>fs.existsSync(f)?pass('Existe '+f):fail('Arquivo crítico ausente: '+f));
+          const index=fs.readFileSync('index.html','utf8');
+          const active=[...index.matchAll(/["'](?:\.\/)?([A-Za-z0-9_./-]+\.js)(?:\?[^"']*)?["']/g)].map(m=>m[1]);
+          const unique=[...new Set(active)];
+          unique.forEach(f=>fs.existsSync(f)?pass('Referência '+f):fail('JS referenciado e ausente: '+f));
+          const dup=active.filter((x,i)=>active.indexOf(x)!==i);
+          if(dup.length)warn('Referências JS duplicadas: '+[...new Set(dup)].join(', '));
+          const risky=unique.filter(f=>/(^|\/)(teste|test|preview|backup)|-test/i.test(f));
+          if(risky.length)warn('Módulos ativos com nome de teste/legado: '+risky.join(', '));
+          const sw=fs.readFileSync('sw.js','utf8');
+          if(/stability-test/i.test(sw))warn('Cache do service worker ainda usa nome de teste');
+          if(/networkFirst\(req\)/.test(sw)&&/req\.mode==='navigate'/.test(sw))warn('Navegação ainda usa network-first; pode demorar offline');
+          const criticalOffline=['auto-access.js','performance-guard-v3.js','error-monitor-v1.js','production-stability-v1.js','app-bundle.js','material-manager.js','team-materials-shared-v1.js','formula-delete-tombstone-v1.js','formula-saved-search-v1.js'];
+          criticalOffline.forEach(f=>{if(!sw.includes("'./"+f+"'"))warn('Não precacheado: '+f)});
+          if(fs.existsSync('package.json')){try{cp.execFileSync('npm',['audit','--omit=dev','--audit-level=high'],{stdio:'inherit'});pass('npm audit')}catch(e){fail('npm audit encontrou vulnerabilidade alta/crítica')}}else pass('Projeto sem dependências npm');
+          const legacy=files.filter(f=>/(^|\/)(preview-|backup-|teste\/)|-test/i.test(f));
+          console.log('ATIVOS',unique.length,'JS_TOTAL',js.length,'LEGADO_CANDIDATO',legacy.length);
+          console.log('\nOK\n'+ok.join('\n'));
+          console.log('\nAVISOS\n'+warnings.join('\n'));
+          if(errors.length){console.error('\nERROS\n'+errors.join('\n'));process.exit(1)}
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## DF Enterprise Audit\n\n- JS ativos: '+unique.length+'\n- JS no repositório: '+js.length+'\n- Candidatos a legado/teste: '+legacy.length+'\n- Avisos: '+warnings.length+'\n- Erros: 0\n\n### Avisos\n'+warnings.map(x=>'- '+x).join('\n')+'\n');
+          NODE
