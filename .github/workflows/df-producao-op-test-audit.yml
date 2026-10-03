@@ -1,0 +1,47 @@
+name: DF Producao OP Test Audit
+
+on:
+  push:
+    branches:
+      - teste-producao-op-setores-20261003
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar modulo de OP de Producao
+        run: |
+          node --check teste/producao-op-setores-v3.js
+          node <<'NODE'
+          const fs=require('fs');
+          const f='teste/producao-op-setores-v3.js';
+          const s=fs.readFileSync(f,'utf8');
+          const req=[
+            ['56 bobinas',/length:56/],
+            ['setor Picote',/'Picote'/],
+            ['setor Sacoleira',/'Sacoleira'/],
+            ['setor Blocadora',/'Blocadora'/],
+            ['codigo 01',/'01':'Troca de pedido'/],
+            ['codigo 02',/'02':'Manutenção mecânica'/],
+            ['codigo 03',/'03':'Manutenção elétrica'/],
+            ['codigo 04',/'04':'Queda de energia'/],
+            ['ID padrao DFOP',/DFOP-/],
+            ['A4 paisagem',/@page\{size:A4 landscape/],
+            ['QR por ID',/new QRCode\(e,\{text:id/],
+            ['baixa',/FINALIZAR \/ DAR BAIXA NA OP/],
+            ['producao liquida',/PRODUÇÃO LÍQUIDA/],
+            ['percentual apara',/% APARA/],
+            ['tempo total parado',/TEMPO TOTAL PARADO/]
+          ];
+          const fail=req.filter(([,re])=>!re.test(s)).map(([n])=>n);
+          if(fail.length){console.error('FALHAS:',fail.join(', '));process.exit(1)}
+          console.log('DF Producao OP Test Audit: OK');
+          NODE
