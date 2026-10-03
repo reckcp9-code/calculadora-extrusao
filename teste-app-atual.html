@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>DF EXTRUSOR PRO — TESTE</title>
+<style>html,body{margin:0;min-height:100%;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
+</head>
+<body>
+<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Carregando teste no mesmo padrão do principal...</p></div>
+<script>
+(async function(){
+  try{
+    const stamp='20261003-exact-main-mirror-v2';
+    const r=await fetch('./index.html?mirror='+stamp+'&t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    let h=await r.text();
+    if(!h||h.indexOf('<!doctype html')<0)throw new Error('Principal inválido');
+
+    const testHead=`
+<style id="dfExactTestUnlock">
+#licenseGate{display:none!important}
+#appContent{display:block!important}
+</style>
+<script>
+(function(){
+  window.__DF_EXACT_TEST__=true;
+  var DEST='./op-producao-teste-v26.html?v=20261003-exact-main-mirror-v2';
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest?e.target.closest('#btPr'):null;
+    if(!b)return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    location.href=DEST;
+  },true);
+  function unlock(){
+    var g=document.getElementById('licenseGate'),a=document.getElementById('appContent');
+    if(g)g.style.setProperty('display','none','important');
+    if(a)a.style.setProperty('display','block','important');
+    document.documentElement.dataset.dfTeste='1';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',unlock,{once:true});else unlock();
+  setTimeout(unlock,100);setTimeout(unlock,700);setTimeout(unlock,1600);
+})();
+<\/script>`;
+    h=h.replace('</head>',testHead+'\n</head>');
+    document.open();document.write(h);document.close();
+  }catch(e){
+    document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO — TESTE</h2><p>Não foi possível carregar o espelho exato do principal.</p><button onclick="location.reload()">TENTAR NOVAMENTE</button></div>';
+  }
+})();
+</script>
+</body>
+</html>
