@@ -1,0 +1,28 @@
+(function(){
+'use strict';
+if(window.DFProducaoOpsGeradasEquipeV1)return;window.DFProducaoOpsGeradasEquipeV1=true;
+const OPS_KEY='df_producao_ops_setores_test_v3';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function loadOps(){try{const a=JSON.parse(localStorage.getItem(OPS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function fmtDate(v){try{return new Date(v).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(e){return''}}
+function css(){if($('dfProdOpsGeradasCss'))return;const s=document.createElement('style');s.id='dfProdOpsGeradasCss';s.textContent=`
+#dfPrBadge{pointer-events:auto!important;cursor:pointer!important;user-select:none!important}
+#dfProdOpsGeradas{position:fixed;z-index:2147482500;inset:0;background:#080b13;color:#f8fafc;display:none;overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(66px + env(safe-area-inset-top)) 14px 50px}
+#dfProdOpsGeradas.on{display:block}
+.dfPogWrap{max-width:760px;margin:0 auto}.dfPogTop{position:fixed;z-index:2147482600;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 14px 8px;background:linear-gradient(180deg,#080b13 78%,transparent);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dfPogBack{border:1px solid #475569;background:#111827;color:#e2e8f0;border-radius:999px;padding:10px 14px;font-size:12px;font-weight:950}.dfPogTitle{color:#ffd36a;font-size:13px;font-weight:950;letter-spacing:.03em}
+#dfFormulaOps{display:block!important}.dfOpsHero{border:1px solid #f5a000;background:linear-gradient(180deg,#211400,#14100a);border-radius:18px;padding:16px;margin-bottom:12px}.dfOpsHero h2{margin:0 0 7px;color:#ffd36a;font-size:24px}.dfOpsHero p{margin:0;color:#cbd5e1;line-height:1.45;font-size:14px}
+.dfPogTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0}.dfPogTabs button{border:1px solid #334155;background:#0f172a;color:#cbd5e1;border-radius:13px;padding:12px 5px;font-size:11px;font-weight:950}.dfPogTabs button.on{border-color:#f5a000;background:#211400;color:#ffd36a}
+.dfPogCard{background:#111827;border:1px solid #263244;border-radius:18px;padding:16px;margin-bottom:12px}.dfPogCard h3{margin:0 0 10px;font-size:19px}.dfPogTiny{color:#94a3b8;font-size:12px;line-height:1.45}.dfPogList{margin-top:10px}.dfPogItem{border:1px solid #334155;background:#0f172a;border-radius:13px;padding:11px;margin-top:8px}.dfPogItem strong{color:#ffd36a}.dfPogBadge{display:inline-block;margin-left:5px;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:950}.dfPogBadge.open{background:#3a2605;color:#fde68a}.dfPogBadge.closed{background:#0c321c;color:#86efac}
+@media(max-width:520px){.dfPogTabs{grid-template-columns:1fr 1fr 1fr}.dfOpsHero h2{font-size:22px}}
+`;document.head.appendChild(s)}
+function build(){if($('dfProdOpsGeradas'))return;const o=document.createElement('section');o.id='dfProdOpsGeradas';o.innerHTML=`<div class="dfPogTop"><button id="dfPogBack" class="dfPogBack" type="button">‹ VOLTAR</button><div class="dfPogTitle">OPS GERADAS</div></div><div class="dfPogWrap"><div id="dfFormulaOps"><div class="dfOpsHero"><h2>📸 OP + QR</h2><p>Equipe, QR Code e OPs de Produção no mesmo padrão da Extrusão. O painel abaixo usa a mesma equipe do DF EXTRUSOR.</p></div></div><div class="dfPogTabs"><button class="on" data-pog="all">📋 TODAS</button><button data-pog="open">⚠️ ABERTAS</button><button data-pog="closed">✅ BAIXADAS</button></div><div class="dfPogCard"><h3>OPs geradas</h3><div class="dfPogTiny">As OPs de Picote, Sacoleira e Blocadora aparecem aqui, sem misturar com as OPs da Extrusão.</div><div id="dfPogList" class="dfPogList"></div></div></div>`;document.body.appendChild(o);$('dfPogBack').onclick=close;o.querySelectorAll('[data-pog]').forEach(b=>b.onclick=()=>{o.querySelectorAll('[data-pog]').forEach(x=>x.classList.toggle('on',x===b));render(b.dataset.pog)})}
+function render(filter){const host=$('dfPogList');if(!host)return;let a=loadOps().slice().sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));if(filter==='open')a=a.filter(x=>x.status!=='closed');if(filter==='closed')a=a.filter(x=>x.status==='closed');host.innerHTML=a.length?a.map(o=>`<div class="dfPogItem"><strong>${esc(o.id||'OP')}</strong><span class="dfPogBadge ${o.status==='closed'?'closed':'open'}">${o.status==='closed'?'BAIXADA':'ABERTA'}</span><div class="dfPogTiny" style="margin-top:5px"><b>${esc(o.machine||'')}</b> • ${esc(o.product||'')} • ${esc(o.measure||'')}<br>${esc(o.sector||'')} • Turno ${esc(o.shift||'')} ${o.createdAt?'• '+esc(fmtDate(o.createdAt)):''}</div></div>`).join(''):'<div class="dfPogTiny">Nenhuma OP nesta lista ainda.</div>'}
+function open(){const o=$('dfProdOpsGeradas');if(!o)return;o.classList.add('on');document.body.style.overflow='hidden';render('all');window.dispatchEvent(new CustomEvent('df-ui-ready'))}
+function close(){const o=$('dfProdOpsGeradas');if(o)o.classList.remove('on');document.body.style.overflow='';}
+function badge(){const b=$('dfPrBadge');if(!b)return false;b.textContent='OPS GERADAS';b.removeAttribute('aria-hidden');b.setAttribute('role','button');b.setAttribute('tabindex','0');b.onclick=open;b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}};return true}
+function boot(){css();build();let n=0,t=setInterval(()=>{if(badge()||++n>40)clearInterval(t)},100);setTimeout(()=>{badge();window.dispatchEvent(new CustomEvent('df-ui-ready'))},700)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.DFProducaoOpsGeradas={open,close,render};
+})();
