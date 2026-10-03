@@ -1,6 +1,6 @@
 {
-  "version": "1.0.197",
-  "title": "DF EXTRUSOR PRO — formulações prontas da equipe",
-  "message": "Nova biblioteca com 60 formulações por aplicação: Fundo estrela, Fundo reto e Sacolas. Recurso liberado somente para a equipe interna; assinantes continuam sem acesso.",
-  "updatedAt": "2026-10-01T19:40:00-03:00"
+  "version": "1.0.198",
+  "title": "DF EXTRUSOR PRO — OP Produção V26",
+  "message": "Nova área de Produção publicada no app: OP por máquina e produto, baixa com QR, sincronização da equipe, consulta e correção, proteção contra duplicidade e exclusão, fechamento mensal e relatório PDF.",
+  "updatedAt": "2026-10-03T01:35:00-03:00"
 }
