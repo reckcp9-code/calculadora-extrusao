@@ -1,12 +1,12 @@
 (function(){
   'use strict';
-  if(window.DFFormulaMobileNavFixTestV1)return;
-  window.DFFormulaMobileNavFixTestV1=true;
+  if(window.DFFormulaMobileNavFixV1)return;
+  window.DFFormulaMobileNavFixV1=true;
 
   function style(){
-    if(document.getElementById('dfFormulaMobileNavFixTestV1Style'))return;
+    if(document.getElementById('dfFormulaMobileNavFixV1Style'))return;
     const s=document.createElement('style');
-    s.id='dfFormulaMobileNavFixTestV1Style';
+    s.id='dfFormulaMobileNavFixV1Style';
     s.textContent=`
       html,body{max-width:100%!important;overflow-x:hidden!important}
       #appContent,.w,#pgFo{max-width:100%!important;min-width:0!important;overflow-x:hidden!important}
@@ -163,7 +163,7 @@
     if(window.DFReadyFormulasV2||document.getElementById('dfReadyFormulasTeamLoader'))return true;
     const s=document.createElement('script');
     s.id='dfReadyFormulasTeamLoader';
-    s.src='./teste/formulas-prontas-v2.js?v=20261001-team-mobile-fix-v1';
+    s.src='./formula-ready-library-v2.js?v=20261002-audit-v1';
     s.defer=true;
     s.onload=function(){style();setTimeout(enforceReadyFormulaAccess,50)};
     document.head.appendChild(s);
