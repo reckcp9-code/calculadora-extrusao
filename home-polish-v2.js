@@ -1,6 +1,8 @@
 (function(){
   'use strict';
 
+  const PROD_DEST='./op-producao.html?v=20261003-producao-v26-prod';
+
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
     const st=document.createElement('style');
@@ -9,7 +11,7 @@
       /* Banner beta removido somente da tela principal. */
       #dfBetaApp{display:none!important}
 
-      /* Quatro botoes principais levemente maiores, mantendo o layout compacto. */
+      /* Botoes principais maiores, mantendo o layout compacto. */
       #appContent > .tabs{
         gap:10px!important;
         padding:8px!important;
@@ -55,7 +57,42 @@
     if(beta)beta.remove();
   }
 
-  function sync(){addStyle();removeHomeBeta()}
+  function goProduction(e){
+    if(e){
+      try{e.preventDefault()}catch(_e){}
+      try{e.stopPropagation()}catch(_e){}
+    }
+    location.href=PROD_DEST;
+  }
+
+  function installProductionButton(){
+    const tabs=document.querySelector('#appContent > .tabs');
+    if(!tabs)return false;
+    let b=document.getElementById('btPr');
+    if(!b){
+      b=document.createElement('button');
+      b.id='btPr';
+      b.className='tab';
+      b.type='button';
+      b.textContent='PRODUÇÃO';
+      tabs.appendChild(b);
+    }
+    b.setAttribute('aria-label','Produção — OP de produção');
+    b.onclick=goProduction;
+    return true;
+  }
+
+  function sync(){
+    addStyle();
+    removeHomeBeta();
+    installProductionButton();
+  }
+
+  document.addEventListener('click',function(e){
+    const b=e.target&&e.target.closest?e.target.closest('#btPr'):null;
+    if(b)goProduction(e);
+  },true);
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});
   else sync();
   window.addEventListener('df-ui-ready',sync);
