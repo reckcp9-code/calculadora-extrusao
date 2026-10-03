@@ -22,7 +22,7 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('fs'),path=require('path'),cp=require('child_process');
-          const errors=[],warnings=[],ok=[];
+          const errors=[],warnings=[],ok=[],perf=[];
           const fail=m=>errors.push(m),warn=m=>warnings.push(m),pass=m=>ok.push(m);
           const walk=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.name==='.git'?[]:e.isDirectory()?walk(path.join(d,e.name)):[path.join(d,e.name)]);
           const files=walk('.').map(f=>f.replace(/^\.\//,''));
@@ -42,6 +42,26 @@ jobs:
           if(risky.length)warn('Módulos ativos ainda com nome de teste: '+risky.join(', '));
           const productionCopies=['formula-mobile-nav-fix-v1.js','team-formulas-duplicates-v2.js','formula-material-picker-v1.js','op-production-now-product-details-v172.js','op-production-now-client-v175.js','formula-ready-library-v2.js'];
           productionCopies.forEach(f=>fs.existsSync(f)?pass('Cópia de produção preparada: '+f):warn('Cópia de produção ainda ausente: '+f));
+
+          // Conflitos/performance somente nos módulos realmente ativos.
+          const activeText=unique.filter(f=>fs.existsSync(f)).map(f=>({f,t:fs.readFileSync(f,'utf8')}));
+          const monkey=[];const observers=[];const fastTimers=[];const swRegisters=[];
+          for(const {f,t} of activeText){
+            if(/(?:window|globalThis)\.fetch\s*=|Storage\.prototype\.setItem\s*=|localStorage\.setItem\s*=|window\.onerror\s*=/.test(t))monkey.push(f);
+            if(/new\s+MutationObserver\s*\(/.test(t)&&/subtree\s*:\s*true/.test(t))observers.push(f);
+            const ms=[...t.matchAll(/setInterval\s*\([^,]+,\s*(\d{1,4})\s*\)/g)].map(m=>Number(m[1])).filter(n=>n>0&&n<500);
+            if(ms.length)fastTimers.push(f+' ('+[...new Set(ms)].join('/')+' ms)');
+            if(/serviceWorker\.register\s*\(/.test(t))swRegisters.push(f);
+          }
+          if(monkey.length>1)warn('Vários módulos alteram APIs globais: '+monkey.join(', '));
+          else if(monkey.length)perf.push('API global alterada por: '+monkey[0]);
+          if(observers.length>8)warn('Muitos MutationObservers globais/subtree ativos ('+observers.length+'): '+observers.join(', '));
+          else if(observers.length)perf.push('MutationObservers subtree: '+observers.length+' — '+observers.join(', '));
+          if(fastTimers.length>5)warn('Muitos timers abaixo de 500 ms ('+fastTimers.length+'): '+fastTimers.join(', '));
+          else if(fastTimers.length)perf.push('Timers rápidos: '+fastTimers.join(', '));
+          if(swRegisters.length>1)warn('Mais de um módulo registra Service Worker: '+swRegisters.join(', '));
+          else if(swRegisters.length)perf.push('Registro de Service Worker: '+swRegisters[0]);
+
           const sw=fs.readFileSync('sw.js','utf8');
           if(/stability-test/i.test(sw))warn('Cache do service worker ainda usa nome de teste');
           const navStart=sw.indexOf("if(req.mode==='navigate')");
@@ -64,6 +84,8 @@ jobs:
             '## ERROS',errors.length?errors.join('\n'):'Nenhum',
             '',
             '## AVISOS',warnings.length?warnings.join('\n'):'Nenhum',
+            '',
+            '## DESEMPENHO / CONFLITOS',perf.length?perf.join('\n'):'Nenhum conflito simples detectado',
             '',
             '## MÓDULOS ATIVOS',unique.join('\n'),
             '',
