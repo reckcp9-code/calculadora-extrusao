@@ -29,11 +29,17 @@
     const raw=atob((value+pad).replace(/-/g,'+').replace(/_/g,'/'));
     return Uint8Array.from(raw,c=>c.charCodeAt(0));
   }
-  async function register(){
+  async function existingRegistration(){
+    if(!('serviceWorker' in navigator))return null;
     const base=new URL('./',location.href).pathname;
-    const reg=await navigator.serviceWorker.register(base+'sw.js',{scope:base});
-    await navigator.serviceWorker.ready;
-    return reg;
+    try{
+      const current=await navigator.serviceWorker.getRegistration(base);
+      if(current)return current;
+    }catch(e){}
+    try{
+      const timeout=new Promise(resolve=>setTimeout(()=>resolve(null),3500));
+      return await Promise.race([navigator.serviceWorker.ready,timeout]);
+    }catch(e){return null}
   }
   async function sendSubscription(sub){
     const headers={'Content-Type':'application/json'};
@@ -54,7 +60,8 @@
 
     running=true;
     try{
-      const reg=await register();
+      const reg=await existingRegistration();
+      if(!reg)return false;
       let sub=await reg.pushManager.getSubscription();
       if(!sub){
         sub=await reg.pushManager.subscribe({
