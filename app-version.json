@@ -1,6 +1,6 @@
 {
-  "version": "1.0.214",
-  "title": "DF EXTRUSOR PRO — OPS AUTOMÁTICAS na Produção",
-  "message": "A Produção agora tem OPS AUTOMÁTICAS no mesmo padrão visual da Formulação: leitura por foto e QR, Prontas, Pendentes, Agora, Mês e Fotos, vinculadas às OPs de Produção.",
-  "updatedAt": "2026-10-04T18:49:00-03:00"
+  "version": "1.0.215",
+  "title": "DF EXTRUSOR PRO — Produção simplificada",
+  "message": "A aba OPS GERADAS foi removida do topo da Produção. O menu agora fica com NOVA OP e OPS AUTOMÁTICAS.",
+  "updatedAt": "2026-10-04T19:02:00-03:00"
 }
