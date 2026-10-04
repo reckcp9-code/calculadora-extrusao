@@ -1,6 +1,6 @@
 {
-  "version": "1.0.202",
-  "title": "DF EXTRUSOR PRO — Voltar no PDF",
-  "message": "Adicionada seta de voltar no topo da visualização do PDF da OP. A seta aparece na tela e não sai na impressão.",
-  "updatedAt": "2026-10-04T17:29:00-03:00"
+  "version": "1.0.203",
+  "title": "DF EXTRUSOR PRO — Voltar no PDF corrigido",
+  "message": "Corrigida a seta de voltar na visualização do PDF da OP para permanecer ativa mesmo após o carregamento do modelo padrão DF.",
+  "updatedAt": "2026-10-04T17:32:00-03:00"
 }
