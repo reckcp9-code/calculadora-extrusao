@@ -9,21 +9,14 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}.wrap{max-width:760px;margin:auto;padding:52px 14px 60px}.tabs{display:none!important}.page{display:none}.page.on{display:block!important}label{display:block;color:#cbd5e1;font-size:13px;margin:12px 0 6px}input,select{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:12px;padding:13px 12px;font-size:17px}.miniBtn{border:1px solid #334155;background:#111827;color:#e2e8f0;border-radius:10px;padding:9px 10px;font-weight:900}#dfPrBadge{display:none!important}.back{position:fixed;z-index:2147483001;left:9px;top:max(8px,env(safe-area-inset-top));border:1px solid #475569;background:#111827;color:#e2e8f0;border-radius:999px;padding:7px 11px;font:900 10px system-ui;text-decoration:none}.err{display:none;background:#230b0b;border:1px solid #7f1d1d;color:#fecaca;border-radius:14px;padding:14px;margin-top:14px}.retry{width:100%;margin-top:10px;border:1px solid #f59e0b;background:#241600;color:#ffd36a;border-radius:12px;padding:12px;font-weight:900}
 </style>
-<script src="./device-identity.js?v=20261004-producao-v36-prod"></script>
+<script src="./device-identity.js?v=20261004-producao-v37-prod"></script>
 </head>
 <body>
-<a class="back" href="./?v=20261004-producao-v36-prod">‹ VOLTAR</a>
+<a class="back" href="./?v=20261004-producao-v37-prod">‹ VOLTAR</a>
 <main class="wrap"><div class="tabs"></div><div id="err" class="err"><b>Falha ao abrir a OP de Produção.</b><div style="margin-top:6px">Recarregue esta página.</div><button class="retry" onclick="location.reload()">RECARREGAR</button></div></main>
-<script src="./teste/producao-op-setores-v3.js?v=20261004-core-v36-prod"></script>
-<script src="./producao-stable-flow-v1.js?v=20261004-stable-v2-prod"></script>
+<script src="./teste/producao-op-setores-v3.js?v=20261004-core-v37-prod"></script>
+<script src="./producao-stable-flow-v1.js?v=20261004-stable-v3-prod"></script>
 <script>
-(function(){
- var n=0,t=setInterval(function(){
-  var p=document.getElementById('pgPr'),r=document.getElementById('dfPrRoot');
-  if(p&&r){p.classList.add('on');p.style.display='block';clearInterval(t);window.scrollTo(0,0);try{window.dispatchEvent(new CustomEvent('df-ui-ready'))}catch(e){}return}
-  if(++n>50){clearInterval(t);document.getElementById('err').style.display='block'}
- },100);
- window.addEventListener('pageshow',function(){document.documentElement.style.pointerEvents='';document.body.style.pointerEvents='';document.documentElement.style.overflow='';document.body.style.overflow=''});
-})();
+(function(){var n=0,t=setInterval(function(){var p=document.getElementById('pgPr'),r=document.getElementById('dfPrRoot');if(p&&r){p.classList.add('on');p.style.display='block';clearInterval(t);window.scrollTo(0,0);try{window.dispatchEvent(new CustomEvent('df-ui-ready'))}catch(e){}return}if(++n>50){clearInterval(t);document.getElementById('err').style.display='block'}},100);window.addEventListener('pageshow',function(){document.documentElement.style.pointerEvents='';document.body.style.pointerEvents='';document.documentElement.style.overflow='';document.body.style.overflow=''})})();
 </script>
 </body></html>
