@@ -1,6 +1,6 @@
 {
-  "version": "1.0.222",
-  "title": "DF EXTRUSOR PRO — Editar OP pronta",
-  "message": "Em PRONTAS, o botão ABRIR agora mostra a foto e permite corrigir Operador, Máquina, Produzido, Apara e Nome do produto. Ao salvar, a OP permanece em PRONTAS e os totais são recalculados.",
-  "updatedAt": "2026-10-04T20:14:00-03:00"
+  "version": "1.0.221",
+  "title": "DF EXTRUSOR PRO — Fechamento mensal corrigido",
+  "message": "O fechamento do mês agora soma corretamente todas as OPs em PRONTAS, incluindo registros antigos com data em formatos diferentes, atualizando Produção, Apara e Líquida.",
+  "updatedAt": "2026-10-04T20:08:00-03:00"
 }
