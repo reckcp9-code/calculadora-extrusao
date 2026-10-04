@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v34-producao-auto-v214';
+const DF_CACHE='df-extrusor-shell-v35-producao-sem-ops-geradas-v216';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -46,12 +46,12 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url),same=url.origin===self.location.origin;if(!same)return;
   const p=url.pathname;
   if(req.mode==='navigate'){
-    if(p.endsWith('/op-producao.html')){event.respondWith(networkFirst(req));return}
+    if(p.endsWith('/op-producao.html')||p.endsWith('/acessar.html')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
     event.respondWith((async()=>{const out=await navigationCached(req);if(out.refresh)event.waitUntil(out.refresh);return out.response})());return
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-safari-close-v1.js')||p.endsWith('/producao-ops-automaticas-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')){event.respondWith(networkFirst(req));return}
-  if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(staleWhileRevalidate(req));return}
+  if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
   event.respondWith(staleWhileRevalidate(req));
 });
 self.addEventListener('message',event=>{const data=event.data||{};if(data.type==='DF_SHOW_NOTIFICATION')event.waitUntil((async()=>{await notifyUpdate({title:data.title,body:data.body,message:data.body});await increaseBadge()})());if(data.type==='DF_SET_VERSION')event.waitUntil(setStoredVersion(data.version));if(data.type==='DF_CLEAR_BADGE')event.waitUntil(clearBadge());if(data.type==='DF_CACHE_NOW')event.waitUntil(precache());if(data.type==='SKIP_WAITING')self.skipWaiting()});
