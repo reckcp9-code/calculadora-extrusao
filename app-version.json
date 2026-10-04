@@ -1,6 +1,6 @@
 {
-  "version": "1.0.219",
-  "title": "DF EXTRUSOR PRO — OP manual indo para Prontas",
-  "message": "Ao salvar uma OP identificada manualmente pelo ID, o registro pendente é removido e a OP entra imediatamente em PRONTAS, atualizando também os totais do mês.",
-  "updatedAt": "2026-10-04T19:42:00-03:00"
+  "version": "1.0.220",
+  "title": "DF EXTRUSOR PRO — Produção automática estabilizada",
+  "message": "OPS AUTOMÁTICAS agora usa um único módulo: leitura reforçada do QR, fallback por ID, salvamento direto em PRONTAS, remoção da pendência correspondente e correção automática de registros duplicados antigos.",
+  "updatedAt": "2026-10-04T19:55:00-03:00"
 }
