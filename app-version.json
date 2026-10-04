@@ -1,6 +1,6 @@
 {
-  "version": "1.0.211",
-  "title": "DF EXTRUSOR PRO — Lista de OPs corrigida de verdade",
-  "message": "Corrigido o conflito que fazia a lista antiga de OPs sobrescrever a nova. Agora a busca, Todas, Favoritas e a ordenação da OP mais nova no topo permanecem ativas.",
-  "updatedAt": "2026-10-04T18:20:00-03:00"
+  "version": "1.0.212",
+  "title": "DF EXTRUSOR PRO — Lista de OPs substituída",
+  "message": "A lista antiga de OPs foi removida do projeto. Agora a Produção usa somente o fluxo v3 com busca, Todas, Favoritas, estrela e OP mais nova no topo.",
+  "updatedAt": "2026-10-04T18:27:00-03:00"
 }
