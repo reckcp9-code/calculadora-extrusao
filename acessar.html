@@ -4,10 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <title>DF EXTRUSOR PRO</title>
 </head>
 <body style="margin:0;background:#080b13;color:#fff;font-family:system-ui;text-align:center;padding:48px 20px">
 <p>Abrindo DF EXTRUSOR PRO...</p>
-<script>location.replace('/?acesso=geral');</script>
+<script>
+(async function(){
+ try{
+  if('serviceWorker' in navigator){
+   const regs=await navigator.serviceWorker.getRegistrations();
+   await Promise.all(regs.map(r=>r.unregister()));
+  }
+  if('caches' in window){
+   const keys=await caches.keys();
+   await Promise.all(keys.map(k=>caches.delete(k)));
+  }
+ }catch(e){}
+ location.replace('/?acesso=geral&cache=20261004-v39');
+})();
+</script>
 </body>
 </html>
