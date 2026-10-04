@@ -1,6 +1,6 @@
 {
-  "version": "1.0.207",
-  "title": "DF EXTRUSOR PRO — Fechar PDF no Safari corrigido",
-  "message": "Corrigido o fluxo do PDF da Produção no Safari: agora a própria geração do PDF abre uma barra com X para fechar e voltar à Produção. No PWA, permanece o visualizador nativo do iPhone.",
-  "updatedAt": "2026-10-04T17:49:00-03:00"
+  "version": "1.0.208",
+  "title": "DF EXTRUSOR PRO — Gerar Nova OP",
+  "message": "Nas OPs salvas, o botão Duplicar foi trocado por Gerar Nova. Ele reaproveita máquina, produto, medida, operador, turno e período da OP selecionada, mas cria uma nova OP limpa com ID e QR próprios.",
+  "updatedAt": "2026-10-04T18:02:00-03:00"
 }
