@@ -1,6 +1,6 @@
 {
-  "version": "1.0.206",
-  "title": "DF EXTRUSOR PRO — Fechar PDF no Safari",
-  "message": "No Safari, o PDF da OP agora abre com botão X para fechar e voltar com segurança ao app. No PWA instalado, continua usando o visualizador nativo do iPhone.",
-  "updatedAt": "2026-10-04T17:46:00-03:00"
+  "version": "1.0.207",
+  "title": "DF EXTRUSOR PRO — Fechar PDF no Safari corrigido",
+  "message": "Corrigido o fluxo do PDF da Produção no Safari: agora a própria geração do PDF abre uma barra com X para fechar e voltar à Produção. No PWA, permanece o visualizador nativo do iPhone.",
+  "updatedAt": "2026-10-04T17:49:00-03:00"
 }
