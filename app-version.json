@@ -1,6 +1,6 @@
 {
-  "version": "1.0.203",
-  "title": "DF EXTRUSOR PRO — Voltar no PDF corrigido",
-  "message": "Corrigida a seta de voltar na visualização do PDF da OP para permanecer ativa mesmo após o carregamento do modelo padrão DF.",
-  "updatedAt": "2026-10-04T17:32:00-03:00"
+  "version": "1.0.204",
+  "title": "DF EXTRUSOR PRO — PDF nativo da Produção",
+  "message": "O PDF da OP de Produção agora é gerado como PDF real e abre no visualizador nativo do iPhone/Safari, com fechar, paginação e controles do sistema.",
+  "updatedAt": "2026-10-04T17:36:00-03:00"
 }
