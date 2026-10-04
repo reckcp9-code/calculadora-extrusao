@@ -51,8 +51,8 @@ function loadGerarNova(){
   var s=document.createElement('script');s.src='./producao-gerar-nova-v1.js?v=20261004-gerar-nova-v1';s.async=false;s.dataset.dfGerarNova='1';document.head.appendChild(s);
 }
 function loadOpList(){
-  if(window.DF_PRODUCAO_OP_LISTA_V1||document.querySelector('script[data-df-op-lista]'))return;
-  var s=document.createElement('script');s.src='./producao-op-lista-v1.js?v=20261004-op-lista-v1';s.async=false;s.dataset.dfOpLista='1';document.head.appendChild(s);
+  if(window.DF_PRODUCAO_OP_LISTA_V2||document.querySelector('script[data-df-op-lista-v2]'))return;
+  var s=document.createElement('script');s.src='./producao-op-lista-v2.js?v=20261004-op-lista-v2-fix';s.async=false;s.dataset.dfOpListaV2='1';document.head.appendChild(s);
 }
 watch(30000);loadGerarNova();loadOpList();
 window.addEventListener('pageshow',function(){watch(5000);loadGerarNova();loadOpList()},true);
