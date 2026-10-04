@@ -1,6 +1,6 @@
 {
-  "version": "1.0.199",
+  "version": "1.0.200",
   "title": "DF EXTRUSOR PRO — Produção atualizada",
-  "message": "Atualização da Produção: removido definitivamente o botão antigo das OPs salvas e corrigido o cache do PWA para carregar a versão atual.",
-  "updatedAt": "2026-10-04T17:05:00-03:00"
+  "message": "Ao tocar em ABRIR em uma OP salva, a tela volta para Nova OP e preenche automaticamente máquina, produto, medida, operador, turno e período.",
+  "updatedAt": "2026-10-04T17:18:00-03:00"
 }
