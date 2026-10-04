@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v29-producao-sem-baixa';
+const DF_CACHE='df-extrusor-shell-v30-pdf-nativo';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -12,7 +12,7 @@ const CORE=[
   './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./teste/team-formulas-duplicates-v2.js','./team-formulas-duplicates-v2.js',
   './formula-saved-search-v1.js','./formula-material-picker-test-v1.js','./formula-material-picker-v1.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
   './op-team-date-canonical-v1.js','./op-product-d1-authority-v1.js','./extrusao-matriz-bur.js','./extrusao-matriz-complemento.js',
-  './op-producao.html','./producao-stable-flow-v2.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
+  './op-producao.html','./producao-stable-flow-v2.js','./producao-pdf-native-v1.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
@@ -50,7 +50,7 @@ self.addEventListener('fetch',event=>{
     event.respondWith((async()=>{const out=await navigationCached(req);if(out.refresh)event.waitUntil(out.refresh);return out.response})());return
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
-  if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v1.js')||p.endsWith('/producao-stable-flow-v2.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')){event.respondWith(networkFirst(req));return}
+  if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v1.js')||p.endsWith('/producao-stable-flow-v2.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(staleWhileRevalidate(req));return}
   event.respondWith(staleWhileRevalidate(req));
 });
