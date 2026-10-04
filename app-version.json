@@ -1,6 +1,6 @@
 {
-  "version": "1.0.223",
-  "title": "DF EXTRUSOR PRO — Produção agora por máquina",
-  "message": "Na aba AGORA, a Produção mostra todas as máquinas cadastradas com apenas Produção Total e Apara do dia para cada máquina.",
-  "updatedAt": "2026-10-04T20:24:00-03:00"
+  "version": "1.0.224",
+  "title": "DF EXTRUSOR PRO — Editar valores em PRONTAS",
+  "message": "Em PRONTAS, cada OP agora tem o botão EDITAR abaixo de ABRIR FOTO. Ele permite corrigir somente Produção Total e Apara, recalcula o líquido e mantém a OP em PRONTAS.",
+  "updatedAt": "2026-10-04T20:30:00-03:00"
 }
