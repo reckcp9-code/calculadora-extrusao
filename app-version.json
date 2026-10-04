@@ -1,6 +1,6 @@
 {
-  "version": "1.0.221",
-  "title": "DF EXTRUSOR PRO — Fechamento mensal corrigido",
-  "message": "O fechamento do mês agora soma corretamente todas as OPs em PRONTAS, incluindo registros antigos com data em formatos diferentes, atualizando Produção, Apara e Líquida.",
-  "updatedAt": "2026-10-04T20:08:00-03:00"
+  "version": "1.0.223",
+  "title": "DF EXTRUSOR PRO — Produção agora por máquina",
+  "message": "Na aba AGORA, a Produção mostra todas as máquinas cadastradas com apenas Produção Total e Apara do dia para cada máquina.",
+  "updatedAt": "2026-10-04T20:24:00-03:00"
 }
