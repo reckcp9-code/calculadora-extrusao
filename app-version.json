@@ -1,6 +1,6 @@
 {
-  "version": "1.0.225",
-  "title": "DF EXTRUSOR PRO — Relatório mensal de produção",
-  "message": "Na aba MÊS, os cartões por máquina foram removidos da tela e entrou GERAR RELATÓRIO. O PDF mostra produção total do mês, produção por máquina e total produzido por produto.",
-  "updatedAt": "2026-10-04T20:36:00-03:00"
+  "version": "1.0.226",
+  "title": "DF EXTRUSOR PRO — Fechamento mensal limpo",
+  "message": "Na aba MÊS ficam somente Produção, Apara, Líquida e GERAR RELATÓRIO. O relatório detalha produção total do mês, produção por máquina e produção por produto.",
+  "updatedAt": "2026-10-04T20:39:00-03:00"
 }
