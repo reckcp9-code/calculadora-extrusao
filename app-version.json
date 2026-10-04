@@ -1,6 +1,6 @@
 {
-  "version": "1.0.217",
-  "title": "DF EXTRUSOR PRO — OPS AUTOMÁTICAS exclusiva",
-  "message": "OPS AUTOMÁTICAS agora abre em tela exclusiva. LER OP, PRONTAS, PENDENTES, AGORA, MÊS e FOTOS aparecem somente dentro dessa área e não ficam misturados com NOVA OP.",
-  "updatedAt": "2026-10-04T19:15:00-03:00"
+  "version": "1.0.218",
+  "title": "DF EXTRUSOR PRO — Identificação manual da OP",
+  "message": "Nas OPS AUTOMÁTICAS da Produção, se o QR não for reconhecido o app abre um campo para digitar o ID da OP. Ao identificar pelo ID, libera PRODUÇÃO TOTAL e APARA TOTAL no mesmo fluxo da Extrusão.",
+  "updatedAt": "2026-10-04T19:35:00-03:00"
 }
