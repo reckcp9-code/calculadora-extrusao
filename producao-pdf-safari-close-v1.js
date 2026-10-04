@@ -46,8 +46,12 @@ function patch(){
   return true;
 }
 function watch(ms){var end=Date.now()+(ms||10000);(function tick(){patch();if(Date.now()<end)setTimeout(tick,100)})()}
-watch(30000);
-window.addEventListener('pageshow',function(){watch(5000)},true);
-window.addEventListener('focus',function(){watch(2500)},true);
-document.addEventListener('visibilitychange',function(){if(!document.hidden)watch(2500)},true);
+function loadGerarNova(){
+  if(window.DF_PRODUCAO_GERAR_NOVA_V1||document.querySelector('script[data-df-gerar-nova]'))return;
+  var s=document.createElement('script');s.src='./producao-gerar-nova-v1.js?v=20261004-gerar-nova-v1';s.async=false;s.dataset.dfGerarNova='1';document.head.appendChild(s);
+}
+watch(30000);loadGerarNova();
+window.addEventListener('pageshow',function(){watch(5000);loadGerarNova()},true);
+window.addEventListener('focus',function(){watch(2500);loadGerarNova()},true);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){watch(2500);loadGerarNova()}},true);
 })();
