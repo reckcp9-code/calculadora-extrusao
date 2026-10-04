@@ -1,6 +1,6 @@
 {
-  "version": "1.0.205",
-  "title": "DF EXTRUSOR PRO — PDF nativo liberado",
-  "message": "Atualização forçada do PWA para carregar o novo PDF real da Produção no visualizador nativo do iPhone/Safari.",
-  "updatedAt": "2026-10-04T17:40:00-03:00"
+  "version": "1.0.206",
+  "title": "DF EXTRUSOR PRO — Fechar PDF no Safari",
+  "message": "No Safari, o PDF da OP agora abre com botão X para fechar e voltar com segurança ao app. No PWA instalado, continua usando o visualizador nativo do iPhone.",
+  "updatedAt": "2026-10-04T17:46:00-03:00"
 }
