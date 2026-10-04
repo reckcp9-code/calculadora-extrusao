@@ -1,6 +1,6 @@
 {
-  "version": "1.0.212",
-  "title": "DF EXTRUSOR PRO — Lista de OPs substituída",
-  "message": "A lista antiga de OPs foi removida do projeto. Agora a Produção usa somente o fluxo v3 com busca, Todas, Favoritas, estrela e OP mais nova no topo.",
-  "updatedAt": "2026-10-04T18:27:00-03:00"
+  "version": "1.0.213",
+  "title": "DF EXTRUSOR PRO — OPs Geradas limpa",
+  "message": "A aba OPs Geradas não mostra mais o bloco antigo de imprimir, dar baixa e encerrar. Fica somente a lista nova de OPs salvas com busca, favoritas e ações atuais.",
+  "updatedAt": "2026-10-04T18:33:00-03:00"
 }
