@@ -1,6 +1,6 @@
 {
-  "version": "1.0.204",
-  "title": "DF EXTRUSOR PRO — PDF nativo da Produção",
-  "message": "O PDF da OP de Produção agora é gerado como PDF real e abre no visualizador nativo do iPhone/Safari, com fechar, paginação e controles do sistema.",
-  "updatedAt": "2026-10-04T17:36:00-03:00"
+  "version": "1.0.205",
+  "title": "DF EXTRUSOR PRO — PDF nativo liberado",
+  "message": "Atualização forçada do PWA para carregar o novo PDF real da Produção no visualizador nativo do iPhone/Safari.",
+  "updatedAt": "2026-10-04T17:40:00-03:00"
 }
