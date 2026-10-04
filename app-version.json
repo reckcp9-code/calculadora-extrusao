@@ -1,6 +1,6 @@
 {
-  "version": "1.0.210",
-  "title": "DF EXTRUSOR PRO — Lista de OPs corrigida",
-  "message": "Corrigido o carregamento da nova lista de OPs salvas. A tela agora carrega diretamente a busca, Todas, Favoritas, estrelas e a ordenação da OP mais nova no topo.",
-  "updatedAt": "2026-10-04T18:09:00-03:00"
+  "version": "1.0.211",
+  "title": "DF EXTRUSOR PRO — Lista de OPs corrigida de verdade",
+  "message": "Corrigido o conflito que fazia a lista antiga de OPs sobrescrever a nova. Agora a busca, Todas, Favoritas e a ordenação da OP mais nova no topo permanecem ativas.",
+  "updatedAt": "2026-10-04T18:20:00-03:00"
 }
