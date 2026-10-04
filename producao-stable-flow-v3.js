@@ -39,8 +39,9 @@ function generateSafe(e){const b=e.target.closest&&e.target.closest('#prGenerate
 function createNewFrom(o){return{id:makeId(),sector:o.sector||'Picote',machine:o.machine||'',product:o.product||'',measure:o.measure||'',operator:o.operator||'',shift:o.shift||'',start:o.start||'',end:o.end||'',createdAt:new Date().toISOString(),status:'open',rolls:rolls(),stops:stops(),test:false}}
 function handleActions(e){const el=e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]');if(!el)return;const id=el.dataset.opOpen||el.dataset.opPdf||el.dataset.opNew||el.dataset.opDel,a=read(KEY,[]),o=a.find(x=>x&&x.id===id);if(!o)return;if(el.dataset.opDel){e.preventDefault();e.stopPropagation();if(confirm('Excluir esta OP?')){saveOps(a.filter(x=>x.id!==id));if(selectedId===id)selectedId='';renderSaved()}return}if(el.dataset.opNew){e.preventDefault();e.stopPropagation();const n=createNewFrom(o);a.push(n);if(!saveOps(a)){alert('Não foi possível gerar a nova OP.');return}registerQR(n);selectedId=n.id;mode='all';query='';renderSaved();return}if(el.dataset.opPdf){e.preventDefault();e.stopPropagation();window.DF_PRODUCAO_OP_TEST?.print(o);return}if(el.dataset.opOpen){e.preventDefault();e.stopPropagation();openIntoForm(o)}}
 
-function cleanLegacy(){const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
-function boot(attempt){attempt=attempt||0;if($('dfPrRoot')){renderSaved();return}if(attempt<60)setTimeout(()=>boot(attempt+1),80)}
+function clearLegacyGeneratedPane(){const S=window.__DF_PROD_V3_STATE||{};if(S.pane!=='list')return;const body=$('dfPrBody');if(body&&body.childNodes.length)body.innerHTML=''}
+function cleanLegacy(){clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
+function boot(attempt){attempt=attempt||0;if($('dfPrRoot')){renderSaved();cleanLegacy();return}if(attempt<60)setTimeout(()=>boot(attempt+1),80)}
 
 document.addEventListener('click',generateSafe,true);
 document.addEventListener('click',handleActions,true);
@@ -48,5 +49,5 @@ boot(0);
 let ticks=0,t=setInterval(()=>{cleanLegacy();if(++ticks>40)clearInterval(t)},100);
 window.addEventListener('pageshow',()=>{setTimeout(()=>{renderSaved();cleanLegacy()},60)},true);
 window.addEventListener('focus',()=>setTimeout(cleanLegacy,60),true);
-new MutationObserver(()=>{if(painting)return;const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')setTimeout(renderSaved,0)}).observe(document.documentElement,{childList:true,subtree:true});
+new MutationObserver(()=>{if(painting)return;clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')setTimeout(renderSaved,0)}).observe(document.documentElement,{childList:true,subtree:true});
 })();
