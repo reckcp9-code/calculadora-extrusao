@@ -1,6 +1,6 @@
 {
-  "version": "1.0.224",
-  "title": "DF EXTRUSOR PRO — Editar valores em PRONTAS",
-  "message": "Em PRONTAS, cada OP agora tem o botão EDITAR abaixo de ABRIR FOTO. Ele permite corrigir somente Produção Total e Apara, recalcula o líquido e mantém a OP em PRONTAS.",
-  "updatedAt": "2026-10-04T20:30:00-03:00"
+  "version": "1.0.225",
+  "title": "DF EXTRUSOR PRO — Relatório mensal de produção",
+  "message": "Na aba MÊS, os cartões por máquina foram removidos da tela e entrou GERAR RELATÓRIO. O PDF mostra produção total do mês, produção por máquina e total produzido por produto.",
+  "updatedAt": "2026-10-04T20:36:00-03:00"
 }
