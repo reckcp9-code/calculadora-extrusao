@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v35-producao-sem-ops-geradas-v216';
+const DF_CACHE='df-extrusor-shell-v36-producao-auto-exclusiva-v217';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
