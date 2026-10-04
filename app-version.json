@@ -1,6 +1,6 @@
 {
-  "version": "1.0.220",
-  "title": "DF EXTRUSOR PRO — Produção automática estabilizada",
-  "message": "OPS AUTOMÁTICAS agora usa um único módulo: leitura reforçada do QR, fallback por ID, salvamento direto em PRONTAS, remoção da pendência correspondente e correção automática de registros duplicados antigos.",
-  "updatedAt": "2026-10-04T19:55:00-03:00"
+  "version": "1.0.221",
+  "title": "DF EXTRUSOR PRO — Fechamento mensal corrigido",
+  "message": "O fechamento do mês agora soma corretamente todas as OPs em PRONTAS, incluindo registros antigos com data em formatos diferentes, atualizando Produção, Apara e Líquida.",
+  "updatedAt": "2026-10-04T20:08:00-03:00"
 }
