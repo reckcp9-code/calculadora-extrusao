@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v37-producao-manual-id-v218';
+const DF_CACHE='df-extrusor-shell-v38-producao-prontas-v219';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
