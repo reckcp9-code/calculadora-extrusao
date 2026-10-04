@@ -1,6 +1,6 @@
 {
-  "version": "1.0.198",
-  "title": "DF EXTRUSOR PRO — OP Produção V26",
-  "message": "Nova área de Produção publicada no app: OP por máquina e produto, baixa com QR, sincronização da equipe, consulta e correção, proteção contra duplicidade e exclusão, fechamento mensal e relatório PDF.",
-  "updatedAt": "2026-10-03T01:35:00-03:00"
+  "version": "1.0.199",
+  "title": "DF EXTRUSOR PRO — Produção atualizada",
+  "message": "Atualização da Produção: removido definitivamente o botão antigo das OPs salvas e corrigido o cache do PWA para carregar a versão atual.",
+  "updatedAt": "2026-10-04T17:05:00-03:00"
 }
