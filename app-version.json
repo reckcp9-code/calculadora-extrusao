@@ -1,6 +1,6 @@
 {
-  "version": "1.0.201",
-  "title": "DF EXTRUSOR PRO — PDF padrão DF",
-  "message": "O PDF da OP de Produção agora usa o modelo padrão DF: apontamento de produção com 56 bobinas, peso, apara e código de parada, legenda dos códigos e rodapé padrão DF.",
-  "updatedAt": "2026-10-04T17:24:00-03:00"
+  "version": "1.0.202",
+  "title": "DF EXTRUSOR PRO — Voltar no PDF",
+  "message": "Adicionada seta de voltar no topo da visualização do PDF da OP. A seta aparece na tela e não sai na impressão.",
+  "updatedAt": "2026-10-04T17:29:00-03:00"
 }
