@@ -50,8 +50,12 @@ function loadGerarNova(){
   if(window.DF_PRODUCAO_GERAR_NOVA_V1||document.querySelector('script[data-df-gerar-nova]'))return;
   var s=document.createElement('script');s.src='./producao-gerar-nova-v1.js?v=20261004-gerar-nova-v1';s.async=false;s.dataset.dfGerarNova='1';document.head.appendChild(s);
 }
-watch(30000);loadGerarNova();
-window.addEventListener('pageshow',function(){watch(5000);loadGerarNova()},true);
-window.addEventListener('focus',function(){watch(2500);loadGerarNova()},true);
-document.addEventListener('visibilitychange',function(){if(!document.hidden){watch(2500);loadGerarNova()}},true);
+function loadOpList(){
+  if(window.DF_PRODUCAO_OP_LISTA_V1||document.querySelector('script[data-df-op-lista]'))return;
+  var s=document.createElement('script');s.src='./producao-op-lista-v1.js?v=20261004-op-lista-v1';s.async=false;s.dataset.dfOpLista='1';document.head.appendChild(s);
+}
+watch(30000);loadGerarNova();loadOpList();
+window.addEventListener('pageshow',function(){watch(5000);loadGerarNova();loadOpList()},true);
+window.addEventListener('focus',function(){watch(2500);loadGerarNova();loadOpList()},true);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){watch(2500);loadGerarNova();loadOpList()}},true);
 })();
