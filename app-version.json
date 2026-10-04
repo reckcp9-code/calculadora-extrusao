@@ -1,6 +1,6 @@
 {
-  "version": "1.0.216",
-  "title": "DF EXTRUSOR PRO — Produção sem OPS GERADAS",
-  "message": "A aba OPS GERADAS foi removida do topo da Produção e o cache antigo foi substituído. O menu agora mostra somente NOVA OP e OPS AUTOMÁTICAS.",
-  "updatedAt": "2026-10-04T19:08:00-03:00"
+  "version": "1.0.217",
+  "title": "DF EXTRUSOR PRO — OPS AUTOMÁTICAS exclusiva",
+  "message": "OPS AUTOMÁTICAS agora abre em tela exclusiva. LER OP, PRONTAS, PENDENTES, AGORA, MÊS e FOTOS aparecem somente dentro dessa área e não ficam misturados com NOVA OP.",
+  "updatedAt": "2026-10-04T19:15:00-03:00"
 }
