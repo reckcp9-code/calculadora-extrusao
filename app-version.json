@@ -1,6 +1,6 @@
 {
-  "version": "1.0.244",
-  "title": "DF EXTRUSOR PRO — Prontas e Fotos sincronizadas",
-  "message": "Corrigido o bug em que o fechamento do mês mostrava 3 OPs concluídas, mas Prontas e Fotos exibiam somente 1. Agora Prontas, Fotos e Mês são atualizados após a sincronização do D1 e mantêm as OPs baixadas no mês atual.",
-  "updatedAt": "2026-10-04T23:52:00-03:00"
+  "version": "1.0.245",
+  "title": "DF EXTRUSOR PRO — PDF da Produção corrigido",
+  "message": "Corrigido o PDF da OP de Produção que podia ficar preso em Gerando PDF no Safari. Novo gerador mais leve no iPhone, carregamento com tempo limite e modo seguro no mesmo visor caso alguma biblioteca externa demore.",
+  "updatedAt": "2026-10-05T00:02:00-03:00"
 }
