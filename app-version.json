@@ -1,6 +1,6 @@
 {
-  "version": "1.0.241",
-  "title": "DF EXTRUSOR PRO — Performance e diagnóstico",
-  "message": "O sincronismo da Produção foi aliviado para reduzir travadas no Safari/iPhone, mantendo a sincronização automática. O diagnóstico também passa a mostrar a versão real publicada do app.",
-  "updatedAt": "2026-10-05T02:31:00-03:00"
+  "version": "1.0.242",
+  "title": "DF EXTRUSOR PRO — Prontas da Extrusão por mês",
+  "message": "As OPs Prontas e as fotos da Extrusão agora respeitam o mês da própria OP pelo ID. OPs de meses anteriores ficam fora da lista corrente e continuam preservadas no histórico do mês correspondente.",
+  "updatedAt": "2026-10-05T02:36:00-03:00"
 }
