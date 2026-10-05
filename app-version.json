@@ -1,6 +1,6 @@
 {
-  "version": "1.0.252",
-  "title": "DF EXTRUSOR PRO — Formulação salva no topo e OP automática",
-  "message": "Ao salvar uma Formulação, a nova fórmula passa a ficar selecionada e em primeiro lugar nas Formulações salvas e a OP correspondente é aberta automaticamente em todos os salvamentos.",
-  "updatedAt": "2026-10-05T18:24:00-03:00"
+  "version": "1.0.253",
+  "title": "DF EXTRUSOR PRO — OP padrão ao salvar formulação",
+  "message": "Ao salvar uma Formulação, a OP automática agora usa exatamente o mesmo modelo padrão em PDF horizontal com QR, mistura calculada, medidas e materiais usado pelo botão OP.",
+  "updatedAt": "2026-10-05T18:38:00-03:00"
 }
