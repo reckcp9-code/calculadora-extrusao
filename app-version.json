@@ -1,6 +1,6 @@
 {
-  "version": "1.0.242",
-  "title": "DF EXTRUSOR PRO — Prontas da Extrusão por mês",
-  "message": "As OPs Prontas e as fotos da Extrusão agora respeitam o mês da própria OP pelo ID. OPs de meses anteriores ficam fora da lista corrente e continuam preservadas no histórico do mês correspondente.",
-  "updatedAt": "2026-10-05T02:36:00-03:00"
+  "version": "1.0.243",
+  "title": "DF EXTRUSOR PRO — OPs Prontas pela data da baixa",
+  "message": "Corrigido o filtro das OPs Prontas da Extrusão: agora o mês é definido pela data da baixa/conclusão, e não pelo mês gravado no código QR da OP. OPs antigas baixadas no mês atual continuam aparecendo em Prontas e Fotos.",
+  "updatedAt": "2026-10-04T23:44:00-03:00"
 }
