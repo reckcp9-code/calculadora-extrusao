@@ -1,6 +1,6 @@
 {
-  "version": "1.0.237",
-  "title": "DF EXTRUSOR PRO — Prontas e fechamento sincronizados",
-  "message": "Corrigida a sincronização das OPs prontas da Produção. Uma baixa feita em qualquer aparelho da equipe agora é enviada ao servidor e atualiza PRONTAS, AGORA e MÊS nos demais celulares.",
-  "updatedAt": "2026-10-04T22:55:00-03:00"
+  "version": "1.0.238",
+  "title": "DF EXTRUSOR PRO — OP + QR minimizável",
+  "message": "Adicionado botão MINIMIZAR/EXPANDIR no painel OP + QR da Produção. Ao minimizar, o painel da equipe é recolhido e as abas PRONTAS, AGORA, MÊS e FOTOS continuam acessíveis.",
+  "updatedAt": "2026-10-04T23:03:00-03:00"
 }
