@@ -1,6 +1,6 @@
 {
-  "version": "1.0.248",
-  "title": "DF EXTRUSOR PRO — PDF da Produção em A4 paisagem",
-  "message": "A OP de Produção agora abre como PDF real em A4 paisagem, encaixada em uma única página como no padrão da Formulação. O gerador HTML alto da versão anterior foi removido.",
-  "updatedAt": "2026-10-05T00:56:00-03:00"
+  "version": "1.0.249",
+  "title": "DF EXTRUSOR PRO — versão limpa e otimizada",
+  "message": "Varredura geral de estabilidade e desempenho: carregamento pesado em sequência e durante ociosidade, timers e varreduras redundantes reduzidos, cache antigo corrigido, diagnóstico atualizado e sincronização da Produção reforçada. O PDF A4 paisagem aprovado da 1.0.248 foi preservado.",
+  "updatedAt": "2026-10-05T01:37:00-03:00"
 }
