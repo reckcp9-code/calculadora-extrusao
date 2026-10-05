@@ -1,6 +1,6 @@
 {
-  "version": "1.0.235",
-  "title": "DF EXTRUSOR PRO — Proteção da equipe de Produção",
-  "message": "A Produção não reutiliza mais a equipe da Extrusão. Equipes antigas de Extrusão salvas por engano na tela da Produção são descartadas localmente e a área exige uma equipe própria de Produção.",
-  "updatedAt": "2026-10-04T22:24:00-03:00"
+  "version": "1.0.236",
+  "title": "DF EXTRUSOR PRO — Sincronização da Produção corrigida",
+  "message": "Corrigida a sincronização da equipe de Produção: máquinas, produtos, operadores e OPs são reenviados pelo dono e baixados pelos operadores. O catálogo da Produção não é mais sobrescrito por um aparelho de operador vazio.",
+  "updatedAt": "2026-10-04T22:46:00-03:00"
 }
