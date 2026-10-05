@@ -1,6 +1,6 @@
 {
-  "version": "1.0.232",
-  "title": "DF EXTRUSOR PRO — Ajuste das linhas da OP",
-  "message": "As 56 linhas do apontamento da OP de Produção foram reduzidas um pouco em relação à versão anterior, mantendo mais espaço para escrever e fazendo o rodapé caber corretamente na folha.",
-  "updatedAt": "2026-10-04T21:44:00-03:00"
+  "version": "1.0.233",
+  "title": "DF EXTRUSOR PRO — Linhas da OP ajustadas",
+  "message": "As 56 linhas da OP foram reduzidas na medida certa para manter os códigos de parada visíveis, preenchendo quase toda a altura útil da folha.",
+  "updatedAt": "2026-10-04T21:46:00-03:00"
 }
