@@ -25,15 +25,26 @@ function popupNow(){
   let w=null;try{w=window.open('','_blank');if(w){w.document.open();w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OP</title></head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font:700 18px system-ui;background:#fff;color:#111">Preparando OP...</body></html>');w.document.close()}}catch(e){}return w;
 }
 function closePopup(w){try{if(w&&!w.closed)w.close()}catch(e){}}
+function fm(v,d=2){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
+function standardPayload(f){
+  const dados=f.op||{},largura=Number(dados.largura)||0,comprimento=Number(dados.comprimento)||0,micra=Number(dados.micra)||0,grama=Number(dados.grama)||0;
+  const digitado=pn(q('dfMixBatchKg')?.value),mistura=digitado>0?digitado:(Number(window.dfMixBatchKgCurrent)||Number(f.total)||0);
+  const letras=['A','B','C','D','E','F','G','H'];
+  return{name:f.nome||'Formulação',date:new Date().toLocaleDateString('pt-BR'),size:largura&&comprimento&&micra?fm(largura,0)+' X '+fm(comprimento,0)+' X '+fm(micra/1000,3)+' mc':'_____',production:fm(Number(f.total)||0,0)+' KG',mix:fm(mistura,0)+' KG',doubleMicra:micra?fm(micra/100,2)+' mc':'_____',wallMicra:micra?fm(micra/200,2)+' mc':'_____',grams:grama?fm(grama,1)+' g/m':'_____',width:largura?fm(largura,1).replace(',0','')+' CM':'_____ CM',materials:(f.rows||[]).slice(0,8).map((r,i)=>{const m=r.id?(material(r.id)||r):r,pct=Number(r.pct)||0;return{code:letras[i],name:m.nome||r.nome||'',pct:pct?fm(pct,2)+'%':'',kg:pct?fm(mistura*pct/100,3)+' kg':''}})};
+}
 function printInPopup(f,w){
   const run=()=>{
-    if(typeof window.printFormulaOp!=='function')return false;
-    if(!w||w.closed){window.printFormulaOp(f);return true}
-    const original=window.open;
-    try{window.open=function(){return w};window.printFormulaOp(f);return true}finally{window.open=original}
+    const pdf=window.DFOPLandscapePdf;
+    if(!pdf||pdf.qr!==true||typeof pdf.create!=='function'||typeof window.QRCode!=='function')return false;
+    try{
+      const blob=new Blob([pdf.create(standardPayload(f))],{type:'application/pdf'}),url=URL.createObjectURL(blob);
+      if(w&&!w.closed)w.location.replace(url);else if(typeof pdf.open==='function')pdf.open(standardPayload(f));
+      setTimeout(()=>URL.revokeObjectURL(url),300000);
+      return true;
+    }catch(e){console.error('DF OP padrão:',e);return false}
   };
   if(run())return;
-  let n=0,t=setInterval(()=>{if(run()||++n>30){clearInterval(t);if(n>30)closePopup(w)}},100);
+  let n=0,t=setInterval(()=>{if(run()||++n>80){clearInterval(t);if(n>80){closePopup(w);alert('A OP padrão ainda não terminou de carregar. Tente novamente.')}}},100);
 }
 async function saveAndOpen(){
   const nome=(q('foNome')?.value||'').trim()||'Formulação',total=pn(q('foTotal')?.value);
