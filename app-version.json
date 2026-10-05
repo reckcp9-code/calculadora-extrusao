@@ -1,6 +1,6 @@
 {
-  "version": "1.0.228",
-  "title": "DF EXTRUSOR PRO — Produção agora profissional",
-  "message": "A aba AGORA ganhou contorno azul discreto, leve brilho e destaque nos cards de produção para um visual mais profissional e ao vivo.",
-  "updatedAt": "2026-10-04T21:07:00-03:00"
+  "version": "1.0.229",
+  "title": "DF EXTRUSOR PRO — Equipe da Produção separada",
+  "message": "A Produção agora possui equipe própria, separada da Extrusão. O operador informa o nome ao entrar e OPs, baixas, máquinas, produtos e operadores são sincronizados entre os celulares da equipe de Produção.",
+  "updatedAt": "2026-10-04T21:15:00-03:00"
 }
