@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v55-producao-pdf-v257';
+const DF_CACHE='df-extrusor-shell-v56-producao-input-v258';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -12,7 +12,7 @@ const CORE=[
   './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./team-formulas-duplicates-v2.js',
   './formula-saved-search-v1.js','./formula-save-first-op-v1.js','./formula-material-picker-v1.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
   './op-team-date-canonical-v1.js','./op-product-d1-authority-v1.js','./extrusao-matriz-bur.js','./extrusao-matriz-complemento.js','./op-status-artifact-filter-v170.js',
-  './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v1.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./producao-sacoleira-vm900-v1.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
+  './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v1.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./producao-sacoleira-vm900-v1.js','./producao-machine-produtos-v1.js','./producao-produtos-fullscreen-v1.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
@@ -59,7 +59,7 @@ self.addEventListener('fetch',event=>{
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/formula-saved-search-v1.js')||p.endsWith('/formula-save-first-op-v1.js')){event.respondWith(networkFirst(req));return}
-  if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
+  if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/producao-machine-produtos-v1.js')||p.endsWith('/producao-produtos-fullscreen-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
   event.respondWith(staleWhileRevalidate(req));
 });
