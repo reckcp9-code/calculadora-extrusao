@@ -8,11 +8,11 @@ const FAVKEY='df_producao_ops_favoritas_v1';
 const $=id=>document.getElementById(id);
 const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}};
 const saveOps=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 const makeId=()=>{const d=new Date(),p=x=>String(x).padStart(2,'0');return'DFOP-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
 const rolls=()=>Array.from({length:56},(_,i)=>({n:i+1,peso:'',apara:''}));
 const stops=()=>Array.from({length:8},()=>({code:'',start:'',end:'',minutes:0}));
-let mode='all',query='',selectedId='',painting=false;
+let mode='all',query='',selectedId='',painting=false,observer=null,observerQueued=false;
 
 function normalizeShift(v){v=String(v??'');if(v==='00:00–07:00')return'1';if(v==='07:00–15:30')return'2';if(v==='15:30–00:00')return'3';return v}
 function favs(){const a=read(FAVKEY,[]);return new Set(Array.isArray(a)?a:[])}
@@ -31,8 +31,8 @@ window.DFRenderSavedProductionOps=renderSaved;
 
 function setField(id,value){const el=$(id);if(!el)return false;const v=String(value??'');if(el.tagName==='SELECT'&&v&&!Array.from(el.options).some(o=>String(o.value)===v)){const opt=document.createElement('option');opt.value=v;opt.textContent=v;el.appendChild(opt)}el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}
 function applyOpenedFields(o){setField('prMachine',o.machine);setField('prProduct',o.product);setField('prMeasure',o.measure);setField('prOperator',o.operator);setField('prShift',normalizeShift(o.shift));setField('prStart',o.start);setField('prEnd',o.end)}
-function fillOpenedOP(o,attempt){attempt=attempt||0;const ids=['prMachine','prProduct','prMeasure','prOperator','prShift','prStart','prEnd'];if(!ids.every(id=>$(id))){if(attempt<40)setTimeout(()=>fillOpenedOP(o,attempt+1),50);return}applyOpenedFields(o);setTimeout(()=>applyOpenedFields(o),120);setTimeout(()=>applyOpenedFields(o),350);notice('OP aberta. Todos os campos foram preenchidos novamente.','ok');const body=$('dfPrBody');if(body)body.scrollIntoView({behavior:'smooth',block:'start'})}
-function openIntoForm(o){const S=window.__DF_PROD_V3_STATE||(window.__DF_PROD_V3_STATE={sector:o.sector||'Picote',pane:'new',editing:null});S.sector=o.sector||S.sector||'Picote';S.pane='new';S.editing=null;const top=$('prodNewTab'),pane=document.querySelector('#dfPrRoot [data-pane="new"]');if(top)top.click();else if(pane)pane.click();setTimeout(()=>fillOpenedOP(o,0),40)}
+function fillOpenedOP(o,attempt){attempt=attempt||0;const ids=['prMachine','prProduct','prMeasure','prOperator','prShift','prStart','prEnd'];if(!ids.every(id=>$(id))){if(attempt<24)setTimeout(()=>fillOpenedOP(o,attempt+1),100);return}applyOpenedFields(o);setTimeout(()=>applyOpenedFields(o),140);setTimeout(()=>applyOpenedFields(o),360);notice('OP aberta. Todos os campos foram preenchidos novamente.','ok');const body=$('dfPrBody');if(body)body.scrollIntoView({behavior:'smooth',block:'start'})}
+function openIntoForm(o){const S=window.__DF_PROD_V3_STATE||(window.__DF_PROD_V3_STATE={sector:o.sector||'Picote',pane:'new',editing:null});S.sector=o.sector||S.sector||'Picote';S.pane='new';S.editing=null;const top=$('prodNewTab'),pane=document.querySelector('#dfPrRoot [data-pane="new"]');if(top)top.click();else if(pane)pane.click();setTimeout(()=>fillOpenedOP(o,0),60)}
 
 function generateSafe(e){const b=e.target.closest&&e.target.closest('#prGenerate');if(!b)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(b.dataset.busy==='1')return;b.dataset.busy='1';setTimeout(()=>delete b.dataset.busy,700);const S=window.__DF_PROD_V3_STATE||{},sector=S.sector||'Picote',machine=$('prMachine')?.value.trim()||'',product=$('prProduct')?.value.trim()||'',measure=$('prMeasure')?.value.trim()||'',operator=$('prOperator')?.value.trim()||'',shift=$('prShift')?.value||'',start=$('prStart')?.value||'',end=$('prEnd')?.value||'';if(!machine||!product||!measure||!operator||!shift||!start||!end){notice('Preencha máquina, produto, medida, operador, turno e período.');return}const a=read(KEY,[]),old=a.find(x=>x&&x.sector===sector&&String(x.machine||'').toLowerCase()===machine.toLowerCase()&&x.status==='open');if(old){notice('Essa máquina já possui uma OP aberta. Encerre a atual antes de gerar outra.');return}const o={id:makeId(),sector,machine,product,measure,operator,shift,start,end,createdAt:new Date().toISOString(),status:'open',rolls:rolls(),stops:stops(),test:false};a.push(o);if(!saveOps(a)){notice('Não foi possível salvar a OP neste aparelho.');return}registerQR(o);selectedId=o.id;mode='all';query='';notice('OP salva com sucesso.','ok');renderSaved();setTimeout(()=>{const box=$('dfSavedOps');if(box)box.scrollIntoView({behavior:'smooth',block:'start'})},60)}
 
@@ -41,13 +41,14 @@ function handleActions(e){const el=e.target.closest&&e.target.closest('[data-op-
 
 function clearLegacyGeneratedPane(){const S=window.__DF_PROD_V3_STATE||{};if(S.pane!=='list')return;const body=$('dfPrBody');if(body&&body.childNodes.length)body.innerHTML=''}
 function cleanLegacy(){clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
-function boot(attempt){attempt=attempt||0;if($('dfPrRoot')){renderSaved();cleanLegacy();return}if(attempt<60)setTimeout(()=>boot(attempt+1),80)}
+function cleanAdded(node){if(!node||node.nodeType!==1)return;if(node.matches&&node.matches('[data-op-down]'))node.remove();else if(node.querySelectorAll)node.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
+function queueObserverRefresh(){if(observerQueued||painting)return;observerQueued=true;requestAnimationFrame(()=>{observerQueued=false;if(painting)return;clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved()})}
+function installObserver(){const root=$('dfPrRoot');if(!root||observer)return;observer=new MutationObserver(list=>{for(const m of list)for(const n of m.addedNodes)cleanAdded(n);queueObserverRefresh()});observer.observe(root,{childList:true,subtree:true})}
+function boot(attempt){attempt=attempt||0;if($('dfPrRoot')){renderSaved();cleanLegacy();installObserver();return}if(attempt<40)setTimeout(()=>boot(attempt+1),150)}
 
 document.addEventListener('click',generateSafe,true);
 document.addEventListener('click',handleActions,true);
 boot(0);
-let ticks=0,t=setInterval(()=>{cleanLegacy();if(++ticks>40)clearInterval(t)},100);
-window.addEventListener('pageshow',()=>{setTimeout(()=>{renderSaved();cleanLegacy()},60)},true);
-window.addEventListener('focus',()=>setTimeout(cleanLegacy,60),true);
-new MutationObserver(()=>{if(painting)return;clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')setTimeout(renderSaved,0)}).observe(document.documentElement,{childList:true,subtree:true});
+window.addEventListener('pageshow',()=>{setTimeout(()=>{renderSaved();cleanLegacy();installObserver()},80)},true);
+window.addEventListener('focus',()=>setTimeout(cleanLegacy,80),true);
 })();
