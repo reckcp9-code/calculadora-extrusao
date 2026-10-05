@@ -1,6 +1,6 @@
 {
-  "version": "1.0.245",
-  "title": "DF EXTRUSOR PRO — PDF da Produção corrigido",
-  "message": "Corrigido o PDF da OP de Produção que podia ficar preso em Gerando PDF no Safari. Novo gerador mais leve no iPhone, carregamento com tempo limite e modo seguro no mesmo visor caso alguma biblioteca externa demore.",
-  "updatedAt": "2026-10-05T00:02:00-03:00"
+  "version": "1.0.246",
+  "title": "DF EXTRUSOR PRO — Formato do PDF da Produção restaurado",
+  "message": "Restaurado o formato de impressão aprovado da OP de Produção, mantendo a correção do gerador para não ficar preso em Gerando PDF. A área de Formulação não foi alterada.",
+  "updatedAt": "2026-10-05T00:12:00-03:00"
 }
