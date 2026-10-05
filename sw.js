@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v49-clean-v249';
+const DF_CACHE='df-extrusor-shell-v50-clean-v249-final';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -36,7 +36,15 @@ async function cached(req){const cache=await caches.open(DF_CACHE);return cache.
 async function fetchWithTimeout(req,timeout=3500){let controller=null,timer=null;try{if('AbortController'in self){controller=new AbortController();timer=setTimeout(()=>controller.abort(),timeout)}let netReq=req;try{netReq=new Request(req,{cache:'no-store',signal:controller?controller.signal:undefined})}catch(e){}return await fetch(netReq,{cache:'no-store',signal:controller?controller.signal:undefined})}finally{if(timer)clearTimeout(timer)}}
 async function updateCached(req){try{const cache=await caches.open(DF_CACHE);const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone());return res}catch(e){return null}}
 async function networkFirst(req){const cache=await caches.open(DF_CACHE);try{const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});return res}catch(e){const hit=await cache.match(req,{ignoreSearch:true});if(hit)return hit;throw e}}
-async function staleWhileRevalidate(req){const cache=await caches.open(DF_CACHE);const hit=await cache.match(req,{ignoreSearch:true});const refresh=updateCached(req);return hit||(await refresh)||new Response('Recurso indisponível.',{status:503})}
+async function staleWhileRevalidate(req){
+  const cache=await caches.open(DF_CACHE);
+  const exact=await cache.match(req);
+  if(exact){updateCached(req).catch(()=>{});return exact}
+  const fresh=await updateCached(req);
+  if(fresh)return fresh;
+  const fallback=await cache.match(req,{ignoreSearch:true});
+  return fallback||new Response('Recurso indisponível.',{status:503});
+}
 async function navigationCached(req){const cache=await caches.open(DF_CACHE),url=new URL(req.url);let hit=await cache.match(req,{ignoreSearch:true});if(!hit){const fallback=url.pathname.endsWith('/acessar.html')?'./acessar.html':'./index.html';hit=await cache.match(fallback,{ignoreSearch:true})}if(hit)return{response:hit,refresh:updateCached(req)};const net=await updateCached(req);if(net)return{response:net,refresh:null};const index=await cache.match('./index.html',{ignoreSearch:true});return{response:index||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}}),refresh:null}}
 
 self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
