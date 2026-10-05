@@ -50,12 +50,19 @@ function seed(){
 function currentMachine(){return String(document.getElementById('prMachine')?.value||'').trim()}
 function productSelect(){return document.getElementById('prProduct')}
 function productTrigger(){return document.querySelector('[data-df-picker="product"]')}
+function ensureNativeOptions(){
+  const machine=document.getElementById('prMachine');
+  if(machine&&!Array.from(machine.options||[]).some(o=>isTargetMachine(o.value))){machine.add(new Option(MACHINE,MACHINE))}
+  const product=productSelect();
+  if(product)PRODUCTS.forEach(([name])=>{if(!Array.from(product.options||[]).some(o=>norm(o.value)===norm(name)))product.add(new Option(name,name))})
+}
 function updateTrigger(){
   const el=productSelect(),b=productTrigger();if(!el||!b)return;
   const v=String(el.value||'').trim();b.textContent=v||'Selecione';b.classList.toggle('chosen',!!v)
 }
 function allowedForMachine(name,machine){return isTargetMachine(machine)?allowed.has(norm(name)):!allowed.has(norm(name))}
 function filterNativeProducts(){
+  ensureNativeOptions();
   const el=productSelect();if(!el)return;
   const machine=currentMachine();
   let clear=false;
@@ -71,23 +78,31 @@ function isProductModal(m){return !!m&&norm(m.querySelector('.dfRegHead b')?.tex
 function isMachineModal(m){return !!m&&norm(m.querySelector('.dfRegHead b')?.textContent).includes('maquinas cadastradas')}
 function filterProductModal(){
   const m=document.getElementById('dfRegModal');if(!isProductModal(m))return;
-  const machine=currentMachine(),target=isTargetMachine(machine);
+  const machine=currentMachine(),target=isTargetMachine(machine),list=m.querySelector('.dfRegList');
   let visible=0;
-  m.querySelectorAll('.dfRegItem').forEach(item=>{
+  const items=[...m.querySelectorAll('.dfRegItem')];
+  items.forEach(item=>{
     const pick=item.querySelector('[data-pick]'),name=String(pick?.dataset.pick||'');
     const ok=allowedForMachine(name,machine);item.style.display=ok?'':'none';if(ok)visible++;
     if(target){const actions=item.querySelector('.dfRegActions');if(actions)actions.style.display='none'}
   });
+  if(target&&list){
+    PRODUCTS.forEach(([name])=>{const item=items.find(el=>norm(el.querySelector('[data-pick]')?.dataset.pick)===norm(name));if(item)list.appendChild(item)})
+  }
   const add=m.querySelector('.dfRegAdd');if(add)add.style.display=target?'none':'';
   const meta=m.querySelector('.dfRegMeta span');if(meta&&target)meta.textContent='VM 900 FLEX';
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
   const empty=m.querySelector('.dfRegEmpty');if(empty&&target&&visible===0)empty.textContent='Nenhum produto desta máquina encontrado.'
 }
-function scheduleFilter(){requestAnimationFrame(()=>{filterNativeProducts();filterProductModal()})}
-function openVmProductList(){setTimeout(()=>{filterNativeProducts();const b=productTrigger();if(b)b.click();setTimeout(filterProductModal,0)},80)}
+function scheduleFilter(){requestAnimationFrame(()=>{ensureNativeOptions();filterNativeProducts();filterProductModal()})}
+function openVmProductList(){setTimeout(()=>{ensureNativeOptions();filterNativeProducts();const b=productTrigger();if(b)b.click();setTimeout(filterProductModal,0)},80)}
+function boot(attempt){
+  ensureNativeOptions();scheduleFilter();
+  if((!document.getElementById('prMachine')||!productSelect())&&attempt<40)setTimeout(()=>boot(attempt+1),100)
+}
 
 function start(){
-  seed();setTimeout(scheduleFilter,0);
+  seed();boot(0);
   document.addEventListener('change',e=>{if(e.target&&e.target.id==='prMachine')scheduleFilter()},true);
   document.addEventListener('click',e=>{
     const trigger=e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]');if(trigger)setTimeout(filterProductModal,0);
