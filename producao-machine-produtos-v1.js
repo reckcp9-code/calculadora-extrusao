@@ -126,14 +126,23 @@ function isProductModal(m){return !!m&&norm(m.querySelector('.dfRegHead b')?.tex
 function isMachineModal(m){return !!m&&norm(m.querySelector('.dfRegHead b')?.textContent).includes('maquinas cadastradas')}
 function filterModal(){
   const m=document.getElementById('dfRegModal');if(!isProductModal(m))return;
-  const machine=currentMachine(),rule=machineRule(machine),allow=new Set(allowedNames(machine).map(norm)),items=[...m.querySelectorAll('.dfRegItem')],list=m.querySelector('.dfRegList');let visible=0;
+  const machine=currentMachine(),rule=machineRule(machine),allow=new Set(allowedNames(machine).map(norm)),items=[...m.querySelectorAll('.dfRegItem')],list=m.querySelector('.dfRegList'),q=norm(m.querySelector('#dfRegSearch')?.value||'');let visible=0;
   m.querySelector('#dfMachineEmpty')?.remove();
-  items.forEach(item=>{const name=String(item.querySelector('[data-pick]')?.dataset.pick||'');const ok=rule==='free'||rule==='none'||allow.has(norm(name));item.style.display=ok?'':'none';if(ok){visible++;if(rule==='pesadao'||rule==='sacoleira-fixed'){const a=item.querySelector('.dfRegActions');if(a)a.style.display='none'}}});
-  if((rule==='pesadao'||rule==='sacoleira-fixed')&&list){fixedList(rule).forEach(([name])=>{const item=items.find(el=>norm(el.querySelector('[data-pick]')?.dataset.pick)===norm(name));if(item)list.appendChild(item)})}
+  if((rule==='pesadao'||rule==='sacoleira-fixed')&&list&&list.dataset.dfMachineOrder!==rule){
+    fixedList(rule).forEach(([name])=>{const item=items.find(el=>norm(el.querySelector('[data-pick]')?.dataset.pick)===norm(name));if(item)list.appendChild(item)});
+    list.dataset.dfMachineOrder=rule;
+  }
+  items.forEach(item=>{
+    const name=String(item.querySelector('[data-pick]')?.dataset.pick||''),machineOk=rule==='free'||rule==='none'||allow.has(norm(name));
+    const searchOk=!q||norm(name).includes(q)||norm(item.querySelector('.main small')?.textContent||'').includes(q);
+    item.dataset.dfMachineMatch=machineOk?'1':'0';item.dataset.dfSearchMatch=searchOk?'1':'0';
+    const ok=machineOk&&searchOk;item.style.display=ok?'':'none';
+    if(ok){visible++;if(rule==='pesadao'||rule==='sacoleira-fixed'){const a=item.querySelector('.dfRegActions');if(a)a.style.display='none'}}
+  });
   const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='pesadao'||rule==='sacoleira-fixed')?'none':'';
   const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'SÓ PESADÃO':rule==='sacoleira-fixed'?'VM 900 FLEX':rule==='custom'?(machine||'MÁQUINA'):'TODOS';
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
-  if(visible===0&&list){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
+  if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
 }
 function schedule(){requestAnimationFrame(()=>{filterNative();filterModal()})}
 function openProducts(){setTimeout(()=>{schedule();const b=productTrigger();if(b)b.click();setTimeout(filterModal,0)},70)}
@@ -161,7 +170,7 @@ function start(){
     const p=e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]');if(p)setTimeout(filterModal,0);
     const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='free'&&machineRule(chosen)!=='none')setTimeout(openProducts,20)}else if(isProductModal(m))setTimeout(filterModal,0)}
   },true);
-  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dfRegSearch')setTimeout(filterModal,0)},true);
+  document.addEventListener('input',e=>{if(e.target&&e.target.id==='dfRegSearch')requestAnimationFrame(filterModal)},true);
   window.addEventListener('storage',e=>{if(e.key===KEY){ensureData();schedule()}});
   window.addEventListener('df-producao-team-synced',()=>{ensureData();schedule()});
   document.addEventListener('df-producao-team-synced',()=>{ensureData();schedule()});
