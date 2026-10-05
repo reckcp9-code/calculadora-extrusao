@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v43-producao-equipe-online-v227';
+const DF_CACHE='df-extrusor-shell-v44-agora-azul-profissional-v228';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
