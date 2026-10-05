@@ -1,7 +1,8 @@
 (function(){
   'use strict';
 
-  const VERSION='1.0.115';
+  const FALLBACK_VERSION='1.0.248';
+  let currentVersion=FALLBACK_VERSION;
   const LOG_KEY='df_error_log_v1';
   const MAX_LOGS=30;
   const DEDUPE_MS=10*60*1000;
@@ -22,6 +23,17 @@
   const basename=(v)=>{try{const u=new URL(String(v||''),location.href);return clip((u.pathname.split('/').pop()||u.pathname||'app'),100)}catch(e){return clip(String(v||'').split('?')[0].split('/').pop()||'app',100)}};
   const load=()=>{try{const a=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
   const save=a=>{try{localStorage.setItem(LOG_KEY,JSON.stringify(a.slice(0,MAX_LOGS)))}catch(e){}};
+
+  async function refreshVersion(){
+    try{
+      const r=await fetch('./app-version.json?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok)return;
+      const j=await r.json(),v=String(j&&j.version||'').trim();
+      if(v)currentVersion=v;
+    }catch(e){}
+  }
+  setTimeout(refreshVersion,120);
+  window.addEventListener('pageshow',()=>setTimeout(refreshVersion,250),{passive:true});
 
   function areaFor(text){
     const s=String(text||'').toLowerCase();
@@ -45,9 +57,7 @@
     const act=el.dataset&&(el.dataset.pane||el.dataset.action||el.dataset.view||el.dataset.cloudOpen||el.dataset.cloudDown);
     return clip(el.tagName+id+(act?'['+act+']':''),90);
   }
-  function stackTop(stack){
-    return scrub(String(stack||'').split('\n').slice(0,4).join(' | '));
-  }
+  function stackTop(stack){return scrub(String(stack||'').split('\n').slice(0,4).join(' | '))}
 
   function build(kind,data){
     data=data||{};
@@ -57,20 +67,11 @@
     const signature=[kind,message,file,data.line||0,data.col||0,stack].join('|');
     const area=areaFor([message,file,stack,lastAction].join(' '));
     return{
-      code:'DF-'+area+'-'+hash3(signature),
-      kind:clip(kind,24),
-      message:clip(message,300),
-      file,
-      line:Number(data.line)||0,
-      col:Number(data.col)||0,
-      stack:clip(stack,500),
-      at:nowIso(),
-      version:VERSION,
-      page:location.pathname,
-      online:navigator.onLine!==false,
+      code:'DF-'+area+'-'+hash3(signature),kind:clip(kind,24),message:clip(message,300),file,
+      line:Number(data.line)||0,col:Number(data.col)||0,stack:clip(stack,500),at:nowIso(),
+      version:currentVersion||FALLBACK_VERSION,page:location.pathname,online:navigator.onLine!==false,
       standalone:!!(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true,
-      action:lastAction||'',
-      count:1
+      action:lastAction||'',count:1
     };
   }
 
@@ -80,18 +81,7 @@
   }
   function diagnosticText(rec){
     if(!rec)return'DF EXTRUSOR PRO — nenhum erro registrado.';
-    return[
-      'DF EXTRUSOR PRO — diagnóstico',
-      'Código: '+rec.code,
-      'Versão: '+rec.version,
-      'Data: '+rec.at,
-      'Área: '+rec.kind,
-      'Mensagem: '+rec.message,
-      rec.file?'Arquivo: '+rec.file+(rec.line?':'+rec.line:''):'',
-      rec.action?'Última ação: '+rec.action:'',
-      'Internet: '+(rec.online?'sim':'não'),
-      'Ocorrências: '+(rec.count||1)
-    ].filter(Boolean).join('\n');
+    return['DF EXTRUSOR PRO — diagnóstico','Código: '+rec.code,'Versão: '+rec.version,'Data: '+rec.at,'Área: '+rec.kind,'Mensagem: '+rec.message,rec.file?'Arquivo: '+rec.file+(rec.line?':'+rec.line:''):'',rec.action?'Última ação: '+rec.action:'','Internet: '+(rec.online?'sim':'não'),'Ocorrências: '+(rec.count||1)].filter(Boolean).join('\n');
   }
 
   function ensureUi(){
@@ -116,11 +106,7 @@
     $('dfErrorClear').onclick=()=>{save([]);$('dfErrorDiag').textContent='Nenhum erro registrado.'};
   }
   function openModal(){ensureUi();const a=load(),r=a[0];$('dfErrorDiag').textContent=r?diagnosticText(r)+'\n\nÚltimos códigos: '+a.slice(0,8).map(x=>x.code+(x.count>1?' x'+x.count:'')).join(', '):'Nenhum erro registrado.';$('dfErrorModal').classList.add('on')}
-  function showToast(rec){
-    const now=Date.now();if(now-lastToastAt<TOAST_COOLDOWN)return;lastToastAt=now;
-    ensureUi();$('dfErrorToastCode').textContent='⚠️ '+rec.code;$('dfErrorToastMsg').textContent='Detectei um problema no app. Se acontecer de novo, me envie este código.';
-    const t=$('dfErrorToast');t.classList.add('on');clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.classList.remove('on'),9000);
-  }
+  function showToast(rec){const now=Date.now();if(now-lastToastAt<TOAST_COOLDOWN)return;lastToastAt=now;ensureUi();$('dfErrorToastCode').textContent='⚠️ '+rec.code;$('dfErrorToastMsg').textContent='Detectei um problema no app. Se acontecer de novo, me envie este código.';const t=$('dfErrorToast');t.classList.add('on');clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.classList.remove('on'),9000)}
 
   function record(kind,data,visible){
     try{
@@ -135,17 +121,10 @@
   }
 
   window.addEventListener('error',function(e){
-    if(e&&e.target&&e.target!==window){
-      const src=e.target.src||e.target.href||'';
-      if(src)record('resource',{message:'Falha ao carregar recurso',filename:src},true);
-      return;
-    }
+    if(e&&e.target&&e.target!==window){const src=e.target.src||e.target.href||'';if(src)record('resource',{message:'Falha ao carregar recurso',filename:src},true);return}
     record('javascript',{message:e.message||'Erro JavaScript',filename:e.filename||'',line:e.lineno,col:e.colno,stack:e.error&&e.error.stack},true);
   },true);
-
-  window.addEventListener('unhandledrejection',function(e){
-    const r=e&&e.reason;record('promise',{message:r&&r.message?r.message:String(r||'Falha assíncrona'),stack:r&&r.stack||''},true);
-  });
+  window.addEventListener('unhandledrejection',function(e){const r=e&&e.reason;record('promise',{message:r&&r.message?r.message:String(r||'Falha assíncrona'),stack:r&&r.stack||''},true)});
 
   document.addEventListener('pointerdown',e=>{lastActive=Date.now();lastAction=actionName(e.target&&e.target.closest?e.target.closest('button,a,input,select,textarea'):e.target)},true);
   document.addEventListener('input',e=>{lastActive=Date.now();lastAction=actionName(e.target)},true);
@@ -157,12 +136,5 @@
     lastPerfAt=Date.now();record('performance',{message:'Interface ficou sem responder por aproximadamente '+Math.round(lag/1000)+' s',filename:'runtime'},true);
   },2000);
 
-  window.DFErrorMonitor={
-    report:(message,meta)=>record('manual',{message,...(meta||{})},true),
-    open:openModal,
-    last:()=>load()[0]||null,
-    list:()=>load().slice(),
-    clear:()=>save([]),
-    copyLast:()=>{const r=load()[0];return copyText(r?r.code:'SEM-ERRO')}
-  };
+  window.DFErrorMonitor={report:(message,meta)=>record('manual',{message,...(meta||{})},true),open:openModal,last:()=>load()[0]||null,list:()=>load().slice(),clear:()=>save([]),copyLast:()=>{const r=load()[0];return copyText(r?r.code:'SEM-ERRO')}};
 })();
