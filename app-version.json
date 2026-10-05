@@ -1,6 +1,6 @@
 {
-  "version": "1.0.231",
-  "title": "DF EXTRUSOR PRO — OP com linhas no máximo da folha",
-  "message": "As 56 linhas do apontamento da OP de Produção agora ocupam praticamente toda a altura útil da folha A4, com mais espaço para escrever à mão sem alterar a quantidade de linhas.",
-  "updatedAt": "2026-10-04T21:39:00-03:00"
+  "version": "1.0.232",
+  "title": "DF EXTRUSOR PRO — Ajuste das linhas da OP",
+  "message": "As 56 linhas do apontamento da OP de Produção foram reduzidas um pouco em relação à versão anterior, mantendo mais espaço para escrever e fazendo o rodapé caber corretamente na folha.",
+  "updatedAt": "2026-10-04T21:44:00-03:00"
 }
