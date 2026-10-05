@@ -23,7 +23,10 @@ function css(){
 }
 function start(){
   css();apply();
-  new MutationObserver(()=>requestAnimationFrame(apply)).observe(document.documentElement,{childList:true,subtree:true});
+  const root=document.body||document.documentElement;
+  new MutationObserver(records=>{
+    if(records.some(r=>[...r.addedNodes].some(n=>n&&n.nodeType===1&&(n.id==='dfRegModal'||n.querySelector?.('#dfRegModal')))))requestAnimationFrame(apply);
+  }).observe(root,{childList:true});
   document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]'))setTimeout(apply,0)},true);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
