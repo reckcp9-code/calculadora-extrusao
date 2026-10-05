@@ -1,6 +1,6 @@
 {
-  "version": "1.0.238",
-  "title": "DF EXTRUSOR PRO — OP + QR minimizável",
-  "message": "Adicionado botão MINIMIZAR/EXPANDIR no painel OP + QR da Produção. Ao minimizar, o painel da equipe é recolhido e as abas PRONTAS, AGORA, MÊS e FOTOS continuam acessíveis.",
-  "updatedAt": "2026-10-04T23:03:00-03:00"
+  "version": "1.0.239",
+  "title": "DF EXTRUSOR PRO — Exclusão de OP sincronizada",
+  "message": "Corrigida a exclusão de OPs na Produção. Ao excluir uma OP, o registro automático relacionado também é removido e a exclusão é sincronizada para a equipe, impedindo a OP de voltar pelo servidor.",
+  "updatedAt": "2026-10-04T23:16:00-03:00"
 }
