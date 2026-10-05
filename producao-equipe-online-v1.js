@@ -1,11 +1,12 @@
 (function(){
 'use strict';
-if(window.DF_PRODUCAO_EQUIPE_ONLINE_LOADER_V9)return;window.DF_PRODUCAO_EQUIPE_ONLINE_LOADER_V9=true;
-document.write('<script src="./producao-performance-v1.js?v=20261004-perf-v241"><\/script>');
-document.write('<script src="./producao-equipe-area-guard-v2.js?v=20261004-prod-sync-v241"><\/script>');
-document.write('<script src="./producao-equipe-separada-v2.js?v=20261004-equipe-producao-v241"><\/script>');
-document.write('<script src="./producao-prontas-sync-v1.js?v=20261004-prontas-sync-v241"><\/script>');
-document.write('<script src="./producao-opqr-minimizar-v1.js?v=20261004-opqr-min-v241"><\/script>');
-document.write('<script src="./producao-excluir-op-sync-v1.js?v=20261004-delete-sync-v241"><\/script>');
-document.write('<script src="./producao-mes-atual-filtro-v1.js?v=20261004-mes-atual-v241"><\/script>');
+if(window.DF_PRODUCAO_EQUIPE_ONLINE_LOADER_V10)return;window.DF_PRODUCAO_EQUIPE_ONLINE_LOADER_V10=true;
+document.write('<script src="./producao-performance-v1.js?v=20261005-perf-v254"><\/script>');
+document.write('<script src="./producao-equipe-area-guard-v2.js?v=20261005-prod-sync-v254"><\/script>');
+document.write('<script src="./producao-equipe-recovery-v1.js?v=20261005-team-recovery-v254"><\/script>');
+document.write('<script src="./producao-equipe-separada-v2.js?v=20261005-equipe-producao-v254"><\/script>');
+document.write('<script src="./producao-prontas-sync-v1.js?v=20261005-prontas-sync-v254"><\/script>');
+document.write('<script src="./producao-opqr-minimizar-v1.js?v=20261005-opqr-min-v254"><\/script>');
+document.write('<script src="./producao-excluir-op-sync-v1.js?v=20261005-delete-sync-v254"><\/script>');
+document.write('<script src="./producao-mes-atual-filtro-v1.js?v=20261005-mes-atual-v254"><\/script>');
 })();
