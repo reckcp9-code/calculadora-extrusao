@@ -19,7 +19,7 @@ const st=document.createElement('style');st.textContent=`.df-formula-picker{posi
 (function(){
   if(window.DF_FORMULA_SAVE_FIRST_OP_V1)return;
   var s=document.createElement('script');
-  s.src='./formula-save-first-op-v1.js?v=20261005-form-save-op-v252';
+  s.src='./formula-save-first-op-v1.js?v=20261005-form-save-op-v253';
   s.async=false;
   document.head.appendChild(s);
 })();
