@@ -1,6 +1,6 @@
 {
-  "version": "1.0.234",
-  "title": "DF EXTRUSOR PRO — Equipe da Produção separada",
-  "message": "A Produção agora usa equipe, código, membros, OPs, cadastros e fotos próprios, separados da Extrusão. A sincronização da Produção ocorre somente entre os aparelhos conectados ao código da equipe de Produção.",
-  "updatedAt": "2026-10-04T21:55:00-03:00"
+  "version": "1.0.235",
+  "title": "DF EXTRUSOR PRO — Proteção da equipe de Produção",
+  "message": "A Produção não reutiliza mais a equipe da Extrusão. Equipes antigas de Extrusão salvas por engano na tela da Produção são descartadas localmente e a área exige uma equipe própria de Produção.",
+  "updatedAt": "2026-10-04T22:24:00-03:00"
 }
