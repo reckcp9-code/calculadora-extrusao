@@ -1,6 +1,6 @@
 {
-  "version": "1.0.247",
-  "title": "DF EXTRUSOR PRO — Impressão da Produção corrigida",
-  "message": "A OP de Produção agora usa impressão direta, no mesmo fluxo da Formulação, sem ficar presa em Gerando PDF. O layout aprovado da OP foi mantido e o gerador antigo foi removido.",
-  "updatedAt": "2026-10-05T00:44:00-03:00"
+  "version": "1.0.248",
+  "title": "DF EXTRUSOR PRO — PDF da Produção em A4 paisagem",
+  "message": "A OP de Produção agora abre como PDF real em A4 paisagem, encaixada em uma única página como no padrão da Formulação. O gerador HTML alto da versão anterior foi removido.",
+  "updatedAt": "2026-10-05T00:56:00-03:00"
 }
