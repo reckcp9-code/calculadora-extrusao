@@ -104,16 +104,34 @@ function removeItem(type,name){
   const el=document.getElementById(CFG[type].id);if(el&&el.value===name){el.value='';el.dispatchEvent(new Event('change',{bubbles:true}))}
   render(type);refreshType(type)
 }
+function filterSearch(type){
+  const m=document.getElementById('dfRegModal');if(!m)return;
+  const search=m.querySelector('#dfRegSearch'),q=norm(search?.value||''),items=[...m.querySelectorAll('.dfRegItem')];
+  let visible=0;
+  items.forEach(item=>{
+    const name=String(item.querySelector('[data-pick]')?.dataset.pick||''),measure=type==='product'?measureFor(name):'';
+    const ok=!q||norm(name).includes(q)||(type==='product'&&norm(measure).includes(q));
+    item.dataset.dfSearchMatch=ok?'1':'0';
+    const machineOk=item.dataset.dfMachineMatch!=='0';
+    item.style.display=(ok&&machineOk)?'':'none';
+    if(ok&&machineOk)visible++;
+  });
+  let empty=m.querySelector('#dfRegSearchEmpty');
+  if(q&&items.length&&visible===0){
+    if(!empty){empty=document.createElement('div');empty.id='dfRegSearchEmpty';empty.className='dfRegEmpty';empty.textContent='Nenhum item encontrado.';m.querySelector('.dfRegList')?.appendChild(empty)}
+  }else if(empty)empty.remove();
+}
 function render(type){
-  const m=document.getElementById('dfRegModal');if(!m)return;const q=norm(m.querySelector('#dfRegSearch')?.value||''),all=list(type),view=all.filter(v=>!q||norm(v).includes(q)|| (type==='product'&&norm(measureFor(v)).includes(q))),body=m.querySelector('.dfRegList'),selected=String(document.getElementById(CFG[type].id)?.value||'');
-  body.innerHTML=view.length?view.map(v=>{
+  const m=document.getElementById('dfRegModal');if(!m)return;const all=list(type),body=m.querySelector('.dfRegList'),selected=String(document.getElementById(CFG[type].id)?.value||'');
+  body.innerHTML=all.length?all.map(v=>{
     const measure=type==='product'?measureFor(v):'';
-    return '<div class="dfRegItem'+(v===selected?' selected':'')+'"><button type="button" class="dfRegPick" data-pick="'+esc(v)+'"><span class="check">'+(v===selected?'✓':'')+'</span><span class="main"><b>'+esc(v)+'</b>'+(measure?'<small>Medida: '+esc(measure)+'</small>':'')+'</span></button><div class="dfRegActions"><button type="button" class="edit" data-edit="'+esc(v)+'" aria-label="Editar">✎</button><button type="button" class="del" data-del="'+esc(v)+'" aria-label="Excluir">⌫</button></div></div>'
-  }).join(''):'<div class="dfRegEmpty">'+(q?'Nenhum item encontrado.':'Nenhum cadastro ainda.')+'</div>';
+    return '<div class="dfRegItem'+(v===selected?' selected':'')+'" data-df-search-match="1"><button type="button" class="dfRegPick" data-pick="'+esc(v)+'"><span class="check">'+(v===selected?'✓':'')+'</span><span class="main"><b>'+esc(v)+'</b>'+(measure?'<small>Medida: '+esc(measure)+'</small>':'')+'</span></button><div class="dfRegActions"><button type="button" class="edit" data-edit="'+esc(v)+'" aria-label="Editar">✎</button><button type="button" class="del" data-del="'+esc(v)+'" aria-label="Excluir">⌫</button></div></div>'
+  }).join(''):'<div class="dfRegEmpty">Nenhum cadastro ainda.</div>';
   body.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>choose(type,b.dataset.pick));
   body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.stopPropagation();startEdit(type,b.dataset.edit)});
   body.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeItem(type,b.dataset.del)});
-  const count=m.querySelector('.dfRegCount');if(count)count.textContent=all.length+' cadastrado'+(all.length===1?'':'s')
+  const count=m.querySelector('.dfRegCount');if(count)count.textContent=all.length+' cadastrado'+(all.length===1?'':'s');
+  filterSearch(type)
 }
 function saveFromModal(type){
   const m=document.getElementById('dfRegModal'),name=String(m.querySelector('#dfRegNew')?.value||'').trim(),measure=String(m.querySelector('#dfRegMeasure')?.value||'').trim();if(!name)return;
@@ -126,7 +144,7 @@ function openModal(type,mode){
   close();editing=null;const c=CFG[type],m=document.createElement('div');m.id='dfRegModal';m.className='dfRegModal';
   const add=mode==='manage'?'<div class="dfRegAdd '+(type==='product'?'product':'')+'"><input id="dfRegNew" placeholder="'+esc(c.placeholder)+'">'+(type==='product'?'<input id="dfRegMeasure" placeholder="Medida. Ex.: 39 x 58">':'')+'<button id="dfRegSave" type="button">CADASTRAR</button></div>':'';
   m.innerHTML='<div class="dfRegPanel"><div class="dfRegHead"><div><small>'+esc(sector()).toUpperCase()+'</small><b>'+esc(c.title)+'</b></div><button type="button" class="dfRegX">×</button></div><div class="dfRegSearch"><span>⌕</span><input id="dfRegSearch" type="search" autocomplete="off" placeholder="'+esc(c.search)+'"></div><div class="dfRegMeta"><span>TODOS</span><small class="dfRegCount"></small></div>'+add+'<div class="dfRegList"></div></div>';
-  document.body.appendChild(m);m.querySelector('.dfRegX').onclick=close;m.onclick=e=>{if(e.target===m)close()};const search=m.querySelector('#dfRegSearch');search.addEventListener('input',()=>render(type));
+  document.body.appendChild(m);m.querySelector('.dfRegX').onclick=close;m.onclick=e=>{if(e.target===m)close()};const search=m.querySelector('#dfRegSearch');search.addEventListener('input',()=>filterSearch(type),{passive:true});
   const save=m.querySelector('#dfRegSave');if(save){save.onclick=()=>saveFromModal(type);m.querySelector('#dfRegNew').addEventListener('keydown',e=>{if(e.key==='Enter')save.click()});const me=m.querySelector('#dfRegMeasure');if(me)me.addEventListener('keydown',e=>{if(e.key==='Enter')save.click()})}
   render(type);setTimeout(()=>search.focus(),60)
 }
