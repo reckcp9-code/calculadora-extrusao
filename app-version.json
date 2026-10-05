@@ -1,6 +1,6 @@
 {
-  "version": "1.0.250",
-  "title": "DF EXTRUSOR PRO — Sacoleira VM 900 Flex",
-  "message": "Na Produção, a Sacoleira VM 900 Flex agora abre somente a lista de produtos cadastrada para essa máquina. Foram incluídas 12 sacolas P, M e G com suas medidas padrão, sem misturar esses produtos com as outras máquinas.",
-  "updatedAt": "2026-10-05T07:22:00-03:00"
+  "version": "1.0.251",
+  "title": "DF EXTRUSOR PRO — OP por turno na mesma máquina",
+  "message": "Na Produção, a mesma máquina agora pode ter uma OP aberta para cada turno. O bloqueio permanece somente quando já existe outra OP aberta na mesma máquina e no mesmo turno.",
+  "updatedAt": "2026-10-05T17:06:00-03:00"
 }
