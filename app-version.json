@@ -1,6 +1,6 @@
 {
-  "version": "1.0.226",
-  "title": "DF EXTRUSOR PRO — Fechamento mensal limpo",
-  "message": "Na aba MÊS ficam somente Produção, Apara, Líquida e GERAR RELATÓRIO. O relatório detalha produção total do mês, produção por máquina e produção por produto.",
-  "updatedAt": "2026-10-04T20:39:00-03:00"
+  "version": "1.0.227",
+  "title": "DF EXTRUSOR PRO — Produção em equipe online",
+  "message": "A Produção agora usa a mesma equipe online da Extrusão: criação e entrada por código, membros, OPs e baixas sincronizadas entre aparelhos e fotos vinculadas à equipe.",
+  "updatedAt": "2026-10-04T20:48:00-03:00"
 }
