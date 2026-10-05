@@ -1,6 +1,6 @@
 {
-  "version": "1.0.255",
-  "title": "DF EXTRUSOR PRO — Produtos por máquina na Produção",
-  "message": "A Produção agora filtra produtos pela máquina: MKB, UTZ e picotadeiras VM mostram apenas Pesadão; USN/UZN, Sacoleira e Blocadora mostram somente os produtos cadastrados para cada máquina. A Sacoleira VM 900 Flex mantém sua lista exclusiva de sacolas.",
-  "updatedAt": "2026-10-05T19:02:00-03:00"
+  "version": "1.0.256",
+  "title": "DF EXTRUSOR PRO — Produtos em tela inteira",
+  "message": "Na Produção, ao escolher uma máquina com lista própria de produtos, a tela de Produtos cadastrados agora abre ocupando a tela inteira, mantendo os filtros por máquina da versão anterior.",
+  "updatedAt": "2026-10-05T19:27:00-03:00"
 }
