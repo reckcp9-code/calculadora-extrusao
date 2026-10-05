@@ -1,6 +1,6 @@
 {
-  "version": "1.0.240",
-  "title": "DF EXTRUSOR PRO — Prontas e fotos somente do mês atual",
-  "message": "As abas PRONTAS e FOTOS da Produção agora mostram somente as OPs do mês atual. OPs e fotos de meses anteriores continuam preservadas no histórico, mas não entram na lista corrente.",
-  "updatedAt": "2026-10-04T23:24:00-03:00"
+  "version": "1.0.241",
+  "title": "DF EXTRUSOR PRO — Performance e diagnóstico",
+  "message": "O sincronismo da Produção foi aliviado para reduzir travadas no Safari/iPhone, mantendo a sincronização automática. O diagnóstico também passa a mostrar a versão real publicada do app.",
+  "updatedAt": "2026-10-05T02:31:00-03:00"
 }
