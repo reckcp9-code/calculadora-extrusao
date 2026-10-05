@@ -51,9 +51,9 @@ async function draw(o){
   y+=h3;box(ctx,x,y,U*3,h4,'#fff');font(ctx,8,true);ctx.fillStyle='#222';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('SEM TROCA DE PRODUTO / MEDIDA',x+5,y+4);wrap(ctx,'MANTER ESTA OP DURANTE A SEMANA',x,y+11,U*3,h4-11,{size:11,bold:true});
   box(ctx,x+U*3,y,U*3,h4,'#fff');font(ctx,8,true);ctx.fillText('NA TROCA DE PRODUTO / MEDIDA',x+U*3+5,y+4);wrap(ctx,'ENCERRAR E GERAR NOVA OP',x+U*3,y+11,U*3,h4-11,{size:11,bold:true});y+=h4;
   var full=W-M*2;box(ctx,x,y,full,22,'#d9d9d9');text(ctx,'APONTAMENTO DE PRODUÇÃO',x,y,full,22,{size:12,bold:true,align:'center'});y+=22;
-  var ratios=[.07,.17,.13,.13,.07,.17,.13,.13],heads=['BOBINA','PESO BOBINA (kg)','APARA (kg)','CÓDIGO PARADA','BOBINA','PESO BOBINA (kg)','APARA (kg)','CÓDIGO PARADA'],cx=x,i,rw;
-  for(i=0;i<8;i++){rw=full*ratios[i];box(ctx,cx,y,rw,24,'#efefef');wrap(ctx,heads[i],cx,y,rw,24,{size:9,bold:true,align:'center',pad:2});cx+=rw}y+=24;
-  var rh=18;for(var r=1;r<=28;r++){cx=x;for(i=0;i<8;i++){rw=full*ratios[i];box(ctx,cx,y,rw,rh,'#fff');if(i===0)text(ctx,String(r).padStart(2,'0'),cx,y,rw,rh,{size:10,bold:true,align:'center',pad:2});if(i===4)text(ctx,String(r+28).padStart(2,'0'),cx,y,rw,rh,{size:10,bold:true,align:'center',pad:2});cx+=rw}y+=rh}
+  var ratios=[.07,.16,.09,.09,.09,.07,.16,.09,.09,.09],heads=['BOBINA','PESO BOBINA (kg)','APARA (kg)','CÓDIGO PARADA','EXTRUSOR','BOBINA','PESO BOBINA (kg)','APARA (kg)','CÓDIGO PARADA','EXTRUSOR'],cx=x,i,rw;
+  for(i=0;i<10;i++){rw=full*ratios[i];box(ctx,cx,y,rw,24,'#efefef');wrap(ctx,heads[i],cx,y,rw,24,{size:8.5,bold:true,align:'center',pad:2});cx+=rw}y+=24;
+  var rh=18;for(var r=1;r<=28;r++){cx=x;for(i=0;i<10;i++){rw=full*ratios[i];box(ctx,cx,y,rw,rh,'#fff');if(i===0)text(ctx,String(r).padStart(2,'0'),cx,y,rw,rh,{size:10,bold:true,align:'center',pad:2});if(i===5)text(ctx,String(r+28).padStart(2,'0'),cx,y,rw,rh,{size:10,bold:true,align:'center',pad:2});cx+=rw}y+=rh}
   box(ctx,x,y,full,18,'#d9d9d9');text(ctx,'CÓDIGOS DE PARADA',x,y,full,18,{size:10,bold:true,align:'center'});y+=18;
   var codes=[['01','Troca de pedido'],['02','Manutenção mecânica'],['03','Manutenção elétrica'],['04','Queda de energia']],cw=full/4;for(i=0;i<4;i++){box(ctx,x+i*cw,y,cw,24,'#fff');text(ctx,codes[i][0]+'   '+codes[i][1],x+i*cw,y,cw,24,{size:9,min:7,bold:i===0,pad:8})}y+=24;
   box(ctx,x,y,full/2,22,'#efefef');text(ctx,'DF EXTRUSOR PRO',x,y,full/2,22,{size:10,bold:true,pad:8});box(ctx,x+full/2,y,full/2,22,'#efefef');text(ctx,'OP DE PRODUÇÃO • PADRÃO DF',x+full/2,y,full/2,22,{size:10,bold:true,align:'right',pad:8});
