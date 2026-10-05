@@ -1,6 +1,6 @@
 {
-  "version": "1.0.251",
-  "title": "DF EXTRUSOR PRO — OP por turno na mesma máquina",
-  "message": "Na Produção, a mesma máquina agora pode ter uma OP aberta para cada turno. O bloqueio permanece somente quando já existe outra OP aberta na mesma máquina e no mesmo turno.",
-  "updatedAt": "2026-10-05T17:06:00-03:00"
+  "version": "1.0.252",
+  "title": "DF EXTRUSOR PRO — Formulação salva no topo e OP automática",
+  "message": "Ao salvar uma Formulação, a nova fórmula passa a ficar selecionada e em primeiro lugar nas Formulações salvas e a OP correspondente é aberta automaticamente em todos os salvamentos.",
+  "updatedAt": "2026-10-05T18:24:00-03:00"
 }
