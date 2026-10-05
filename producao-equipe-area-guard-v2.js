@@ -10,10 +10,14 @@ const SNAP_KEY='df_producao_team_snapshot_v2';
 const CFG_SNAP_KEY='df_producao_team_catalog_snapshot_v2';
 const PHOTO_MAP_KEY='df_producao_team_photo_map_v2';
 const CAD_KEY='df_producao_cadastros_v1';
+const OPS_KEY='df_producao_ops_setores_test_v3';
+const AUTO_KEY='df_producao_ops_auto_v1';
 const REPAIR_KEY='df_producao_sync_repair_v236';
 const REPAIR_VERSION='236-qrlong-owner-seed';
 
 function readJson(k,f){try{const v=JSON.parse(localStorage.getItem(k)||'');return v==null?f:v}catch(e){return f}}
+function writeJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function norm(v){return String(v||'').trim().toUpperCase().replace(/\s+/g,'')}
 function team(){const t=readJson(TEAM_KEY,null);return t&&t.teamId?t:null}
 function clearWrongProductionTeam(){
   const t=team();if(!t)return false;
@@ -34,8 +38,23 @@ function prepareRepair(){
     localStorage.setItem(REPAIR_KEY,REPAIR_VERSION);
   }catch(e){}
 }
+function ensureReadyBaseOps(){
+  const ready=readJson(AUTO_KEY,[]),ops=readJson(OPS_KEY,[]),snap=readJson(SNAP_KEY,{});
+  if(!Array.isArray(ready)||!Array.isArray(ops))return false;
+  const ids=new Set(ops.map(o=>norm(o&&o.id)).filter(Boolean));
+  let changed=false;
+  for(const r of ready){
+    if(!r||r.status!=='ok')continue;
+    const id=norm(r.opId||r.id);if(!id.startsWith('DFOP-')||ids.has(id)||snap?.[id]?.hash==='__DELETED__')continue;
+    const at=String(r.createdAt||r.updatedAt||new Date().toISOString());
+    ops.push({id,sector:String(r.sector||'Picote'),machine:String(r.machine||''),product:String(r.product||''),measure:String(r.measure||''),operator:String(r.operator||''),shift:String(r.shift||''),start:String(r.start||r.date||''),end:String(r.end||r.date||''),createdAt:at,status:'closed',rolls:[],stops:[],test:false,autoRecovered:true});
+    ids.add(id);changed=true;
+  }
+  if(changed)writeJson(OPS_KEY,ops);
+  return changed;
+}
 
-clearWrongProductionTeam();prepareRepair();
+clearWrongProductionTeam();prepareRepair();ensureReadyBaseOps();
 
 let cadBefore='';try{cadBefore=localStorage.getItem(CAD_KEY)||''}catch(e){}
 const nativeFetch=window.fetch.bind(window);
@@ -68,9 +87,11 @@ window.fetch=async function(input,init){
   return res;
 };
 
-window.addEventListener('df-producao-team-changed',()=>{clearWrongProductionTeam();prepareRepair()});
-window.addEventListener('pageshow',()=>{clearWrongProductionTeam();prepareRepair()});
+window.addEventListener('df-producao-team-changed',()=>{clearWrongProductionTeam();prepareRepair();ensureReadyBaseOps()});
+window.addEventListener('pageshow',()=>{clearWrongProductionTeam();prepareRepair();ensureReadyBaseOps()});
+window.addEventListener('focus',()=>ensureReadyBaseOps());
 window.addEventListener('df-producao-team-synced',()=>{
+  ensureReadyBaseOps();
   let now='';try{now=localStorage.getItem(CAD_KEY)||''}catch(e){}
   if(now&&now!==cadBefore){
     cadBefore=now;
