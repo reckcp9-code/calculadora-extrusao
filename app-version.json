@@ -1,6 +1,6 @@
 {
-  "version": "1.0.256",
-  "title": "DF EXTRUSOR PRO — Produtos em tela inteira",
-  "message": "Na Produção, ao escolher uma máquina com lista própria de produtos, a tela de Produtos cadastrados agora abre ocupando a tela inteira, mantendo os filtros por máquina da versão anterior.",
-  "updatedAt": "2026-10-05T19:27:00-03:00"
+  "version": "1.0.257",
+  "title": "DF EXTRUSOR PRO — PDF da Produção com Extrusor",
+  "message": "No apontamento da OP de Produção, o espaço de Apara foi dividido em Apara e Código de Parada, e a antiga coluna Código de Parada passou a ser Extrusor. O layout continua em uma única folha A4 paisagem.",
+  "updatedAt": "2026-10-05T19:34:00-03:00"
 }
