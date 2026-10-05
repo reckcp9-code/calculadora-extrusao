@@ -1,6 +1,6 @@
 {
-  "version": "1.0.257",
-  "title": "DF EXTRUSOR PRO — PDF da Produção com Extrusor",
-  "message": "No apontamento da OP de Produção, o espaço de Apara foi dividido em Apara e Código de Parada, e a antiga coluna Código de Parada passou a ser Extrusor. O layout continua em uma única folha A4 paisagem.",
-  "updatedAt": "2026-10-05T19:34:00-03:00"
+  "version": "1.0.258",
+  "title": "DF EXTRUSOR PRO — Digitação corrigida na Produção",
+  "message": "Corrigida a digitação nos campos de pesquisa/cadastro da Produção no iPhone: o teclado permanece aberto enquanto você digita e a lista é filtrada sem reconstruir a tela a cada letra.",
+  "updatedAt": "2026-10-05T19:38:00-03:00"
 }
