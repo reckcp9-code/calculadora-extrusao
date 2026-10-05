@@ -1,6 +1,6 @@
 {
-  "version": "1.0.249",
-  "title": "DF EXTRUSOR PRO — versão limpa e otimizada",
-  "message": "Varredura geral de estabilidade e desempenho: carregamento pesado em sequência e durante ociosidade, timers e varreduras redundantes reduzidos, cache antigo corrigido, diagnóstico atualizado e sincronização da Produção reforçada. O PDF A4 paisagem aprovado da 1.0.248 foi preservado.",
-  "updatedAt": "2026-10-05T01:37:00-03:00"
+  "version": "1.0.250",
+  "title": "DF EXTRUSOR PRO — Sacoleira VM 900 Flex",
+  "message": "Na Produção, a Sacoleira VM 900 Flex agora abre somente a lista de produtos cadastrada para essa máquina. Foram incluídas 12 sacolas P, M e G com suas medidas padrão, sem misturar esses produtos com as outras máquinas.",
+  "updatedAt": "2026-10-05T07:22:00-03:00"
 }
