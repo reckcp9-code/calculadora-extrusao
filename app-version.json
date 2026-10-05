@@ -1,6 +1,6 @@
 {
-  "version": "1.0.236",
-  "title": "DF EXTRUSOR PRO — Sincronização da Produção corrigida",
-  "message": "Corrigida a sincronização da equipe de Produção: máquinas, produtos, operadores e OPs são reenviados pelo dono e baixados pelos operadores. O catálogo da Produção não é mais sobrescrito por um aparelho de operador vazio.",
-  "updatedAt": "2026-10-04T22:46:00-03:00"
+  "version": "1.0.237",
+  "title": "DF EXTRUSOR PRO — Prontas e fechamento sincronizados",
+  "message": "Corrigida a sincronização das OPs prontas da Produção. Uma baixa feita em qualquer aparelho da equipe agora é enviada ao servidor e atualiza PRONTAS, AGORA e MÊS nos demais celulares.",
+  "updatedAt": "2026-10-04T22:55:00-03:00"
 }
