@@ -1,16 +1,16 @@
-const DF_CACHE='df-extrusor-shell-v48-clean-v249';
+const DF_CACHE='df-extrusor-shell-v49-clean-v249';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
   './','./index.html','./acessar.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './device-identity.js','./ios-reinstall-bridge.js','./access-recovery-v1.js','./auth-self-heal-v1.js','./auto-access.js',
+  './device-identity.js','./ios-reinstall-bridge.js','./access-recovery-v1.js','./auth-self-heal-v1.js','./auto-access.js','./gerador-admin-pwa-v193.js',
   './performance-guard-v3.js','./error-monitor-v1.js','./production-stability-v1.js','./app-bundle.js',
   './sacolas-density-prod-0980-v1.js','./sacolas-caixa-fardo-fast-input-v1.js','./home-polish-v2.js',
   './cost-simple-v154.js','./cost-roll-profit-v1.js','./cost-back-v155.js','./push-background-repair-v1.js','./access-reinstall-recovery-v2.js',
   './backup-manual-only-v1.js','./local-calculations.js','./data-integrity-v2.js','./runtime-stability-v5.js','./team-tab-permissions-v182.js','./update-notify-v1.js',
-  './medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./formula-mobile-nav-fix-test-v1.js','./formula-mobile-nav-fix-v1.js',
-  './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./teste/team-formulas-duplicates-v2.js','./team-formulas-duplicates-v2.js',
-  './formula-saved-search-v1.js','./formula-material-picker-test-v1.js','./formula-material-picker-v1.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
+  './medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./formula-mobile-nav-fix-v1.js',
+  './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./team-formulas-duplicates-v2.js',
+  './formula-saved-search-v1.js','./formula-material-picker-v1.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
   './op-team-date-canonical-v1.js','./op-product-d1-authority-v1.js','./extrusao-matriz-bur.js','./extrusao-matriz-complemento.js','./op-status-artifact-filter-v170.js',
   './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v1.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
 ];
