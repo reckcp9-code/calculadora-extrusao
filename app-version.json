@@ -1,6 +1,6 @@
 {
-  "version": "1.0.258",
-  "title": "DF EXTRUSOR PRO — Digitação corrigida na Produção",
-  "message": "Corrigida a digitação nos campos de pesquisa/cadastro da Produção no iPhone: o teclado permanece aberto enquanto você digita e a lista é filtrada sem reconstruir a tela a cada letra.",
-  "updatedAt": "2026-10-05T19:38:00-03:00"
+  "version": "1.0.259",
+  "title": "DF EXTRUSOR PRO — Pesquisa de OPs corrigida",
+  "message": "Corrigido o campo Pesquisar OP em OPs salvas na Produção: ao digitar, o campo não é mais recriado e o teclado do iPhone permanece aberto letra por letra.",
+  "updatedAt": "2026-10-05T20:18:00-03:00"
 }
