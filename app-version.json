@@ -1,6 +1,6 @@
 {
-  "version": "1.0.253",
-  "title": "DF EXTRUSOR PRO — OP padrão ao salvar formulação",
-  "message": "Ao salvar uma Formulação, a OP automática agora usa exatamente o mesmo modelo padrão em PDF horizontal com QR, mistura calculada, medidas e materiais usado pelo botão OP.",
-  "updatedAt": "2026-10-05T18:38:00-03:00"
+  "version": "1.0.254",
+  "title": "DF EXTRUSOR PRO — Recuperação automática da Equipe de Produção",
+  "message": "Se o vínculo local da Equipe de Produção sumir do aparelho, o app consulta o servidor e restaura automaticamente a equipe correta, preservando dono, operadores e dados existentes.",
+  "updatedAt": "2026-10-05T18:48:00-03:00"
 }
