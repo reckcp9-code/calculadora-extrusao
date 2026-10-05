@@ -5,7 +5,7 @@ function apply(host){
   if(!host||host.dataset.dfLinhasAltas==='1')return;
   host.dataset.dfLinhasAltas='1';
   var s=document.createElement('style');
-  s.textContent='#dfNativePdfHost .prod td{height:18.5px!important;padding:1px 3px!important;text-align:center!important}#dfNativePdfHost .prod th{height:14px!important}';
+  s.textContent='#dfNativePdfHost .dfPdfPage{padding:6px!important}#dfNativePdfHost .prod td{height:21.1px!important;padding:1px 3px!important;text-align:center!important}#dfNativePdfHost .prod th{height:14px!important}#dfNativePdfHost .bar{margin-top:2px!important}#dfNativePdfHost .codes-title{margin-top:2px!important}#dfNativePdfHost .foot{margin-top:2px!important}';
   host.appendChild(s);
 }
 function scan(){apply(document.getElementById('dfNativePdfHost'))}
