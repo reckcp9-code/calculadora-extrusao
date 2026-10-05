@@ -16,10 +16,12 @@ window.setInterval=function(fn,delay){
   if(ms>=55000&&ms<=65000&&/ensureCard\s*\(|PENDING_KEY|saveNow\s*\(/i.test(s))return dormant();
   if(ms>=25000&&ms<=35000&&/scheduleUpload\s*\(\s*100\s*\).*scheduleRemote\s*\(\s*300\s*,\s*false\s*\)/s.test(s))delay=60000;
   const productionSync=ms>=8000&&ms<=12000&&/syncRemote\(false\).*syncLocal\(false\).*refreshMembers\(false\)/s.test(s);
+  const productionCards=ms>=800&&ms<=1200&&/render\(\).*decorateReady\(\).*ensureMonthButton\(\)/s.test(s);
   if(productionSync)delay=30000;
+  if(productionCards)delay=5000;
   return nativeInterval(function(){
     if(document.hidden&&Number(delay)<15000)return;
-    if(productionSync){idleRun(fn,args);return}
+    if(productionSync||productionCards){idleRun(fn,args);return}
     try{return typeof fn==='function'?fn.apply(window,args):Function(String(fn))()}catch(e){nativeTimeout(()=>{throw e},0)}
   },delay);
 };
