@@ -1,6 +1,6 @@
 {
-  "version": "1.0.243",
-  "title": "DF EXTRUSOR PRO — OPs Prontas pela data da baixa",
-  "message": "Corrigido o filtro das OPs Prontas da Extrusão: agora o mês é definido pela data da baixa/conclusão, e não pelo mês gravado no código QR da OP. OPs antigas baixadas no mês atual continuam aparecendo em Prontas e Fotos.",
-  "updatedAt": "2026-10-04T23:44:00-03:00"
+  "version": "1.0.244",
+  "title": "DF EXTRUSOR PRO — Prontas e Fotos sincronizadas",
+  "message": "Corrigido o bug em que o fechamento do mês mostrava 3 OPs concluídas, mas Prontas e Fotos exibiam somente 1. Agora Prontas, Fotos e Mês são atualizados após a sincronização do D1 e mantêm as OPs baixadas no mês atual.",
+  "updatedAt": "2026-10-04T23:52:00-03:00"
 }
