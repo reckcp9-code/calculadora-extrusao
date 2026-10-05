@@ -52,21 +52,17 @@
   }
 
   function tagNav(){const menu=findMenu(),formula=findFormula(),ops=findOps(),whats=findWhats(),backup=findBackup();if(menu)menu.dataset.dfNavMenu='1';if(formula)formula.dataset.dfFormulaTop='1';if(ops)ops.dataset.dfNavOps='1';if(whats)whats.dataset.dfNavWhats='1';if(backup)backup.dataset.dfNavBackup='1'}
-
   function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
-
   function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
   function showFormula(btn){clearMode();cleanLiteralNewline();const form=$('dfFormTabCore');if(form)form.click();setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
-
   function bindFormula(formula){if(!formula||formula.dataset.dfCleanTabsBound)return;formula.dataset.dfCleanTabsBound='1';formula.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showFormula(formula)},true)}
-
-  function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();ensureFormulaButton();tagNav();bind()},30)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
-  function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(cleanLiteralNewline,20)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
+  function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();ensureFormulaButton();tagNav();bind()},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
+  function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(cleanLiteralNewline,40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
 
   function bind(){ensureStyle();const p=page(),n=nav();if(!p||!n)return false;cleanLiteralNewline();const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();tagNav();bindFormula(formula);if(whats&&!whats.dataset.dfCleanTabsBound){whats.dataset.dfCleanTabsBound='1';whats.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showWhats(whats)},true)}if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}const form=$('dfFormTabCore'),ops=$('dfFormTabOps');[form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();tagNav();if(btn===form)markActive(f)},0)},true)}});const topOps=findOps();if(topOps&&!topOps.dataset.dfCleanTabsClear){topOps.dataset.dfCleanTabsClear='1';topOps.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{tagNav();const current=findOps();if(current)markActive(current)},0)},true)}attachNavObserver();attachPageObserver();return true}
-
-  function start(){cleanLiteralNewline();if(bind())return;let tries=0;const t=setInterval(()=>{tries++;cleanLiteralNewline();if(bind()||tries>=30)clearInterval(t)},100)}
+  function retry(attempt){attempt=Number(attempt)||0;cleanLiteralNewline();if(bind()||attempt>=12)return;setTimeout(()=>retry(attempt+1),300)}
+  function start(){retry(0)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  window.addEventListener('df-ui-ready',()=>{cleanLiteralNewline();bind();setTimeout(()=>{cleanLiteralNewline();bind()},100);setTimeout(()=>{cleanLiteralNewline();bind()},500)},{once:true});
+  window.addEventListener('df-ui-ready',()=>{cleanLiteralNewline();bind();setTimeout(()=>{cleanLiteralNewline();bind()},120);setTimeout(()=>{cleanLiteralNewline();bind()},550)},{once:true});
 })();
