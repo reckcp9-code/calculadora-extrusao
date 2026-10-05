@@ -1,6 +1,6 @@
 {
-  "version": "1.0.246",
-  "title": "DF EXTRUSOR PRO — Formato do PDF da Produção restaurado",
-  "message": "Restaurado o formato de impressão aprovado da OP de Produção, mantendo a correção do gerador para não ficar preso em Gerando PDF. A área de Formulação não foi alterada.",
-  "updatedAt": "2026-10-05T00:12:00-03:00"
+  "version": "1.0.247",
+  "title": "DF EXTRUSOR PRO — Impressão da Produção corrigida",
+  "message": "A OP de Produção agora usa impressão direta, no mesmo fluxo da Formulação, sem ficar presa em Gerando PDF. O layout aprovado da OP foi mantido e o gerador antigo foi removido.",
+  "updatedAt": "2026-10-05T00:44:00-03:00"
 }
