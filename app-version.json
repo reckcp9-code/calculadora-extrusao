@@ -1,6 +1,6 @@
 {
-  "version": "1.0.233",
-  "title": "DF EXTRUSOR PRO — Linhas da OP ajustadas",
-  "message": "As 56 linhas da OP foram reduzidas na medida certa para manter os códigos de parada visíveis, preenchendo quase toda a altura útil da folha.",
-  "updatedAt": "2026-10-04T21:46:00-03:00"
+  "version": "1.0.234",
+  "title": "DF EXTRUSOR PRO — Equipe da Produção separada",
+  "message": "A Produção agora usa equipe, código, membros, OPs, cadastros e fotos próprios, separados da Extrusão. A sincronização da Produção ocorre somente entre os aparelhos conectados ao código da equipe de Produção.",
+  "updatedAt": "2026-10-04T21:55:00-03:00"
 }
