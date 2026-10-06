@@ -1,6 +1,6 @@
 {
-  "version": "1.0.262",
-  "title": "DF EXTRUSOR PRO — Nova lista MKB, UTZ e VM 900",
-  "message": "Substituída a lista antiga das Picotadeiras MKB, UTZ e VM 900 pela nova tabela enviada: cesta básica, biodegradável base canela, rolinho preto pesadão biodegradável, roll pesadão preto, almofada pesadão preto e pia/banheiro rosa-perfumado, com as medidas correspondentes.",
-  "updatedAt": "2026-10-05T21:36:00-03:00"
+  "version": "1.0.263",
+  "title": "DF EXTRUSOR PRO — Exclusão definitiva de produtos",
+  "message": "Corrigida a exclusão de produtos cadastrados: ao confirmar Excluir, o item é removido do cadastro, das listas por máquina e dos seletores, e fica marcado para não ser recriado pelas listas fixas ou pelo histórico.",
+  "updatedAt": "2026-10-05T21:49:00-03:00"
 }
