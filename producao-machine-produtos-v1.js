@@ -70,7 +70,8 @@ function machineRule(machine){
   const m=norm(machine);
   if(!m)return'none';
   if(m.includes('picotadeira mkb')||m.includes('picotadeira utz')||m.includes('picotadeira vm 900')||m.includes('picotadeira vm 250 roll')||m.includes('vm 250 roll')||m==='vm 900')return'pesadao';
-  if(m.includes('sacoleira flex 900')||m.includes('sacoleira vm 900 flex')||m.includes('sacoleira'))return'sacoleira-fixed';
+  if(m.includes('sacoleira flex 900')||m.includes('sacoleira vm 900 flex'))return'sacoleira-fixed';
+  if(m.includes('sacoleira'))return'custom';
   if(m.includes('picotadeira usn'))return'usn-fixed';
   return'custom';
 }
@@ -179,12 +180,18 @@ function filterModal(){
     if(ok){visible++;const a=item.querySelector('.dfRegActions');if(a)a.style.display=''}
   });
   const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='none'||rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')?'none':'';
-  const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 900':rule==='sacoleira-fixed'?'SACOLEIRA':rule==='usn-fixed'?'USN':rule==='none'?'SELECIONE A MÁQUINA':(machine||'MÁQUINA');
+  const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 250 ROLL':rule==='sacoleira-fixed'?'SACOLEIRA':rule==='usn-fixed'?'USN':rule==='none'?'SELECIONE A MÁQUINA':(machine||'MÁQUINA');
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
   if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='none'?'Selecione uma máquina primeiro.':rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
 }
 function schedule(){requestAnimationFrame(()=>{filterNative();filterModal()})}
-function openProducts(){setTimeout(()=>{schedule();const b=productTrigger();if(b)b.click();setTimeout(filterModal,0)},70)}
+function openProducts(expected,attempt){
+  attempt=attempt||0;
+  const current=currentMachine();
+  if(expected&&norm(current)!==norm(expected)&&attempt<12){setTimeout(()=>openProducts(expected,attempt+1),35);return}
+  schedule();
+  setTimeout(()=>{const b=productTrigger();if(b)b.click();setTimeout(filterModal,0)},40)
+}
 function assignNewProduct(name,oldName){
   const machine=currentMachine();if(machineRule(machine)!=='custom'||!name)return;
   const d=read(),sec=ensureSector(d,currentSector()),k=norm(machine);let a=Array.isArray(sec.machineProducts[k])?sec.machineProducts[k]:[];
@@ -212,7 +219,7 @@ function start(){
     const del=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-del]');if(del){}
     const save=e.target&&e.target.closest&&e.target.closest('#dfRegSave');if(save){const m=document.getElementById('dfRegModal');if(isProductModal(m)){const name=String(m.querySelector('#dfRegNew')?.value||'').trim(),old=editOld;setTimeout(()=>{assignNewProduct(name,old);editOld='';ensureData();schedule()},20)}}
     const p=e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]');if(p)setTimeout(filterModal,0);
-    const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='none')setTimeout(openProducts,20)}else if(isProductModal(m))setTimeout(filterModal,0)}
+    const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='none')setTimeout(()=>openProducts(chosen,0),20)}else if(isProductModal(m))setTimeout(filterModal,0)}
   },true);
   document.addEventListener('input',e=>{if(e.target&&e.target.id==='dfRegSearch')requestAnimationFrame(filterModal)},true);
   window.addEventListener('df-product-deleted',e=>{const n=String(e.detail&&e.detail.name||'');if(n){cleanupDeleted(n);schedule()}});
