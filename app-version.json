@@ -1,6 +1,6 @@
 {
-  "version": "1.0.273",
-  "title": "DF EXTRUSOR PRO — Barra Custo e Custo Fabril",
-  "message": "A aba Custo agora tem uma barra no padrão do aplicativo com MENU, CUSTO e CUSTO FABRIL. O Custo mantém o cálculo atual e Custo Fabril abre uma área separada pronta para o novo projeto.",
-  "updatedAt": "2026-10-05T22:58:00-03:00"
+  "version": "1.0.274",
+  "title": "DF EXTRUSOR PRO — Barra de custo compacta",
+  "message": "A barra MENU, CUSTO e CUSTO FABRIL agora segue o mesmo padrão compacto dos outros módulos do aplicativo, com menor altura, raio e fonte.",
+  "updatedAt": "2026-10-05T23:02:00-03:00"
 }
