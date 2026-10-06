@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const PROD_DEST='./op-producao.html?v=20261003-producao-v26-prod';
+  const PROD_DEST='./op-producao.html?v=20261005-producao-integrada-v279';
 
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
@@ -40,6 +40,28 @@
       #appContent > .tabs > .tab:active{transform:scale(.97)!important}
       #appContent > .tabs > #btPr{grid-column:1 / -1!important;width:100%!important;min-height:68px!important}
 
+      /* Produção fica pré-carregada sobre o app para abrir sem salto/reload. */
+      #dfProductionFrame{
+        position:fixed!important;
+        inset:0!important;
+        width:100vw!important;
+        height:100dvh!important;
+        min-height:100vh!important;
+        border:0!important;
+        margin:0!important;
+        padding:0!important;
+        background:#080b13!important;
+        z-index:2147483000!important;
+        opacity:0!important;
+        visibility:hidden!important;
+        pointer-events:none!important;
+      }
+      #dfProductionFrame.dfProductionOpen{
+        opacity:1!important;
+        visibility:visible!important;
+        pointer-events:auto!important;
+      }
+
       @media(max-width:560px){
         #appContent > .tabs{gap:8px!important;padding:7px!important}
         #appContent > .tabs > .tab{
@@ -58,12 +80,69 @@
     if(beta)beta.remove();
   }
 
+  let productionOpening=false;
+  let productionTimer=0;
+
+  function ensureProductionFrame(){
+    let frame=document.getElementById('dfProductionFrame');
+    if(frame)return frame;
+    frame=document.createElement('iframe');
+    frame.id='dfProductionFrame';
+    frame.title='Produção — DF Extrusor Pro';
+    frame.setAttribute('aria-label','Produção — DF Extrusor Pro');
+    frame.src=PROD_DEST;
+    frame.dataset.loaded='0';
+    frame.addEventListener('load',function(){
+      frame.dataset.loaded='1';
+      if(productionOpening)showProductionFrame(frame);
+    });
+    document.body.appendChild(frame);
+    return frame;
+  }
+
+  function showProductionFrame(frame){
+    clearTimeout(productionTimer);
+    productionOpening=false;
+    window.__dfHomeScrollY=window.scrollY||0;
+    document.documentElement.style.overflow='hidden';
+    document.body.style.overflow='hidden';
+    frame.classList.add('dfProductionOpen');
+    frame.setAttribute('aria-hidden','false');
+    try{frame.contentWindow.postMessage({type:'DF_PRODUCTION_SHOW'},location.origin)}catch(_e){}
+  }
+
+  function hideProductionFrame(){
+    const frame=document.getElementById('dfProductionFrame');
+    if(!frame)return;
+    productionOpening=false;
+    clearTimeout(productionTimer);
+    frame.classList.remove('dfProductionOpen');
+    frame.setAttribute('aria-hidden','true');
+    document.documentElement.style.overflow='';
+    document.body.style.overflow='';
+    const y=Number(window.__dfHomeScrollY)||0;
+    requestAnimationFrame(function(){window.scrollTo(0,y)});
+  }
+
   function goProduction(e){
     if(e){
       try{e.preventDefault()}catch(_e){}
       try{e.stopPropagation()}catch(_e){}
+      try{e.stopImmediatePropagation()}catch(_e){}
     }
-    location.href=PROD_DEST;
+    const frame=ensureProductionFrame();
+    if(frame.dataset.loaded==='1'){
+      showProductionFrame(frame);
+      return;
+    }
+    productionOpening=true;
+    /* Mantém a tela atual visível até a Produção terminar de carregar. */
+    productionTimer=setTimeout(function(){
+      if(frame.dataset.loaded!=='1'){
+        productionOpening=false;
+        location.href=PROD_DEST;
+      }
+    },5000);
   }
 
   function installProductionButton(){
@@ -87,7 +166,14 @@
     addStyle();
     removeHomeBeta();
     installProductionButton();
+    /* Precarrega em segundo plano para o toque em PRODUÇÃO ser imediato. */
+    setTimeout(ensureProductionFrame,120);
   }
+
+  window.addEventListener('message',function(e){
+    if(e.origin!==location.origin)return;
+    if(e.data&&e.data.type==='DF_PRODUCTION_CLOSE')hideProductionFrame();
+  });
 
   document.addEventListener('click',function(e){
     const b=e.target&&e.target.closest?e.target.closest('#btPr'):null;
