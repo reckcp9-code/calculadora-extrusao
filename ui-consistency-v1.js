@@ -99,6 +99,7 @@
 
     const mode=String(el.getAttribute('inputmode')||'decimal').toLowerCase();
     let intDigits='',frac='',hasDecimal=false;
+    const wasAutoGrouped=el.dataset.dfAutoGrouped==='1';
 
     if(mode==='numeric'){
       intDigits=raw.replace(/\D/g,'');
@@ -109,7 +110,9 @@
       hasDecimal=true;
     }else{
       const dots=(raw.match(/\./g)||[]).length;
-      if(dots===1){
+      if(wasAutoGrouped&&dots>0){
+        intDigits=raw.replace(/\D/g,'');
+      }else if(dots===1){
         const p=raw.split('.');
         const a=(p[0]||'').replace(/\D/g,'');
         const b=(p[1]||'').replace(/\D/g,'').slice(0,6);
@@ -132,6 +135,7 @@
     if(!intDigits)intDigits='0';
     let next=sign+groupDigits(intDigits);
     if(hasDecimal)next+=','+frac;
+    el.dataset.dfAutoGrouped=(!hasDecimal&&/^[-+]?\d{1,3}(?:\.\d{3})+$/.test(next))?'1':'0';
 
     if(el.value!==next){
       const atEnd=document.activeElement===el;
