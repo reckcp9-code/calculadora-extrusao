@@ -137,7 +137,7 @@ function filterModal(){
     const searchOk=!q||norm(name).includes(q)||norm(item.querySelector('.main small')?.textContent||'').includes(q);
     item.dataset.dfMachineMatch=machineOk?'1':'0';item.dataset.dfSearchMatch=searchOk?'1':'0';
     const ok=machineOk&&searchOk;item.style.display=ok?'':'none';
-    if(ok){visible++;if(rule==='pesadao'||rule==='sacoleira-fixed'){const a=item.querySelector('.dfRegActions');if(a)a.style.display='none'}}
+    if(ok){visible++;const a=item.querySelector('.dfRegActions');if(a)a.style.display=''}
   });
   const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='pesadao'||rule==='sacoleira-fixed')?'none':'';
   const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'SÓ PESADÃO':rule==='sacoleira-fixed'?'VM 900 FLEX':rule==='custom'?(machine||'MÁQUINA'):'TODOS';
