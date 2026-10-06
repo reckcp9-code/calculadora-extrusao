@@ -1,6 +1,6 @@
 {
-  "version": "1.0.269",
-  "title": "DF EXTRUSOR PRO — Botão Produção em largura total",
-  "message": "O botão Produção na tela inicial agora ocupa toda a linha inferior do menu principal, eliminando o espaço vazio e deixando o layout mais equilibrado.",
-  "updatedAt": "2026-10-05T22:06:00-03:00"
+  "version": "1.0.270",
+  "title": "DF EXTRUSOR PRO — Sacoleira Flex 900 corrigida",
+  "message": "As 12 sacolas da Sacoleira Flex 900 agora também são carregadas no catálogo do setor Picote, mantendo a exibição restrita à própria Sacoleira Flex 900.",
+  "updatedAt": "2026-10-05T22:08:00-03:00"
 }
