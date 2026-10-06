@@ -104,15 +104,19 @@ async function saveCurrent(){
   const btn=$('dfPASave'),oldText=btn?.textContent||'SALVAR OP';
   if(btn){btn.disabled=true;btn.textContent='SALVANDO...'}
   try{
-    const createdAt=new Date().toISOString(),opId=normId(currentOp.id),photoId=currentPhotoId||('PHOTO-'+Date.now()),pendingId=currentPendingId;
-    const rec={id:opId,opId,photoId,createdAt,date:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
+    const opId=normId(currentOp.id),photoId=currentPhotoId||('PHOTO-'+Date.now()),pendingId=currentPendingId,photoAt=new Date().toISOString();
 
     /* Garante a foto antes de confirmar a baixa. */
-    if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
+    if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt:photoAt});
     else if(photoId){
       const ph=await photoGet(photoId).catch(()=>null);
-      if(ph?.blob&&normId(ph.opId)!==opId)await photoPut(photoId,ph.blob,{opId,createdAt:ph.savedAt||createdAt});
+      if(ph?.blob&&normId(ph.opId)!==opId)await photoPut(photoId,ph.blob,{opId,createdAt:ph.savedAt||photoAt});
     }
+
+    /* O horário oficial da baixa nasce somente depois de a foto estar persistida. */
+    const createdAt=new Date().toISOString();
+    const rec={id:opId,opId,photoId,createdAt,date:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
+    if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
 
     let a=autos();
     a=a.filter(r=>r&&r.id!==pendingId&&normId(r.opId||r.id)!==opId&&(!photoId||r.photoId!==photoId));
