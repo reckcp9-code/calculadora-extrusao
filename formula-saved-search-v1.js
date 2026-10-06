@@ -112,16 +112,14 @@ function scheduleScan(){
   else scanFrame=setTimeout(run,40);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleScan,{once:true});else scheduleScan();
-new MutationObserver(muts=>{
-  if(active&&muts.every(m=>active.contains(m.target)))return;
-  scheduleScan();
-}).observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('df-ui-ready',scheduleScan);
+[260,900,1800].forEach(ms=>setTimeout(scheduleScan,ms));
+document.addEventListener('click',e=>{if(e.target?.closest?.('#btFo,#dfFormTabCore'))setTimeout(scheduleScan,80)},true);
+['df-ui-ready','df-team-formulas-updated','pageshow'].forEach(ev=>window.addEventListener(ev,scheduleScan));
 })();
 (function(){
   if(window.DF_FORMULA_SAVE_FIRST_OP_V1)return;
   var s=document.createElement('script');
-  s.src='./formula-save-first-op-v1.js?v=20261005-form-save-op-v253';
+  s.src='./formula-save-first-op-v1.js?v=20261006-perf-v281';
   s.async=false;
   document.head.appendChild(s);
 })();
