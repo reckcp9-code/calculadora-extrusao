@@ -3,6 +3,7 @@
 if(window.DF_PRODUCAO_MACHINE_PRODUTOS_V1)return;window.DF_PRODUCAO_MACHINE_PRODUTOS_V1=true;
 
 const KEY='df_producao_cadastros_v1';
+const DELETED_KEY='df_producao_produtos_deleted_v1';
 const OPS_KEYS=['df_producao_ops_setores_test_v3','df_producao_ops_auto_v1'];
 const PESADAO=[
   ['Cesta Básica','50 x 80'],
@@ -60,6 +61,8 @@ const PICOTADEIRA_USN=[
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
 const uniq=a=>[...new Set((a||[]).map(v=>String(v||'').trim()).filter(Boolean))];
 function read(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return{}}}
+function readDeleted(){try{const x=JSON.parse(localStorage.getItem(DELETED_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
+function isDeleted(name){return !!readDeleted()[norm(name)]}}
 function write(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
 function currentSector(){const s=window.__DF_PROD_V3_STATE&&window.__DF_PROD_V3_STATE.sector;return s||'Picote'}
 function currentMachine(){return String(document.getElementById('prMachine')?.value||'').trim()}
@@ -83,13 +86,14 @@ function ensureSector(d,name){
   return s;
 }
 function addProduct(sec,name,measure){
+  if(isDeleted(name))return;
   const old=sec.products.find(v=>norm(v)===norm(name));
   const key=old||name;
   if(!old)sec.products.push(name);
   if(measure&&!String(sec.productMeasures[key]||'').trim())sec.productMeasures[key]=measure;
 }
 function assign(sec,machine,product){
-  if(!machine||!product)return;
+  if(!machine||!product||isDeleted(product))return;
   const k=norm(machine),a=Array.isArray(sec.machineProducts[k])?sec.machineProducts[k]:[];
   if(!a.some(v=>norm(v)===norm(product)))a.push(product);
   sec.machineProducts[k]=uniq(a);
@@ -112,7 +116,7 @@ function walkHistorical(d,node,depth){
   if(typeof node!=='object')return;
   const machine=String(node.machine||node.maquina||node.machineName||node.maquinaNome||'').trim();
   const product=String(node.product||node.produto||node.productName||node.product_name||'').trim();
-  if(machine&&product&&machineRule(machine)==='custom'){
+  if(machine&&product&&!isDeleted(product)&&machineRule(machine)==='custom'){
     const secName=String(node.sector||node.setor||findSectorForMachine(d,machine)||currentSector());
     const sec=ensureSector(d,secName);
     const measure=String(node.measure||node.medida||'').trim();
@@ -128,10 +132,15 @@ function ensureData(){
   SACOLEIRA_VM900.forEach(([n,m])=>addProduct(sac,n,m));
   seedKnownAssignments(d);
   OPS_KEYS.forEach(k=>{try{walkHistorical(d,JSON.parse(localStorage.getItem(k)||'null'),0)}catch(e){}});
-  Object.keys(d).forEach(s=>{const sec=d[s];if(sec&&Array.isArray(sec.products))sec.products=uniq(sec.products).sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'}))});
+  Object.keys(d).forEach(s=>{
+    const sec=ensureSector(d,s);
+    sec.products=uniq(sec.products).filter(v=>!isDeleted(v)).sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'}));
+    Object.keys(sec.productMeasures||{}).forEach(k=>{if(isDeleted(k))delete sec.productMeasures[k]});
+    Object.keys(sec.machineProducts||{}).forEach(k=>{sec.machineProducts[k]=uniq(sec.machineProducts[k]||[]).filter(v=>!isDeleted(v))});
+  });
   write(d);return d
 }
-function fixedList(rule){return rule==='pesadao'?PESADAO:rule==='sacoleira-fixed'?SACOLEIRA_VM900:[]}
+function fixedList(rule){const src=rule==='pesadao'?PESADAO:rule==='sacoleira-fixed'?SACOLEIRA_VM900:[];return src.filter(([name])=>!isDeleted(name))}
 function allowedNames(machine){
   const rule=machineRule(machine),d=ensureData(),sec=ensureSector(d,currentSector());
   if(rule==='pesadao'||rule==='sacoleira-fixed')return fixedList(rule).map(x=>x[0]);
@@ -143,7 +152,8 @@ function productTrigger(){return document.querySelector('[data-df-picker="produc
 function ensureOptions(){
   const el=productSelect();if(!el)return;
   const d=ensureData(),sec=ensureSector(d,currentSector());
-  (sec.products||[]).forEach(name=>{if(!Array.from(el.options||[]).some(o=>norm(o.value)===norm(name)))el.add(new Option(name,name))})
+  [...el.options].forEach(o=>{if(o.value&&isDeleted(o.value))o.remove()});
+  (sec.products||[]).filter(name=>!isDeleted(name)).forEach(name=>{if(!Array.from(el.options||[]).some(o=>norm(o.value)===norm(name)))el.add(new Option(name,name))})
 }
 function updateTrigger(){const el=productSelect(),b=productTrigger();if(!el||!b)return;const v=String(el.value||'').trim();b.textContent=v||'Selecione';b.classList.toggle('chosen',!!v)}
 function filterNative(){
@@ -185,10 +195,15 @@ function assignNewProduct(name,oldName){
   sec.machineProducts[k]=uniq(a);write(d)
 }
 function cleanupDeleted(name){
-  const d=read();let exists=false;
-  Object.keys(d).forEach(s=>{const sec=ensureSector(d,s);if(sec.products.some(v=>norm(v)===norm(name)))exists=true});
-  if(exists)return;
-  Object.keys(d).forEach(s=>{const sec=ensureSector(d,s);Object.keys(sec.machineProducts||{}).forEach(k=>{sec.machineProducts[k]=(sec.machineProducts[k]||[]).filter(v=>norm(v)!==norm(name))})});write(d)
+  const d=read(),target=norm(name);
+  Object.keys(d).forEach(s=>{
+    const sec=ensureSector(d,s);
+    sec.products=(sec.products||[]).filter(v=>norm(v)!==target);
+    Object.keys(sec.productMeasures||{}).forEach(k=>{if(norm(k)===target)delete sec.productMeasures[k]});
+    Object.keys(sec.machineProducts||{}).forEach(k=>{sec.machineProducts[k]=(sec.machineProducts[k]||[]).filter(v=>norm(v)!==target)});
+  });
+  write(d);
+  const el=productSelect();if(el)[...el.options].forEach(o=>{if(o.value&&norm(o.value)===target)o.remove()});
 }
 let editOld='';
 function start(){
@@ -196,13 +211,14 @@ function start(){
   document.addEventListener('change',e=>{if(e.target&&e.target.id==='prMachine'){editOld='';schedule()}},true);
   document.addEventListener('click',e=>{
     const edit=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-edit]');if(edit)editOld=String(edit.dataset.edit||'');
-    const del=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-del]');if(del){const n=String(del.dataset.del||'');setTimeout(()=>{cleanupDeleted(n);schedule()},40)}
+    const del=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-del]');if(del){}
     const save=e.target&&e.target.closest&&e.target.closest('#dfRegSave');if(save){const m=document.getElementById('dfRegModal');if(isProductModal(m)){const name=String(m.querySelector('#dfRegNew')?.value||'').trim(),old=editOld;setTimeout(()=>{assignNewProduct(name,old);editOld='';ensureData();schedule()},20)}}
     const p=e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]');if(p)setTimeout(filterModal,0);
     const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='free'&&machineRule(chosen)!=='none')setTimeout(openProducts,20)}else if(isProductModal(m))setTimeout(filterModal,0)}
   },true);
   document.addEventListener('input',e=>{if(e.target&&e.target.id==='dfRegSearch')requestAnimationFrame(filterModal)},true);
-  window.addEventListener('storage',e=>{if(e.key===KEY){ensureData();schedule()}});
+  window.addEventListener('df-product-deleted',e=>{const n=String(e.detail&&e.detail.name||'');if(n){cleanupDeleted(n);schedule()}});
+  window.addEventListener('storage',e=>{if(e.key===KEY||e.key===DELETED_KEY){ensureData();schedule()}});
   window.addEventListener('df-producao-team-synced',()=>{ensureData();schedule()});
   document.addEventListener('df-producao-team-synced',()=>{ensureData();schedule()});
   window.addEventListener('pageshow',()=>{ensureData();schedule()});
