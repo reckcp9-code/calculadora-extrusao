@@ -12,7 +12,7 @@ function team(){try{if(window.DFOpCloud&&typeof window.DFOpCloud.team==='functio
 function isOwner(){return String(team()?.role||'').toLowerCase()==='owner'}
 function clean(v){return String(v??'').replace(/\s+/g,' ').trim()}
 function key(v){let s=clean(v);try{s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')}catch(e){}return s.toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ')}
-function num(v){let s=String(v??'').trim().replace(/\s/g,'').replace(/^R\$/i,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)&&n>=0?n:0}
+function num(v){const n=typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;return Number.isFinite(n)&&n>=0?n:0}
 function localMats(){const a=loadJson(MAT_KEY,[]);return Array.isArray(a)?a:[]}
 function serverMats(rows){return (Array.isArray(rows)?rows:[]).map(m=>({id:String(m?.id??m?.materialId??''),nome:clean(m?.nome??m?.name),preco:num(m?.preco??m?.price)})).filter(m=>m.id&&m.nome)}
 
