@@ -1,6 +1,6 @@
 {
-  "version": "1.0.277",
-  "title": "DF EXTRUSOR PRO — Correção da depreciação no Custo Fabril",
-  "message": "Ao selecionar Sim em depreciação, os campos de base de cálculo e percentual agora abrem imediatamente e os resultados são atualizados automaticamente.",
-  "updatedAt": "2026-10-05T23:23:00-03:00"
+  "version": "1.0.278",
+  "title": "DF EXTRUSOR PRO — Relatório PDF do Custo Fabril",
+  "message": "O Custo Fabril agora tem o botão Gerar Relatório PDF com detalhamento dos custos mensais, impacto por kg, apara, manutenção, depreciação e custo final do produto.",
+  "updatedAt": "2026-10-05T23:29:00-03:00"
 }
