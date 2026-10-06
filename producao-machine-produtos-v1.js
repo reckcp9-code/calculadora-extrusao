@@ -28,19 +28,19 @@ const PESADAO=[
   ['Roll Pia/Banheiro Rosa-Perfumado 10 L','34 x 40']
 ];
 const SACOLEIRA_VM900=[
-  ['Sacola M branca','38 x 48'],
-  ['Sacola M reciclada azul','38 x 48'],
-  ['Sacola M reciclada verde','38 x 48'],
-  ['Sacola M virgem amarela','38 x 48'],
-  ['Sacola M transparente virgem','38 x 48'],
-  ['Sacola M vermelha Dona B','38 x 48'],
-  ['Sacola G branca','48 x 58'],
-  ['Sacola G vermelha Dona B','48 x 58'],
-  ['Sacola P branca','30 x 40'],
-  ['Sacola P reciclada verde','30 x 40'],
-  ['Sacola P reciclada azul','30 x 40'],
-  ['Sacola P vermelha Dona B','30 x 40']
-];
+  ['Sacola Dona B Vermelha M','38 x 48'],
+  ['Sacola Branca M','38 x 48'],
+  ['Sacola Reciclada Azul M','38 x 48'],
+  ['Sacola Reciclada Verde M','38 x 48'],
+  ['Sacola Virgem Amarela M','38 x 48'],
+  ['Sacola Transparente Virgem M','38 x 48'],
+  ['Sacola Dona B Vermelha G','48 x 58'],
+  ['Sacola Branca G','48 x 58'],
+  ['Sacola Dona B Vermelha P','30 x 40'],
+  ['Sacola Branca P','30 x 40'],
+  ['Sacola Reciclada Azul P','30 x 40'],
+  ['Sacola Reciclada Verde P','30 x 40']
+]
 const PICOTADEIRA_USN=[
   ['Saco Freezer 2KG X 50','20 x 34'],
   ['Saco Freezer 3KG X 50','23 x 37'],
@@ -70,7 +70,7 @@ function machineRule(machine){
   const m=norm(machine);
   if(!m)return'none';
   if(m.includes('picotadeira mkb')||m.includes('picotadeira utz')||m.includes('picotadeira vm 900')||m.includes('picotadeira vm 250 roll')||m.includes('vm 250 roll')||m==='vm 900')return'pesadao';
-  if(m.includes('sacoleira'))return'sacoleira-fixed';
+  if(m.includes('sacoleira flex 900')||m.includes('sacoleira vm 900 flex')||m.includes('sacoleira'))return'sacoleira-fixed';
   if(m.includes('picotadeira usn'))return'usn-fixed';
   return'custom';
 }
