@@ -82,8 +82,34 @@
 
   let productionOpening=false;
   let productionTimer=0;
+  let productionDisposeTimer=0;
+  let productionPreloadScheduled=false;
+
+  function scheduleProductionDispose(delay){
+    clearTimeout(productionDisposeTimer);
+    productionDisposeTimer=setTimeout(function(){
+      const frame=document.getElementById('dfProductionFrame');
+      if(!frame||frame.classList.contains('dfProductionOpen')||productionOpening)return;
+      try{frame.src='about:blank'}catch(_e){}
+      frame.remove();
+    },Math.max(15000,Number(delay)||30000));
+  }
+
+  function scheduleProductionPreload(){
+    if(productionPreloadScheduled||document.getElementById('dfProductionFrame'))return;
+    productionPreloadScheduled=true;
+    const run=function(){
+      productionPreloadScheduled=false;
+      if(document.hidden)return;
+      const frame=ensureProductionFrame();
+      if(frame&&frame.dataset.loaded!=='1')scheduleProductionDispose(45000);
+    };
+    if('requestIdleCallback'in window)requestIdleCallback(run,{timeout:4500});
+    else setTimeout(run,2600);
+  }
 
   function ensureProductionFrame(){
+    clearTimeout(productionDisposeTimer);
     let frame=document.getElementById('dfProductionFrame');
     if(frame)return frame;
     frame=document.createElement('iframe');
@@ -95,6 +121,7 @@
     frame.addEventListener('load',function(){
       frame.dataset.loaded='1';
       if(productionOpening)showProductionFrame(frame);
+      else scheduleProductionDispose(45000);
     });
     document.body.appendChild(frame);
     return frame;
@@ -102,6 +129,7 @@
 
   function showProductionFrame(frame){
     clearTimeout(productionTimer);
+    clearTimeout(productionDisposeTimer);
     productionOpening=false;
     window.__dfHomeScrollY=window.scrollY||0;
     document.documentElement.style.overflow='hidden';
@@ -122,6 +150,7 @@
     document.body.style.overflow='';
     const y=Number(window.__dfHomeScrollY)||0;
     requestAnimationFrame(function(){window.scrollTo(0,y)});
+    scheduleProductionDispose(30000);
   }
 
   function goProduction(e){
@@ -166,8 +195,8 @@
     addStyle();
     removeHomeBeta();
     installProductionButton();
-    /* Precarrega em segundo plano para o toque em PRODUÇÃO ser imediato. */
-    setTimeout(ensureProductionFrame,120);
+    /* Precarrega somente quando o navegador estiver ocioso, sem disputar o boot. */
+    scheduleProductionPreload();
   }
 
   window.addEventListener('message',function(e){
