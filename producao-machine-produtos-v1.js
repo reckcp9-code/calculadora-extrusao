@@ -27,6 +27,23 @@ const SACOLEIRA_VM900=[
   ['Sacola P reciclada azul','30 x 40'],
   ['Sacola P vermelha Dona B','30 x 40']
 ];
+const PICOTADEIRA_USN=[
+  ['Saco Freezer 2KG X 50','20 x 34'],
+  ['Saco Freezer 3KG X 50','23 x 37'],
+  ['Saco Freezer 5KG X 50','28 x 40'],
+  ['Saco Freezer 7KG X 50','34 x 49'],
+  ['Saco Freezer 2KG X 100','20 x 34'],
+  ['Saco Freezer 3KG X 100','23 x 37'],
+  ['Saco Freezer 5KG X 100','28 x 40'],
+  ['Saco Freezer 7KG X 100','34 x 49'],
+  ['Bobina Picotada Light P/1/2 KG','15 x 28'],
+  ['Bobina Picotada Light P/1 KG','19 x 29'],
+  ['Bobina Picotada Light P/2 KG','20 x 34'],
+  ['Bobina Picotada Light P/3 KG','23 x 37'],
+  ['Bobina Picotada Light P/5 KG','28 x 40'],
+  ['Bobina Picotada Light P/8 KG','34 x 49'],
+  ['Bobina Picotada Light P/10 KG','40 x 60']
+];
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
 const uniq=a=>[...new Set((a||[]).map(v=>String(v||'').trim()).filter(Boolean))];
 function read(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return{}}}
@@ -71,7 +88,8 @@ function findSectorForMachine(d,machine){
 }
 function seedKnownAssignments(d){
   const pic=ensureSector(d,'Picote');
-  [['PICOTADEIRA USN','SACO FREEZER 3KG'],['PICOTADEIRA UZN','SACO FREEZER 3KG'],['PICOTADEIRA UNS','SACO FREEZER 3KG'],['SACOLEIRA FLEX 900','SACOLA AZUL GRANDE'],['BLOCADORA FLEX 900','AGRANEL PARA LIXO 100 LITROS PRETO']].forEach(([m,p])=>{
+  PICOTADEIRA_USN.forEach(([p,m])=>{addProduct(pic,p,m);assign(pic,'PICOTADEIRA USN',p)});
+  [['PICOTADEIRA UZN','SACO FREEZER 3KG'],['PICOTADEIRA UNS','SACO FREEZER 3KG'],['SACOLEIRA FLEX 900','SACOLA AZUL GRANDE'],['BLOCADORA FLEX 900','AGRANEL PARA LIXO 100 LITROS PRETO']].forEach(([m,p])=>{
     if(pic.products.some(v=>norm(v)===norm(p)))assign(pic,m,p)
   });
 }
