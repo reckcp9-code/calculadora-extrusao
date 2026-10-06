@@ -41,24 +41,27 @@
         align-items:stretch;
       }
       #dfCostNavV273 button{
-        min-height:64px;
-        border:1.5px solid #334b67;
-        border-radius:14px;
-        background:linear-gradient(180deg,#162033 0%,#111827 100%);
-        color:#e7edf6;
-        padding:0 14px;
-        font:950 12px/1.1 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+        min-height:45px;
+        border:1px solid #29405a;
+        border-radius:12px;
+        background:linear-gradient(180deg,#0c1b2c,#07111d);
+        color:#e5eef8;
+        padding:8px 11px;
+        font:950 10.5px/1.12 system-ui,-apple-system,Segoe UI,Roboto,Arial;
         white-space:nowrap;
-        letter-spacing:.02em;
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 5px 14px rgba(0,0,0,.18);
+        letter-spacing:0;
+        box-shadow:none;
+        text-transform:uppercase;
       }
       #dfCostNavV273 .menu{
-        flex:0 0 104px;
+        flex:0 0 92px;
+        min-height:46px;
+        padding:0 12px;
         border-color:#f5a000;
         background:#211400;
         color:#ffd36a;
       }
-      #dfCostNavV273 [data-cost-mode]{flex:1 0 132px}
+      #dfCostNavV273 [data-cost-mode]{flex:1 0 112px}
       #dfCostNavV273 [data-cost-mode].active{
         border-color:#f5a000;
         background:linear-gradient(180deg,#ffc647 0%,#f5a000 100%);
@@ -77,10 +80,10 @@
       #dfCostFabrilV273 h2{margin:6px 0 6px;font-size:23px}
       #dfCostFabrilV273 .subx{color:#94a3b8;font-size:13px;line-height:1.45}
       @media(max-width:560px){
-        #dfCostNavV273{gap:8px}
-        #dfCostNavV273 button{min-height:62px;padding:0 11px;font-size:11px}
-        #dfCostNavV273 .menu{flex-basis:96px}
-        #dfCostNavV273 [data-cost-mode]{flex-basis:128px}
+        #dfCostNavV273{gap:7px}
+        #dfCostNavV273 button{min-height:45px;padding:8px 10px;font-size:10px}
+        #dfCostNavV273 .menu{flex-basis:88px;min-height:46px;padding:0 10px}
+        #dfCostNavV273 [data-cost-mode]{flex-basis:104px}
       }
     `;
     document.head.appendChild(s);
