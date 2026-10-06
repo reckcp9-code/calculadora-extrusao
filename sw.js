@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v62-produtos-por-maquina-v264';
+const DF_CACHE='df-extrusor-shell-v63-m250-pesadao-v265';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
