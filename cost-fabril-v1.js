@@ -225,6 +225,18 @@
 
     restore();
     formatRestoredFields();
+    syncConditionalUI();
+
+    root.addEventListener('change',e=>{
+      const t=e.target;
+      if(t&&(t.id==='cfDepIncluir'||t.id==='cfManModo')){
+        syncConditionalUI();
+        save();
+        calc();
+        requestAnimationFrame(syncConditionalUI);
+      }
+    },true);
+
     root.querySelectorAll('[data-cf]').forEach(el=>{
       const key=el.dataset.cf;
       el.addEventListener('input',()=>{
@@ -251,6 +263,34 @@
   }
   function setText(id,text){const el=$(id);if(el)el.textContent=text}
 
+  function syncConditionalUI(){
+    const root=$('dfCostFabrilV273');
+    if(!root)return;
+
+    const depOn=String(root.querySelector('#cfDepIncluir')?.value||'nao')==='sim';
+    const depBox=root.querySelector('#cfDepCampos');
+    const depRow=root.querySelector('#cfDepRow');
+    if(depBox){
+      depBox.classList.toggle('on',depOn);
+      depBox.style.setProperty('display',depOn?'block':'none','important');
+    }
+    if(depRow)depRow.style.setProperty('display',depOn?'grid':'none','important');
+
+    const manMode=String(root.querySelector('#cfManModo')?.value||'valor');
+    const manValorBox=root.querySelector('#cfManValorBox');
+    const manPctBox=root.querySelector('#cfManPctBox');
+    if(manValorBox){
+      const show=manMode==='valor';
+      manValorBox.classList.toggle('on',show);
+      manValorBox.style.setProperty('display',show?'block':'none','important');
+    }
+    if(manPctBox){
+      const show=manMode==='percentual';
+      manPctBox.classList.toggle('on',show);
+      manPctBox.style.setProperty('display',show?'block':'none','important');
+    }
+  }
+
   function calc(){
     const prod=val('producao');
     const aluguel=val('aluguel');
@@ -265,9 +305,9 @@
     const reprocMes=apara*reprocUnit;
     const reprocKg=prod>0?reprocMes/prod:0;
 
-    const depOn=String($('#cfDepIncluir')?.value||'nao')==='sim';
-    $('#cfDepCampos')?.classList.toggle('on',depOn);
-    $('#cfDepRow')?.style.setProperty('display',depOn?'grid':'none');
+    const root=$('dfCostFabrilV273');
+    const depOn=String(root?.querySelector('#cfDepIncluir')?.value||'nao')==='sim';
+    syncConditionalUI();
     const depBase=depOn?val('depBase'):0;
     const depPct=depOn?val('depPct'):0;
     const depMes=depOn?depBase*depPct/100:0;
@@ -279,9 +319,7 @@
     const folhaKg=prod>0?folha/prod:0;
 
     const baseMan=aluguel+energia+folha+reprocMes+embalagem+depMes;
-    const manMode=String($('#cfManModo')?.value||'valor');
-    $('#cfManValorBox')?.classList.toggle('on',manMode==='valor');
-    $('#cfManPctBox')?.classList.toggle('on',manMode==='percentual');
+    const manMode=String(root?.querySelector('#cfManModo')?.value||'valor');
     const manMes=manMode==='percentual'?baseMan*val('manPct')/100:val('manValor');
     const manKg=prod>0?manMes/prod:0;
 
