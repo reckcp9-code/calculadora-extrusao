@@ -1,6 +1,6 @@
 {
-  "version": "1.0.274",
-  "title": "DF EXTRUSOR PRO — Barra de custo compacta",
-  "message": "A barra MENU, CUSTO e CUSTO FABRIL agora segue o mesmo padrão compacto dos outros módulos do aplicativo, com menor altura, raio e fonte.",
-  "updatedAt": "2026-10-05T23:02:00-03:00"
+  "version": "1.0.275",
+  "title": "DF EXTRUSOR PRO — Custo Fabril completo",
+  "message": "Criada a área Custo Fabril com aluguel, energia, folha, produção, apara e reprocesso, formulação, embalagem, depreciação opcional, manutenção por valor ou percentual, detalhamento por kg, custo industrial e custo final completo. Todos os valores ficam salvos no aparelho.",
+  "updatedAt": "2026-10-05T23:06:00-03:00"
 }
