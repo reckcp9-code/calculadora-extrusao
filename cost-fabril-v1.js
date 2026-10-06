@@ -27,6 +27,45 @@
   const kgMoney=v=>(Number.isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:4})+'/kg';
   const pct=v=>(Number.isFinite(v)?v:0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
 
+  const GROUP_KEYS=new Set(['aluguel','energia','folha','producao','aparaKg','embalagem','depBase','manValor']);
+  const DECIMAL_KEYS=new Set(['reprocKg','formula','depPct','manPct']);
+
+  function groupDigits(digits){
+    digits=String(digits||'').replace(/^0+(?=\d)/,'');
+    if(!digits)return'';
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  }
+
+  function formatGrouped(el){
+    if(!el)return;
+    let s=String(el.value||'').replace(/[^\d,.-]/g,'').replace(/-/g,'');
+    if(!s){el.value='';return}
+    const comma=s.indexOf(',');
+    let intPart,decPart='';
+    if(comma>=0){
+      intPart=s.slice(0,comma).replace(/\D/g,'');
+      decPart=s.slice(comma+1).replace(/\D/g,'').slice(0,2);
+      el.value=groupDigits(intPart)+(decPart!==''||s.endsWith(',')?','+decPart:'');
+    }else{
+      intPart=s.replace(/\D/g,'');
+      el.value=groupDigits(intPart);
+    }
+  }
+
+  function formatDecimal(el){
+    if(!el||!String(el.value||'').trim())return;
+    const n=num(el.value);
+    el.value=n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function formatRestoredFields(){
+    document.querySelectorAll('#dfCostFabrilV273 input[data-cf]').forEach(el=>{
+      const key=el.dataset.cf;
+      if(GROUP_KEYS.has(key))formatGrouped(el);
+      else if(DECIMAL_KEYS.has(key))formatDecimal(el);
+    });
+  }
+
   function read(){
     try{
       const x=JSON.parse(localStorage.getItem(KEY)||'{}');
@@ -185,10 +224,23 @@
     `;
 
     restore();
+    formatRestoredFields();
     root.querySelectorAll('[data-cf]').forEach(el=>{
-      el.addEventListener('input',()=>{save();calc()});
+      const key=el.dataset.cf;
+      el.addEventListener('input',()=>{
+        if(el.tagName==='INPUT'&&GROUP_KEYS.has(key))formatGrouped(el);
+        save();calc();
+      });
       el.addEventListener('change',()=>{save();calc()});
+      if(el.tagName==='INPUT'){
+        el.addEventListener('blur',()=>{
+          if(DECIMAL_KEYS.has(key))formatDecimal(el);
+          else if(GROUP_KEYS.has(key))formatGrouped(el);
+          save();calc();
+        });
+      }
     });
+    save();
     calc();
     return true;
   }
