@@ -1,6 +1,6 @@
 {
-  "version": "1.0.263",
-  "title": "DF EXTRUSOR PRO — Exclusão definitiva de produtos",
-  "message": "Corrigida a exclusão de produtos cadastrados: ao confirmar Excluir, o item é removido do cadastro, das listas por máquina e dos seletores, e fica marcado para não ser recriado pelas listas fixas ou pelo histórico.",
-  "updatedAt": "2026-10-05T21:49:00-03:00"
+  "version": "1.0.264",
+  "title": "DF EXTRUSOR PRO — Produtos separados por máquina",
+  "message": "Corrigida a lista de produtos da Produção: não existe mais a visualização TODOS. Cada máquina mostra somente seus produtos vinculados. MKB/UTZ/VM 900 usam a lista Pesadão, Sacoleira usa apenas a lista de sacolas, USN usa apenas sua lista, e as demais máquinas usam somente seus vínculos próprios.",
+  "updatedAt": "2026-10-05T21:53:00-03:00"
 }
