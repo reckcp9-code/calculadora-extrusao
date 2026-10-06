@@ -128,7 +128,7 @@ function ensureData(){
   ['Picote','Sacoleira','Blocadora'].forEach(s=>ensureSector(d,s));
   const pic=ensureSector(d,'Picote'),sac=ensureSector(d,'Sacoleira');
   PESADAO.forEach(([n,m])=>addProduct(pic,n,m));
-  SACOLEIRA_VM900.forEach(([n,m])=>addProduct(sac,n,m));
+  SACOLEIRA_VM900.forEach(([n,m])=>{addProduct(pic,n,m);addProduct(sac,n,m)});
   seedKnownAssignments(d);
   OPS_KEYS.forEach(k=>{try{walkHistorical(d,JSON.parse(localStorage.getItem(k)||'null'),0)}catch(e){}});
   Object.keys(d).forEach(s=>{
