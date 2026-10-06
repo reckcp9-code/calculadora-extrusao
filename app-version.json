@@ -1,6 +1,6 @@
 {
-  "version": "1.0.272",
-  "title": "DF EXTRUSOR PRO — Varredura geral de estabilidade",
-  "message": "Revisão geral na Produção: preservados os produtos vinculados por máquina, corrigida a troca de máquina para abrir a lista certa sem corrida de eventos, edição das listas fixas agora persiste, recadastro manual de produto excluído volta a funcionar, rótulo da VM 250 Roll corrigido e escape de texto das OPs salvas ajustado.",
-  "updatedAt": "2026-10-05T22:18:00-03:00"
+  "version": "1.0.273",
+  "title": "DF EXTRUSOR PRO — Barra Custo e Custo Fabril",
+  "message": "A aba Custo agora tem uma barra no padrão do aplicativo com MENU, CUSTO e CUSTO FABRIL. O Custo mantém o cálculo atual e Custo Fabril abre uma área separada pronta para o novo projeto.",
+  "updatedAt": "2026-10-05T22:58:00-03:00"
 }
