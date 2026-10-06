@@ -1,6 +1,6 @@
 (function(){
 'use strict';
 if(window.DF_PRODUCAO_MACHINE_PRODUTOS_LOADER_V3)return;window.DF_PRODUCAO_MACHINE_PRODUTOS_LOADER_V3=true;
-if(!window.DF_PRODUCAO_MACHINE_PRODUTOS_V1)document.write('<script src="./producao-machine-produtos-v1.js?v=20261005-vm1250-pesadao-v266"><\/script>');
+if(!window.DF_PRODUCAO_MACHINE_PRODUTOS_V1)document.write('<script src="./producao-machine-produtos-v1.js?v=20261005-vm250roll-pesadao-v267"><\/script>');
 if(!window.DF_PRODUCAO_PRODUTOS_FULLSCREEN_V1)document.write('<script src="./producao-produtos-fullscreen-v1.js?v=20261005-products-full-v258"><\/script>');
 })();
