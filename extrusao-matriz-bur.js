@@ -14,11 +14,8 @@
     minimumFractionDigits: digits || 0, maximumFractionDigits: digits || 0
   });
   function number(value) {
-    const str = String(value == null ? '' : value).trim().replace(/\s/g, '');
-    if (!str) return NaN;
-    const normalized = str.includes(',') && str.includes('.')
-      ? str.replace(/\./g, '').replace(',', '.') : str.replace(',', '.');
-    return Number(normalized);
+    if(typeof window.DFParsePtNumber==='function')return window.DFParsePtNumber(value);
+    return Number(value);
   }
 
   function analyze({ material, widthCm, dieMm, gapMm, doubleMicra }) {
