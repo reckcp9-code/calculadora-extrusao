@@ -4,6 +4,7 @@ if(window.DF_PRODUCAO_MACHINE_PRODUTOS_V1)return;window.DF_PRODUCAO_MACHINE_PROD
 
 const KEY='df_producao_cadastros_v1';
 const DELETED_KEY='df_producao_produtos_deleted_v1';
+const FIXED_EDIT_KEY='df_producao_fixed_product_edits_v1';
 const OPS_KEYS=['df_producao_ops_setores_test_v3','df_producao_ops_auto_v1'];
 const PESADAO=[
   ['Cesta Básica','50 x 80'],
@@ -63,6 +64,18 @@ const uniq=a=>[...new Set((a||[]).map(v=>String(v||'').trim()).filter(Boolean))]
 function read(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return{}}}
 function readDeleted(){try{const x=JSON.parse(localStorage.getItem(DELETED_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
 function isDeleted(name){return !!readDeleted()[norm(name)]}
+function readFixedEdits(){try{const x=JSON.parse(localStorage.getItem(FIXED_EDIT_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
+function writeFixedEdits(v){try{localStorage.setItem(FIXED_EDIT_KEY,JSON.stringify(v||{}))}catch(e){}}
+function fixedSource(rule){return rule==='pesadao'?PESADAO:rule==='sacoleira-fixed'?SACOLEIRA_VM900:rule==='usn-fixed'?PICOTADEIRA_USN:[]}
+function fixedOriginalFor(rule,effectiveName){
+  const edits=readFixedEdits();
+  for(const [name,measure] of fixedSource(rule)){
+    const e=edits[rule+'|'+norm(name)];
+    const shown=String(e&&e.name||name);
+    if(norm(shown)===norm(effectiveName))return{name,measure,key:rule+'|'+norm(name)}
+  }
+  return null
+}
 function write(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
 function currentSector(){const s=window.__DF_PROD_V3_STATE&&window.__DF_PROD_V3_STATE.sector;return s||'Picote'}
 function currentMachine(){return String(document.getElementById('prMachine')?.value||'').trim()}
@@ -105,7 +118,7 @@ function findSectorForMachine(d,machine){
 }
 function seedKnownAssignments(d){
   const pic=ensureSector(d,'Picote');
-  PICOTADEIRA_USN.forEach(([p,m])=>{addProduct(pic,p,m)});
+  fixedList('usn-fixed').forEach(([p,m])=>{addProduct(pic,p,m)});
   [['PICOTADEIRA UZN','SACO FREEZER 3KG'],['PICOTADEIRA UNS','SACO FREEZER 3KG'],['SACOLEIRA FLEX 900','SACOLA AZUL GRANDE'],['BLOCADORA FLEX 900','AGRANEL PARA LIXO 100 LITROS PRETO']].forEach(([m,p])=>{
     if(pic.products.some(v=>norm(v)===norm(p)))assign(pic,m,p)
   });
@@ -128,8 +141,8 @@ function ensureData(){
   const d=read();
   ['Picote','Sacoleira','Blocadora'].forEach(s=>ensureSector(d,s));
   const pic=ensureSector(d,'Picote'),sac=ensureSector(d,'Sacoleira');
-  PESADAO.forEach(([n,m])=>addProduct(pic,n,m));
-  SACOLEIRA_VM900.forEach(([n,m])=>{addProduct(pic,n,m);addProduct(sac,n,m)});
+  fixedList('pesadao').forEach(([n,m])=>addProduct(pic,n,m));
+  fixedList('sacoleira-fixed').forEach(([n,m])=>{addProduct(pic,n,m);addProduct(sac,n,m)});
   seedKnownAssignments(d);
   OPS_KEYS.forEach(k=>{try{walkHistorical(d,JSON.parse(localStorage.getItem(k)||'null'),0)}catch(e){}});
   Object.keys(d).forEach(s=>{
@@ -140,7 +153,13 @@ function ensureData(){
   });
   write(d);return d
 }
-function fixedList(rule){const src=rule==='pesadao'?PESADAO:rule==='sacoleira-fixed'?SACOLEIRA_VM900:rule==='usn-fixed'?PICOTADEIRA_USN:[];return src.filter(([name])=>!isDeleted(name))}
+function fixedList(rule){
+  const edits=readFixedEdits();
+  return fixedSource(rule).map(([name,measure])=>{
+    const e=edits[rule+'|'+norm(name)];
+    return [String(e&&e.name||name),String(e&&e.measure||measure)]
+  }).filter(([name])=>!isDeleted(name))
+}
 function allowedNames(machine){
   const rule=machineRule(machine),d=ensureData(),sec=ensureSector(d,currentSector());
   if(rule==='none')return[];
@@ -192,8 +211,26 @@ function openProducts(expected,attempt){
   schedule();
   setTimeout(()=>{const b=productTrigger();if(b)b.click();setTimeout(filterModal,0)},40)
 }
-function assignNewProduct(name,oldName){
-  const machine=currentMachine();if(machineRule(machine)!=='custom'||!name)return;
+function saveFixedEdit(rule,name,measure,oldName){
+  if(!oldName||!name)return;
+  const base=fixedOriginalFor(rule,oldName);if(!base)return;
+  const edits=readFixedEdits();edits[base.key]={name:String(name).trim(),measure:String(measure||base.measure).trim()||base.measure};writeFixedEdits(edits);
+  const d=read(),oldNorm=norm(oldName),newName=String(name).trim(),newMeasure=String(measure||base.measure).trim()||base.measure;
+  Object.keys(d).forEach(s=>{
+    const sec=ensureSector(d,s);
+    let had=false;
+    sec.products=(sec.products||[]).map(v=>{if(norm(v)===oldNorm){had=true;return newName}return v});
+    if(had&&!sec.products.some(v=>norm(v)===norm(newName)))sec.products.push(newName);
+    Object.keys(sec.productMeasures||{}).forEach(k=>{if(norm(k)===oldNorm)delete sec.productMeasures[k]});
+    if(had)sec.productMeasures[newName]=newMeasure;
+    Object.keys(sec.machineProducts||{}).forEach(k=>{sec.machineProducts[k]=(sec.machineProducts[k]||[]).map(v=>norm(v)===oldNorm?newName:v)})
+  });
+  write(d)
+}
+function assignNewProduct(name,oldName,measure){
+  const machine=currentMachine(),rule=machineRule(machine);if(!name)return;
+  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed'){saveFixedEdit(rule,name,measure,oldName);return}
+  if(rule!=='custom')return;
   const d=read(),sec=ensureSector(d,currentSector()),k=norm(machine);let a=Array.isArray(sec.machineProducts[k])?sec.machineProducts[k]:[];
   if(oldName)a=a.filter(v=>norm(v)!==norm(oldName));
   if(!a.some(v=>norm(v)===norm(name)))a.push(name);
@@ -217,13 +254,13 @@ function start(){
   document.addEventListener('click',e=>{
     const edit=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-edit]');if(edit)editOld=String(edit.dataset.edit||'');
     const del=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-del]');if(del){}
-    const save=e.target&&e.target.closest&&e.target.closest('#dfRegSave');if(save){const m=document.getElementById('dfRegModal');if(isProductModal(m)){const name=String(m.querySelector('#dfRegNew')?.value||'').trim(),old=editOld;setTimeout(()=>{assignNewProduct(name,old);editOld='';ensureData();schedule()},20)}}
+    const save=e.target&&e.target.closest&&e.target.closest('#dfRegSave');if(save){const m=document.getElementById('dfRegModal');if(isProductModal(m)){const name=String(m.querySelector('#dfRegNew')?.value||'').trim(),measure=String(m.querySelector('#dfRegMeasure')?.value||'').trim(),old=editOld;setTimeout(()=>{assignNewProduct(name,old,measure);editOld='';ensureData();schedule()},20)}}
     const p=e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]');if(p)setTimeout(filterModal,0);
     const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='none')setTimeout(()=>openProducts(chosen,0),20)}else if(isProductModal(m))setTimeout(filterModal,0)}
   },true);
   document.addEventListener('input',e=>{if(e.target&&e.target.id==='dfRegSearch')requestAnimationFrame(filterModal)},true);
   window.addEventListener('df-product-deleted',e=>{const n=String(e.detail&&e.detail.name||'');if(n){cleanupDeleted(n);schedule()}});
-  window.addEventListener('storage',e=>{if(e.key===KEY||e.key===DELETED_KEY){ensureData();schedule()}});
+  window.addEventListener('storage',e=>{if(e.key===KEY||e.key===DELETED_KEY||e.key===FIXED_EDIT_KEY){ensureData();schedule()}});
   window.addEventListener('df-producao-team-synced',()=>{ensureData();schedule()});
   document.addEventListener('df-producao-team-synced',()=>{ensureData();schedule()});
   window.addEventListener('pageshow',()=>{ensureData();schedule()});
