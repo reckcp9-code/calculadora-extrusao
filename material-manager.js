@@ -12,14 +12,7 @@
   const fmt=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const cssEscape=v=>window.CSS&&typeof CSS.escape==='function'?CSS.escape(String(v)):String(v).replace(/["\\]/g,'\\$&');
 
-  function parsePrice(v){
-    let s=String(v??'').trim().replace(/\s/g,'').replace(/^R\$/i,'');
-    if(!s)return 0;
-    if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
-    else s=s.replace(',','.');
-    const n=parseFloat(s);
-    return Number.isFinite(n)&&n>=0?n:0;
-  }
+  function parsePrice(v){const n=typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;return Number.isFinite(n)&&n>=0?n:0}
 
   function loadMats(){
     try{
