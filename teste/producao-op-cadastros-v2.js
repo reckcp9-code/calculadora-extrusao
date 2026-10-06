@@ -46,6 +46,7 @@ function write(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
 function readDeleted(){try{const x=JSON.parse(localStorage.getItem(DELETED_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
 function isDeleted(name){return !!readDeleted()[norm(name)]}
 function markDeleted(name){const k=norm(name);if(!k)return;const d=readDeleted();d[k]={name:String(name||'').trim(),at:Date.now()};try{localStorage.setItem(DELETED_KEY,JSON.stringify(d))}catch(e){}}
+function unmarkDeleted(name){const k=norm(name);if(!k)return;const d=readDeleted();if(d[k]){delete d[k];try{localStorage.setItem(DELETED_KEY,JSON.stringify(d))}catch(e){}}}
 function sector(){const s=window.__DF_PROD_V3_STATE&&window.__DF_PROD_V3_STATE.sector;return SETORES.includes(s)?s:'Picote'}
 function sort(a){return [...new Set(a.map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'}))}
 function seedProducts(){
@@ -66,6 +67,7 @@ function list(type){const d=read(),s=sector(),c=CFG[type],vals=d[s][c.key]||[];r
 function measureFor(name){const d=read(),s=sector();return String((d[s].productMeasures||{})[name]||'')}
 function setList(type,a){const d=read(),s=sector(),c=CFG[type];d[s][c.key]=sort(a);write(d)}
 function saveProduct(name,measure,oldName){
+  unmarkDeleted(name);
   const d=read(),s=sector(),sec=d[s];
   if(oldName&&oldName!==name){sec.products=sec.products.filter(x=>x!==oldName);delete sec.productMeasures[oldName]}
   if(!sec.products.some(x=>norm(x)===norm(name)))sec.products.push(name);
