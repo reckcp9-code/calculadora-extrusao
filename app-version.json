@@ -1,6 +1,6 @@
 {
-  "version": "1.0.268",
-  "title": "DF EXTRUSOR PRO — Lista Sacoleira Flex 900",
-  "message": "A Sacoleira Flex 900 agora usa exclusivamente a lista de 12 sacolas informada, com tamanhos P 30 x 40, M 38 x 48 e G 48 x 58.",
-  "updatedAt": "2026-10-05T22:03:00-03:00"
+  "version": "1.0.269",
+  "title": "DF EXTRUSOR PRO — Botão Produção em largura total",
+  "message": "O botão Produção na tela inicial agora ocupa toda a linha inferior do menu principal, eliminando o espaço vazio e deixando o layout mais equilibrado.",
+  "updatedAt": "2026-10-05T22:06:00-03:00"
 }
