@@ -1,6 +1,6 @@
 {
-  "version": "1.0.275",
-  "title": "DF EXTRUSOR PRO — Custo Fabril completo",
-  "message": "Criada a área Custo Fabril com aluguel, energia, folha, produção, apara e reprocesso, formulação, embalagem, depreciação opcional, manutenção por valor ou percentual, detalhamento por kg, custo industrial e custo final completo. Todos os valores ficam salvos no aparelho.",
-  "updatedAt": "2026-10-05T23:06:00-03:00"
+  "version": "1.0.276",
+  "title": "DF EXTRUSOR PRO — Formatação automática no Custo Fabril",
+  "message": "Os campos do Custo Fabril agora formatam automaticamente milhares com ponto e valores decimais com vírgula no padrão brasileiro. Ex.: 15000 vira 15.000 e 80000 vira 80.000.",
+  "updatedAt": "2026-10-05T23:19:00-03:00"
 }
