@@ -1,6 +1,6 @@
 {
-  "version": "1.0.259",
-  "title": "DF EXTRUSOR PRO — Pesquisa de OPs corrigida",
-  "message": "Corrigido o campo Pesquisar OP em OPs salvas na Produção: ao digitar, o campo não é mais recriado e o teclado do iPhone permanece aberto letra por letra.",
-  "updatedAt": "2026-10-05T20:18:00-03:00"
+  "version": "1.0.260",
+  "title": "DF EXTRUSOR PRO — Editar e excluir produtos",
+  "message": "Adicionados os botões Editar e Excluir também na lista filtrada de produtos Pesadão da Produção.",
+  "updatedAt": "2026-10-05T21:19:00-03:00"
 }
