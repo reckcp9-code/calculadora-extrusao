@@ -1,6 +1,6 @@
 {
-  "version": "1.0.281",
-  "title": "DF EXTRUSOR PRO — Otimização geral de desempenho",
-  "message": "Varredura geral aplicada: menos re-render em cliques, lista de formulações estabilizada, observers reduzidos, sincronizações duplicadas limitadas, Produção carregada em segundo plano somente quando o navegador está ocioso e módulos pesados de OP passaram a carregar apenas quando necessários.",
-  "updatedAt": "2026-10-06T00:08:00-03:00"
+  "version": "1.0.282",
+  "title": "DF EXTRUSOR PRO — Correção de carregamento",
+  "message": "Corrigido o erro de sintaxe no carregador principal que podia deixar o aplicativo preso em Carregando calculadora.",
+  "updatedAt": "2026-10-06T00:09:00-03:00"
 }
