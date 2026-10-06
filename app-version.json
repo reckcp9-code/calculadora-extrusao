@@ -1,6 +1,6 @@
 {
-  "version": "1.0.278",
-  "title": "DF EXTRUSOR PRO — Relatório PDF do Custo Fabril",
-  "message": "O Custo Fabril agora tem o botão Gerar Relatório PDF com detalhamento dos custos mensais, impacto por kg, apara, manutenção, depreciação e custo final do produto.",
-  "updatedAt": "2026-10-05T23:29:00-03:00"
+  "version": "1.0.279",
+  "title": "DF EXTRUSOR PRO — Produção sem tela intermediária",
+  "message": "A área Produção agora fica pré-carregada e abre integrada ao aplicativo, sem mostrar a tela parcial durante a entrada e sem recarregar a calculadora ao voltar para o menu.",
+  "updatedAt": "2026-10-05T23:46:00-03:00"
 }
