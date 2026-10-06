@@ -8,7 +8,7 @@ const FAVKEY='df_producao_ops_favoritas_v1';
 const $=id=>document.getElementById(id);
 const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}};
 const saveOps=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const makeId=()=>{const d=new Date(),p=x=>String(x).padStart(2,'0');return'DFOP-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
 const rolls=()=>Array.from({length:56},(_,i)=>({n:i+1,peso:'',apara:''}));
 const stops=()=>Array.from({length:8},()=>({code:'',start:'',end:'',minutes:0}));
