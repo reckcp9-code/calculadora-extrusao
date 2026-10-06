@@ -4,7 +4,7 @@
   window.DFMedidaFormulaStable=true;
 
   const $=id=>document.getElementById(id);
-  let marker=null,opened=false,bodyOverflow='',pgExWasOn=false,scheduled=false,observer=null;
+  let marker=null,opened=false,bodyOverflow='',pgExWasOn=false,scheduled=false;
 
   function addStyle(){
     if($('dfMedidaStableCss'))return;
@@ -42,9 +42,6 @@
     if(!b){b=document.createElement('button');b.id='dfMedidaInlineBtn';b.type='button';b.textContent='📐 MEDIDA';b.onclick=openMedida}
     if(b.parentElement!==row)row.appendChild(b);
     const old=$('dfMedidaBtn');if(old)old.remove();
-    if(!observer){
-      const page=$('pgFo');if(page){observer=new MutationObserver(schedule);observer.observe(page,{childList:true,subtree:true})}
-    }
     return true;
   }
 
@@ -69,10 +66,12 @@
     schedule();
   }
 
-  function schedule(){if(scheduled||opened)return;scheduled=true;setTimeout(placeButton,60)}
-  function run(){placeButton();setTimeout(placeButton,180);setTimeout(placeButton,700);setTimeout(placeButton,1500)}
+  function schedule(){if(scheduled||opened)return;scheduled=true;setTimeout(placeButton,80)}
+  function run(){placeButton();setTimeout(placeButton,260);setTimeout(placeButton,900)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('df-ui-ready',run);
+  window.addEventListener('df-team-formulas-updated',schedule);
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#btFo,#dfFormTabCore'))schedule()},true);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&opened)closeMedida()});
   window.addEventListener('pagehide',()=>{if(opened)closeMedida()});
 })();
