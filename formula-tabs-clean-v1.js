@@ -41,13 +41,20 @@
   function clearMode(){const p=page();if(!p)return;p.classList.remove('dfCleanWhatsOnly','dfCleanBackupOnly')}
   function markActive(target){const n=nav();if(!n)return;n.querySelectorAll('.dfAutoTopic').forEach(b=>b.classList.toggle('on',b===target))}
 
+  function cleanTextNode(node){
+    if(!node||node.nodeType!==Node.TEXT_NODE)return;
+    const v=String(node.nodeValue||'');
+    if(v.includes('\\n'))node.nodeValue=v.replace(/\\n/g,'');
+  }
+  function cleanNode(root){
+    if(!root)return;
+    if(root.nodeType===Node.TEXT_NODE){cleanTextNode(root);return}
+    const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    let n;while((n=w.nextNode()))cleanTextNode(n);
+  }
   function cleanLiteralNewline(){
     const p=page();if(!p||cleaning)return;cleaning=true;
-    try{
-      const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);
-      const nodes=[];let n;while((n=w.nextNode()))nodes.push(n);
-      nodes.forEach(node=>{const v=String(node.nodeValue||'');if(v.includes('\\n'))node.nodeValue=v.replace(/\\n/g,'')});
-    }catch(e){}
+    try{cleanNode(p)}catch(e){}
     cleaning=false;
   }
 
@@ -57,12 +64,22 @@
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
   function showFormula(btn){clearMode();cleanLiteralNewline();const form=$('dfFormTabCore');if(form)form.click();setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
   function bindFormula(formula){if(!formula||formula.dataset.dfCleanTabsBound)return;formula.dataset.dfCleanTabsBound='1';formula.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showFormula(formula)},true)}
-  function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();ensureFormulaButton();tagNav();bind()},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
-  function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(cleanLiteralNewline,40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
+  function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{ensureFormulaButton();tagNav();bind()},110)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true})}
+  function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(muts=>{
+    if(cleaning)return;
+    const roots=[];
+    for(const m of muts){
+      if(m.type==='characterData'&&String(m.target?.nodeValue||'').includes('\\n'))roots.push(m.target);
+      if(m.type==='childList')for(const n of m.addedNodes||[])roots.push(n);
+    }
+    if(!roots.length)return;
+    clearTimeout(fixTimer);
+    fixTimer=setTimeout(()=>{cleaning=true;try{roots.forEach(cleanNode)}catch(e){}cleaning=false},90);
+  });pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
 
   function bind(){ensureStyle();const p=page(),n=nav();if(!p||!n)return false;cleanLiteralNewline();const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();tagNav();bindFormula(formula);if(whats&&!whats.dataset.dfCleanTabsBound){whats.dataset.dfCleanTabsBound='1';whats.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showWhats(whats)},true)}if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}const form=$('dfFormTabCore'),ops=$('dfFormTabOps');[form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();tagNav();if(btn===form)markActive(f)},0)},true)}});const topOps=findOps();if(topOps&&!topOps.dataset.dfCleanTabsClear){topOps.dataset.dfCleanTabsClear='1';topOps.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{tagNav();const current=findOps();if(current)markActive(current)},0)},true)}attachNavObserver();attachPageObserver();return true}
   function retry(attempt){attempt=Number(attempt)||0;cleanLiteralNewline();if(bind()||attempt>=12)return;setTimeout(()=>retry(attempt+1),300)}
   function start(){retry(0)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  window.addEventListener('df-ui-ready',()=>{cleanLiteralNewline();bind();setTimeout(()=>{cleanLiteralNewline();bind()},120);setTimeout(()=>{cleanLiteralNewline();bind()},550)},{once:true});
+  window.addEventListener('df-ui-ready',()=>{bind();setTimeout(bind,180)},{once:true});
 })();
