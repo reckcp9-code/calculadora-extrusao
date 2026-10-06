@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v66-sacoleira-flex900-v268';
+const DF_CACHE='df-extrusor-shell-v67-home-production-full-v269';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
