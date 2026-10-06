@@ -62,18 +62,17 @@ const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLo
 const uniq=a=>[...new Set((a||[]).map(v=>String(v||'').trim()).filter(Boolean))];
 function read(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return{}}}
 function readDeleted(){try{const x=JSON.parse(localStorage.getItem(DELETED_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
-function isDeleted(name){return !!readDeleted()[norm(name)]}}
+function isDeleted(name){return !!readDeleted()[norm(name)]}
 function write(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
 function currentSector(){const s=window.__DF_PROD_V3_STATE&&window.__DF_PROD_V3_STATE.sector;return s||'Picote'}
 function currentMachine(){return String(document.getElementById('prMachine')?.value||'').trim()}
 function machineRule(machine){
   const m=norm(machine);
   if(!m)return'none';
-  if(m.includes('picotadeira mkb')||m.includes('picotadeira utz')||m.includes('picotadeira vm'))return'pesadao';
-  if(m.includes('sacoleira vm 900 flex'))return'sacoleira-fixed';
-  if(m.includes('picotadeira usn')||m.includes('picotadeira uzn')||m.includes('picotadeira uns'))return'custom';
-  if(m.includes('sacoleira')||m.includes('blocadora'))return'custom';
-  return'free';
+  if(m.includes('picotadeira mkb')||m.includes('picotadeira utz')||m.includes('picotadeira vm 900')||m==='vm 900')return'pesadao';
+  if(m.includes('sacoleira'))return'sacoleira-fixed';
+  if(m.includes('picotadeira usn'))return'usn-fixed';
+  return'custom';
 }
 function ensureSector(d,name){
   if(!d[name]||typeof d[name]!=='object')d[name]={machines:[],products:[],operators:[],productMeasures:{}};
@@ -105,7 +104,7 @@ function findSectorForMachine(d,machine){
 }
 function seedKnownAssignments(d){
   const pic=ensureSector(d,'Picote');
-  PICOTADEIRA_USN.forEach(([p,m])=>{addProduct(pic,p,m);assign(pic,'PICOTADEIRA USN',p)});
+  PICOTADEIRA_USN.forEach(([p,m])=>{addProduct(pic,p,m)});
   [['PICOTADEIRA UZN','SACO FREEZER 3KG'],['PICOTADEIRA UNS','SACO FREEZER 3KG'],['SACOLEIRA FLEX 900','SACOLA AZUL GRANDE'],['BLOCADORA FLEX 900','AGRANEL PARA LIXO 100 LITROS PRETO']].forEach(([m,p])=>{
     if(pic.products.some(v=>norm(v)===norm(p)))assign(pic,m,p)
   });
@@ -140,12 +139,12 @@ function ensureData(){
   });
   write(d);return d
 }
-function fixedList(rule){const src=rule==='pesadao'?PESADAO:rule==='sacoleira-fixed'?SACOLEIRA_VM900:[];return src.filter(([name])=>!isDeleted(name))}
+function fixedList(rule){const src=rule==='pesadao'?PESADAO:rule==='sacoleira-fixed'?SACOLEIRA_VM900:rule==='usn-fixed'?PICOTADEIRA_USN:[];return src.filter(([name])=>!isDeleted(name))}
 function allowedNames(machine){
   const rule=machineRule(machine),d=ensureData(),sec=ensureSector(d,currentSector());
-  if(rule==='pesadao'||rule==='sacoleira-fixed')return fixedList(rule).map(x=>x[0]);
-  if(rule==='custom')return uniq(sec.machineProducts[norm(machine)]||[]);
-  return uniq(sec.products||[])
+  if(rule==='none')return[];
+  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')return fixedList(rule).map(x=>x[0]);
+  return uniq(sec.machineProducts[norm(machine)]||[]).filter(v=>!isDeleted(v))
 }
 function productSelect(){return document.getElementById('prProduct')}
 function productTrigger(){return document.querySelector('[data-df-picker="product"]')}
@@ -158,9 +157,8 @@ function ensureOptions(){
 function updateTrigger(){const el=productSelect(),b=productTrigger();if(!el||!b)return;const v=String(el.value||'').trim();b.textContent=v||'Selecione';b.classList.toggle('chosen',!!v)}
 function filterNative(){
   ensureOptions();const el=productSelect();if(!el)return;
-  const machine=currentMachine(),rule=machineRule(machine);if(rule==='none')return;
-  const allow=new Set(allowedNames(machine).map(norm));let clear=false;
-  [...el.options].forEach(o=>{if(!o.value){o.hidden=false;o.disabled=false;return}const ok=rule==='free'||allow.has(norm(o.value));o.hidden=!ok;o.disabled=!ok;if(!ok&&o.selected)clear=true});
+  const machine=currentMachine(),allow=new Set(allowedNames(machine).map(norm));let clear=false;
+  [...el.options].forEach(o=>{if(!o.value){o.hidden=false;o.disabled=false;return}const ok=allow.has(norm(o.value));o.hidden=!ok;o.disabled=!ok;if(!ok&&o.selected)clear=true});
   if(clear){el.value='';el.dispatchEvent(new Event('change',{bubbles:true}))}updateTrigger()
 }
 function isProductModal(m){return !!m&&norm(m.querySelector('.dfRegHead b')?.textContent).includes('produtos cadastrados')}
@@ -169,21 +167,21 @@ function filterModal(){
   const m=document.getElementById('dfRegModal');if(!isProductModal(m))return;
   const machine=currentMachine(),rule=machineRule(machine),allow=new Set(allowedNames(machine).map(norm)),items=[...m.querySelectorAll('.dfRegItem')],list=m.querySelector('.dfRegList'),q=norm(m.querySelector('#dfRegSearch')?.value||'');let visible=0;
   m.querySelector('#dfMachineEmpty')?.remove();
-  if((rule==='pesadao'||rule==='sacoleira-fixed')&&list&&list.dataset.dfMachineOrder!==rule){
+  if((rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')&&list&&list.dataset.dfMachineOrder!==rule){
     fixedList(rule).forEach(([name])=>{const item=items.find(el=>norm(el.querySelector('[data-pick]')?.dataset.pick)===norm(name));if(item)list.appendChild(item)});
     list.dataset.dfMachineOrder=rule;
   }
   items.forEach(item=>{
-    const name=String(item.querySelector('[data-pick]')?.dataset.pick||''),machineOk=rule==='free'||rule==='none'||allow.has(norm(name));
+    const name=String(item.querySelector('[data-pick]')?.dataset.pick||''),machineOk=allow.has(norm(name));
     const searchOk=!q||norm(name).includes(q)||norm(item.querySelector('.main small')?.textContent||'').includes(q);
     item.dataset.dfMachineMatch=machineOk?'1':'0';item.dataset.dfSearchMatch=searchOk?'1':'0';
     const ok=machineOk&&searchOk;item.style.display=ok?'':'none';
     if(ok){visible++;const a=item.querySelector('.dfRegActions');if(a)a.style.display=''}
   });
-  const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='pesadao'||rule==='sacoleira-fixed')?'none':'';
-  const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 900':rule==='sacoleira-fixed'?'VM 900 FLEX':rule==='custom'?(machine||'MÁQUINA'):'TODOS';
+  const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='none'||rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')?'none':'';
+  const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 900':rule==='sacoleira-fixed'?'SACOLEIRA':rule==='usn-fixed'?'USN':rule==='none'?'SELECIONE A MÁQUINA':(machine||'MÁQUINA');
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
-  if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
+  if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='none'?'Selecione uma máquina primeiro.':rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
 }
 function schedule(){requestAnimationFrame(()=>{filterNative();filterModal()})}
 function openProducts(){setTimeout(()=>{schedule();const b=productTrigger();if(b)b.click();setTimeout(filterModal,0)},70)}
@@ -214,7 +212,7 @@ function start(){
     const del=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-del]');if(del){}
     const save=e.target&&e.target.closest&&e.target.closest('#dfRegSave');if(save){const m=document.getElementById('dfRegModal');if(isProductModal(m)){const name=String(m.querySelector('#dfRegNew')?.value||'').trim(),old=editOld;setTimeout(()=>{assignNewProduct(name,old);editOld='';ensureData();schedule()},20)}}
     const p=e.target&&e.target.closest&&e.target.closest('[data-df-picker="product"]');if(p)setTimeout(filterModal,0);
-    const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='free'&&machineRule(chosen)!=='none')setTimeout(openProducts,20)}else if(isProductModal(m))setTimeout(filterModal,0)}
+    const pick=e.target&&e.target.closest&&e.target.closest('#dfRegModal [data-pick]');if(pick){const m=document.getElementById('dfRegModal');if(isMachineModal(m)){const chosen=String(pick.dataset.pick||'');if(machineRule(chosen)!=='none')setTimeout(openProducts,20)}else if(isProductModal(m))setTimeout(filterModal,0)}
   },true);
   document.addEventListener('input',e=>{if(e.target&&e.target.id==='dfRegSearch')requestAnimationFrame(filterModal)},true);
   window.addEventListener('df-product-deleted',e=>{const n=String(e.detail&&e.detail.name||'');if(n){cleanupDeleted(n);schedule()}});
