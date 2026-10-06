@@ -38,6 +38,7 @@
         box-shadow:inset 0 0 0 1px rgba(245,160,0,.20),0 5px 16px rgba(245,160,0,.10)!important;
       }
       #appContent > .tabs > .tab:active{transform:scale(.97)!important}
+      #appContent > .tabs > #btPr{grid-column:1 / -1!important;width:100%!important;min-height:68px!important}
 
       @media(max-width:560px){
         #appContent > .tabs{gap:8px!important;padding:7px!important}
