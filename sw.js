@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v57-producao-search-v259';
+const DF_CACHE='df-extrusor-shell-v58-produtos-acoes-v260';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
