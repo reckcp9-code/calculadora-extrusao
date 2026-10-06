@@ -69,7 +69,7 @@ function currentMachine(){return String(document.getElementById('prMachine')?.va
 function machineRule(machine){
   const m=norm(machine);
   if(!m)return'none';
-  if(m.includes('picotadeira mkb')||m.includes('picotadeira utz')||m.includes('picotadeira vm 900')||m.includes('picotadeira vm 1250')||m.includes('vm 1250')||m==='vm 900')return'pesadao';
+  if(m.includes('picotadeira mkb')||m.includes('picotadeira utz')||m.includes('picotadeira vm 900')||m.includes('picotadeira vm 250 roll')||m.includes('vm 250 roll')||m==='vm 900')return'pesadao';
   if(m.includes('sacoleira'))return'sacoleira-fixed';
   if(m.includes('picotadeira usn'))return'usn-fixed';
   return'custom';
