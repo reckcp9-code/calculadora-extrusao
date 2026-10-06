@@ -115,6 +115,10 @@
       #dfCostFabrilV273 .cfRow b{color:#f8fafc;text-align:right}
       #dfCostFabrilV273 .cfRow.strong{background:#101a2b;font-weight:900}
       #dfCostFabrilV273 .cfRow.strong b{color:#ffd36a}
+      #dfCostFabrilV273 .cfReportWrap{margin-top:14px}
+      #dfCostFabrilV273 .cfReportBtn{width:100%;min-height:50px;border:1px solid #f5a000;border-radius:13px;background:linear-gradient(180deg,#ffc647 0%,#f5a000 100%);color:#15110a;font-size:13px;font-weight:950;letter-spacing:.2px;box-shadow:0 8px 20px rgba(245,160,0,.18)}
+      #dfCostFabrilV273 .cfReportBtn:active{transform:scale(.985)}
+      #dfCostFabrilV273 .cfReportHint{margin:7px 2px 0;color:#94a3b8;font-size:10.5px;line-height:1.4;text-align:center}
       @media(max-width:560px){
         #dfCostFabrilV273 .cfGrid,#dfCostFabrilV273 .cfPair{grid-template-columns:1fr}
         #dfCostFabrilV273 .cfField.full{grid-column:auto}
@@ -221,6 +225,11 @@
         <div class="cfRow"><span>Preço da formulação por kg</span><b id="cfFormulaKg">R$ 0,00/kg</b></div>
         <div class="cfRow strong"><span>Total dos custos mensais</span><b id="cfTotalMensal">R$ 0,00</b></div>
       </div>
+
+      <div class="cfReportWrap">
+        <button type="button" class="cfReportBtn" id="cfGerarRelatorioPdf">GERAR RELATÓRIO PDF</button>
+        <div class="cfReportHint">Gera um relatório completo com os custos mensais, custo por kg e os cálculos usados.</div>
+      </div>
     `;
 
     restore();
@@ -236,6 +245,15 @@
         requestAnimationFrame(syncConditionalUI);
       }
     },true);
+
+    root.addEventListener('click',e=>{
+      const btn=e.target&&e.target.closest?e.target.closest('#cfGerarRelatorioPdf'):null;
+      if(!btn)return;
+      e.preventDefault();
+      save();
+      calc();
+      gerarRelatorioPdf();
+    });
 
     root.querySelectorAll('[data-cf]').forEach(el=>{
       const key=el.dataset.cf;
@@ -349,6 +367,235 @@
     setText('cfFormulaKg',kgMoney(formula));
     setText('cfTotalMensal',money(totalMensal));
     setText('cfCustoFinal',kgMoney(finalKg));
+  }
+
+
+  function reportData(){
+    const prod=val('producao');
+    const aluguel=val('aluguel');
+    const energia=val('energia');
+    const folha=val('folha');
+    const apara=val('aparaKg');
+    const reprocUnit=val('reprocKg');
+    const formula=val('formula');
+    const embalagem=val('embalagem');
+    const root=$('dfCostFabrilV273');
+    const depOn=String(root?.querySelector('#cfDepIncluir')?.value||'nao')==='sim';
+    const depBase=depOn?val('depBase'):0;
+    const depPct=depOn?val('depPct'):0;
+    const depMes=depOn?depBase*depPct/100:0;
+    const depKg=prod>0?depMes/prod:0;
+    const aparaPct=prod>0?apara/prod*100:0;
+    const reprocMes=apara*reprocUnit;
+    const reprocKg=prod>0?reprocMes/prod:0;
+    const aluguelKg=prod>0?aluguel/prod:0;
+    const energiaKg=prod>0?energia/prod:0;
+    const folhaKg=prod>0?folha/prod:0;
+    const embalagemKg=prod>0?embalagem/prod:0;
+    const baseMan=aluguel+energia+folha+reprocMes+embalagem+depMes;
+    const manMode=String(root?.querySelector('#cfManModo')?.value||'valor');
+    const manPct=manMode==='percentual'?val('manPct'):0;
+    const manMes=manMode==='percentual'?baseMan*manPct/100:val('manValor');
+    const manKg=prod>0?manMes/prod:0;
+    const industrialMes=baseMan+manMes;
+    const industrialKg=prod>0?industrialMes/prod:0;
+    const formulaMes=prod*formula;
+    const totalMensal=industrialMes+formulaMes;
+    const finalKg=industrialKg+formula;
+    return {prod,aluguel,energia,folha,apara,reprocUnit,formula,embalagem,depOn,depBase,depPct,depMes,depKg,aparaPct,reprocMes,reprocKg,aluguelKg,energiaKg,folhaKg,embalagemKg,baseMan,manMode,manPct,manMes,manKg,industrialMes,industrialKg,formulaMes,totalMensal,finalKg};
+  }
+
+  function reportNumber(v,dec){
+    return (Number.isFinite(v)?v:0).toLocaleString('pt-BR',{minimumFractionDigits:dec??2,maximumFractionDigits:dec??2});
+  }
+
+  function pdfBytes(str){
+    return new TextEncoder().encode(str);
+  }
+
+  function concatBytes(parts){
+    let total=0;
+    parts.forEach(p=>total+=p.length);
+    const out=new Uint8Array(total);
+    let pos=0;
+    parts.forEach(p=>{out.set(p,pos);pos+=p.length});
+    return out;
+  }
+
+  function dataUrlBytes(url){
+    const raw=atob(String(url).split(',')[1]||'');
+    const out=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);
+    return out;
+  }
+
+  function makeImagePdf(jpeg,width,height){
+    const enc=pdfBytes,parts=[],offs=[0];
+    let pos=0;
+    function add(v){const a=typeof v==='string'?enc(v):v;parts.push(a);pos+=a.length}
+    function obj(n,body){
+      offs[n]=pos;add(n+' 0 obj\n');
+      if(Array.isArray(body))body.forEach(add);else add(body);
+      add('\nendobj\n');
+    }
+    add('%PDF-1.4\n%DFEX\n');
+    obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+    obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /ProcSet [/PDF /ImageC] /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+    obj(4,['<< /Type /XObject /Subtype /Image /Width '+width+' /Height '+height+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpeg.length+' >>\nstream\n',jpeg,'\nendstream']);
+    const stream='q\n595.28 0 0 841.89 0 0 cm\n/Im0 Do\nQ\n',sb=enc(stream);
+    obj(5,['<< /Length '+sb.length+' >>\nstream\n',sb,'endstream']);
+    const xref=pos;
+    let tail='xref\n0 6\n0000000000 65535 f \n';
+    for(let n=1;n<=5;n++)tail+=String(offs[n]).padStart(10,'0')+' 00000 n \n';
+    tail+='trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF\n';
+    add(tail);
+    return new Blob(parts,{type:'application/pdf'});
+  }
+
+  function drawReportCanvas(d){
+    const W=1240,H=1754,M=70;
+    const c=document.createElement('canvas');
+    c.width=W;c.height=H;
+    const ctx=c.getContext('2d',{alpha:false});
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#111827';
+    ctx.fillRect(0,0,W,170);
+
+    function font(size,bold){ctx.font=(bold?'700 ':'400 ')+size+'px Arial, Helvetica, sans-serif'}
+    function text(v,x,y,size,bold,color,align){
+      font(size,bold);ctx.fillStyle=color||'#111827';ctx.textAlign=align||'left';ctx.textBaseline='alphabetic';ctx.fillText(String(v??''),x,y);
+    }
+    function line(y,color){ctx.strokeStyle=color||'#d1d5db';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(M,y);ctx.lineTo(W-M,y);ctx.stroke()}
+    function box(x,y,w,h,fill,stroke){
+      if(fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}
+      if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.strokeRect(x,y,w,h)}
+    }
+    function row(label,monthly,perKg,y,strong){
+      if(strong)box(M,y-32,W-M*2,48,'#f8fafc');
+      text(label,M+12,y,22,!!strong,'#111827');
+      text(monthly,W-390,y,21,!!strong,'#111827','right');
+      text(perKg,W-M-12,y,21,!!strong,strong?'#b45309':'#111827','right');
+      line(y+16,'#e5e7eb');
+      return y+50;
+    }
+    function wrap(v,x,y,maxW,size,color,bold){
+      font(size,!!bold);ctx.fillStyle=color||'#374151';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+      const words=String(v??'').split(/\s+/);let ln='',yy=y;
+      for(const word of words){
+        const test=ln?ln+' '+word:word;
+        if(ctx.measureText(test).width>maxW&&ln){ctx.fillText(ln,x,yy);ln=word;yy+=size+8}else ln=test;
+      }
+      if(ln)ctx.fillText(ln,x,yy);
+      return yy;
+    }
+
+    text('DF EXTRUSOR PRO',M,72,34,true,'#f8fafc');
+    text('RELATÓRIO DE CUSTO FABRIL',M,118,29,true,'#f59e0b');
+    const now=new Date();
+    const stamp=now.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    text('Gerado em '+stamp,W-M,118,18,false,'#cbd5e1','right');
+
+    let y=220;
+    text('RESUMO PRINCIPAL',M,y,22,true,'#92400e');y+=28;
+    box(M,y,W-M*2,112,'#fff7ed','#fdba74');
+    text('Produção mensal',M+22,y+38,18,true,'#7c2d12');
+    text(reportNumber(d.prod,0)+' kg',M+22,y+78,30,true,'#111827');
+    text('Custo industrial',M+365,y+38,18,true,'#7c2d12');
+    text(kgMoney(d.industrialKg),M+365,y+78,30,true,'#111827');
+    text('CUSTO FINAL DO PRODUTO',W-M-22,y+38,18,true,'#166534','right');
+    text(kgMoney(d.finalKg),W-M-22,y+80,34,true,'#15803d','right');
+    y+=155;
+
+    text('DETALHAMENTO DOS CUSTOS',M,y,22,true,'#111827');y+=36;
+    text('Item',M+12,y,18,true,'#6b7280');
+    text('Valor mensal',W-390,y,18,true,'#6b7280','right');
+    text('Impacto por kg',W-M-12,y,18,true,'#6b7280','right');
+    line(y+14,'#9ca3af');y+=48;
+
+    y=row('Aluguel',money(d.aluguel),kgMoney(d.aluguelKg),y,false);
+    y=row('Energia elétrica',money(d.energia),kgMoney(d.energiaKg),y,false);
+    y=row('Folha salarial total',money(d.folha),kgMoney(d.folhaKg),y,false);
+    y=row('Reprocesso da apara',money(d.reprocMes),kgMoney(d.reprocKg),y,false);
+    y=row('Embalagem personalizada',money(d.embalagem),kgMoney(d.embalagemKg),y,false);
+    y=row('Manutenção fabril',money(d.manMes),kgMoney(d.manKg),y,false);
+    if(d.depOn)y=row('Depreciação das máquinas',money(d.depMes),kgMoney(d.depKg),y,false);
+    y=row('Custo industrial',money(d.industrialMes),kgMoney(d.industrialKg),y,true);
+    y=row('Formulação',money(d.formulaMes),kgMoney(d.formula),y,false);
+    y=row('TOTAL DOS CUSTOS MENSAIS',money(d.totalMensal),kgMoney(d.finalKg),y,true);
+
+    y+=26;
+    text('APARA E REPROCESSO',M,y,21,true,'#111827');y+=34;
+    box(M,y,W-M*2,112,'#f9fafb','#d1d5db');
+    text('Apara total: '+reportNumber(d.apara,0)+' kg/mês',M+18,y+30,18,true,'#111827');
+    text('Percentual de apara: '+pct(d.aparaPct),M+18,y+60,18,false,'#374151');
+    text('Custo de reprocesso: '+kgMoney(d.reprocUnit),M+18,y+90,18,false,'#374151');
+    text('Custo mensal do reprocesso: '+money(d.reprocMes),W-M-18,y+30,18,true,'#111827','right');
+    text('Reprocesso por kg produzido: '+kgMoney(d.reprocKg),W-M-18,y+65,18,false,'#374151','right');
+    y+=145;
+
+    text('MANUTENÇÃO E DEPRECIAÇÃO',M,y,21,true,'#111827');y+=34;
+    box(M,y,W-M*2,d.depOn?170:135,'#f9fafb','#d1d5db');
+    const manText=d.manMode==='percentual'
+      ?'Manutenção por percentual: '+pct(d.manPct)+' sobre a base de '+money(d.baseMan)+'.'
+      :'Manutenção por valor mensal informado: '+money(d.manMes)+'.';
+    wrap(manText,M+18,y+34,W-M*2-36,18,'#374151',false);
+    text('Manutenção por kg: '+kgMoney(d.manKg),M+18,y+70,18,true,'#111827');
+    if(d.depOn){
+      text('Depreciação incluída: SIM',M+18,y+108,18,true,'#111827');
+      text('Base: '+money(d.depBase)+' | Percentual mensal: '+pct(d.depPct)+' | Depreciação mensal: '+money(d.depMes),M+18,y+140,17,false,'#374151');
+    }else{
+      text('Depreciação incluída: NÃO',M+18,y+108,18,true,'#6b7280');
+    }
+    y+=d.depOn?205:170;
+
+    text('COMO O RESULTADO FOI CALCULADO',M,y,21,true,'#111827');y+=34;
+    const notes=[
+      'Cada custo por kg é calculado dividindo o respectivo custo mensal pela produção mensal.',
+      'O custo do reprocesso é apara total (kg) × custo de reprocesso (R$/kg).',
+      d.manMode==='percentual'
+        ?'A manutenção percentual é aplicada sobre aluguel + energia + folha + reprocesso + embalagem'+(d.depOn?' + depreciação':'')+'.'
+        :'A manutenção foi lançada pelo valor mensal informado.',
+      d.depOn
+        ?'A depreciação mensal é base de cálculo × percentual mensal.'
+        :'A depreciação não foi incluída neste relatório.',
+      'Custo industrial por kg = custos fabris mensais ÷ produção mensal.',
+      'Custo final por kg = custo industrial por kg + preço da formulação por kg.'
+    ];
+    for(const n of notes){text('•',M+4,y,19,true,'#f59e0b');y=wrap(n,M+28,y,W-M*2-28,17,'#374151',false)+30}
+
+    text('Relatório gerado pelo DF EXTRUSOR PRO',W/2,H-42,15,false,'#9ca3af','center');
+    return c;
+  }
+
+  function loadingPdfWindow(w){
+    try{
+      w.document.open();
+      w.document.write('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#fff;color:#111;font-family:system-ui"><div style="font-weight:800">Gerando relatório de custo fabril...</div></body>');
+      w.document.close();
+    }catch(e){}
+  }
+
+  function gerarRelatorioPdf(){
+    const w=window.open('','_blank');
+    if(!w){alert('O navegador bloqueou o PDF. Libere pop-ups para este site e tente novamente.');return}
+    loadingPdfWindow(w);
+    try{
+      const d=reportData();
+      const canvas=drawReportCanvas(d);
+      const jpeg=dataUrlBytes(canvas.toDataURL('image/jpeg',0.96));
+      const blob=makeImagePdf(jpeg,canvas.width,canvas.height);
+      const url=URL.createObjectURL(blob);
+      try{w.location.replace(url)}catch(e){w.location.href=url}
+      setTimeout(()=>{try{URL.revokeObjectURL(url)}catch(e){}},600000);
+    }catch(e){
+      console.error('DF Custo Fabril PDF',e);
+      try{
+        w.document.open();
+        w.document.write('<!doctype html><body style="font-family:system-ui;padding:32px"><b>Não foi possível gerar o PDF.</b><div style="margin-top:10px">Feche esta janela e tente novamente.</div></body>');
+        w.document.close();
+      }catch(_){}
+    }
   }
 
   function ensure(attempt){
