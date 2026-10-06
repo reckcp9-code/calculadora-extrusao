@@ -26,7 +26,7 @@ const PROPOSTA=[
 ];
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-function blankSector(){return{machines:[],products:[],operators:[],productMeasures:{}}}
+function blankSector(){return{machines:[],products:[],operators:[],productMeasures:{},machineProducts:{}}}
 function empty(){return{Picote:blankSector(),Sacoleira:blankSector(),Blocadora:blankSector()}}
 function read(){
   try{
@@ -37,6 +37,7 @@ function read(){
       out[s].products=Array.isArray(x.products)?x.products.slice():[];
       out[s].operators=Array.isArray(x.operators)?x.operators.slice():[];
       out[s].productMeasures=x.productMeasures&&typeof x.productMeasures==='object'?Object.assign({},x.productMeasures):{};
+      out[s].machineProducts=x.machineProducts&&typeof x.machineProducts==='object'?Object.fromEntries(Object.entries(x.machineProducts).map(([k,v])=>[k,Array.isArray(v)?v.slice():[]])):{};
     });
     return out;
   }catch(e){return empty()}
