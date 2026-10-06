@@ -14,7 +14,7 @@
     reciclado:{name:'PEBD (base do reciclado)',min:1.8,max:3}
   };
   const diameters=[60,75,90,100,125,135,150,165,175,180,200,225,250,300,350,400,450,500,600,750,900];
-  const num=v=>{const t=String(v??'').trim().replace(/\s/g,'');return t?Number(t.includes(',')&&t.includes('.')?t.replace(/\./g,'').replace(',','.'):t.replace(',','.')):NaN};
+  const num=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):NaN;
   const fmt=(v,d=1)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const fmtWidth=v=>Number(v).toLocaleString('pt-BR',{maximumFractionDigits:2});
   function calculate({material,widthCm,dieMm,gapMm,micra,micraMode,application}){
