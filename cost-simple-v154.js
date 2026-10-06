@@ -4,14 +4,7 @@
   window.DFCostSimpleV170=true;
 
   const $=id=>document.getElementById(id);
-  const num=v=>{
-    let s=String(v??'').trim().replace(/\s/g,'');
-    if(!s)return 0;
-    if(s.includes(',')) s=s.replace(/\./g,'').replace(',','.');
-    else if((s.match(/\./g)||[]).length>1) s=s.replace(/\./g,'');
-    const n=Number(s);
-    return Number.isFinite(n)?n:0;
-  };
+  const num=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
   const money=v=>Number.isFinite(v)?v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'—';
   const fire=el=>{if(!el)return;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))};
   let originalBound=false;
