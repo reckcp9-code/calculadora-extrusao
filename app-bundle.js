@@ -5094,10 +5094,7 @@
     }
 
     window.addEventListener('df-ui-ready',function(){setTimeout(syncAll,80)});
-    document.addEventListener('click',function(e){
-      const t=e.target&&e.target.closest?e.target.closest('.tab,.dfAutoTopic,.dfPersistentMenuBtn,.dfOtherSoloNav button'):null;
-      if(t)setTimeout(syncAll,60);
-    },true);
+    document.addEventListener('click',function(){setTimeout(syncAll,80)},true);
     document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(syncAll,80)});
   }
 

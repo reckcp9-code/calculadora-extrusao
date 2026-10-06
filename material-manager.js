@@ -139,15 +139,7 @@
     document.getElementById('dfMaterialEditBtn').addEventListener('click',()=>{renderList();panel.style.display=panel.style.display==='none'?'block':'none';});
   }
 
-  function init(){
-    mount();
-    [350,1100].forEach(t=>setTimeout(mount,t));
-    document.addEventListener('click',e=>{
-      if(e.target?.closest?.('#btFo,#dfFormTabCore,#dfMaterialEditBtn'))setTimeout(mount,60);
-    },true);
-    window.addEventListener('df-ui-ready',()=>setTimeout(mount,120),{once:true});
-    window.addEventListener('pageshow',()=>setTimeout(mount,120));
-  }
+  function init(){mount();[400,900,1600,2600].forEach(t=>setTimeout(mount,t));document.addEventListener('click',()=>setTimeout(mount,80),true);}
   window.DFMaterialManager={mount,render:renderList,open:openEditor,close:closeEditor,load:loadMats,save:saveMats,parsePrice};
   window.addEventListener('df-team-materials-updated',()=>{const p=document.getElementById(PANEL_ID);if(p&&p.style.display!=='none')renderList();});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

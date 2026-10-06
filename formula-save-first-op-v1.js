@@ -8,50 +8,18 @@ const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return A
 const time=f=>{const a=Date.parse(String(f?.updatedAt||f?.criado||''));if(Number.isFinite(a))return a;const id=Number(f?.id);return Number.isFinite(id)?id:0};
 const newest=a=>a.slice().sort((x,y)=>time(y)-time(x)||Number(y?.id||0)-Number(x?.id||0));
 function material(id){try{return window.materialById?window.materialById(id):null}catch(e){return null}}
-let pdfDepsPromise=null;
-function loadScriptOnce(src,check){
-  if(check())return Promise.resolve(true);
-  return new Promise((resolve,reject)=>{
-    const found=[...document.scripts].find(s=>String(s.src||'')===new URL(src,location.href).href);
-    if(found){
-      const wait=()=>check()?resolve(true):setTimeout(wait,60);
-      wait();return;
-    }
-    const s=document.createElement('script');
-    s.src=src;s.async=false;
-    s.onload=()=>check()?resolve(true):reject(new Error('Módulo carregado sem inicializar'));
-    s.onerror=()=>reject(new Error('Falha ao carregar '+src));
-    document.head.appendChild(s);
-  });
-}
-function ensurePdfDeps(){
-  if(window.DFOPLandscapePdf&&typeof window.QRCode==='function')return Promise.resolve(true);
-  if(pdfDepsPromise)return pdfDepsPromise;
-  pdfDepsPromise=(async()=>{
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js',()=>typeof window.QRCode==='function');
-    await loadScriptOnce('./op-landscape-pdf.js?v=20261006-op-pdf-lazy-v281',()=>!!window.DFOPLandscapePdf);
-    return true;
-  })().catch(e=>{pdfDepsPromise=null;throw e});
-  return pdfDepsPromise;
-}
 function write(a){try{localStorage.setItem(KEY,JSON.stringify(newest(a)));return true}catch(e){return false}}
 function selectNewest(id){
   const sel=q('foSavedSelect');if(!sel)return false;
-  /* A ordem visual já é tratada pelo seletor de Formulações salvas.
-     Não reanexa <option> aqui: isso disparava MutationObserver em cascata
-     e causava pulos/re-render durante a rolagem. */
-  if(id!=null&&Array.from(sel.options||[]).some(o=>String(o.value)===String(id))){
-    const next=String(id);
-    if(String(sel.value)!==next){
-      sel.value=next;
-      sel.dispatchEvent(new Event('change',{bubbles:true}));
-    }
-  }
+  const forms=newest(load()),rank=new Map(forms.map((f,i)=>[String(f.id),i]));
+  const opts=Array.from(sel.options||[]).sort((a,b)=>(rank.get(String(a.value))??999999)-(rank.get(String(b.value))??999999));
+  opts.forEach(o=>sel.appendChild(o));
+  if(id!=null&&Array.from(sel.options).some(o=>String(o.value)===String(id))){sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))}
   return true;
 }
 function refresh(id){
   try{if(typeof window.renderForms==='function')window.renderForms()}catch(e){}
-  [0,90,320].forEach(ms=>setTimeout(()=>selectNewest(id),ms));
+  [0,40,140,350,800].forEach(ms=>setTimeout(()=>selectNewest(id),ms));
 }
 function popupNow(){
   let w=null;try{w=window.open('','_blank');if(w){w.document.open();w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OP</title></head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font:700 18px system-ui;background:#fff;color:#111">Preparando OP...</body></html>');w.document.close()}}catch(e){}return w;
@@ -86,7 +54,6 @@ async function saveAndOpen(){
   const pct=rows.reduce((s,r)=>s+(Number(r.pct)||0),0);
   if(Math.abs(100-pct)>0.05&&!confirm('A formulação não fechou 100%. Salvar mesmo assim?'))return;
   const pop=popupNow();
-  try{await ensurePdfDeps()}catch(e){closePopup(pop);alert('Não foi possível carregar o gerador da OP. Tente novamente.');return}
   let srv=null;
   try{
     if(typeof window.dfCalc==='function'){
@@ -106,23 +73,9 @@ window.addEventListener('click',function(ev){
   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
   saveAndOpen();
 },true);
-let normalizeTimer=0,saveObserver=null;
 function normalizeUi(){selectNewest(q('foSavedSelect')?.value||null)}
-function scheduleNormalize(delay){
-  clearTimeout(normalizeTimer);
-  normalizeTimer=setTimeout(normalizeUi,Math.max(40,Number(delay)||80));
-}
-function observe(){
-  const b=q('foSaved');if(!b)return false;
-  if(saveObserver&&saveObserver.__target===b)return true;
-  if(saveObserver)saveObserver.disconnect();
-  saveObserver=new MutationObserver(()=>scheduleNormalize(90));
-  saveObserver.__target=b;
-  saveObserver.observe(b,{childList:true,subtree:true});
-  scheduleNormalize(40);
-  return true;
-}
-function start(){let n=0,t=setInterval(()=>{if(observe()||++n>20)clearInterval(t)},200)}
+function observe(){const b=q('foSaved');if(!b)return false;const o=new MutationObserver(()=>setTimeout(normalizeUi,0));o.observe(b,{childList:true,subtree:true});normalizeUi();return true}
+function start(){let n=0,t=setInterval(()=>{if(observe()||++n>30)clearInterval(t)},150)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-window.addEventListener('df-ui-ready',()=>scheduleNormalize(350));
+window.addEventListener('df-ui-ready',()=>setTimeout(normalizeUi,500));
 })();

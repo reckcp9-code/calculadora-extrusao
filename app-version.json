@@ -1,6 +1,6 @@
 {
-  "version": "1.0.283",
-  "title": "DF EXTRUSOR PRO — Hotfix do diagnóstico DF-CALC-197",
-  "message": "Removido o seletor CSS inválido que gerava o erro DF-CALC-197 no Safari/iPhone ao carregar as OPs.",
-  "updatedAt": "2026-10-06T00:11:00-03:00"
+  "version": "1.0.284",
+  "title": "DF EXTRUSOR PRO — Restauração estável",
+  "message": "Restaurados de uma vez os arquivos alterados pela otimização geral para a última base estável conhecida. Mantidas as correções já aprovadas de Custo Fabril, Produção integrada e lista de Formulações.",
+  "updatedAt": "2026-10-06T00:14:00-03:00"
 }
