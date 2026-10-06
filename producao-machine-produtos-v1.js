@@ -208,6 +208,7 @@ function openProducts(expected,attempt){
   attempt=attempt||0;
   const current=currentMachine();
   if(expected&&norm(current)!==norm(expected)&&attempt<12){setTimeout(()=>openProducts(expected,attempt+1),35);return}
+  const modal=document.getElementById('dfRegModal');if(isMachineModal(modal))modal.remove();
   schedule();
   setTimeout(()=>{const b=productTrigger();if(b)b.click();setTimeout(filterModal,0)},40)
 }
