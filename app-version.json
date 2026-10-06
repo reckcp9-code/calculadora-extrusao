@@ -1,6 +1,6 @@
 {
-  "version": "1.0.265",
-  "title": "DF EXTRUSOR PRO — M250 RAW na lista Pesadão",
-  "message": "A Picotadeira M250 RAW agora usa a mesma lista de produtos das Picotadeiras MKB, UTZ e VM 900.",
-  "updatedAt": "2026-10-05T21:56:00-03:00"
+  "version": "1.0.266",
+  "title": "DF EXTRUSOR PRO — VM 1250 na lista Pesadão",
+  "message": "Corrigido o nome da máquina: a Picotadeira VM 1250 agora usa a mesma lista de produtos das Picotadeiras MKB, UTZ e VM 900.",
+  "updatedAt": "2026-10-05T21:58:00-03:00"
 }
