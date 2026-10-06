@@ -5,13 +5,26 @@ if(window.DF_PRODUCAO_MACHINE_PRODUTOS_V1)return;window.DF_PRODUCAO_MACHINE_PROD
 const KEY='df_producao_cadastros_v1';
 const OPS_KEYS=['df_producao_ops_setores_test_v3','df_producao_ops_auto_v1'];
 const PESADAO=[
-  ['Pesadão 15 litros','39 x 58'],
-  ['Pesadão 30 litros','59 x 62'],
-  ['Pesadão 50 litros','63 x 80'],
-  ['Pesadão 100 litros','75 x 90'],
-  ['Pesadão 105 litros','75 x 105'],
-  ['Pesadão 150 litros','85 x 100'],
-  ['Pesadão 200 litros','85 x 110']
+  ['Cesta Básica','50 x 80'],
+  ['Saco Lixo Roll Biodegradável Base Canela 15 L','39 x 58'],
+  ['Saco Lixo Roll Biodegradável Base Canela 30 L','59 x 62'],
+  ['Saco Lixo Roll Biodegradável Base Canela 50 L','63 x 80'],
+  ['Saco Lixo Roll Biodegradável Base Canela 105 L','75 x 105'],
+  ['Saco Lixo Rolinho Preto Pesadão Biodegradável 15 L','39 x 58'],
+  ['Saco Lixo Rolinho Preto Pesadão Biodegradável 30 L','59 x 62'],
+  ['Saco Lixo Rolinho Preto Pesadão Biodegradável 50 L','63 x 80'],
+  ['Saco Lixo Rolinho Preto Pesadão Biodegradável 105 L','75 x 105'],
+  ['Saco Lixo Roll Pesadão Preto 15 L','39 x 58'],
+  ['Saco Lixo Roll Pesadão Preto 30 L','59 x 62'],
+  ['Saco Lixo Roll Pesadão Preto 50 L','63 x 80'],
+  ['Saco Lixo Roll Pesadão Preto 105 L','75 x 105'],
+  ['Saco Lixo Roll Pesadão Preto 150 L','85 x 100'],
+  ['Saco Lixo Roll Pesadão Preto 200 L','85 x 110'],
+  ['Saco Lixo Almofada Pesadão Preto 50 L','63 x 80'],
+  ['Saco Lixo Almofada Pesadão Preto 105 L','75 x 105'],
+  ['Saco Lixo Almofada Pesadão Preto 150 L','85 x 100'],
+  ['Saco Lixo Almofada Pesadão Preto 200 L','85 x 110'],
+  ['Roll Pia/Banheiro Rosa-Perfumado 10 L','34 x 40']
 ];
 const SACOLEIRA_VM900=[
   ['Sacola M branca','38 x 48'],
@@ -158,7 +171,7 @@ function filterModal(){
     if(ok){visible++;const a=item.querySelector('.dfRegActions');if(a)a.style.display=''}
   });
   const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='pesadao'||rule==='sacoleira-fixed')?'none':'';
-  const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'SÓ PESADÃO':rule==='sacoleira-fixed'?'VM 900 FLEX':rule==='custom'?(machine||'MÁQUINA'):'TODOS';
+  const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 900':rule==='sacoleira-fixed'?'VM 900 FLEX':rule==='custom'?(machine||'MÁQUINA'):'TODOS';
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
   if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
 }
