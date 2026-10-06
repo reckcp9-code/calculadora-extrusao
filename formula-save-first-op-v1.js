@@ -11,15 +11,21 @@ function material(id){try{return window.materialById?window.materialById(id):nul
 function write(a){try{localStorage.setItem(KEY,JSON.stringify(newest(a)));return true}catch(e){return false}}
 function selectNewest(id){
   const sel=q('foSavedSelect');if(!sel)return false;
-  const forms=newest(load()),rank=new Map(forms.map((f,i)=>[String(f.id),i]));
-  const opts=Array.from(sel.options||[]).sort((a,b)=>(rank.get(String(a.value))??999999)-(rank.get(String(b.value))??999999));
-  opts.forEach(o=>sel.appendChild(o));
-  if(id!=null&&Array.from(sel.options).some(o=>String(o.value)===String(id))){sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))}
+  /* A ordem visual já é tratada pelo seletor de Formulações salvas.
+     Não reanexa <option> aqui: isso disparava MutationObserver em cascata
+     e causava pulos/re-render durante a rolagem. */
+  if(id!=null&&Array.from(sel.options||[]).some(o=>String(o.value)===String(id))){
+    const next=String(id);
+    if(String(sel.value)!==next){
+      sel.value=next;
+      sel.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+  }
   return true;
 }
 function refresh(id){
   try{if(typeof window.renderForms==='function')window.renderForms()}catch(e){}
-  [0,40,140,350,800].forEach(ms=>setTimeout(()=>selectNewest(id),ms));
+  [0,90,320].forEach(ms=>setTimeout(()=>selectNewest(id),ms));
 }
 function popupNow(){
   let w=null;try{w=window.open('','_blank');if(w){w.document.open();w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OP</title></head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font:700 18px system-ui;background:#fff;color:#111">Preparando OP...</body></html>');w.document.close()}}catch(e){}return w;
@@ -73,9 +79,23 @@ window.addEventListener('click',function(ev){
   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
   saveAndOpen();
 },true);
+let normalizeTimer=0,saveObserver=null;
 function normalizeUi(){selectNewest(q('foSavedSelect')?.value||null)}
-function observe(){const b=q('foSaved');if(!b)return false;const o=new MutationObserver(()=>setTimeout(normalizeUi,0));o.observe(b,{childList:true,subtree:true});normalizeUi();return true}
-function start(){let n=0,t=setInterval(()=>{if(observe()||++n>30)clearInterval(t)},150)}
+function scheduleNormalize(delay){
+  clearTimeout(normalizeTimer);
+  normalizeTimer=setTimeout(normalizeUi,Math.max(40,Number(delay)||80));
+}
+function observe(){
+  const b=q('foSaved');if(!b)return false;
+  if(saveObserver&&saveObserver.__target===b)return true;
+  if(saveObserver)saveObserver.disconnect();
+  saveObserver=new MutationObserver(()=>scheduleNormalize(90));
+  saveObserver.__target=b;
+  saveObserver.observe(b,{childList:true,subtree:true});
+  scheduleNormalize(40);
+  return true;
+}
+function start(){let n=0,t=setInterval(()=>{if(observe()||++n>20)clearInterval(t)},200)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-window.addEventListener('df-ui-ready',()=>setTimeout(normalizeUi,500));
+window.addEventListener('df-ui-ready',()=>scheduleNormalize(350));
 })();
