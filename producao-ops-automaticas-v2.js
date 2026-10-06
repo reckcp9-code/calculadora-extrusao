@@ -23,7 +23,37 @@ function findOp(id){id=normId(id);let op=ops().find(o=>normId(o?.id)===id)||null
 
 let currentFile=null,currentOp=null,currentPhotoId='',currentPendingId='',working=false,bound=false;
 
-function repairRecords(){let a=autos(),changed=false;a=a.map(r=>{if(r&&r.status!=='ok'&&r.opId&&num(r.production)>0){changed=true;return{...r,status:'ok',net:Math.max(0,num(r.production)-num(r.scrap))}}return r});const okPhotos=new Set(a.filter(r=>r?.status==='ok'&&r.photoId).map(r=>String(r.photoId)));const okOps=new Set(a.filter(r=>r?.status==='ok'&&r.opId).map(r=>normId(r.opId)));const filtered=[],seenOk=new Set();for(const r of a.sort((x,y)=>String(y?.createdAt||'').localeCompare(String(x?.createdAt||'')))){if(!r)continue;if(r.status!=='ok'&&((r.photoId&&okPhotos.has(String(r.photoId)))||(r.opId&&okOps.has(normId(r.opId))))){changed=true;continue}if(r.status==='ok'){const k=normId(r.opId||r.id)||String(r.photoId||r.id||'');if(k&&seenOk.has(k)){changed=true;continue}if(k)seenOk.add(k)}filtered.push(r)}if(changed)write(AUTO_KEY,filtered);return filtered}
+function repairRecords(){
+  let a=autos(),changed=false;
+  a=a.map(r=>{if(r&&r.status!=='ok'&&r.opId&&num(r.production)>0){changed=true;return{...r,status:'ok',net:Math.max(0,num(r.production)-num(r.scrap))}}return r});
+  const okPhotos=new Set(a.filter(r=>r?.status==='ok'&&r.photoId).map(r=>String(r.photoId)));
+  const okOps=new Set(a.filter(r=>r?.status==='ok'&&r.opId).map(r=>normId(r.opId)));
+  const filtered=[],seenOk=new Set();
+  for(const r of a.sort((x,y)=>String(y?.createdAt||'').localeCompare(String(x?.createdAt||'')))){
+    if(!r)continue;
+    if(r.status!=='ok'&&((r.photoId&&okPhotos.has(String(r.photoId)))||(r.opId&&okOps.has(normId(r.opId))))){changed=true;continue}
+    if(r.status==='ok'){
+      const k=normId(r.opId||r.id)||String(r.photoId||r.id||'');
+      if(k&&seenOk.has(k)){changed=true;continue}
+      if(k)seenOk.add(k)
+    }
+    filtered.push(r)
+  }
+  /* Recupera PRONTAS se uma gravação antiga deixou os totais na OP-base. */
+  for(const o of ops()){
+    const id=normId(o?.id),production=num(o?.autoProduction),scrap=num(o?.autoScrap);
+    if(!id.startsWith('DFOP-')||!(production>0)||seenOk.has(id))continue;
+    filtered.unshift({
+      id,opId:id,photoId:'',createdAt:String(o.autoUpdatedAt||o.closedAt||o.createdAt||new Date().toISOString()),
+      date:String(o.autoUpdatedAt||o.closedAt||o.createdAt||today()).slice(0,10),
+      machine:o.machine||'',product:o.product||'',measure:o.measure||'',operator:o.operator||'',shift:o.shift||'',
+      production,scrap,net:Math.max(0,production-scrap),status:'ok',recovered:true
+    });
+    seenOk.add(id);changed=true
+  }
+  if(changed)write(AUTO_KEY,filtered);
+  return filtered
+}
 
 function addStyle(){if($('dfProdAutoCssV2'))return;const s=document.createElement('style');s.id='dfProdAutoCssV2';s.textContent=`#dfProdAuto{display:none}#dfProdAuto.on{display:block}.dfPAHero,.dfPACard{background:#111827;border:1px solid #263244;border-radius:18px;padding:16px;margin-bottom:12px}.dfPAHero{border-color:#f5a000;background:linear-gradient(180deg,#211400,#14100a)}.dfPAHero h2{margin:0 0 6px;color:#ffd36a;font-size:22px}.dfPAHero p{margin:0;color:#cbd5e1;line-height:1.45;font-size:13px}.dfPAHealth{margin-top:12px;border:1px solid #166534;background:#0d2516;color:#86efac;border-radius:12px;padding:10px;font-size:12px;font-weight:850}.dfPATabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:12px}.dfPATabs button{border:1px solid #334155;background:#0f172a;color:#cbd5e1;border-radius:12px;padding:11px 3px;font:950 10px/1.15 system-ui}.dfPATabs button.on{border-color:#f5a000;background:#211400;color:#ffd36a}.dfPAPane{display:none}.dfPAPane.on{display:block}.dfPACard h3{margin:0 0 11px;font-size:18px}.dfPAChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfPABtn{width:100%;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:13px;padding:13px 9px;margin-top:9px;font:950 13px/1.15 system-ui}.dfPABtn.alt{border-color:#f5a000;background:#241600;color:#ffd36a}.dfPABtn.gray{border-color:#475569;background:#0f172a;color:#e2e8f0}.dfPABtn.danger{border-color:#7f1d1d;background:#230b0b;color:#fca5a5}.dfPAStatus{border:1px solid #334155;background:#0f172a;border-radius:13px;padding:12px;margin-top:10px;font-size:12px;font-weight:800;line-height:1.45}.dfPAStatus.ok{border-color:#166534;color:#86efac}.dfPAStatus.warn{border-color:#a16207;color:#fde68a}.dfPAStatus.bad{border-color:#7f1d1d;color:#fca5a5}.dfPATiny{color:#94a3b8;font-size:11px;line-height:1.45}.dfPAConfirm{display:none;margin-top:12px;border:1px solid #f5a000;background:#15110a;border-radius:14px;padding:13px}.dfPAConfirm.on{display:block}.dfPAOpTitle{font-weight:950;color:#ffd36a;font-size:15px}.dfPAGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfPAGrid label{display:block;color:#cbd5e1;font-size:11px;margin:8px 0 4px}.dfPAGrid input,#dfPAMonth,#dfPAManualId{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:11px;padding:11px;font-size:16px}.dfPAManual{display:none;margin-top:10px;border:1px solid #f5a000;background:#18120a;border-radius:13px;padding:12px}.dfPAManual.on{display:block}.dfPAManual b{display:block;color:#ffd36a;margin-bottom:5px}.dfPAList{border:1px solid #263244;background:#0f172a;border-radius:14px;padding:12px;margin-top:8px}.dfPAList strong{color:#e8edf5}.dfPABadge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:950;margin-left:5px}.dfPABadge.ok{background:#0c321c;color:#86efac}.dfPABadge.warn{background:#3a2605;color:#fde68a}.dfPAKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.dfPAKpi{border:1px solid #263244;background:#0f172a;border-radius:13px;padding:11px}.dfPAKpi span{display:block;color:#94a3b8;font-size:10px}.dfPAKpi b{display:block;font-size:18px;margin-top:4px}.dfPAPreview{display:none;width:100%;max-height:380px;object-fit:contain;border:1px solid #334155;border-radius:14px;background:#080b13;margin-top:10px}.dfPAModal{position:fixed;inset:0;z-index:999999;background:#020617ee;display:none;padding:18px;overflow:auto}.dfPAModal.on{display:block}.dfPAModalBox{max-width:720px;margin:20px auto;background:#111827;border:1px solid #334155;border-radius:18px;padding:14px}.dfPAModal img{width:100%;max-height:70vh;object-fit:contain;border-radius:12px;background:#000}@media(max-width:640px){.dfPATabs{grid-template-columns:repeat(3,1fr)}.dfPAChoice,.dfPAGrid{grid-template-columns:1fr 1fr}.dfPAKpis{grid-template-columns:1fr 1fr 1fr}}`;document.head.appendChild(s)}
 
@@ -65,10 +95,60 @@ function showConfirm(op){currentOp=op;const info=$('dfPAOpInfo');if(info)info.in
 function pendingRecord(reason,prefill=''){const now=new Date().toISOString(),id='PEND-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();currentPendingId=id;const r={id,photoId:currentPhotoId,createdAt:now,date:today(),reason:reason||'QR não identificado',status:'pending'};let a=autos();a=a.filter(x=>!(currentPhotoId&&x.photoId===currentPhotoId));a.unshift(r);write(AUTO_KEY,a);renderAll();showManual(prefill);setStatus('⚠️ Foto salva em <b>PENDENTES</b>. Não consegui identificar a OP pelo QR. Digite o ID para continuar.','warn')}
 async function handleFile(file){if(!file||working)return;working=true;resetCurrent();currentFile=file;currentPhotoId='PHOTO-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase();const img=$('dfPAPreview');if(img){img.src=URL.createObjectURL(file);img.style.display='block'}setStatus('🔎 Procurando o QR da OP...','');try{await photoPut(currentPhotoId,file,{createdAt:new Date().toISOString()});const raw=await decodeQREveryWay(file),id=extractId(raw);if(id){const op=findOp(id);if(op){await photoPut(currentPhotoId,file,{opId:op.id,createdAt:new Date().toISOString()});showConfirm(op)}else pendingRecord('QR identificado, mas a OP não foi encontrada.',id)}else pendingRecord('QR da OP não foi identificado.')}catch(e){pendingRecord('Não foi possível concluir a leitura automática.')}finally{working=false}}
 function identifyManual(){const id=normId($('dfPAManualId')?.value);if(!id||!id.startsWith('DFOP-'))return setStatus('⚠️ Digite um ID válido começando com <b>DFOP-</b>.','warn');const op=findOp(id);if(!op)return setStatus('⚠️ Não encontrei essa OP salva. Confira o ID e tente novamente.','warn');if(currentPhotoId)photoGet(currentPhotoId).then(r=>{if(r?.blob)photoPut(currentPhotoId,r.blob,{opId:op.id,createdAt:r.savedAt||new Date().toISOString()})}).catch(()=>{});showConfirm(op)}
-function saveCurrent(){if(!currentOp)return;const production=num($('dfPAProduction')?.value),scrap=num($('dfPAScrap')?.value);if(!(production>0))return setStatus('⚠️ Informe a <b>PRODUÇÃO TOTAL</b> para salvar.','warn');if(scrap<0||scrap>production)return setStatus('⚠️ A <b>APARA TOTAL</b> precisa ficar entre 0 e a produção total.','warn');const createdAt=new Date().toISOString(),opId=normId(currentOp.id),photoId=currentPhotoId||('PHOTO-'+Date.now()),pendingId=currentPendingId;const rec={id:opId,opId,photoId,createdAt,date:today(),machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};let a=autos();a=a.filter(r=>r&&r.id!==pendingId&&normId(r.opId||r.id)!==opId&&(!photoId||r.photoId!==photoId));a.unshift(rec);if(!write(AUTO_KEY,a))return setStatus('❌ Não foi possível salvar os dados neste aparelho. Tente novamente.','bad');const list=ops(),i=list.findIndex(x=>normId(x?.id)===opId);if(i>=0){list[i]={...list[i],autoProduction:production,autoScrap:scrap,autoNet:rec.net,autoUpdatedAt:createdAt};write(OPS_KEY,list)}if(currentFile)photoPut(photoId,currentFile,{opId,createdAt}).catch(()=>{});setStatus('✅ <b>OP salva e movida para PRONTAS.</b><br>Produção: '+fmt(production)+' kg • Apara: '+fmt(scrap)+' kg • Líquida: '+fmt(rec.net)+' kg','ok');currentOp=null;currentPendingId='';$('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');renderAll();setTimeout(()=>switchPane('ok'),120)}
+async function saveCurrent(){
+  if(!currentOp||working)return;
+  const production=num($('dfPAProduction')?.value),scrap=num($('dfPAScrap')?.value);
+  if(!(production>0))return setStatus('⚠️ Informe a <b>PRODUÇÃO TOTAL</b> para salvar.','warn');
+  if(scrap<0||scrap>production)return setStatus('⚠️ A <b>APARA TOTAL</b> precisa ficar entre 0 e a produção total.','warn');
+  working=true;
+  const btn=$('dfPASave'),oldText=btn?.textContent||'SALVAR OP';
+  if(btn){btn.disabled=true;btn.textContent='SALVANDO...'}
+  try{
+    const createdAt=new Date().toISOString(),opId=normId(currentOp.id),photoId=currentPhotoId||('PHOTO-'+Date.now()),pendingId=currentPendingId;
+    const rec={id:opId,opId,photoId,createdAt,date:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
+
+    /* Garante a foto antes de confirmar a baixa. */
+    if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
+    else if(photoId){
+      const ph=await photoGet(photoId).catch(()=>null);
+      if(ph?.blob&&normId(ph.opId)!==opId)await photoPut(photoId,ph.blob,{opId,createdAt:ph.savedAt||createdAt});
+    }
+
+    let a=autos();
+    a=a.filter(r=>r&&r.id!==pendingId&&normId(r.opId||r.id)!==opId&&(!photoId||r.photoId!==photoId));
+    a.unshift(rec);
+    if(!write(AUTO_KEY,a))throw new Error('Não foi possível gravar PRONTAS.');
+
+    let list=ops(),i=list.findIndex(x=>normId(x?.id)===opId);
+    const base={
+      ...(i>=0?list[i]:currentOp),id:opId,status:'closed',closedAt:createdAt,
+      autoProduction:production,autoScrap:scrap,autoNet:rec.net,autoUpdatedAt:createdAt
+    };
+    if(i>=0)list[i]=base;else list.unshift(base);
+    if(!write(OPS_KEY,list))throw new Error('Não foi possível fechar a OP.');
+
+    const saved=autos().find(r=>r&&r.status==='ok'&&normId(r.opId||r.id)===opId);
+    const savedOp=ops().find(o=>normId(o?.id)===opId);
+    if(!saved||!savedOp||savedOp.status!=='closed')throw new Error('A conferência da baixa falhou.');
+
+    try{window.dispatchEvent(new CustomEvent('df-producao-auto-saved',{detail:{opId,createdAt,photoId}}))}catch(e){}
+    try{window.DFProducaoEquipeOnline?.push?.()}catch(e){}
+
+    setStatus('✅ <b>OP salva e movida para PRONTAS.</b><br>Produção: '+fmt(production)+' kg • Apara: '+fmt(scrap)+' kg • Líquida: '+fmt(rec.net)+' kg','ok');
+    currentOp=null;currentPendingId='';
+    $('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');
+    renderAll();
+    setTimeout(()=>switchPane('ok'),120)
+  }catch(e){
+    setStatus('❌ <b>A baixa não foi concluída.</b><br>'+esc(String(e?.message||e)),'bad')
+  }finally{
+    working=false;
+    if(btn){btn.disabled=false;btn.textContent=oldText}
+  }
+}
 async function openPhoto(id){try{const r=await photoGet(id);if(!r?.blob)return alert('Foto não encontrada neste aparelho.');const u=URL.createObjectURL(r.blob);$('dfPAModalBody').innerHTML='<img src="'+u+'"><div class="dfPATiny" style="margin-top:8px">'+esc(r.opId||id)+'</div>';$('dfPAModal').classList.add('on')}catch(e){alert('Não foi possível abrir a foto.')}}
 function closeModal(){$('dfPAModal')?.classList.remove('on');$('dfPAModalBody').innerHTML=''}
-async function deleteAuto(id){if(!confirm('Excluir este registro automático?'))return;const a=autos(),r=a.find(x=>x.id===id);write(AUTO_KEY,a.filter(x=>x.id!==id));if(r?.photoId)try{await photoDelete(r.photoId)}catch(e){}renderAll()}
+async function deleteAuto(id){if(!confirm('Excluir este registro automático?'))return;const a=autos(),r=a.find(x=>x.id===id);write(AUTO_KEY,a.filter(x=>x.id!==id));if(r?.photoId)try{await photoDelete(r.photoId)}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-auto-deleted',{detail:{opId:normId(r?.opId||r?.id||id)}}))}catch(e){}renderAll()}
 function retryPending(id){const r=autos().find(x=>x.id===id);if(!r)return;currentPendingId=r.id||'';currentPhotoId=r.photoId||'';currentFile=null;currentOp=null;switchPane('read');setStatus('⚠️ Digite o ID da OP para concluir este registro.','warn');showManual(normId(r.opId||''));if(currentPhotoId)photoGet(currentPhotoId).then(p=>{if(p?.blob){const img=$('dfPAPreview');if(img){img.src=URL.createObjectURL(p.blob);img.style.display='block'}}}).catch(()=>{})}
 
 function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel)return;panel.addEventListener('click',e=>{const pane=e.target.closest('[data-pa-pane]');if(pane){switchPane(pane.dataset.paPane);return}const view=e.target.closest('[data-pa-view]');if(view){openPhoto(view.dataset.paView);return}const del=e.target.closest('[data-pa-del]');if(del){deleteAuto(del.dataset.paDel);return}const retry=e.target.closest('[data-pa-retry]');if(retry){retryPending(retry.dataset.paRetry);return}if(e.target.closest('#dfPATake')){$('dfPATakeInput')?.click();return}if(e.target.closest('#dfPAUpload')){$('dfPAUploadInput')?.click();return}if(e.target.closest('#dfPAManualFind')){identifyManual();return}if(e.target.closest('#dfPASave')){saveCurrent();return}if(e.target.closest('#dfPACloseModal')){closeModal();return}});panel.addEventListener('change',e=>{if(e.target.id==='dfPATakeInput'||e.target.id==='dfPAUploadInput'){const f=e.target.files?.[0];e.target.value='';handleFile(f);return}if(e.target.id==='dfPAMonth')renderMonth()});panel.addEventListener('keydown',e=>{if(e.target.id==='dfPAManualId'&&e.key==='Enter'){e.preventDefault();identifyManual()}});if($('dfPAMonth'))$('dfPAMonth').value=monthNow()}
