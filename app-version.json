@@ -1,6 +1,6 @@
 {
-  "version": "1.0.267",
-  "title": "DF EXTRUSOR PRO — VM 250 Roll na lista Pesadão",
-  "message": "Corrigido o nome da máquina: a Picotadeira VM 250 Roll agora usa a mesma lista de produtos das Picotadeiras MKB e UTZ.",
-  "updatedAt": "2026-10-05T22:00:00-03:00"
+  "version": "1.0.268",
+  "title": "DF EXTRUSOR PRO — Lista Sacoleira Flex 900",
+  "message": "A Sacoleira Flex 900 agora usa exclusivamente a lista de 12 sacolas informada, com tamanhos P 30 x 40, M 38 x 48 e G 48 x 58.",
+  "updatedAt": "2026-10-05T22:03:00-03:00"
 }
