@@ -1,6 +1,6 @@
 {
-  "version": "1.0.276",
-  "title": "DF EXTRUSOR PRO — Formatação automática no Custo Fabril",
-  "message": "Os campos do Custo Fabril agora formatam automaticamente milhares com ponto e valores decimais com vírgula no padrão brasileiro. Ex.: 15000 vira 15.000 e 80000 vira 80.000.",
-  "updatedAt": "2026-10-05T23:19:00-03:00"
+  "version": "1.0.277",
+  "title": "DF EXTRUSOR PRO — Correção da depreciação no Custo Fabril",
+  "message": "Ao selecionar Sim em depreciação, os campos de base de cálculo e percentual agora abrem imediatamente e os resultados são atualizados automaticamente.",
+  "updatedAt": "2026-10-05T23:23:00-03:00"
 }
