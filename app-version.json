@@ -1,6 +1,6 @@
 {
-  "version": "1.0.264",
-  "title": "DF EXTRUSOR PRO — Produtos separados por máquina",
-  "message": "Corrigida a lista de produtos da Produção: não existe mais a visualização TODOS. Cada máquina mostra somente seus produtos vinculados. MKB/UTZ/VM 900 usam a lista Pesadão, Sacoleira usa apenas a lista de sacolas, USN usa apenas sua lista, e as demais máquinas usam somente seus vínculos próprios.",
-  "updatedAt": "2026-10-05T21:53:00-03:00"
+  "version": "1.0.265",
+  "title": "DF EXTRUSOR PRO — M250 RAW na lista Pesadão",
+  "message": "A Picotadeira M250 RAW agora usa a mesma lista de produtos das Picotadeiras MKB, UTZ e VM 900.",
+  "updatedAt": "2026-10-05T21:56:00-03:00"
 }
