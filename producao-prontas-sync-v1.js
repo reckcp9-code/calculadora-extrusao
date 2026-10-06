@@ -24,7 +24,7 @@ function repairReadyOps(){
       machine:String(r.machine||''),product:String(r.product||''),measure:String(r.measure||''),
       operator:String(r.operator||''),shift:String(r.shift||''),
       start:String(r.start||r.date||''),end:String(r.end||r.date||''),
-      createdAt:String(r.createdAt||new Date().toISOString()),status:'open',
+      createdAt:String(r.createdAt||new Date().toISOString()),status:'closed',closedAt:String(r.updatedAt||r.createdAt||new Date().toISOString()),
       rolls:rolls(),stops:stops(),test:false,
       autoProduction:Number(r.production||0)||0,autoScrap:Number(r.scrap||0)||0,
       autoNet:Math.max(0,(Number(r.production||0)||0)-(Number(r.scrap||0)||0)),
@@ -50,7 +50,9 @@ async function syncNow(force){
 function boot(){
   let tries=0;
   const t=setInterval(()=>{tries++;if(window.DFProducaoEquipeOnline?.team){clearInterval(t);repairReadyOps();setTimeout(()=>syncNow(true),500)}else if(tries>80)clearInterval(t)},100);
-  document.addEventListener('click',e=>{if(e.target?.closest?.('#dfPASave,#dfPAEditSave,[data-pa-del]'))setTimeout(()=>syncNow(true),700)},true);
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#dfPAEditSave,[data-pa-del]'))setTimeout(()=>syncNow(true),700)},true);
+  window.addEventListener('df-producao-auto-saved',()=>setTimeout(()=>syncNow(true),80));
+  window.addEventListener('df-producao-auto-deleted',()=>setTimeout(()=>syncNow(true),80));
   window.addEventListener('focus',()=>setTimeout(()=>syncNow(false),300));
   window.addEventListener('pageshow',()=>setTimeout(()=>syncNow(false),500));
   window.addEventListener('online',()=>setTimeout(()=>syncNow(true),500));
