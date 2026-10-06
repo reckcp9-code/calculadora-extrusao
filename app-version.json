@@ -1,6 +1,6 @@
 {
-  "version": "1.0.285",
-  "title": "DF EXTRUSOR PRO — Padronização de interface",
-  "message": "Abas e painéis centralizados para evitar deslocamento lateral, textos digitados passam automaticamente para MAIÚSCULO e campos numéricos usam formatação brasileira automática com pontos de milhar e vírgula decimal.",
-  "updatedAt": "2026-10-06T00:18:00-03:00"
+  "version": "1.0.286",
+  "title": "DF EXTRUSOR PRO — Correção de baixas em PRONTAS",
+  "message": "Corrigida a baixa de OPs na Produção: a confirmação só aparece após persistência real, a OP é fechada, PRONTAS não pode ser apagada por sincronização antiga e fotos recentes órfãs são recuperadas em PENDENTES.",
+  "updatedAt": "2026-10-06T09:52:00-03:00"
 }
