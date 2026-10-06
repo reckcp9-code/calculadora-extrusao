@@ -23,7 +23,11 @@
     s.textContent=`
       #pgCu{overflow:visible!important}
       #pgCu > *{display:none!important}
+      #pgCu > #dfCostNavV273{display:flex!important}
       #pgCu > #dfCostSimpleV154{display:block!important}
+      #pgCu > #dfCostFabrilV273{display:none!important}
+      #pgCu.dfCostFabrilMode > #dfCostSimpleV154{display:none!important}
+      #pgCu.dfCostFabrilMode > #dfCostFabrilV273{display:block!important}
       #dfCostSimpleV154{background:#111827;border:1px solid #263244;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 12px 38px rgba(0,0,0,.16)}
       #dfCostSimpleV154 h2{margin:4px 0 5px;font-size:23px}
       #dfCostSimpleV154 .subx{color:#94a3b8;font-size:13px;line-height:1.4;margin-bottom:14px}
