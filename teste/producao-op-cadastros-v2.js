@@ -4,6 +4,7 @@ if(window.DFProducaoCadastrosV2)return;window.DFProducaoCadastrosV2=true;
 
 const KEY='df_producao_cadastros_v1';
 const SEED='df_producao_produtos_seed_proposta_v1';
+const DELETED_KEY='df_producao_produtos_deleted_v1';
 const SETORES=['Picote','Sacoleira','Blocadora'];
 const CFG={
   machine:{id:'prMachine',label:'Máquina',key:'machines',title:'Máquinas cadastradas',placeholder:'Ex.: Picotadeira 01',search:'Pesquisar máquina...'},
@@ -41,6 +42,9 @@ function read(){
   }catch(e){return empty()}
 }
 function write(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
+function readDeleted(){try{const x=JSON.parse(localStorage.getItem(DELETED_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
+function isDeleted(name){return !!readDeleted()[norm(name)]}
+function markDeleted(name){const k=norm(name);if(!k)return;const d=readDeleted();d[k]={name:String(name||'').trim(),at:Date.now()};try{localStorage.setItem(DELETED_KEY,JSON.stringify(d))}catch(e){}}
 function sector(){const s=window.__DF_PROD_V3_STATE&&window.__DF_PROD_V3_STATE.sector;return SETORES.includes(s)?s:'Picote'}
 function sort(a){return [...new Set(a.map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'}))}
 function seedProducts(){
@@ -49,6 +53,7 @@ function seedProducts(){
   const d=read();
   SETORES.forEach(s=>{
     PROPOSTA.forEach(([name,measure])=>{
+      if(isDeleted(name))return;
       if(!d[s].products.some(x=>norm(x)===norm(name)))d[s].products.push(name);
       d[s].productMeasures[name]=measure;
     });
@@ -56,7 +61,7 @@ function seedProducts(){
   });
   write(d);try{localStorage.setItem(SEED,'1')}catch(e){}
 }
-function list(type){const d=read(),s=sector(),c=CFG[type];return sort(d[s][c.key]||[])}
+function list(type){const d=read(),s=sector(),c=CFG[type],vals=d[s][c.key]||[];return sort(type==='product'?vals.filter(v=>!isDeleted(v)):vals)}
 function measureFor(name){const d=read(),s=sector();return String((d[s].productMeasures||{})[name]||'')}
 function setList(type,a){const d=read(),s=sector(),c=CFG[type];d[s][c.key]=sort(a);write(d)}
 function saveProduct(name,measure,oldName){
@@ -65,7 +70,16 @@ function saveProduct(name,measure,oldName){
   if(!sec.products.some(x=>norm(x)===norm(name)))sec.products.push(name);
   sec.products=sort(sec.products);sec.productMeasures[name]=String(measure||'').trim();write(d)
 }
-function removeProduct(name){const d=read(),s=sector();d[s].products=d[s].products.filter(x=>x!==name);delete d[s].productMeasures[name];write(d)}
+function removeProduct(name){
+  markDeleted(name);
+  const d=read(),target=norm(name);
+  SETORES.forEach(s=>{
+    d[s].products=(d[s].products||[]).filter(x=>norm(x)!==target);
+    Object.keys(d[s].productMeasures||{}).forEach(k=>{if(norm(k)===target)delete d[s].productMeasures[k]});
+  });
+  write(d);
+  try{window.dispatchEvent(new CustomEvent('df-product-deleted',{detail:{name:String(name||'')}}))}catch(e){}
+}
 function syncMeasure(product){const el=document.getElementById('prMeasure');if(!el)return;const m=measureFor(product);if(m)el.value=m}
 function nativeOptions(type,el){const vals=list(type),cur=String(el.value||'').trim();el.innerHTML='<option value="">Selecione</option>'+vals.map(v=>'<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc(v)+'</option>').join('')}
 function triggerText(type,el){const v=String(el.value||'').trim();return v||'Selecione'}
