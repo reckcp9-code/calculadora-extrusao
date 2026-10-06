@@ -706,7 +706,7 @@
   const calcControllers=new Map();
 
   function $(id){return document.getElementById(id)}
-  function parseNum(v){let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const x=parseFloat(s);return Number.isFinite(x)?x:0}
+  function parseNum(v){return typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0}
   function n(id){const e=$(id);return parseNum(e?e.value:0)}
   function fmt(v,d=2){const x=Number(v);return Number.isFinite(x)?x.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'}
   function rs(v){return 'R$ '+fmt(Number(v)||0,2)}
@@ -790,14 +790,7 @@
   'use strict';
 
   function $(id){return document.getElementById(id)}
-  function num(v){
-    let s=String(v??'').trim().replace(/\s/g,'');
-    if(!s)return 0;
-    if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
-    else s=s.replace(',','.');
-    const n=parseFloat(s);
-    return Number.isFinite(n)?n:0;
-  }
+  function num(v){return typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0}
   function val(id){const e=$(id);return num(e?e.value:0)}
   function densidade(){
     const s=$('saDs');
@@ -908,14 +901,7 @@
   const lower=t=>String(t??'').trim().toLocaleLowerCase('pt-BR');
   const fmt=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  function parsePrice(v){
-    let s=String(v??'').trim().replace(/\s/g,'');
-    if(!s)return 0;
-    if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
-    else s=s.replace(',','.');
-    const n=parseFloat(s);
-    return Number.isFinite(n)&&n>=0?n:0;
-  }
+  function parsePrice(v){const n=typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;return Number.isFinite(n)&&n>=0?n:0}
 
   function loadMats(){
     try{
@@ -1698,14 +1684,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const PI=Math.PI;
-  const pn=v=>{
-    let s=String(v??'').trim().replace(/\s/g,'');
-    if(!s)return 0;
-    if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
-    else s=s.replace(',','.');
-    const x=parseFloat(s.replace(/[^0-9.\-]/g,''));
-    return Number.isFinite(x)?x:0;
-  };
+  const pn=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
   const fmt=(v,d=2)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const fmtInp=(v,d=2)=>Number(v)>0?Number(v).toLocaleString('pt-BR',{maximumFractionDigits:d}):'';
   const set=(id,t)=>{const e=$(id);if(e)e.textContent=t};
@@ -1919,10 +1898,7 @@
   let currentType='';
   let mounted=false;
 
-  function num(v){
-    const n=parseFloat(String(v||'').trim().replace(',','.').replace(/[^0-9.\-]/g,''));
-    return Number.isFinite(n)?n:0;
-  }
+  function num(v){return typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0}
   function fmt(v){return Number(v).toLocaleString('pt-BR',{maximumFractionDigits:2})}
   function tipo(){return $('bobTipo')?.value==='sanfonada'?'sanfonada':'lisa'}
   function key(t){return t==='sanfonada'?KEY_SANF:KEY_LISA}
@@ -3186,7 +3162,7 @@
 
   const q=id=>document.getElementById(id);
   const fm=(v,d=2)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'};
-  const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
+  const pn=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
   const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const forms=()=>{try{return window.loadForms?window.loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}};
   const mats=()=>{try{return window.loadMats?window.loadMats():JSON.parse(localStorage.getItem('df_formula_materiais_v2')||'[]')}catch(e){return[]}};
@@ -3533,7 +3509,7 @@
   const q=id=>document.getElementById(id);
   const esc=t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
   const fm=(v,d=2)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'};
-  const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
+  const pn=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
 
   function forms(){try{return window.loadForms?window.loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}}
   function mats(){try{return window.loadMats?window.loadMats():JSON.parse(localStorage.getItem('df_formula_materiais_v2')||'[]')}catch(e){return[]}}
@@ -3784,7 +3760,7 @@
 (function(){
   'use strict';
   const q=id=>document.getElementById(id);
-  const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
+  const pn=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
   const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fm=(v,d=2)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'};
   const money=v=>Number(v)>0?'R$ '+fm(v,2):'sem custo';
