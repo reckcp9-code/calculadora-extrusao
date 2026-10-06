@@ -1,6 +1,6 @@
 {
-  "version": "1.0.270",
-  "title": "DF EXTRUSOR PRO — Sacoleira Flex 900 corrigida",
-  "message": "As 12 sacolas da Sacoleira Flex 900 agora também são carregadas no catálogo do setor Picote, mantendo a exibição restrita à própria Sacoleira Flex 900.",
-  "updatedAt": "2026-10-05T22:08:00-03:00"
+  "version": "1.0.271",
+  "title": "DF EXTRUSOR PRO — Correção da tela inicial",
+  "message": "Corrigido o carregamento da tela inicial após o ajuste visual do botão Produção. O app volta a abrir normalmente e o botão Produção permanece ocupando a linha inteira.",
+  "updatedAt": "2026-10-05T22:12:00-03:00"
 }
