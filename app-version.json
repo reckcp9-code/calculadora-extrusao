@@ -1,6 +1,6 @@
 {
-  "version": "1.0.288",
-  "title": "DF EXTRUSOR PRO — UTZ no Produção Agora",
-  "message": "O Produção Agora passa a usar o horário real da baixa salvo na OP-base como autoridade, recuperando também registros antigos da Picotadeira UTZ que já estavam em PRONTAS.",
-  "updatedAt": "2026-10-07T08:43:00-03:00"
+  "version": "1.0.289",
+  "title": "DF EXTRUSOR PRO — AGORA ligado às PRONTAS",
+  "message": "Produção Agora agora usa diretamente máquina, valores e horário gravados no registro de PRONTAS. A OP-base fica apenas como fallback, evitando divergência entre UTZ e outras máquinas.",
+  "updatedAt": "2026-10-07T08:47:00-03:00"
 }
