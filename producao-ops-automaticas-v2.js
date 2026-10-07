@@ -10,7 +10,8 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
 const fmt=(v,d=2)=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
-const today=()=>new Date().toISOString().slice(0,10);
+const localYmd=d=>{const x=d instanceof Date?d:new Date(d||Date.now());if(isNaN(x.getTime()))return'';return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const today=()=>localYmd(new Date());
 const monthNow=()=>today().slice(0,7);
 function read(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}}
 function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
@@ -45,7 +46,7 @@ function repairRecords(){
     if(!id.startsWith('DFOP-')||!(production>0)||seenOk.has(id))continue;
     filtered.unshift({
       id,opId:id,photoId:'',createdAt:String(o.autoUpdatedAt||o.closedAt||o.createdAt||new Date().toISOString()),
-      date:String(o.autoUpdatedAt||o.closedAt||o.createdAt||today()).slice(0,10),
+      date:localYmd(o.autoUpdatedAt||o.closedAt||o.createdAt)||today(),productionDay:localYmd(o.autoUpdatedAt||o.closedAt||o.createdAt)||today(),
       machine:o.machine||'',product:o.product||'',measure:o.measure||'',operator:o.operator||'',shift:o.shift||'',
       production,scrap,net:Math.max(0,production-scrap),status:'ok',recovered:true
     });
@@ -133,7 +134,7 @@ async function saveCurrent(){
 
     /* O horário oficial da baixa nasce somente depois de a foto estar persistida. */
     const createdAt=new Date().toISOString();
-    const rec={id:opId,opId,photoId,createdAt,completedAt:createdAt,date:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
+    const rec={id:opId,opId,photoId,createdAt,completedAt:createdAt,date:today(),productionDay:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
     if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
 
     let a=autos();
