@@ -1,6 +1,6 @@
 {
-  "version": "1.0.287",
-  "title": "DF EXTRUSOR PRO — Fluxo automático de baixa por máquina",
-  "message": "A baixa agora cruza PRONTAS com a OP original pelo ID, usa a máquina da OP como autoridade, reconhece aliases como UTZ/PICOTADEIRA UTZ, soma produção e apara automaticamente no AGORA e corrige datas simples que podiam cair no dia anterior.",
-  "updatedAt": "2026-10-07T08:04:00-03:00"
+  "version": "1.0.288",
+  "title": "DF EXTRUSOR PRO — UTZ no Produção Agora",
+  "message": "O Produção Agora passa a usar o horário real da baixa salvo na OP-base como autoridade, recuperando também registros antigos da Picotadeira UTZ que já estavam em PRONTAS.",
+  "updatedAt": "2026-10-07T08:43:00-03:00"
 }
