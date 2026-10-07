@@ -1,6 +1,6 @@
 {
-  "version": "1.0.286",
-  "title": "DF EXTRUSOR PRO — Correção de baixas em PRONTAS",
-  "message": "Corrigida a baixa de OPs na Produção: a confirmação só aparece após persistência real, a OP é fechada, PRONTAS não pode ser apagada por sincronização antiga e fotos recentes órfãs são recuperadas em PENDENTES.",
-  "updatedAt": "2026-10-06T09:52:00-03:00"
+  "version": "1.0.287",
+  "title": "DF EXTRUSOR PRO — Fluxo automático de baixa por máquina",
+  "message": "A baixa agora cruza PRONTAS com a OP original pelo ID, usa a máquina da OP como autoridade, reconhece aliases como UTZ/PICOTADEIRA UTZ, soma produção e apara automaticamente no AGORA e corrige datas simples que podiam cair no dia anterior.",
+  "updatedAt": "2026-10-07T08:04:00-03:00"
 }
