@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v87-prontas-fonte-v289';
+const DF_CACHE='df-extrusor-shell-v88-data-local-v290';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
