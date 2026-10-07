@@ -28,7 +28,7 @@ function read(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify
 function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
 function localDay(d){const x=d instanceof Date?d:new Date(d);if(isNaN(x.getTime()))return'';return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
 function today(){return localDay(new Date())}
-function recordDay(r){const vals=[r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.createdAt,r?.date];for(const v of vals){if(!v)continue;const d=localDay(v);if(d)return d;const s=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s}return''}
+function recordDay(r){const vals=[r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.createdAt,r?.date];for(const v of vals){if(!v)continue;const s=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const d=localDay(v);if(d)return d}return''}
 function monthNow(){return today().slice(0,7)}
 function monthOf(r){const vals=[r?.month,r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.date,r?.createdAt,r?.updatedAt];for(const v of vals){const s=String(v||'').trim();if(!s)continue;let m=s.match(/^(\d{4})[-\/](\d{1,2})/);if(m)return m[1]+'-'+String(m[2]).padStart(2,'0');m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);if(m)return m[3]+'-'+String(m[2]).padStart(2,'0');const d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}return''}
 function monthLabel(m){const a=String(m||monthNow()).split('-'),d=new Date(Number(a[0]),Number(a[1])-1,1);return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}
