@@ -28,7 +28,7 @@ function read(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify
 function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
 function localDay(d){const x=d instanceof Date?d:new Date(d);if(isNaN(x.getTime()))return'';return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
 function today(){return localDay(new Date())}
-function recordDay(r){const vals=[r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.createdAt,r?.date];for(const v of vals){if(!v)continue;const s=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const d=localDay(v);if(d)return d}return''}
+function recordDay(r){const explicit=String(r?.productionDay||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(explicit))return explicit;const vals=[r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.createdAt,r?.date];for(const v of vals){if(!v)continue;const s=String(v||'').trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const d=localDay(v);if(d)return d}return''}
 function monthNow(){return today().slice(0,7)}
 function monthOf(r){const vals=[r?.month,r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.date,r?.createdAt,r?.updatedAt];for(const v of vals){const s=String(v||'').trim();if(!s)continue;let m=s.match(/^(\d{4})[-\/](\d{1,2})/);if(m)return m[1]+'-'+String(m[2]).padStart(2,'0');m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);if(m)return m[3]+'-'+String(m[2]).padStart(2,'0');const d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}return''}
 function monthLabel(m){const a=String(m||monthNow()).split('-'),d=new Date(Number(a[0]),Number(a[1])-1,1);return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}
@@ -40,13 +40,13 @@ function completedRecords(){
     const id=normId(r.opId||r.id),op=opMap.get(id)||null,key=id||('AUTO-'+out.length);
     if(seen.has(key))continue;
     seen.add(key);
-    out.push({...r,opId:id,machine:String(r.machine||op?.machine||''),product:String(r.product||op?.product||''),measure:String(r.measure||op?.measure||''),operator:String(r.operator||op?.operator||''),shift:String(r.shift||op?.shift||''),completedAt:r.completedAt||r.autoUpdatedAt||r.createdAt||op?.autoUpdatedAt||op?.closedAt})
+    out.push({...r,opId:id,machine:String(r.machine||op?.machine||''),product:String(r.product||op?.product||''),measure:String(r.measure||op?.measure||''),operator:String(r.operator||op?.operator||''),shift:String(r.shift||op?.shift||''),completedAt:r.completedAt||r.autoUpdatedAt||r.createdAt||op?.autoUpdatedAt||op?.closedAt,productionDay:r.productionDay||localDay(r.completedAt||r.autoUpdatedAt||r.createdAt||op?.autoUpdatedAt||op?.closedAt)||r.date||''})
   }
   for(const op of list){
     const id=normId(op?.id),production=num(op?.autoProduction),scrap=num(op?.autoScrap);
     if(!id||seen.has(id)||!(production>0))continue;
     seen.add(id);
-    out.push({id,opId:id,status:'ok',machine:String(op.machine||''),product:String(op.product||''),measure:String(op.measure||''),operator:String(op.operator||''),shift:String(op.shift||''),production,scrap,net:Math.max(0,production-scrap),createdAt:op.autoUpdatedAt||op.closedAt||op.createdAt,date:recordDay(op),completedAt:op.autoUpdatedAt||op.closedAt||op.createdAt,recoveredFromOp:true})
+    out.push({id,opId:id,status:'ok',machine:String(op.machine||''),product:String(op.product||''),measure:String(op.measure||''),operator:String(op.operator||''),shift:String(op.shift||''),production,scrap,net:Math.max(0,production-scrap),createdAt:op.autoUpdatedAt||op.closedAt||op.createdAt,date:recordDay(op),completedAt:op.autoUpdatedAt||op.closedAt||op.createdAt,productionDay:localDay(op.autoUpdatedAt||op.closedAt||op.createdAt)||'',recoveredFromOp:true})
   }
   return out
 }
