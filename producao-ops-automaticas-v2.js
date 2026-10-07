@@ -133,7 +133,7 @@ async function saveCurrent(){
 
     /* O horário oficial da baixa nasce somente depois de a foto estar persistida. */
     const createdAt=new Date().toISOString();
-    const rec={id:opId,opId,photoId,createdAt,date:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
+    const rec={id:opId,opId,photoId,createdAt,completedAt:createdAt,date:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:'ok'};
     if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
 
     let a=autos();
