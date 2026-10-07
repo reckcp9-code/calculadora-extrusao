@@ -40,7 +40,7 @@ function completedRecords(){
     const id=normId(r.opId||r.id),op=opMap.get(id)||null,key=id||('AUTO-'+out.length);
     if(seen.has(key))continue;
     seen.add(key);
-    out.push({...r,opId:id,machine:String(op?.machine||r.machine||''),product:String(op?.product||r.product||''),measure:String(op?.measure||r.measure||''),operator:String(op?.operator||r.operator||''),shift:String(op?.shift||r.shift||''),completedAt:r.completedAt||r.autoUpdatedAt||op?.autoUpdatedAt||op?.closedAt||r.createdAt})
+    out.push({...r,opId:id,machine:String(op?.machine||r.machine||''),product:String(op?.product||r.product||''),measure:String(op?.measure||r.measure||''),operator:String(op?.operator||r.operator||''),shift:String(op?.shift||r.shift||''),completedAt:op?.autoUpdatedAt||op?.closedAt||r.completedAt||r.autoUpdatedAt||r.createdAt})
   }
   for(const op of list){
     const id=normId(op?.id),production=num(op?.autoProduction),scrap=num(op?.autoScrap);
@@ -50,7 +50,7 @@ function completedRecords(){
   }
   return out
 }
-function totalsFor(machine){const key=machineKey(machine),day=today();return completedRecords().filter(r=>machineKey(r.machine)===key&&recordDay(r)===day).reduce((t,r)=>({production:t.production+num(r.production),scrap:t.scrap+num(r.scrap)}),{production:0,scrap:0})}
+function totalsFor(machine){const key=machineKey(machine),day=today(),records=completedRecords();return records.filter(r=>{if(machineKey(r.machine)!==key)return false;const d=recordDay(r);if(d===day)return true;/* Compatibilidade com baixas antigas: a OP-base guarda o horário real da baixa em autoUpdatedAt/closedAt. */const op=read(OPS_KEY,[]);const base=Array.isArray(op)?op.find(o=>normId(o?.id)===normId(r.opId||r.id)):null;return !!base&&recordDay({completedAt:base.autoUpdatedAt||base.closedAt})===day}).reduce((t,r)=>({production:t.production+num(r.production),scrap:t.scrap+num(r.scrap)}),{production:0,scrap:0})}
 function monthRecords(m){return completedRecords().filter(r=>monthOf(r)===m)}
 function grouped(records,keyFn,keyFnNorm){const map=new Map(),kn=typeof keyFnNorm==='function'?keyFnNorm:norm;records.forEach(r=>{const name=String(keyFn(r)||'').trim()||'Não informado';const k=kn(name)||'nao-informado';const cur=map.get(k)||{name,production:0,scrap:0};cur.production+=num(r.production);cur.scrap+=num(r.scrap);map.set(k,cur)});return [...map.values()].sort((a,b)=>b.production-a.production||a.name.localeCompare(b.name,'pt-BR'))}
 
