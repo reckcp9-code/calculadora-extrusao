@@ -1,6 +1,6 @@
 {
-  "version": "1.0.289",
-  "title": "DF EXTRUSOR PRO — AGORA ligado às PRONTAS",
-  "message": "Produção Agora agora usa diretamente máquina, valores e horário gravados no registro de PRONTAS. A OP-base fica apenas como fallback, evitando divergência entre UTZ e outras máquinas.",
-  "updatedAt": "2026-10-07T08:47:00-03:00"
+  "version": "1.0.290",
+  "title": "DF EXTRUSOR PRO — Produção Agora com data local",
+  "message": "Corrigida exclusivamente a área Produção > OPS Automáticas > AGORA. As baixas passam a gravar o dia local do aparelho e registros PRONTAS antigos têm o dia reconstruído pelo horário real da baixa, evitando a UTZ ficar zerada por divergência UTC/local.",
+  "updatedAt": "2026-10-07T08:52:00-03:00"
 }
