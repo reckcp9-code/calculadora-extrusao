@@ -1,6 +1,6 @@
 {
-  "version": "1.0.305",
-  "title": "DF EXTRUSOR PRO — correção de fotos e diagnósticos",
-  "message": "Evita redesenho desnecessário de fotos durante sincronização e reduz alertas falsos de travamento após suspensão do navegador no iPhone.",
-  "updatedAt": "2026-10-08T20:25:00-03:00"
+  "version": "1.0.306",
+  "title": "DF EXTRUSOR PRO — abertura estável",
+  "message": "Novo cache isolado da estrutura do aplicativo para evitar a exibição temporária de telas antigas no iPhone.",
+  "updatedAt": "2026-10-08T20:32:00-03:00"
 }
