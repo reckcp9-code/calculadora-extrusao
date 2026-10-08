@@ -1,6 +1,6 @@
 {
-  "version": "1.0.291",
-  "title": "DF EXTRUSOR PRO — AGORA mensal por máquina",
-  "message": "Produção > OPS Automáticas > AGORA acumula a produção e a apara do mês corrente por máquina, somando as baixas de cada dia.",
-  "updatedAt": "2026-10-08T09:18:00-03:00"
+  "version": "1.0.292",
+  "title": "DF EXTRUSOR PRO — seletor de materiais",
+  "message": "Formulação: seleção de materiais em tela própria com pesquisa, preços e favoritos; correção do seletor nativo no iPhone.",
+  "updatedAt": "2026-10-08T19:28:00-03:00"
 }
