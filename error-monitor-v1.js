@@ -129,11 +129,13 @@
   document.addEventListener('pointerdown',e=>{lastActive=Date.now();lastAction=actionName(e.target&&e.target.closest?e.target.closest('button,a,input,select,textarea'):e.target)},true);
   document.addEventListener('input',e=>{lastActive=Date.now();lastAction=actionName(e.target)},true);
   document.addEventListener('visibilitychange',()=>{lastTick=performance.now();if(!document.hidden)lastActive=Date.now()});
+  window.addEventListener('pageshow',()=>{lastTick=performance.now();lastActive=Date.now()});
+  window.addEventListener('focus',()=>{lastTick=performance.now()});
 
   setInterval(()=>{
     const now=performance.now(),lag=now-lastTick-2000;lastTick=now;
-    if(document.hidden||lag<10000||Date.now()-lastActive>60000||Date.now()-lastPerfAt<5*60*1000)return;
-    lastPerfAt=Date.now();record('performance',{message:'Interface ficou sem responder por aproximadamente '+Math.round(lag/1000)+' s',filename:'runtime'},true);
+    if(document.hidden||lag<30000||Date.now()-lastActive>60000||Date.now()-lastPerfAt<5*60*1000)return;
+    lastPerfAt=Date.now();record('performance',{message:'Possível pausa prolongada do navegador ('+Math.round(lag/1000)+' s). Verifique se houve travamento real.',filename:'runtime'},false);
   },2000);
 
   window.DFErrorMonitor={report:(message,meta)=>record('manual',{message,...(meta||{})},true),open:openModal,last:()=>load()[0]||null,list:()=>load().slice(),clear:()=>save([]),copyLast:()=>{const r=load()[0];return copyText(r?r.code:'SEM-ERRO')}};
