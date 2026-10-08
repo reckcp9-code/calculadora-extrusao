@@ -1,6 +1,6 @@
-(function(){'use strict';if(window.DFNavFitV294)return;window.DFNavFitV294=true;const style=document.createElement('style');style.textContent=`
+(function(){'use strict';if(window.DFNavFitV296)return;window.DFNavFitV296=true;const st=document.createElement('style');st.textContent=`
 .tabs{min-width:0!important;box-sizing:border-box!important}
-.tabs #btFo{min-width:0!important;max-width:100%!important;width:100%!important;box-sizing:border-box!important;overflow:hidden!important;text-overflow:clip!important;white-space:nowrap!important;letter-spacing:-.035em!important;font-size:clamp(9px,2.45vw,13px)!important;padding-left:3px!important;padding-right:3px!important;transform:none!important;line-height:1.2!important}
 .tabs .tab{min-width:0!important;box-sizing:border-box!important}
-@media(max-width:420px){.tabs{column-gap:5px!important}.tabs #btFo{font-size:clamp(9px,2.35vw,12px)!important;letter-spacing:-.055em!important}}
-`;document.head.appendChild(style)})();
+.tabs #btFo{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:clip!important;padding:0 2px!important;font-size:clamp(9px,2.25vw,12px)!important;letter-spacing:-.055em!important;line-height:1.15!important;transform:none!important}
+@media(max-width:600px){.tabs #btFo{font-size:10px!important;letter-spacing:-.06em!important}}
+`;document.head.appendChild(st);function fit(){const b=document.getElementById('btFo');if(!b)return;b.style.setProperty('font-size','10px','important');b.style.setProperty('padding-inline','2px','important');const max=b.clientWidth-6;if(max<=0)return;let px=10;while(px>7.5&&b.scrollWidth>max){px-=.5;b.style.setProperty('font-size',px+'px','important')}}function run(){fit();setTimeout(fit,300);setTimeout(fit,1200)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();window.addEventListener('resize',run);window.addEventListener('df-ui-ready',run);new MutationObserver(()=>{if(document.getElementById('btFo'))fit()}).observe(document.documentElement,{childList:true,subtree:true})})();
