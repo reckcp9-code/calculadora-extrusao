@@ -1,6 +1,6 @@
 {
-  "version": "1.0.300",
-  "title": "DF EXTRUSOR PRO — organização das OPs",
-  "message": "OPs recentes no topo por uma hora, depois ordem alfabética; fotos arquivadas por data.",
-  "updatedAt": "2026-10-08T19:48:00-03:00"
+  "version": "1.0.301",
+  "title": "DF EXTRUSOR PRO — correção de inicialização",
+  "message": "Corrigido erro de sintaxe que impedia carregar o aplicativo na versão 1.0.300.",
+  "updatedAt": "2026-10-08T20:04:00-03:00"
 }
