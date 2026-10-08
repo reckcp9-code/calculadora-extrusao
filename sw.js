@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v104-shell-stable-v306';
+const DF_CACHE='df-extrusor-shell-v105-photo-dom-v307';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
