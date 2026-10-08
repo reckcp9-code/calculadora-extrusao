@@ -1,6 +1,6 @@
 {
-  "version": "1.0.303",
-  "title": "DF EXTRUSOR PRO — estabilidade e integridade",
-  "message": "Revisão dos módulos de inicialização; correção para preservar datas originais das OPs e evitar deslocamento de produção mensal durante sincronização.",
-  "updatedAt": "2026-10-08T20:15:00-03:00"
+  "version": "1.0.304",
+  "title": "DF EXTRUSOR PRO — estabilidade das fotos",
+  "message": "Ordenação estável das OPs por data original do QR; evita saltos causados por sincronização e mantém fotos em ordem de criação.",
+  "updatedAt": "2026-10-08T20:20:00-03:00"
 }
