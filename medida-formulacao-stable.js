@@ -10,14 +10,14 @@
     if($('dfMedidaStableCss'))return;
     const s=document.createElement('style');s.id='dfMedidaStableCss';s.textContent=[
       '#dfMedidaInlineBtn{width:auto;margin:0 0 0 8px;padding:9px 13px;border:1px solid #f5a000;background:#211400;color:#ffd36a;border-radius:12px;font-weight:900;white-space:nowrap}',
-      '#dfMedidaOverlay{position:fixed;inset:0;z-index:1000004;background:#080b13;overflow:auto;padding:14px}',
+      '#dfMedidaOverlay{position:fixed;inset:0;z-index:1000004;background:#080b13;overflow:auto;padding:14px;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(14px,env(safe-area-inset-bottom))}',
       '#dfMedidaOverlay[hidden]{display:none!important}',
       '#dfMedidaOverlay .dfMedidaWrap{max-width:760px;margin:auto}',
-      '#dfMedidaOverlay .dfMedidaTop{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#080b13ee;padding:8px 0 12px}',
-      '#dfMedidaOverlay .dfMedidaTop h2{margin:0}',
-      '#dfMedidaMin{width:auto;margin:0;padding:10px 14px}',
+      '#dfMedidaOverlay .dfMedidaTop{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#080b13ee;padding:12px 0 14px;min-height:76px}',
+      '#dfMedidaOverlay .dfMedidaTop h2{margin:0;min-width:0;font-size:clamp(19px,5vw,28px);line-height:1.2}',
+      '#dfMedidaMin{flex:0 0 auto;width:auto;min-width:132px;min-height:52px;margin:0;padding:12px 16px;touch-action:manipulation;position:relative;z-index:6;font-size:clamp(12px,3.5vw,16px);white-space:nowrap}',
       '#dfMedidaHost #pgEx,#dfMedidaHost #pgEx.page{display:block!important}',
-      '@media(max-width:560px){#dfMedidaInlineBtn{margin-left:6px;padding:8px 10px;font-size:12px}.dfMedidaTop{align-items:flex-start}}'
+      '@media(max-width:560px){#dfMedidaInlineBtn{margin-left:6px;padding:8px 10px;font-size:12px}.dfMedidaTop{align-items:center;gap:8px}#dfMedidaMin{min-width:120px;padding:12px 10px}}'
     ].join('');document.head.appendChild(s);
   }
 
