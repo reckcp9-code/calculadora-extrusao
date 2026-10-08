@@ -1,6 +1,6 @@
 {
-  "version": "1.0.295",
-  "title": "DF EXTRUSOR PRO — menu responsivo",
-  "message": "Ajuste fino da fonte do botão Formulação para evitar corte no iPhone.",
-  "updatedAt": "2026-10-08T19:38:00-03:00"
+  "version": "1.0.296",
+  "title": "DF EXTRUSOR PRO — correção definitiva do botão Formulação",
+  "message": "Ajuste responsivo com medição da largura real do botão para evitar texto cortado no iPhone.",
+  "updatedAt": "2026-10-08T19:41:00-03:00"
 }
