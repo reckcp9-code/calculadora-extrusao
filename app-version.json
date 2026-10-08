@@ -1,6 +1,6 @@
 {
-  "version": "1.0.299",
-  "title": "DF EXTRUSOR PRO — botões lado a lado",
-  "message": "Selo laranja Formulação à esquerda e botão verde Formulações Prontas à direita na mesma linha.",
-  "updatedAt": "2026-10-08T19:46:00-03:00"
+  "version": "1.0.300",
+  "title": "DF EXTRUSOR PRO — organização das OPs",
+  "message": "OPs recentes no topo por uma hora, depois ordem alfabética; fotos arquivadas por data.",
+  "updatedAt": "2026-10-08T19:48:00-03:00"
 }
