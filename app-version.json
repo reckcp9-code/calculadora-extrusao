@@ -1,6 +1,6 @@
 {
-  "version": "1.0.304",
-  "title": "DF EXTRUSOR PRO — estabilidade das fotos",
-  "message": "Ordenação estável das OPs por data original do QR; evita saltos causados por sincronização e mantém fotos em ordem de criação.",
-  "updatedAt": "2026-10-08T20:20:00-03:00"
+  "version": "1.0.305",
+  "title": "DF EXTRUSOR PRO — correção de fotos e diagnósticos",
+  "message": "Evita redesenho desnecessário de fotos durante sincronização e reduz alertas falsos de travamento após suspensão do navegador no iPhone.",
+  "updatedAt": "2026-10-08T20:25:00-03:00"
 }
