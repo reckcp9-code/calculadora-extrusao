@@ -1,6 +1,6 @@
 {
-  "version": "1.0.301",
-  "title": "DF EXTRUSOR PRO — correção de inicialização",
-  "message": "Corrigido erro de sintaxe que impedia carregar o aplicativo na versão 1.0.300.",
-  "updatedAt": "2026-10-08T20:04:00-03:00"
+  "version": "1.0.302",
+  "title": "DF EXTRUSOR PRO — recuperação de abertura",
+  "message": "Restaurado carregador da versão funcional anterior para recuperar abertura do aplicativo sem alterar dados.",
+  "updatedAt": "2026-10-08T20:06:00-03:00"
 }
