@@ -1,6 +1,6 @@
 {
-  "version": "1.0.293",
-  "title": "DF EXTRUSOR PRO — editar resina na formulação",
-  "message": "Botão EDITAR ao lado de REMOVER para substituir uma resina mantendo a porcentagem, com pesquisa de materiais.",
-  "updatedAt": "2026-10-08T19:34:00-03:00"
+  "version": "1.0.294",
+  "title": "DF EXTRUSOR PRO — ajuste do menu Formulação",
+  "message": "Ajuste responsivo para o texto Formulação permanecer dentro do botão no iPhone.",
+  "updatedAt": "2026-10-08T19:36:00-03:00"
 }
