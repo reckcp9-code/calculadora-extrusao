@@ -1,9 +1,9 @@
-const DF_CACHE='df-extrusor-shell-v117-audit-v319';
+const DF_CACHE='df-extrusor-shell-v118-uppercase-v320';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
   './','./index.html','./acessar.html','./app-shell.html','./manifest.webmanifest','./logo.svg','./logo.jpg.jpeg','./app-version.json',
-  './device-identity.js','./ios-reinstall-bridge.js','./access-recovery-v1.js','./auth-self-heal-v1.js','./auto-access.js','./gerador-admin-pwa-v193.js',
+  './device-identity.js','./ios-reinstall-bridge.js','./access-recovery-v1.js','./auth-self-heal-v1.js','./df-uppercase-input-v1.js','./auto-access.js','./gerador-admin-pwa-v193.js',
   './performance-guard-v3.js','./error-monitor-v1.js','./production-stability-v1.js','./ui-consistency-v1.js','./app-bundle.js',
   './sacolas-density-prod-0980-v1.js','./sacolas-caixa-fardo-fast-input-v1.js','./home-polish-v2.js',
   './cost-simple-v154.js','./cost-roll-profit-v1.js','./cost-back-v155.js','./cost-fabril-v1.js','./push-background-repair-v1.js','./access-reinstall-recovery-v2.js',
