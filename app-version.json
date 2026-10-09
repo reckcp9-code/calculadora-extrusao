@@ -1,6 +1,6 @@
 {
-  "version": "1.0.316",
-  "title": "DF EXTRUSOR PRO — acesso gratuito",
-  "message": "Acesso automático para novos usuários sem digitar licença; mantém validação de sessão no servidor e isolamento das equipes.",
-  "updatedAt": "2026-10-09T10:19:00-03:00"
+  "version": "1.0.317",
+  "title": "DF EXTRUSOR PRO — beta gratuito",
+  "message": "Acesso beta sem tela de licença expirada; sessões e equipes permanecem protegidas.",
+  "updatedAt": "2026-10-09"
 }
