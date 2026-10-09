@@ -39,11 +39,11 @@ function localNameFor(id){var n=norm(id),m=load(MANUAL,{}),a=load(OPS,[]),name=v
 async function syncNames(){if(syncing||navigator.onLine===false)return false;var t=team();if(!t||!t.teamId)return false;syncing=true;try{var latest={};for(var i=0;i<3;i++){try{var j=await post('/op/photo/list',{teamId:t.teamId,month:monthShift(-i)});(j.photos||[]).forEach(function(p){var q=String(p&&p.qr||'');if(q.indexOf(PREFIX)!==0)return;var x=dec(q.slice(PREFIX.length)),id=norm(x&&x.id),name=validName(x&&x.name),ts=Number(x&&x.ts||new Date(p.createdAt||0).getTime()||0);if(!id||!name)return;var old=latest[id];if(!old||ts>old.ts)latest[id]={id:id,name:name,ts:ts}})}catch(e){}}var changed=false;Object.keys(latest).forEach(function(k){var x=latest[k];if(applyName(x.id,x.name,x.ts))changed=true});if(changed){try{window.dispatchEvent(new CustomEvent('df-prontas-products-synced',{detail:{teamSync:true}}))}catch(e){}try{window.dispatchEvent(new CustomEvent('df-op-meta-enriched',{detail:{teamSync:true}}))}catch(e){}}sortReady();return true}finally{syncing=false}}
 
 function sortReady(){var box=document.getElementById('dfOkList');if(!box)return false;var rows=Array.from(box.children).filter(function(x){return x&&x.querySelector&&x.querySelector('[data-view]')});if(rows.length<2)return true;var sorted=rows.slice().sort(function(a,b){var aa=norm(a.querySelector('[data-view]').getAttribute('data-view')),bb=norm(b.querySelector('[data-view]').getAttribute('data-view'));return bb.localeCompare(aa)});var same=rows.every(function(r,i){return r===sorted[i]});if(same)return true;sorted.forEach(function(r){box.appendChild(r)});return true}
-function scheduleSort(){clearTimeout(window.__dfTeamReadySort);window.__dfTeamReadySort=setTimeout(sortReady,60)}
+function scheduleSort(mutations){if(Array.isArray(mutations)&&!mutations.some(function(m){return m.target&&(m.target.id==='dfOkList'||m.target.closest?.('#dfOkList'))}))return;clearTimeout(window.__dfTeamReadySort);window.__dfTeamReadySort=setTimeout(sortReady,180)}
 
 function onManualEvent(e){var d=e&&e.detail||{};if(!d.manual||!d.id)return;var name=validName(d.name)||localNameFor(d.id);if(name)publishName(d.id,name);scheduleSort()}
 function boot(){
-  var obs=new MutationObserver(scheduleSort);obs.observe(document.documentElement,{childList:true,subtree:true});
+  var obs=new MutationObserver(scheduleSort);var readyBox=document.getElementById('dfOkList');if(readyBox)obs.observe(readyBox,{childList:true});
   sortReady();setTimeout(syncNames,800);setTimeout(syncNames,3200);
   window.addEventListener('df-prontas-products-synced',onManualEvent);
   window.addEventListener('df-team-joined',function(){setTimeout(syncNames,250)});window.addEventListener('df-team-changed',function(){setTimeout(syncNames,250)});
