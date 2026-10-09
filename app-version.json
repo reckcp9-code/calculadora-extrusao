@@ -1,6 +1,6 @@
 {
-  "version": "1.0.322",
-  "title": "DF EXTRUSOR PRO — duplicar OP",
-  "message": "Gerar nova OP com os mesmos dados e novo ID/QR, sem copiar produção.",
+  "version": "1.0.323",
+  "title": "DF EXTRUSOR PRO — estabilidade das OPs prontas",
+  "message": "Cartões de OPs prontas estáveis, sem reordenação automática ou tremelique.",
   "updatedAt": "2026-10-09"
 }
