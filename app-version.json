@@ -1,6 +1,6 @@
 {
-  "version": "1.0.307",
-  "title": "DF EXTRUSOR PRO — fotos sem redesenho",
-  "message": "Evita reconstruir a lista de fotos quando os registros não mudaram; mantém a posição da interface estável.",
-  "updatedAt": "2026-10-08T20:38:00-03:00"
+  "version": "1.0.308",
+  "title": "DF EXTRUSOR PRO — máquinas e fotos",
+  "message": "Restaura máquinas a partir de cadastro e OPs; fotos da equipe visíveis sem depender de OPs locais.",
+  "updatedAt": "2026-10-08T21:22:00-03:00"
 }
