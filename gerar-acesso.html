@@ -7,12 +7,34 @@
 <title>DF PAINEL ADMINISTRATIVO — Gerar Acesso</title><link rel="manifest" href="./gerador-admin-manifest.webmanifest?v=2"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DF PAINEL ADM">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080b13;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}.wrap{width:min(94vw,860px);margin:34px auto;padding-bottom:40px}.card{background:#0f172a;border:1px solid #334155;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 18px 45px rgba(0,0,0,.25)}h1{margin:0 0 4px;font-size:25px}h2{margin:0 0 8px}.sub{color:#94a3b8;font-size:13px;line-height:1.45}.tag{display:inline-block;border:1px solid #f59e0b;color:#fbbf24;background:#251800;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-bottom:10px}label{display:block;font-size:12px;font-weight:800;margin:12px 0 6px}input,textarea{width:100%;border:1px solid #475569;background:#111827;color:#fff;border-radius:12px;padding:12px;font:600 14px system-ui;outline:none}textarea{min-height:150px;resize:vertical}.btn{width:100%;border:1px solid #16a34a;background:#064e2a;color:#bbf7d0;border-radius:12px;padding:12px;font-weight:900;cursor:pointer;margin-top:10px}.btn.alt{border-color:#f59e0b;background:#2b1d00;color:#fde68a}.btn.copy{border-color:#2563eb;background:#0b1d3a;color:#dbeafe}.btn:disabled{opacity:.6;cursor:wait}.status{margin-top:10px;font-size:12px;color:#94a3b8;white-space:pre-wrap}.ok{color:#86efac}.bad{color:#fca5a5}.counts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.count{background:#111827;border:1px solid #334155;border-radius:12px;padding:10px;text-align:center}.count b{display:block;font-size:22px}.count span{font-size:10px;color:#94a3b8}.linkbox{word-break:break-all;background:#07101f;border:1px solid #2563eb;padding:14px;border-radius:12px;margin-top:10px;color:#bfdbfe;font:800 13px ui-monospace,SFMono-Regular,Consolas,monospace}.info{margin-top:10px;border:1px solid #166534;background:#052e16;color:#bbf7d0;border-radius:12px;padding:12px;font-size:12px;line-height:1.5}.usedList{display:grid;gap:8px;margin-top:12px}.usedItem{background:#111827;border:1px solid #334155;border-radius:12px;padding:12px}.usedTop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}.usedKey{font:800 13px ui-monospace,SFMono-Regular,Consolas,monospace;color:#e2e8f0;word-break:break-all}.usedMeta{font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.55}.usedActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.miniBtn{border:1px solid #2563eb;background:#0b1d3a;color:#dbeafe;border-radius:8px;padding:6px 9px;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap}.miniBtn.reset{border-color:#dc2626;background:#3b0a0a;color:#fecaca}.miniBtn.delete{border-color:#ef4444;background:#450a0a;color:#fee2e2}.miniBtn.pause{border-color:#f59e0b;background:#2b1d00;color:#fde68a}.miniBtn.resume{border-color:#22c55e;background:#052e16;color:#bbf7d0}.rememberSecret{display:flex;align-items:center;gap:9px;margin:9px 0 0;font-size:12px;font-weight:800;color:#cbd5e1;cursor:pointer}.rememberSecret input{width:18px;height:18px;margin:0;accent-color:#f59e0b}.bulkBar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border:1px solid #334155;background:#0b1220;border-radius:12px}.bulkSelect{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:900;margin:0;cursor:pointer}.bulkSelect input,.stockSelect input{width:20px;height:20px;margin:0;accent-color:#16a34a}.bulkCount{font-size:11px;color:#94a3b8;font-weight:800}.bulkActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.btn.danger{border-color:#ef4444;background:#450a0a;color:#fee2e2}.stockSelect{display:inline-flex;align-items:center;gap:8px;margin:0 0 9px;font-size:11px;font-weight:900;color:#cbd5e1;cursor:pointer}.pill.free{color:#86efac;border-color:#166534;background:#052e16}.pill.reserved{color:#fde68a;border-color:#a16207;background:#2b1d00}.pill.paused{color:#fde68a;border-color:#f59e0b;background:#2b1d00}.pill.revoked{color:#fca5a5;border-color:#991b1b;background:#3b0a0a}.miniBtn:disabled{opacity:.6;cursor:wait}.empty{padding:14px;text-align:center;color:#94a3b8;border:1px dashed #334155;border-radius:12px}.pill{display:inline-block;font-size:10px;font-weight:900;color:#86efac;border:1px solid #166534;background:#052e16;border-radius:999px;padding:3px 7px;margin-bottom:6px}.pill.wait{color:#fde68a;border-color:#a16207;background:#2b1d00}@media(max-width:700px){.counts{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.usedTop{display:block}.usedActions{margin-top:8px;display:grid;grid-template-columns:1fr 1fr}.miniBtn{width:100%}.bulkBar{align-items:flex-start;flex-direction:column}.bulkActions{grid-template-columns:1fr}}
+
+/* DF Admin 2026: organização visual sem alterar controles ou API */
+:root{color-scheme:dark;--panel:#111c30;--line:#293c58;--muted:#a9bbd3;--accent:#38bdf8}
+html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,#16345c 0%,#0a1426 46%,#070e1a 100%);min-height:100vh}
+.wrap{width:min(96%,1050px);margin:0 auto;padding:20px 0 80px}
+.adminHero{padding:24px 22px 19px;border:1px solid #33577c;border-radius:20px;background:linear-gradient(130deg,#132b4b,#0e192e 70%);box-shadow:0 12px 32px #0004;margin-bottom:14px}
+.adminHero h1{font-size:clamp(22px,5vw,31px);letter-spacing:-.6px}.adminHero p{color:#b5c8df;margin:8px 0 0;font-size:13px;line-height:1.55}
+.adminNav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:17px}
+.adminNav a{display:flex;justify-content:center;align-items:center;text-align:center;min-height:44px;padding:9px 6px;border:1px solid #355272;background:#172a44;border-radius:11px;color:#e0efff;font-weight:800;text-decoration:none;font-size:12px}
+.adminNav a:active{background:#21476c}.card{background:linear-gradient(145deg,#132038,#0e182b);border:1px solid var(--line);border-radius:18px;padding:21px;margin:13px 0;box-shadow:0 10px 25px #0002;scroll-margin-top:14px}
+.card h2{font-size:19px;letter-spacing:-.3px;padding-bottom:12px;border-bottom:1px solid #293a54;margin:0 0 12px}
+.card .sub{color:var(--muted);font-size:13px;line-height:1.6}
+.card label{color:#dce9fa}.card input,.card textarea{background:#0b1526;border-color:#3b506d;min-height:46px}
+.card input:focus,.card textarea:focus{border-color:#38bdf8;box-shadow:0 0 0 3px #38bdf820}
+.btn{min-height:45px;letter-spacing:.15px;transition:filter .15s}.btn:active,.miniBtn:active{filter:brightness(1.25)}
+.counts{grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.count{padding:15px 8px;background:#0b182c;border-color:#314663}.count b{font-size:clamp(20px,3vw,28px)}.count span{display:block;margin-top:5px;letter-spacing:.2px}
+.usedList{gap:10px}.usedItem{background:#0c182b;border-color:#30445f;padding:14px}.usedMeta{font-size:12px}.usedActions{gap:7px}.miniBtn{min-height:34px;font-size:11px}
+.linkbox{overflow-wrap:anywhere}.info{line-height:1.65}.status:not(:empty){padding:9px 2px}
+@media(max-width:700px){.adminNav{grid-template-columns:repeat(2,minmax(0,1fr))}.counts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:420px){.wrap{width:94%;padding-top:12px}.card{padding:15px}.adminHero{padding:18px 15px}.counts{grid-template-columns:repeat(2,minmax(0,1fr))}.count{padding:12px 6px}.usedActions{grid-template-columns:repeat(2,minmax(0,1fr))}.adminNav a{font-size:11px}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="card">
-    <span class="tag">ADMINISTRAÇÃO</span>
+<header class="adminHero"><span class="tag">PAINEL ADMINISTRATIVO</span><h1>DF EXTRUSOR PRO</h1><p>Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.</p><nav class="adminNav" aria-label="Seções do painel"><a href="#resumo">RESUMO</a><a href="#acessos">ACESSOS</a><a href="#estoque">ESTOQUE</a><a href="#gerenciar">GERENCIAR</a></nav></header>
+  <div class="card" id="resumo">
+    <span class="tag">VISÃO GERAL</span>
     <h1>DF EXTRUSOR PRO</h1>
     <div class="sub">Estoque de licenças, pausa de acesso e controle de aparelho.</div>
     <label>Senha administrativa</label>
@@ -30,8 +52,8 @@
     <div id="statusMsg" class="status"></div>
   </div>
 
-  <div class="card">
-    <h2>Link geral para o grupo</h2>
+  <div class="card" id="acessos">
+    <h2>Link de acesso para usuários</h2>
     <div class="sub">Mande sempre este mesmo link. Cada aparelho recebe uma identificação automática e somente 1 key.</div>
     <div id="generalLink" class="linkbox">https://app.dfextrusor.com.br/acessar.html</div>
     <button class="btn alt" id="copyGeneralBtn">COPIAR LINK GERAL</button>
@@ -39,16 +61,16 @@
     <div id="generalMsg" class="status"></div>
   </div>
 
-  <div class="card">
-    <h2>Adicionar keys ao estoque</h2>
+  <div class="card" id="adicionar">
+    <h2>Adicionar chaves ao estoque</h2>
     <div class="sub">Cole uma key por linha. Você pode colar várias de uma vez.</div>
     <textarea id="keys" placeholder="XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY"></textarea>
     <button class="btn" id="importBtn">ADICIONAR KEYS LIVRES</button>
     <div id="importMsg" class="status"></div>
   </div>
 
-  <div class="card">
-    <h2>Lista do estoque</h2>
+  <div class="card" id="estoque">
+    <h2>Estoque de licenças</h2>
     <div class="sub">Mostra keys livres, reservadas, em uso, pausadas ou bloqueadas.</div>
     <button class="btn copy" id="stockBtn">PUXAR LISTA DO ESTOQUE</button>
     <div class="bulkBar" id="stockBulkBar" style="display:none">
@@ -63,8 +85,8 @@
     <div id="stockList" class="usedList"><div class="empty">Clique em PUXAR LISTA DO ESTOQUE.</div></div>
   </div>
 
-  <div class="card">
-    <h2>Acessos ativos e pausados</h2>
+  <div class="card" id="gerenciar">
+    <h2>Gerenciar acessos e aparelhos</h2>
     <div class="sub">Aqui você pode PAUSAR, REATIVAR, RESETAR APARELHO ou EXCLUIR ACESSO. Excluir devolve a key para LIVRE.</div>
     <button class="btn copy" id="usedBtn">ATUALIZAR ACESSOS</button>
     <div id="usedMsg" class="status"></div>
