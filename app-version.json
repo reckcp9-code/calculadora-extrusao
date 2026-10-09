@@ -1,6 +1,6 @@
 {
-  "version": "1.0.310",
-  "title": "DF EXTRUSOR PRO — recuperação de fotos",
-  "message": "Fotos compartilhadas deixam de ser ocultadas por formato diferente do QR; mantém ordenação estável por criação.",
-  "updatedAt": "2026-10-08T21:35:00-03:00"
+  "version": "1.0.311",
+  "title": "DF EXTRUSOR PRO — lista de formulações estável",
+  "message": "Bloqueia seletor branco nativo do iPhone para manter apenas lista escura de formulações salvas.",
+  "updatedAt": "2026-10-08T21:45:00-03:00"
 }
