@@ -125,7 +125,7 @@ document.addEventListener('click',function(e){
   if(q)setTimeout(function(){syncProntas(true)},80);
 },true);
 function queue(force){setTimeout(function(){syncProntas(!!force)},120)}
-function watch(){if(observer)return;observer=new MutationObserver(function(){patchUi()});observer.observe(document.documentElement,{childList:true,subtree:true})}
+function watch(){if(observer)return;var box=document.getElementById('dfOkList');if(!box){setTimeout(watch,500);return}var pending=0;observer=new MutationObserver(function(mutations){if(!mutations.some(function(m){return m.type==='childList'&&m.addedNodes.length>0}))return;clearTimeout(pending);pending=setTimeout(patchUi,300)});observer.observe(box,{childList:true})}
 function boot(){watch();patchUi();queue(false);setTimeout(function(){queue(true)},1600);setTimeout(function(){queue(true)},4200);window.addEventListener('df-op-remote-merged',function(){queue(true)});window.addEventListener('df-op-cloud-synced',function(){queue(true)});window.addEventListener('df-op-qr-created',function(){queue(true)});window.addEventListener('df-prontas-products-synced',function(){patchUi()});window.addEventListener('pageshow',function(){queue(false)});window.addEventListener('online',function(){queue(true)});setInterval(function(){if(!document.hidden)syncProntas(false)},15000)}
 window.DFOpProntasProductSource={sync:function(){return syncProntas(true)},product:function(o){return savedProduct(o)||'Sem produto'}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
