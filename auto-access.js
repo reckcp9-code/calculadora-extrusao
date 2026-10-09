@@ -10,7 +10,7 @@ const USER_COOKIE='df_auto_user_code_v1';
 const COOKIE_MAX_AGE=315360000;
 const previousFetch=window.fetch.bind(window);
 const initialUrl=new URL(location.href);
-const generalMode=String(initialUrl.searchParams.get('acesso')||'').trim().toLowerCase()==='geral';
+const generalMode=String(initialUrl.searchParams.get('acesso')||'').trim().toLowerCase()!=='restrito';
 let identifying=false;
 let autoStarted=false;
 
