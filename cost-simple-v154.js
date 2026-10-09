@@ -102,7 +102,7 @@
       <span class="tag">CUSTO SIMPLES</span><h2>Custo do produto</h2><div class="subx">Somente custo, lucro opcional e preço de venda.</div>
       <label class="autoLine"><input id="dfCostAuto154" type="checkbox"> Puxar peso e quantidade automaticamente da aba Sacolas</label>
       <div class="step"><label>Peso do rolo (kg)</label><input id="dfCostPeso154" inputmode="decimal" placeholder="Ex.: 5"></div>
-      <div class="step optional"><label class="autoLine" style="margin:0"><input id="dfCostTubeteCheck154" type="checkbox"> Incluir peso do tubete</label><div id="dfCostTubeteExtra154" style="display:none;margin-top:12px"><label>Peso do tubete (gramas)</label><input id="dfCostTubeteInput154" inputmode="decimal" placeholder="Ex.: 200"></div></div>\n      <div class="step"><label>Quantas unidades tem no rolo?</label><input id="dfCostUnid154" inputmode="numeric" placeholder="Ex.: 200"></div>
+      <div class="step"><label>Quantas unidades tem no rolo?</label><input id="dfCostUnid154" inputmode="numeric" placeholder="Ex.: 200"></div>
       <div class="step"><label>Custo do material por kg (R$)</label><input id="dfCostKg154" inputmode="decimal" placeholder="Ex.: 8,50"></div>
       <div class="step optional"><label>Lucro (%) — opcional</label><div class="modeGrid"><input id="dfCostLucro154" inputmode="decimal" placeholder="Ex.: 30"><select id="dfCostModo154"><option value="markup">Markup sobre o custo</option><option value="margin">Margem sobre a venda</option></select></div><small>Markup soma o percentual em cima do custo. Margem calcula o preço para que o lucro represente esse percentual da venda.</small><div id="dfCostErro154" class="err"></div></div>
       <div class="greenResult"><span>CUSTO POR KG</span><b id="dfCostResKg154">—</b></div><div class="greenResult"><span>CUSTO POR UNIDADE</span><b id="dfCostResUn154">—</b></div><div class="greenResult"><span>CUSTO TOTAL</span><b id="dfCostResTotal154">—</b></div>
@@ -110,7 +110,7 @@
     pg.insertBefore(box,pg.firstChild);
     const auto=$('dfCostAuto154'),origAuto=$('cuAuto');auto.checked=!!origAuto?.checked;
     ['dfCostPeso154','dfCostUnid154','dfCostKg154','dfCostLucro154'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}});
-    $('dfCostModo154')?.addEventListener('change',calc);\n    $('dfCostTubeteCheck154')?.addEventListener('change',function(){const box=$('dfCostTubeteExtra154');if(box)box.style.display=this.checked?'block':'none';});
+    $('dfCostModo154')?.addEventListener('change',calc);
     auto.addEventListener('change',()=>{syncAutoToOriginal();setTimeout(()=>{pullFromOriginal();calc()},100)});
     bindOriginal();pullFromOriginal();calc();return true;
   }
