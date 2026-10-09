@@ -65,7 +65,7 @@
     const sale=$('dfCostVenda154'),err=$('dfCostErro154');
     if(!pesoEl||!unidEl||!kgEl||!lucroEl||!modoEl||!resKg||!resUn||!resTotal||!sale||!err)return false;
     const peso=num(pesoEl.value),unid=num(unidEl.value),custoKg=num(kgEl.value),pct=num(lucroEl.value),mode=modoEl.value||'markup';
-    const custoTotal=peso>0&&custoKg>0?peso*custoKg:0;
+    const tubeteOn=!!$('dfCostTubeteOn154')?.checked;\n    const tubeteGramas=tubeteOn?num($('dfCostTubetePeso154')?.value):0;\n    const rolos=Math.max(0,num($('dfCostRolos154')?.value)||1);\n    const pesoLiquido=tubeteOn?Math.max(0,peso-(tubeteGramas/1000)*rolos):peso;\n    const pesoMsg=$('dfCostPesoLiquido154');if(pesoMsg){pesoMsg.textContent=tubeteOn?(tubeteGramas*rolos/1000>peso?'O peso dos tubetes não pode superar o peso informado.':'Peso líquido de plástico: '+pesoLiquido.toLocaleString('pt-BR',{maximumFractionDigits:3})+' kg') : '';pesoMsg.style.color=tubeteGramas*rolos/1000>peso?'#fca5a5':'#86efac';}\n    const custoTotal=pesoLiquido>0&&custoKg>0?pesoLiquido*custoKg:0;
     const custoUn=unid>0&&custoTotal>0?custoTotal/unid:0;
     resKg.textContent=custoKg>0?money(custoKg):'—';
     resUn.textContent=custoUn>0?money(custoUn):'—';
@@ -102,15 +102,15 @@
       <span class="tag">CUSTO SIMPLES</span><h2>Custo do produto</h2><div class="subx">Somente custo, lucro opcional e preço de venda.</div>
       <label class="autoLine"><input id="dfCostAuto154" type="checkbox"> Puxar peso e quantidade automaticamente da aba Sacolas</label>
       <div class="step"><label>Peso do rolo (kg)</label><input id="dfCostPeso154" inputmode="decimal" placeholder="Ex.: 5"></div>
-      <div class="step"><label>Quantas unidades tem no rolo?</label><input id="dfCostUnid154" inputmode="numeric" placeholder="Ex.: 200"></div>
+      <div class="step optional"><label class="autoLine"><input id="dfCostTubeteOn154" type="checkbox"> Incluir peso do tubete</label><div id="dfCostTubeteBox154" style="display:none"><label>Peso de cada tubete (gramas)</label><input id="dfCostTubetePeso154" inputmode="decimal" placeholder="Ex.: 200"><small>Desconta o peso do tubete de cada rolo para calcular somente o plástico.</small></div><small id="dfCostPesoLiquido154"></small></div>\n      <div class="step"><label>Quantas unidades tem no rolo?</label><input id="dfCostUnid154" inputmode="numeric" placeholder="Ex.: 200"></div>
       <div class="step"><label>Custo do material por kg (R$)</label><input id="dfCostKg154" inputmode="decimal" placeholder="Ex.: 8,50"></div>
       <div class="step optional"><label>Lucro (%) — opcional</label><div class="modeGrid"><input id="dfCostLucro154" inputmode="decimal" placeholder="Ex.: 30"><select id="dfCostModo154"><option value="markup">Markup sobre o custo</option><option value="margin">Margem sobre a venda</option></select></div><small>Markup soma o percentual em cima do custo. Margem calcula o preço para que o lucro represente esse percentual da venda.</small><div id="dfCostErro154" class="err"></div></div>
       <div class="greenResult"><span>CUSTO POR KG</span><b id="dfCostResKg154">—</b></div><div class="greenResult"><span>CUSTO POR UNIDADE</span><b id="dfCostResUn154">—</b></div><div class="greenResult"><span>CUSTO TOTAL</span><b id="dfCostResTotal154">—</b></div>
       <div id="dfCostVenda154" class="saleBox"><div class="saleTitle">PREÇO DE VENDA COM LUCRO</div><div id="dfCostModoTexto154" class="saleModeText"></div><div class="greenResult"><span>VENDA POR KG</span><b id="dfCostVendaKg154">—</b></div><div class="greenResult"><span>VENDA POR UNIDADE</span><b id="dfCostVendaUn154">—</b></div><div class="greenResult"><span>VENDA TOTAL</span><b id="dfCostVendaTotal154">—</b></div></div>`;
     pg.insertBefore(box,pg.firstChild);
     const auto=$('dfCostAuto154'),origAuto=$('cuAuto');auto.checked=!!origAuto?.checked;
-    ['dfCostPeso154','dfCostUnid154','dfCostKg154','dfCostLucro154'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}});
-    $('dfCostModo154')?.addEventListener('change',calc);
+    ['dfCostPeso154','dfCostUnid154','dfCostKg154','dfCostLucro154','dfCostTubetePeso154','dfCostRolos154'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}});
+    $('dfCostModo154')?.addEventListener('change',calc);\n    $('dfCostTubeteOn154')?.addEventListener('change',()=>{const on=$('dfCostTubeteOn154').checked;$('dfCostTubeteBox154').style.display=on?'block':'none';calc();});
     auto.addEventListener('change',()=>{syncAutoToOriginal();setTimeout(()=>{pullFromOriginal();calc()},100)});
     bindOriginal();pullFromOriginal();calc();return true;
   }
