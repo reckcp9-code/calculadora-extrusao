@@ -1,6 +1,6 @@
 {
-  "version": "1.0.315",
-  "title": "DF EXTRUSOR PRO — rolagem fixa nas formulações",
-  "message": "Trava a página de fundo enquanto o seletor ocupa tela inteira; rolagem somente dentro da lista de formulações.",
-  "updatedAt": "2026-10-08T22:00:00-03:00"
+  "version": "1.0.316",
+  "title": "DF EXTRUSOR PRO — acesso gratuito",
+  "message": "Acesso automático para novos usuários sem digitar licença; mantém validação de sessão no servidor e isolamento das equipes.",
+  "updatedAt": "2026-10-09T10:19:00-03:00"
 }
