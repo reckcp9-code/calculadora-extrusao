@@ -1,6 +1,6 @@
 {
-  "version": "1.0.324",
-  "title": "DF EXTRUSOR PRO — Prontas em tela inteira",
-  "message": "Aba Prontas em tela exclusiva, com pesquisa fixa e retorno para OPs automáticas.",
+  "version": "1.0.325",
+  "title": "DF EXTRUSOR PRO — pesquisa Prontas ajustada",
+  "message": "Pesquisa centralizada e com espaçamento seguro abaixo do cabeçalho no iPhone.",
   "updatedAt": "2026-10-09"
 }
