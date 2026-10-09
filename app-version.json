@@ -1,6 +1,6 @@
 {
-  "version": "1.0.323",
-  "title": "DF EXTRUSOR PRO — estabilidade das OPs prontas",
-  "message": "Cartões de OPs prontas estáveis, sem reordenação automática ou tremelique.",
+  "version": "1.0.324",
+  "title": "DF EXTRUSOR PRO — Prontas em tela inteira",
+  "message": "Aba Prontas em tela exclusiva, com pesquisa fixa e retorno para OPs automáticas.",
   "updatedAt": "2026-10-09"
 }
