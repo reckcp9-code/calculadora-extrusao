@@ -25,16 +25,20 @@ function sortedOptions(sel){
   }
   return{selected,items:data}
 }
-function close(){if(active){active.remove();active=null}}
+let savedScroll=null;
+function close(){if(active){active.remove();active=null}if(savedScroll){const v=savedScroll;savedScroll=null;document.body.style.position=v.position;document.body.style.top=v.top;document.body.style.left=v.left;document.body.style.right=v.right;document.body.style.width=v.width;document.documentElement.style.overflow=v.htmlOverflow;document.body.style.overflow=v.bodyOverflow;window.scrollTo(0,v.y)}}
+function lockPage(){if(savedScroll)return;const b=document.body,h=document.documentElement,y=window.scrollY;savedScroll={y,position:b.style.position,top:b.style.top,left:b.style.left,right:b.style.right,width:b.style.width,htmlOverflow:h.style.overflow,bodyOverflow:b.style.overflow};b.style.position='fixed';b.style.top=(-y)+'px';b.style.left='0';b.style.right='0';b.style.width='100%';b.style.overflow='hidden';h.style.overflow='hidden'}
 function open(sel){
   close();
   const data=sortedOptions(sel);
+  lockPage();
   const ov=document.createElement('div');
   active=ov;
   ov.className='df-formula-picker';
   ov.innerHTML='<div class="df-fp-box"><div class="df-fp-title">Formulações salvas <button type="button" class="df-fp-x">×</button></div><div class="df-fp-search"><span>⌕</span><input type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar formulação..."></div><div class="df-fp-filter"><button type="button" data-filter="all" class="on">Todas</button><button type="button" data-filter="fav">★ Favoritas</button></div><div class="df-fp-list"></div></div>';
   document.body.appendChild(ov);
   const input=ov.querySelector('input'),list=ov.querySelector('.df-fp-list');
+  ov.addEventListener('touchmove',e=>{if(!e.target.closest('.df-fp-list'))e.preventDefault()},{passive:false});
   let filter='all',touchY=0,moved=false,suppressUntil=0;
 
   function render(resetScroll){
@@ -113,7 +117,7 @@ const st=document.createElement('style');st.textContent=`
 .df-fp-filter{flex:0 0 auto;display:flex;gap:8px;padding:0 0 12px}
 .df-fp-filter button{border:1px solid #334155;background:#111827;color:#94a3b8;border-radius:999px;padding:10px 15px;font-weight:800;cursor:pointer}
 .df-fp-filter button.on{border-color:#d99a20;color:#ffd36a;background:#211700}
-.df-fp-list{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 0 20px;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto}
+.df-fp-list{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 0 20px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto}
 .df-fp-row{display:grid;grid-template-columns:minmax(0,1fr) 52px;align-items:center;border-bottom:1px solid #253149;min-height:66px}
 .df-fp-row.on{background:#13223a;border-radius:12px}
 .df-fp-item{width:100%;min-width:0;display:grid;grid-template-columns:30px minmax(0,1fr);gap:7px;text-align:left;align-items:center;border:0;background:transparent;color:#f8fafc;padding:16px 8px;font-size:clamp(16px,2vw,19px);line-height:1.35;overflow-wrap:anywhere;cursor:pointer}
