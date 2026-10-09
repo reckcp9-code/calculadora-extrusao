@@ -1,6 +1,6 @@
 {
-  "version": "1.0.312",
+  "version": "1.0.313",
   "title": "DF EXTRUSOR PRO — formulações salvas",
-  "message": "Removido botão DUPLICAR da ficha de formulações salvas; mantidos ABRIR, PDF, OP e EXCLUIR.",
-  "updatedAt": "2026-10-08T21:50:00-03:00"
+  "message": "Remove botão duplicar remanescente e ajusta janela de formulações à altura do iPhone.",
+  "updatedAt": "2026-10-08T21:55:00-03:00"
 }
