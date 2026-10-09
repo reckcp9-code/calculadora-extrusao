@@ -22,13 +22,14 @@
 
       const box=document.createElement('div');
       box.className='dfRenewExpired';
-      box.innerHTML='<div class="dfRenewExpiredTitle">🔴 ACESSO VENCIDO — RENOVAR AGORA</div><div class="dfRenewExpiredBtns"><button type="button" data-renew-days="7">+ 7 DIAS</button><button type="button" data-renew-days="15">+ 15 DIAS</button><button type="button" data-renew-days="30">+ 30 DIAS</button><button type="button" data-renew-days="90">+ 90 DIAS</button></div>';
+      box.innerHTML='<div class="dfRenewExpiredTitle">🔴 USUÁRIO VENCIDO — DAR MAIS ACESSO</div><div class="dfRenewExpiredBtns"><button type="button" data-renew-days="7">+ 7 DIAS</button><button type="button" data-renew-days="15">+ 15 DIAS</button><button type="button" data-renew-days="30">+ 30 DIAS</button><button type="button" data-renew-days="90">+ 90 DIAS</button></div>';
       const daysControl=item.querySelector('.daysControl');
       if(daysControl)daysControl.insertAdjacentElement('beforebegin',box);else item.appendChild(box);
 
       box.querySelectorAll('[data-renew-days]').forEach(function(btn){
         btn.addEventListener('click',function(){
           const days=Number(btn.dataset.renewDays)||0;
+          if(!confirm('Renovar este usuário vencido por '+days+' dias?'))return;
           input.value=String(days);
           input.dispatchEvent(new Event('input',{bubbles:true}));
           save.click();
