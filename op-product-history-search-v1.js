@@ -33,6 +33,9 @@ function statusFor(row){
 }
 function openExisting(id){
   var n=normId(id),btn=null;
+  /* A pesquisa abre a foto na nuvem diretamente quando existe um vínculo salvo. */
+  try{var map=load('df_op_photo_cloud_map_v1',{}),ops=load(OPS,[]),rec=Array.isArray(ops)?ops.find(function(o){return ids(o).some(function(k){return normId(k)===n})}):null;var cloudId=String(rec&&rec.cloudPhotoId||map[n]&&map[n].photoId||'');if(cloudId&&window.DFOpCloud&&typeof window.DFOpCloud.openPhoto==='function'){window.DFOpCloud.openPhoto(cloudId,false);return true}}catch(e){}
+
   document.querySelectorAll('[data-view]').forEach(function(b){if(!btn&&normId(b.getAttribute('data-view'))===n)btn=b});
   if(btn){try{btn.click();return true}catch(e){}}
   alert('A foto desta OP não está disponível neste aparelho agora.');return false;
