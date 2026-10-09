@@ -1,6 +1,6 @@
 {
-  "version": "1.0.326",
-  "title": "DF EXTRUSOR PRO — fotos na nuvem em Prontas",
-  "message": "Pesquisa de OPs prontas abre fotos vinculadas à nuvem quando disponíveis.",
+  "version": "1.0.327",
+  "title": "DF EXTRUSOR PRO — Prontas em altura total",
+  "message": "Resultados da pesquisa de OPs aproveitam toda a altura da tela, sem corte da lista.",
   "updatedAt": "2026-10-09"
 }
