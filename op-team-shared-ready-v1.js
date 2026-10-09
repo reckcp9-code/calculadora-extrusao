@@ -41,10 +41,10 @@ async function syncNames(){if(syncing||navigator.onLine===false)return false;var
 function sortReady(){var box=document.getElementById('dfOkList');if(!box)return false;var rows=Array.from(box.children).filter(function(x){return x&&x.querySelector&&x.querySelector('[data-view]')});if(rows.length<2)return true;var sorted=rows.slice().sort(function(a,b){var aa=norm(a.querySelector('[data-view]').getAttribute('data-view')),bb=norm(b.querySelector('[data-view]').getAttribute('data-view'));return bb.localeCompare(aa)});var same=rows.every(function(r,i){return r===sorted[i]});if(same)return true;sorted.forEach(function(r){box.appendChild(r)});return true}
 function scheduleSort(mutations){if(Array.isArray(mutations)&&!mutations.some(function(m){return m.target&&(m.target.id==='dfOkList'||m.target.closest?.('#dfOkList'))}))return;clearTimeout(window.__dfTeamReadySort);window.__dfTeamReadySort=setTimeout(sortReady,180)}
 
-function onManualEvent(e){var d=e&&e.detail||{};if(!d.manual||!d.id)return;var name=validName(d.name)||localNameFor(d.id);if(name)publishName(d.id,name);scheduleSort()}
+function onManualEvent(e){var d=e&&e.detail||{};if(!d.manual||!d.id)return;var name=validName(d.name)||localNameFor(d.id);if(name)publishName(d.id,name);/* sem reordenar lista */}
 function boot(){
-  var obs=new MutationObserver(scheduleSort);var readyBox=document.getElementById('dfOkList');if(readyBox)obs.observe(readyBox,{childList:true});
-  sortReady();setTimeout(syncNames,800);setTimeout(syncNames,3200);
+  /* Ordenação automática desligada: evita tremelique nas OPs prontas. */
+  setTimeout(syncNames,800);setTimeout(syncNames,3200);
   window.addEventListener('df-prontas-products-synced',onManualEvent);
   window.addEventListener('df-team-joined',function(){setTimeout(syncNames,250)});window.addEventListener('df-team-changed',function(){setTimeout(syncNames,250)});
   window.addEventListener('online',function(){setTimeout(syncNames,180)});window.addEventListener('pageshow',function(){setTimeout(syncNames,180)});
@@ -52,6 +52,6 @@ function boot(){
   document.addEventListener('click',function(e){var t=e.target;if(t&&(t.id==='dfCloudRefresh'||t.id==='dfFormTabOps'||(t.closest&&t.closest('[data-pane="ok"]'))))setTimeout(syncNames,160)},true);
   setInterval(function(){if(!document.hidden)syncNames()},8000);
 }
-window.DFOpTeamSharedReady={sync:syncNames,sort:sortReady,publish:publishName};
+window.DFOpTeamSharedReady={sync:syncNames,sort:function(){return true},publish:publishName};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
