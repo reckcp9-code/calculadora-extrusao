@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v111-formula-clean-v313';
+const DF_CACHE='df-extrusor-shell-v112-formula-fullscreen-v314';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
