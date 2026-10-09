@@ -3798,7 +3798,7 @@
     if(!a.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return;}
     const current=q('foSavedSelect')?.value;
     const opts=a.map((f,i)=>'<option value="'+esc(f.id)+'" '+((current&&String(current)===String(f.id))||(!current&&i===0)?'selected':'')+'>'+esc(f.nome||'Formulação')+' — '+fm(f.total||0,2)+' kg</option>').join('');
-    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(5,1fr)"><button class="miniBtn" data-fosafe="open">ABRIR</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="miniBtn" data-fosafe="dup">DUPLICAR</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
+    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(4,minmax(0,1fr))"><button class="miniBtn" data-fosafe="open">ABRIR</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
     q('foSavedSelect')?.addEventListener('change',info);info();
   }
 
