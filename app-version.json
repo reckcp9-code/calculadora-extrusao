@@ -1,6 +1,6 @@
 {
-  "version": "1.0.308",
-  "title": "DF EXTRUSOR PRO — máquinas e fotos",
-  "message": "Restaura máquinas a partir de cadastro e OPs; fotos da equipe visíveis sem depender de OPs locais.",
-  "updatedAt": "2026-10-08T21:22:00-03:00"
+  "version": "1.0.309",
+  "title": "DF EXTRUSOR PRO — carregamento de máquinas",
+  "message": "Incluído módulo de máquinas que estava ausente da inicialização; busca máquinas do cadastro e histórico de OPs.",
+  "updatedAt": "2026-10-08T21:26:00-03:00"
 }
