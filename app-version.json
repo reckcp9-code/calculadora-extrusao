@@ -1,6 +1,6 @@
 {
-  "version": "1.0.320",
-  "title": "DF EXTRUSOR PRO — escrita em maiúsculas",
-  "message": "Campos de texto do aplicativo passam a converter automaticamente a digitação em letras maiúsculas.",
+  "version": "1.0.321",
+  "title": "DF EXTRUSOR PRO — identificação de OP",
+  "message": "Busca da OP por ID com nova tentativa de sincronização da equipe.",
   "updatedAt": "2026-10-09"
 }
