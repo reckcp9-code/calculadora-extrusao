@@ -1,6 +1,6 @@
 {
-  "version": "1.0.317",
-  "title": "DF EXTRUSOR PRO — beta gratuito",
-  "message": "Acesso beta sem tela de licença expirada; sessões e equipes permanecem protegidas.",
+  "version": "1.0.318",
+  "title": "DF EXTRUSOR PRO — recuperação dos cadastros de Produção",
+  "message": "Recuperação de máquinas e operadores a partir das OPs e proteção contra cadastros vazios.",
   "updatedAt": "2026-10-09"
 }
