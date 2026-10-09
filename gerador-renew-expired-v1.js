@@ -13,8 +13,10 @@
 
   function enhance(){
     addStyle();
+    const list=document.getElementById('usedList');
+    if(list&&!document.getElementById('dfExpiredRenewInfo')){const info=document.createElement('div');info.id='dfExpiredRenewInfo';info.style.cssText='padding:12px;margin:10px 0;border:1px solid #f59e0b;border-radius:12px;background:#2b1d00;color:#fde68a;font-weight:800;font-size:13px';info.textContent='🔴 RENOVAR ACESSOS VENCIDOS — localize o usuário abaixo e escolha +7, +15, +30 ou +90 dias.';list.parentElement.insertBefore(info,list)}
     document.querySelectorAll('.usedItem').forEach(function(item){
-      const pill=item.querySelector('.pill.expired');
+      const pill=item.querySelector('.pill.expired, .pill.paused.expired');
       if(!pill||item.querySelector('.dfRenewExpired'))return;
       const input=item.querySelector('[data-days-input]');
       const save=item.querySelector('[data-days-save]');
