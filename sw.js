@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v113-formula-scrolllock-v315';
+const DF_CACHE='df-extrusor-shell-v114-free-access-v316';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
