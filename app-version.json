@@ -1,6 +1,6 @@
 {
-  "version": "1.0.318",
-  "title": "DF EXTRUSOR PRO — recuperação dos cadastros de Produção",
-  "message": "Recuperação de máquinas e operadores a partir das OPs e proteção contra cadastros vazios.",
+  "version": "1.0.319",
+  "title": "DF EXTRUSOR PRO — estabilidade da Produção",
+  "message": "Proteção adicional contra sobrescrita dos cadastros locais durante sincronização de equipes.",
   "updatedAt": "2026-10-09"
 }
