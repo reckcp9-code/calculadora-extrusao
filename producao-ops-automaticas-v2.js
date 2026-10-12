@@ -151,6 +151,7 @@ async function saveCurrent(){
     if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
 
     let a=autos();
+    /* Remove somente a pendência da mesma foto/OP concluída, sem afetar outras fotos pendentes. */
     a=a.filter(r=>r&&r.id!==pendingId&&normId(r.opId||r.id)!==opId&&(!photoId||r.photoId!==photoId));
     a.unshift(rec);
     if(!write(AUTO_KEY,a))throw new Error('Não foi possível gravar PRONTAS.');
@@ -163,6 +164,8 @@ async function saveCurrent(){
     if(i>=0)list[i]=base;else list.unshift(base);
     if(!write(OPS_KEY,list))throw new Error('Não foi possível fechar a OP.');
 
+    /* Conferência após a baixa: a pendência da foto usada não pode continuar visível. */
+    const after=autos();const stale=after.filter(r=>r&&r.status!=='ok'&&((photoId&&r.photoId===photoId)||(r.opId&&normId(r.opId)===opId)));if(stale.length){if(!write(AUTO_KEY,after.filter(r=>!stale.includes(r))))throw new Error('Não foi possível finalizar a limpeza da pendência.');}
     const saved=autos().find(r=>r&&r.status==='ok'&&normId(r.opId||r.id)===opId);
     const savedOp=ops().find(o=>normId(o?.id)===opId);
     if(!saved||!savedOp||savedOp.status!=='closed')throw new Error('A conferência da baixa falhou.');
