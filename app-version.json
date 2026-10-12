@@ -1,6 +1,6 @@
 {
-  "version": "1.0.329",
-  "title": "DF EXTRUSOR PRO — OPs entre membros da equipe",
-  "message": "Nova tentativa de sincronização de OPs compartilhadas e orientação quando a equipe não está conectada.",
+  "version": "1.0.330",
+  "title": "DF EXTRUSOR PRO — fotos reais na nuvem",
+  "message": "A aba Fotos exibe apenas registros associados a IDs válidos de OP, sem excluir arquivos da nuvem.",
   "updatedAt": "2026-10-12"
 }
