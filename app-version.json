@@ -1,6 +1,6 @@
 {
-  "version": "1.0.332",
-  "title": "DF EXTRUSOR PRO — baixa e pendências",
-  "message": "Conferência adicional para remover pendência vinculada à foto/OP após baixa concluída, preservando as demais.",
+  "version": "1.0.333",
+  "title": "DF EXTRUSOR PRO — QR sem pendências fantasmas",
+  "message": "Falhas de leitura do QR não geram PEND; leitura nativa quando disponível e consulta de OP na equipe.",
   "updatedAt": "2026-10-12"
 }
