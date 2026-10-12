@@ -1,6 +1,6 @@
 {
-  "version": "1.0.327",
-  "title": "DF EXTRUSOR PRO — Prontas em altura total",
-  "message": "Resultados da pesquisa de OPs aproveitam toda a altura da tela, sem corte da lista.",
-  "updatedAt": "2026-10-09"
+  "version": "1.0.328",
+  "title": "DF EXTRUSOR PRO — identificação de OP na equipe",
+  "message": "Identificação manual aguarda a consulta das OPs sincronizadas antes de informar que o ID não foi encontrado.",
+  "updatedAt": "2026-10-12"
 }
