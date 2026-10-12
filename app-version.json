@@ -1,6 +1,6 @@
 {
-  "version": "1.0.328",
-  "title": "DF EXTRUSOR PRO — identificação de OP na equipe",
-  "message": "Identificação manual aguarda a consulta das OPs sincronizadas antes de informar que o ID não foi encontrado.",
+  "version": "1.0.329",
+  "title": "DF EXTRUSOR PRO — OPs entre membros da equipe",
+  "message": "Nova tentativa de sincronização de OPs compartilhadas e orientação quando a equipe não está conectada.",
   "updatedAt": "2026-10-12"
 }
