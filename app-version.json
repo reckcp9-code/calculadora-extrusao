@@ -1,6 +1,6 @@
 {
-  "version": "1.0.331",
-  "title": "DF EXTRUSOR PRO — fotos arquivadas",
-  "message": "A aba Fotos mostra apenas fotos arquivadas no aplicativo; registros de fotos da API não aparecem na lista, sem exclusão na nuvem.",
+  "version": "1.0.332",
+  "title": "DF EXTRUSOR PRO — baixa e pendências",
+  "message": "Conferência adicional para remover pendência vinculada à foto/OP após baixa concluída, preservando as demais.",
   "updatedAt": "2026-10-12"
 }
