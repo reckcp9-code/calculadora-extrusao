@@ -1,6 +1,6 @@
 {
-  "version": "1.0.330",
-  "title": "DF EXTRUSOR PRO — fotos reais na nuvem",
-  "message": "A aba Fotos exibe apenas registros associados a IDs válidos de OP, sem excluir arquivos da nuvem.",
+  "version": "1.0.331",
+  "title": "DF EXTRUSOR PRO — fotos arquivadas",
+  "message": "A aba Fotos mostra apenas fotos arquivadas no aplicativo; registros de fotos da API não aparecem na lista, sem exclusão na nuvem.",
   "updatedAt": "2026-10-12"
 }
