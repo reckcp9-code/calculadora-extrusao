@@ -1,6 +1,6 @@
 {
-  "version": "1.0.348",
-  "title": "DF EXTRUSOR PRO — proteção de pendências",
-  "message": "Evita recriar pendências de fotos de OPs já encerradas; visual azul preservado.",
+  "version": "1.0.349",
+  "title": "DF EXTRUSOR PRO — leitura manual de OP",
+  "message": "Corrige validação do ID manual para abrir produção e apara; preserva dados e visual.",
   "updatedAt": "2026-10-13"
 }
