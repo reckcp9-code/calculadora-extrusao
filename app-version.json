@@ -1,6 +1,6 @@
 {
-  "version": "1.0.341",
-  "title": "DF EXTRUSOR PRO — painel mensal sem máquinas zeradas",
-  "message": "Máquinas sem produção e sem apara no mês deixam de aparecer no painel Agora, sem exclusão de cadastros ou históricos.",
+  "version": "1.0.342",
+  "title": "DF EXTRUSOR PRO — painel Agora ajustado",
+  "message": "Oculta sacoleiras e Blocadora VM 900 no painel Agora, preservando cadastros e históricos.",
   "updatedAt": "2026-10-12"
 }
