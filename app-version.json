@@ -1,6 +1,6 @@
 {
-  "version": "1.0.349",
-  "title": "DF EXTRUSOR PRO — leitura manual de OP",
-  "message": "Corrige validação do ID manual para abrir produção e apara; preserva dados e visual.",
+  "version": "1.0.350",
+  "title": "DF EXTRUSOR PRO — visual azul restaurado",
+  "message": "Restaura somente a tela AGORA com os cartões azuis por máquina.",
   "updatedAt": "2026-10-13"
 }
