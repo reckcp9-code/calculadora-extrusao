@@ -1,6 +1,6 @@
 {
-  "version": "1.0.347",
-  "title": "DF EXTRUSOR PRO — AGORA em tela inteira",
-  "message": "Tela AGORA exclusiva e porcentagem de apara por máquina.",
+  "version": "1.0.348",
+  "title": "DF EXTRUSOR PRO — proteção de pendências",
+  "message": "Evita recriar pendências de fotos de OPs já encerradas; visual azul preservado.",
   "updatedAt": "2026-10-13"
 }
