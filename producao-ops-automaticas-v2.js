@@ -81,6 +81,9 @@ async function recoverOrphanPhotos(){
     for(const p of photos){
       const opId=normId(p?.opId||''),pt=Date.parse(String(p?.savedAt||p?.createdAt||''));
       if(!opId.startsWith('DFOP-')||readyIds.has(opId)||knownPhotos.has(String(p?.id||''))||!(pt>=cutoff)||!findOp(opId))continue;
+      /* Uma foto órfã de OP já encerrada não é prova de baixa perdida: não gerar PENDENTE falso. */
+      const original=ops().find(o=>normId(o?.id)===opId);
+      if(original?.status==='closed'||original?.status==='completed'||original?.status==='concluida')continue;
       a.unshift({id:'PEND-REC-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(),photoId:String(p.id||''),opId,createdAt:String(p.savedAt||p.createdAt||new Date().toISOString()),date:String(p.savedAt||p.createdAt||today()).slice(0,10),reason:'Foto recuperada após falha de sincronização. Confirme produção e apara.',status:'pending',recovered:true});
       knownPhotos.add(String(p.id||''));changed=true
     }
