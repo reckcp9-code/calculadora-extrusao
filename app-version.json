@@ -1,6 +1,6 @@
 {
-  "version": "1.0.340",
-  "title": "DF EXTRUSOR PRO — máquinas cadastradas no painel mensal",
-  "message": "Painel mensal exibe somente máquinas cadastradas, sem máquinas fantasmas de OPs históricas.",
+  "version": "1.0.341",
+  "title": "DF EXTRUSOR PRO — painel mensal sem máquinas zeradas",
+  "message": "Máquinas sem produção e sem apara no mês deixam de aparecer no painel Agora, sem exclusão de cadastros ou históricos.",
   "updatedAt": "2026-10-12"
 }
