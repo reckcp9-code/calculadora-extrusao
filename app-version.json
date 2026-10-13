@@ -1,6 +1,6 @@
 {
-  "version": "1.0.352",
-  "title": "DF EXTRUSOR PRO — Painel Smart TV",
-  "message": "Correção de inicialização do painel Smart TV",
+  "version": "1.0.353",
+  "title": "DF EXTRUSOR PRO — TV manual independente",
+  "message": "Controle manual no celular e visualização sincronizada na Smart TV, separados das OPs.",
   "updatedAt": "2026-10-13"
 }
