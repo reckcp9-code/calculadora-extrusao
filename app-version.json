@@ -1,6 +1,6 @@
 {
-  "version": "1.0.343",
-  "title": "DF EXTRUSOR PRO — percentual de apara mensal",
-  "message": "Fechamento mensal exibe percentual de apara sobre produção total.",
+  "version": "1.0.344",
+  "title": "DF EXTRUSOR PRO — relatório mensal padrão DF",
+  "message": "Relatório mensal A4 redesenhado com percentual de apara e tabelas organizadas.",
   "updatedAt": "2026-10-12"
 }
