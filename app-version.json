@@ -1,6 +1,6 @@
 {
-  "version": "1.0.334",
-  "title": "DF EXTRUSOR PRO — consulta exata de OP",
-  "message": "QR e ID manual consultam o mês de criação da OP diretamente na equipe, com erros de conexão separados de OP ausente.",
+  "version": "1.0.335",
+  "title": "DF EXTRUSOR PRO — leitura QR aprimorada",
+  "message": "Reconhecimento de QR pequeno por regiões, rotação e ampliação, mantendo consulta por ID e preservação de fotos.",
   "updatedAt": "2026-10-12"
 }
