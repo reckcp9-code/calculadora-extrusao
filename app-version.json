@@ -1,6 +1,6 @@
 {
-  "version": "1.0.337",
-  "title": "DF EXTRUSOR PRO — recuperação de OP para baixa",
-  "message": "Recuperação manual confirmada para qualquer ID DFOP válido, sem criar produção ou apara automaticamente.",
+  "version": "1.0.340",
+  "title": "DF EXTRUSOR PRO — máquinas cadastradas no painel mensal",
+  "message": "Painel mensal exibe somente máquinas cadastradas, sem máquinas fantasmas de OPs históricas.",
   "updatedAt": "2026-10-12"
 }
