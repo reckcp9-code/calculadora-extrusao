@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v137-report-v345';
+const DF_CACHE='df-extrusor-shell-v138-whatsapp-v346';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -12,7 +12,7 @@ const CORE=[
   './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./team-formulas-duplicates-v2.js',
   './formula-saved-search-v1.js','./formula-save-first-op-v1.js','./formula-material-picker-v1.js','./formula-edit-resin-v293.js','./nav-formula-fit-v294.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
   './op-team-date-canonical-v1.js','./op-product-d1-authority-v1.js','./extrusao-matriz-bur.js','./extrusao-matriz-complemento.js','./op-status-artifact-filter-v170.js',
-  './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v345.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./producao-sacoleira-vm900-v1.js','./producao-machine-produtos-v1.js','./producao-produtos-fullscreen-v1.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
+  './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v346.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./producao-sacoleira-vm900-v1.js','./producao-machine-produtos-v1.js','./producao-produtos-fullscreen-v1.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
@@ -54,7 +54,7 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url),same=url.origin===self.location.origin;if(!same)return;
   const p=url.pathname;
   if(req.mode==='navigate'){
-    if(p.endsWith('/painel-administrativo-df.html')||p.endsWith('/gerar-acesso.html')||p.endsWith('/op-producao.html')||p.endsWith('/producao-agora-maquinas-v345.js')||p.endsWith('/acessar.html')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
+    if(p.endsWith('/painel-administrativo-df.html')||p.endsWith('/gerar-acesso.html')||p.endsWith('/op-producao.html')||p.endsWith('/producao-agora-maquinas-v346.js')||p.endsWith('/acessar.html')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
     event.respondWith((async()=>{const out=await navigationCached(req);if(out.refresh)event.waitUntil(out.refresh);return out.response})());return
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
