@@ -1,6 +1,6 @@
 {
-  "version": "1.0.351",
+  "version": "1.0.352",
   "title": "DF EXTRUSOR PRO — Painel Smart TV",
-  "message": "Nova página de TV em modo leitura; sincronização entre dispositivos ainda pendente.",
+  "message": "Correção de inicialização do painel Smart TV",
   "updatedAt": "2026-10-13"
 }
