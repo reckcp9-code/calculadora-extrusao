@@ -1,6 +1,6 @@
 {
   "version": "1.0.335",
-  "title": "DF EXTRUSOR PRO — leitura QR aprimorada",
-  "message": "Reconhecimento de QR pequeno por regiões, rotação e ampliação, mantendo consulta por ID e preservação de fotos.",
+  "title": "DF EXTRUSOR PRO — identificação e consulta de OP",
+  "message": "Busca OPs por mês de criação e sincronização, distingue erro de rede e mantém a foto sem criar baixas duplicadas.",
   "updatedAt": "2026-10-12"
 }
