@@ -1,6 +1,6 @@
 {
-  "version": "1.0.344",
-  "title": "DF EXTRUSOR PRO — relatório mensal padrão DF",
-  "message": "Relatório mensal A4 redesenhado com percentual de apara e tabelas organizadas.",
+  "version": "1.0.345",
+  "title": "DF EXTRUSOR PRO — relatório gerencial mensal",
+  "message": "Relatório A4 paisagem com apara percentual por máquina e por produto.",
   "updatedAt": "2026-10-12"
 }
