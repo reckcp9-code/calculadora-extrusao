@@ -1,6 +1,6 @@
 {
-  "version": "1.0.342",
-  "title": "DF EXTRUSOR PRO — painel Agora ajustado",
-  "message": "Oculta sacoleiras e Blocadora VM 900 no painel Agora, preservando cadastros e históricos.",
+  "version": "1.0.343",
+  "title": "DF EXTRUSOR PRO — percentual de apara mensal",
+  "message": "Fechamento mensal exibe percentual de apara sobre produção total.",
   "updatedAt": "2026-10-12"
 }
