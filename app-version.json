@@ -1,6 +1,6 @@
 {
-  "version": "1.0.335",
-  "title": "DF EXTRUSOR PRO — identificação e consulta de OP",
-  "message": "Busca OPs por mês de criação e sincronização, distingue erro de rede e mantém a foto sem criar baixas duplicadas.",
+  "version": "1.0.336",
+  "title": "DF EXTRUSOR PRO — recuperação de OP",
+  "message": "Recuperação confirmada da OP DFOP-20261005-072536-BLSA para permitir baixa, sem inventar dados ou criar produção automática.",
   "updatedAt": "2026-10-12"
 }
