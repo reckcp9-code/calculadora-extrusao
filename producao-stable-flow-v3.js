@@ -18,7 +18,8 @@ function normalizeShift(v){v=String(v??'').trim();if(v==='00:00–07:00')return'
 function sameMachineShift(o,sector,machine,shift){return !!o&&o.sector===sector&&String(o.machine||'').trim().toLocaleLowerCase('pt-BR')===String(machine||'').trim().toLocaleLowerCase('pt-BR')&&normalizeShift(o.shift)===normalizeShift(shift)&&o.status==='open'}
 function favs(){const a=read(FAVKEY,[]);return new Set(Array.isArray(a)?a:[])}
 function saveFavs(s){try{localStorage.setItem(FAVKEY,JSON.stringify([...s]))}catch(e){}}
-function allOps(){return read(KEY,[]).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))}
+function completedIds(){const a=read('df_producao_ops_auto_v1',[]);return new Set((Array.isArray(a)?a:[]).filter(x=>x&&x.status==='ok').map(x=>String(x.opId||x.id||'').trim().toUpperCase()).filter(Boolean))}
+function allOps(){const done=completedIds();const a=read(KEY,[]);return (Array.isArray(a)?a:[]).filter(o=>o&&o.id&&o.status!=='closed'&&o.status!=='completed'&&o.status!=='finished'&&!done.has(String(o.id).trim().toUpperCase())).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))}
 function searchText(o){return[o.machine,o.product,o.measure,o.operator,o.shift,o.id,o.sector].join(' ').toLocaleLowerCase('pt-BR')}
 function registerQR(o){try{const r=read(QRKEY,{});r[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};localStorage.setItem(QRKEY,JSON.stringify(r))}catch(e){}}
 
@@ -61,6 +62,8 @@ function renderSaved(){if(painting)return;const root=$('dfPrRoot')||$('pgPr');if
   const list=box.querySelector('.dfOpList');if(list)list.innerHTML=savedRowsHtml(shown,fs);
 }finally{painting=false}}
 window.DFRenderSavedProductionOps=renderSaved;
+window.addEventListener('df-producao-auto-saved',()=>{selectedId='';renderSaved()});
+window.addEventListener('storage',e=>{if(e.key===KEY||e.key==='df_producao_ops_auto_v1')renderSaved()});
 
 function setField(id,value){const el=$(id);if(!el)return false;const v=String(value??'');if(el.tagName==='SELECT'&&v&&!Array.from(el.options).some(o=>String(o.value)===v)){const opt=document.createElement('option');opt.value=v;opt.textContent=v;el.appendChild(opt)}el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}
 function applyOpenedFields(o){setField('prMachine',o.machine);setField('prProduct',o.product);setField('prMeasure',o.measure);setField('prOperator',o.operator);setField('prShift',normalizeShift(o.shift));setField('prStart',o.start);setField('prEnd',o.end)}
