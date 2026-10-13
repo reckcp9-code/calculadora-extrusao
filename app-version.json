@@ -1,6 +1,6 @@
 {
-  "version": "1.0.336",
-  "title": "DF EXTRUSOR PRO — recuperação de OP",
-  "message": "Recuperação confirmada da OP DFOP-20261005-072536-BLSA para permitir baixa, sem inventar dados ou criar produção automática.",
+  "version": "1.0.337",
+  "title": "DF EXTRUSOR PRO — recuperação de OP para baixa",
+  "message": "Recuperação manual confirmada para qualquer ID DFOP válido, sem criar produção ou apara automaticamente.",
   "updatedAt": "2026-10-12"
 }
