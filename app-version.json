@@ -1,6 +1,6 @@
 {
-  "version": "1.0.354",
-  "title": "DF EXTRUSOR PRO — TV manual independente",
-  "message": "Painel TV: importar máquinas já cadastradas no DF Extrusor Pro",
-  "updatedAt": "2026-10-13"
+  "version": "1.0.357",
+  "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
+  "message": "Proteção contra reinicialização automática durante o uso; interface da versão 354 preservada.",
+  "updatedAt": "2026-10-16"
 }
