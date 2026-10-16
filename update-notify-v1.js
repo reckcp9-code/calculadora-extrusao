@@ -59,21 +59,25 @@
     if(updating||!v||!v.version)return;
     const current=String(v.version).trim();
     if(!current)return;
-    let applied='';
-    try{applied=String(localStorage.getItem(AUTO_KEY)||'')}catch(e){}
-    if(applied===current)return;
+    // Não recarregar nem apagar caches automaticamente durante o uso.
+    // O usuário pode estar preenchendo OP, formulação ou lançamento.
+    try{localStorage.setItem(SEEN_KEY,current)}catch(e){}
+    window.DFUpdateAvailableVersion=current;
+    try{window.dispatchEvent(new CustomEvent('df-update-available',{detail:{version:current}}))}catch(e){}
+  }
+  window.dfApplyUpdateManually=async function(){
+    if(updating)return;
     updating=true;
     try{
-      localStorage.setItem(AUTO_KEY,current);
-      localStorage.setItem(SEEN_KEY,current);
-    }catch(e){}
-    await refreshServiceWorker();
-    await clearOldShellCaches();
-    const u=new URL(location.href);
-    u.searchParams.set('v',current);
-    u.searchParams.set('t',Date.now());
-    setTimeout(()=>location.replace(u.toString()),80);
-  }
+      const v=window.DFUpdateAvailableVersion||'';
+      if(v){try{localStorage.setItem(AUTO_KEY,v)}catch(e){}}
+      await refreshServiceWorker();
+      await clearOldShellCaches();
+      const u=new URL(location.href);
+      if(v)u.searchParams.set('v',v);
+      location.replace(u.toString());
+    }catch(e){updating=false}
+  };
 
   async function check(){
     loadStability();
