@@ -1,6 +1,6 @@
 {
-  "version": "1.0.355",
-  "title": "DF EXTRUSOR PRO — estabilidade de navegação",
-  "message": "Evita reinicialização automática durante uso; preserva cadastros e lançamentos.",
+  "version": "1.0.356",
+  "title": "DF EXTRUSOR PRO — pesquisa em OPs e fotos",
+  "message": "Restaura busca em PRONTAS e FOTOS, com filtro mensal de fotos arquivadas.",
   "updatedAt": "2026-10-16"
 }
