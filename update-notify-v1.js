@@ -56,24 +56,31 @@
   }
 
   async function applyUpdate(v){
-    if(updating||!v||!v.version)return;
+    if(!v||!v.version)return;
     const current=String(v.version).trim();
     if(!current)return;
-    let applied='';
-    try{applied=String(localStorage.getItem(AUTO_KEY)||'')}catch(e){}
-    if(applied===current)return;
+    // Never force a page reload while an operator is entering production.
+    // Notify once per version; do not clear caches or touch production storage.
+    try{
+      const last=String(localStorage.getItem(SEEN_KEY)||'');
+      if(last===current)return;
+      localStorage.setItem(SEEN_KEY,current);
+      window.DFUpdateAvailableVersion=current;
+      window.dispatchEvent(new CustomEvent('df-update-available',{detail:{version:current}}));
+    }catch(e){}
+  }
+  window.dfApplyUpdateManually=async function(){
+    if(updating)return;
     updating=true;
     try{
-      localStorage.setItem(AUTO_KEY,current);
-      localStorage.setItem(SEEN_KEY,current);
-    }catch(e){}
-    await refreshServiceWorker();
-    await clearOldShellCaches();
-    const u=new URL(location.href);
-    u.searchParams.set('v',current);
-    u.searchParams.set('t',Date.now());
-    setTimeout(()=>location.replace(u.toString()),80);
-  }
+      const current=window.DFUpdateAvailableVersion||'';
+      if(current)localStorage.setItem(AUTO_KEY,current);
+      await refreshServiceWorker();
+      const u=new URL(location.href);
+      if(current)u.searchParams.set('v',current);
+      location.replace(u.toString());
+    }catch(e){updating=false}
+  };
 
   async function check(){
     loadStability();
