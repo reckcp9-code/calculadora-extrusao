@@ -1,6 +1,6 @@
 {
-  "version": "1.0.359",
+  "version": "1.0.360",
   "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Permite gerar e imprimir outra OP para máquina com OP aberta, sem encerrar a anterior.",
+  "message": "Reduz atrasos artificiais ao abrir OPs Automáticas na Formulação.",
   "updatedAt": "2026-10-19"
 }
