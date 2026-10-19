@@ -1,6 +1,6 @@
 {
-  "version": "1.0.358",
+  "version": "1.0.359",
   "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Correção da exclusão permanente de OPs salvas com sincronização da equipe.",
+  "message": "Permite gerar e imprimir outra OP para máquina com OP aberta, sem encerrar a anterior.",
   "updatedAt": "2026-10-19"
 }
