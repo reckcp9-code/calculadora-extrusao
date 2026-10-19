@@ -1,6 +1,6 @@
 {
-  "version": "1.0.357",
+  "version": "1.0.358",
   "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Proteção contra reinicialização automática durante o uso; interface da versão 354 preservada.",
-  "updatedAt": "2026-10-16"
+  "message": "Correção da exclusão permanente de OPs salvas com sincronização da equipe.",
+  "updatedAt": "2026-10-19"
 }
