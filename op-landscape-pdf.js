@@ -35,11 +35,13 @@
   }
 
   function parseNum(value){
-    let s=String(value||'').replace(/[^0-9,.-]/g,'').trim();
-    if(!s)return 0;
-    if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');
-    else s=s.replace(',','.');
-    const n=parseFloat(s);
+    const raw=String(value??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');
+    if(!raw)return 0;
+    let normalized=raw;
+    if(raw.includes(',')&&raw.includes('.'))normalized=raw.lastIndexOf(',')>raw.lastIndexOf('.')?raw.replace(/\./g,'').replace(',','.'):raw.replace(/,/g,'');
+    else if(raw.includes(','))normalized=raw.replace(/\./g,'').replace(',','.');
+    else if(/^\d{1,3}(\.\d{3})+$/.test(raw))normalized=raw.replace(/\./g,'');
+    const n=Number(normalized);
     return Number.isFinite(n)?n:0;
   }
 
