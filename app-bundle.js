@@ -3255,7 +3255,7 @@
     if(!f){alert('Formulação não encontrada.');return;}
 
     const nome=f.nome||'Formulação';
-    const totalProducao=Number(f.total)||0;
+    const totalProducao=pn(q('foTotal')?.value)>0?pn(q('foTotal').value):(typeof f.total==='number'?f.total:pn(f.total));
     const rows=f.rows||[];
     const pctInfo=mixData(1,rows);
     if(Math.abs(pctInfo.pct-100)>0.05){
