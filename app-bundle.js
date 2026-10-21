@@ -3889,7 +3889,7 @@
     if(act==='pdf'){pdf(f);return;}
     if(act==='op'){op(f);return;}
     if(act==='dup'){const a=load(),cp=JSON.parse(JSON.stringify(f));cp.id=Date.now();cp.nome=(f.nome||'Formulação')+' cópia';cp.criado=new Date().toISOString();a.unshift(cp);save(a);return;}
-    if(act==='del'){if(!confirm('Excluir esta formulação?'))return;save(load().filter(x=>String(x.id)!==String(f.id)));}
+    if(act==='del'){if(window.DFTeamFormulasShared&&typeof window.DFTeamFormulasShared.deleteFormula==='function'){window.DFTeamFormulasShared.deleteFormula(f);return;}alert('A sincronização da equipe ainda está carregando. Tente novamente.');return;}
   },true);
 
   function force(){window.renderForms=render;window.salvarFormula=saveFormulaSafe;window.getExtrusaoOP=getExtrusaoOP;window.printFormulaOp=op;addComp();render();}
