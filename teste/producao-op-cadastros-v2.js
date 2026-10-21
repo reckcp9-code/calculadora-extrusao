@@ -38,6 +38,7 @@ function read(){
       out[s].operators=Array.isArray(x.operators)?x.operators.slice():[];
       out[s].productMeasures=x.productMeasures&&typeof x.productMeasures==='object'?Object.assign({},x.productMeasures):{};
       out[s].machineProducts=x.machineProducts&&typeof x.machineProducts==='object'?Object.fromEntries(Object.entries(x.machineProducts).map(([k,v])=>[k,Array.isArray(v)?v.slice():[]])):{};
+      out[s].deletedMachines=x.deletedMachines&&typeof x.deletedMachines==='object'?Object.assign({},x.deletedMachines):{};
     });
     return out;
   }catch(e){return empty()}
@@ -63,9 +64,10 @@ function seedProducts(){
   });
   write(d);try{localStorage.setItem(SEED,'1')}catch(e){}
 }
-function list(type){const d=read(),s=sector(),c=CFG[type],vals=d[s][c.key]||[];return sort(type==='product'?vals.filter(v=>!isDeleted(v)):vals)}
+function list(type){const d=read(),s=sector(),c=CFG[type],vals=d[s][c.key]||[];return sort(type==='product'?vals.filter(v=>!isDeleted(v)):type==='machine'?vals.filter(v=>!d[s].deletedMachines?.[norm(v)]):vals)}
 function measureFor(name){const d=read(),s=sector();return String((d[s].productMeasures||{})[name]||'')}
-function setList(type,a){const d=read(),s=sector(),c=CFG[type];d[s][c.key]=sort(a);write(d)}
+function setList(type,a){const d=read(),s=sector(),c=CFG[type];d[s][c.key]=sort(a);if(type==='machine'){const marks=d[s].deletedMachines||(d[s].deletedMachines={});for(const v of a)delete marks[norm(v)]}write(d)}
+function removeMachine(name){const d=read(),s=sector(),target=norm(name);if(!target)return;const sec=d[s];sec.deletedMachines=sec.deletedMachines||{};sec.deletedMachines[target]=Date.now();sec.machines=(sec.machines||[]).filter(v=>norm(v)!==target);write(d);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}
 function saveProduct(name,measure,oldName){
   unmarkDeleted(name);
   const d=read(),s=sector(),sec=d[s];
@@ -117,7 +119,7 @@ function startEdit(type,name){editing={type,old:name};const m=document.getElemen
 function cancelEdit(){editing=null;const m=document.getElementById('dfRegModal');if(!m)return;m.querySelector('#dfRegNew').value='';const me=m.querySelector('#dfRegMeasure');if(me)me.value='';m.querySelector('#dfRegSave').textContent='CADASTRAR'}
 function removeItem(type,name){
   if(!confirmDelete(name))return;
-  if(type==='product')removeProduct(name);else setList(type,list(type).filter(x=>x!==name));
+  if(type==='product')removeProduct(name);else if(type==='machine')removeMachine(name);else setList(type,list(type).filter(x=>x!==name));
   const el=document.getElementById(CFG[type].id);if(el&&el.value===name){el.value='';el.dispatchEvent(new Event('change',{bubbles:true}))}
   render(type);refreshType(type)
 }
