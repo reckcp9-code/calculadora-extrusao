@@ -1,6 +1,6 @@
 {
-  "version": "1.0.367",
-  "title": "DF EXTRUSOR PRO — correção de milhar na OP",
-  "message": "Corrige 1.000 e 2.000 kg em cálculo, salvamento e OP PDF, inclusive metadados QR.",
+  "version": "1.0.368",
+  "title": "DF EXTRUSOR PRO — recuperação de inicialização",
+  "message": "Restaura o pacote anterior e força atualização do carregamento para corrigir tela travada.",
   "updatedAt": "2026-10-21"
 }
