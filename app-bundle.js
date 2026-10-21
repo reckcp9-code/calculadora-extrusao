@@ -1685,6 +1685,17 @@
   const $=id=>document.getElementById(id);
   const PI=Math.PI;
   const pn=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
+  // Quantidade em kg usa milhar pt-BR: 2.000 = 2000, nunca 2.
+  const parseProductionKg=value=>{
+    const raw=String(value??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');
+    if(!raw)return 0;
+    let normalized=raw;
+    if(raw.includes(',')&&raw.includes('.'))normalized=raw.lastIndexOf(',')>raw.lastIndexOf('.')?raw.replace(/\./g,'').replace(',','.'):raw.replace(/,/g,'');
+    else if(raw.includes(','))normalized=raw.replace(/\./g,'').replace(',','.');
+    else if(/^\d{1,3}(\.\d{3})+$/.test(raw))normalized=raw.replace(/\./g,'');
+    const n=Number(normalized);
+    return Number.isFinite(n)&&n>0?n:0;
+  };
   const fmt=(v,d=2)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
   const fmtInp=(v,d=2)=>Number(v)>0?Number(v).toLocaleString('pt-BR',{maximumFractionDigits:d}):'';
   const set=(id,t)=>{const e=$(id);if(e)e.textContent=t};
@@ -3822,7 +3833,7 @@
 
   async function saveFormulaSafe(){
     const nome=(q('foNome')?.value||'').trim()||'Formulação';
-    const total=pn(q('foTotal')?.value);
+    const total=parseProductionKg(q('foTotal')?.value);
     const rows=(typeof window.getFoRows==='function'?window.getFoRows():[]).filter(r=>r.id&&Number(r.pct)>0);
     if(!total){alert('Digite quantos kg quer fazer.');return;}
     if(!rows.length){alert('Escolha pelo menos 1 material.');return;}
@@ -3847,7 +3858,7 @@
 
   function op(f){
     if(!f){alert('Formulação não encontrada.');return;}
-    const nome=f.nome||'Formulação',total=Number(f.total)||0,rows=f.rows||[];
+    const nome=f.nome||'Formulação',total=parseProductionKg(q('foTotal')?.value)||parseProductionKg(f.total),rows=f.rows||[];
     const atual=getExtrusaoOP(),dados=f.op||{};
     const largura=Number(dados.largura||atual.largura)||0;
     const comprimento=Number(dados.comprimento||atual.comprimento)||0;
