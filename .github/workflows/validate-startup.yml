@@ -1,0 +1,49 @@
+name: Validate DF Extrusor startup
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  validate-startup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate main JavaScript syntax and HTML inline scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app-bundle.js
+          node --check team-formulas-duplicates-v2.js
+          node --check op-landscape-pdf.js
+          node --check formula-saved-search-v1.js
+          node <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          for (const file of ['index.html', 'app-shell.html']) {
+            const html = fs.readFileSync(file, 'utf8');
+            const blocks = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)];
+            for (let i = 0; i < blocks.length; i++) {
+              if (!blocks[i][1].trim()) continue;
+              try { new vm.Script(blocks[i][1], {filename: file + ':inline-' + i}); }
+              catch (err) { console.error(err); process.exitCode = 1; }
+            }
+            console.log(file + ': ' + blocks.length + ' inline script tags inspected');
+          }
+          NODE
+      - name: Validate startup references and app version
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const version = JSON.parse(fs.readFileSync('app-version.json', 'utf8')).version;
+          if (!version || !/^\\d+\\.\\d+\\.\\d+$/.test(version)) throw Error('Invalid app version');
+          if (!html.includes('app-bundle.js?v=')) throw Error('Main app script reference missing');
+          if (!html.includes('app-shell.html')) throw Error('App shell reference missing');
+          if (!html.includes('Carregando calculadora')) throw Error('Expected startup fallback missing');
+          console.log('Startup references OK; version ' + version);
+          NODE
