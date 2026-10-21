@@ -1,6 +1,6 @@
 {
-  "version": "1.0.360",
+  "version": "1.0.361",
   "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Reduz atrasos artificiais ao abrir OPs Automáticas na Formulação.",
-  "updatedAt": "2026-10-19"
+  "message": "Corrige quantidade de produção na OP: 1.500 kg exibidos corretamente, independente dos 400 kg da mistura.",
+  "updatedAt": "2026-10-21"
 }
