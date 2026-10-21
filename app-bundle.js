@@ -3255,7 +3255,19 @@
     if(!f){alert('Formulação não encontrada.');return;}
 
     const nome=f.nome||'Formulação';
-    const totalProducao=pn(q('foTotal')?.value)>0?pn(q('foTotal').value):(typeof f.total==='number'?f.total:pn(f.total));
+    const parseKgProducao=function(value){
+      const raw=String(value??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');
+      if(!raw)return 0;
+      let normalized=raw;
+      if(raw.includes(',')&&raw.includes('.'))normalized=raw.lastIndexOf(',')>raw.lastIndexOf('.')?raw.replace(/\./g,'').replace(',','.'):raw.replace(/,/g,'');
+      else if(raw.includes(','))normalized=raw.replace(/\./g,'').replace(',','.');
+      else if(/^\d{1,3}(\.\d{3})+$/.test(raw))normalized=raw.replace(/\./g,'');
+      const valueNum=Number(normalized);
+      return Number.isFinite(valueNum)&&valueNum>0?valueNum:0;
+    };
+    const campoProducao=q('foTotal');
+    const totalProducao=campoProducao&&String(campoProducao.value).trim()?parseKgProducao(campoProducao.value):parseKgProducao(f.total);
+    if(!(totalProducao>0)){alert('Informe a quantidade de produção em kg antes de gerar a OP.');campoProducao?.focus();return;}
     const rows=f.rows||[];
     const pctInfo=mixData(1,rows);
     if(Math.abs(pctInfo.pct-100)>0.05){
