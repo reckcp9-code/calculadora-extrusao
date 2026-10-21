@@ -1,6 +1,6 @@
 {
-  "version": "1.0.369",
-  "title": "DF EXTRUSOR PRO — inicialização restaurada",
-  "message": "Corrige erro de sintaxe no carregamento que impedia o aplicativo de abrir.",
+  "version": "1.0.370",
+  "title": "DF EXTRUSOR PRO — recuperação de acesso",
+  "message": "Corrige inicialização e renova cache do shell sem alterar dados da equipe.",
   "updatedAt": "2026-10-21"
 }
