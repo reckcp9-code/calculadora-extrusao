@@ -1,6 +1,6 @@
 {
-  "version": "1.0.365",
+  "version": "1.0.366",
   "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Atualização manual de OPs com novas tentativas quando a sincronização automática estiver ocupada.",
+  "message": "Botão ATUALIZAR ao lado de PRODUÇÃO na tela inicial, sincronizando OPs compartilhadas.",
   "updatedAt": "2026-10-21"
 }
