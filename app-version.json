@@ -1,6 +1,6 @@
 {
-  "version": "1.0.361",
+  "version": "1.0.362",
   "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Corrige quantidade de produção na OP: 1.500 kg exibidos corretamente, independente dos 400 kg da mistura.",
+  "message": "Exclusão definitiva de máquinas cadastradas sem recriação automática por OPs antigas ou sincronização.",
   "updatedAt": "2026-10-21"
 }
