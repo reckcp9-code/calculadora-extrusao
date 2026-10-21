@@ -9,18 +9,18 @@ function isFav(v){return getFav().includes(String(v))}
 function toggleFav(v){v=String(v);let a=getFav();a=a.includes(v)?a.filter(x=>x!==v):[v,...a];setFav(a)}
 let active=null;
 function isFormulaSelect(el){if(!el||el.tagName!=='SELECT')return false;const id=norm(el.id),name=norm(el.name),aria=norm(el.getAttribute('aria-label'));if(/formul/.test(id+' '+name+' '+aria))return true;const p=el.closest('.card,.savedItem,section,div');return !!(p&&/formula(c|ç)(a|ã)o|formula/.test(norm(p.textContent).slice(0,900))&&el.options&&el.options.length>2)}
-function weight(o,i){const txt=String(o.textContent||''),v=String(o.value||'');const nums=(txt+' '+v).match(/\b1[6-9]\d{11}\b|\b20\d{11}\b|\b\d{13}\b/g);if(nums&&nums.length)return Number(nums[nums.length-1]);const d=(txt+' '+v).match(/20\d{2}[-\/]\d{1,2}[-\/]\d{1,2}(?:[ T]\d{1,2}:\d{2})?/);if(d){const t=Date.parse(d[0].replace(/\//g,'-'));if(Number.isFinite(t))return t}return -i}
+function weight(o,i){const forms=(()=>{try{return JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}})();const f=Array.isArray(forms)?forms.find(x=>String(x.id)===String(o.value)):null;const date=f&&(f.updatedAt||f.criado||f.createdAt);const stamp=date?Date.parse(date):NaN;return Number.isFinite(stamp)?stamp:-i}
 function sortedOptions(sel){
   const selected=sel.value;
   const arr=[...sel.options].map((o,i)=>({text:o.textContent,value:o.value,disabled:o.disabled,weight:weight(o,i),i}));
-  const sorted=arr.filter(x=>x.value).sort((a,b)=>(Number(isFav(b.value))-Number(isFav(a.value)))||b.weight-a.weight||a.i-b.i);
-  const seenValue=new Set(),seenLabel=new Set(),data=[];
+  const sorted=arr.filter(x=>x.value).sort((a,b)=>b.weight-a.weight||a.i-b.i);
+  const seenValue=new Set(),data=[];
   for(const x of sorted){
     const valueKey=String(x.value);
-    const labelKey=norm(x.text).replace(/\s+/g,' ');
-    if(seenValue.has(valueKey)||seenLabel.has(labelKey))continue;
+
+    if(seenValue.has(valueKey))continue;
     seenValue.add(valueKey);
-    seenLabel.add(labelKey);
+
     data.push(x);
   }
   return{selected,items:data}
