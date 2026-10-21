@@ -13,7 +13,7 @@ const iso=d=>d.toISOString().slice(0,10);
 const br=v=>{if(!v)return'—';const p=String(v).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v};
 function read(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}}
 function load(){return read(KEY,[])}
-function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){alert('Não foi possível salvar esta OP neste aparelho.')}}
+function save(a){try{const ordered=Array.isArray(a)?a.slice().sort((x,y)=>String(y?.createdAt||'').localeCompare(String(x?.createdAt||''))||String(y?.id||'').localeCompare(String(x?.id||''))):a;localStorage.setItem(KEY,JSON.stringify(ordered))}catch(e){alert('Não foi possível salvar esta OP neste aparelho.')}}
 function id(){const d=new Date(),p=x=>String(x).padStart(2,'0');return'DFOP-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()}
 function bobinas(){return Array.from({length:56},(_,i)=>({n:i+1,peso:'',apara:''}))}
 function paradas(){return Array.from({length:8},()=>({code:'',start:'',end:'',minutes:0}))}
