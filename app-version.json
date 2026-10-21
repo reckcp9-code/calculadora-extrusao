@@ -1,6 +1,6 @@
 {
-  "version": "1.0.365",
-  "title": "DF EXTRUSOR PRO — quantidade correta na OP",
-  "message": "Corrige 2.000 kg na formulação e na ordem de produção, preservando separador de milhar.",
+  "version": "1.0.366",
+  "title": "DF EXTRUSOR PRO — exclusão compartilhada de formulações",
+  "message": "Excluir formulação salva envia exclusão ao servidor e sincroniza a equipe.",
   "updatedAt": "2026-10-21"
 }
