@@ -1,6 +1,6 @@
 {
-  "version": "1.0.364",
-  "title": "DF EXTRUSOR PRO — estabilidade sem recarga automática",
-  "message": "Botão ATUALIZAR nas OPs salvas para buscar dados da equipe de Produção.",
+  "version": "1.0.365",
+  "title": "DF EXTRUSOR PRO — quantidade correta na OP",
+  "message": "Corrige 2.000 kg na formulação e na ordem de produção, preservando separador de milhar.",
   "updatedAt": "2026-10-21"
 }
