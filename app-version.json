@@ -1,6 +1,6 @@
 {
-  "version": "1.0.368",
-  "title": "DF EXTRUSOR PRO — recuperação de inicialização",
-  "message": "Restaura o pacote anterior e força atualização do carregamento para corrigir tela travada.",
+  "version": "1.0.369",
+  "title": "DF EXTRUSOR PRO — inicialização restaurada",
+  "message": "Corrige erro de sintaxe no carregamento que impedia o aplicativo de abrir.",
   "updatedAt": "2026-10-21"
 }
