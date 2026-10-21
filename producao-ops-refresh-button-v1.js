@@ -8,7 +8,13 @@ btn.style.cssText='border:1.5px solid #3b82f6;background:#102445;color:#bfdbfe;b
 favorite.insertAdjacentElement('afterend',btn);
 btn.addEventListener('click',async function(){if(busy)return;busy=true;btn.disabled=true;btn.textContent='↻ SINCRONIZANDO...';
 try{if(!navigator.onLine)throw new Error('Sem conexão com a internet');var api=window.DFProducaoEquipeOnline;if(!api||typeof api.pull!=='function'||!api.team||!api.team())throw new Error('Entre na equipe de Produção para sincronizar');
-var result=await api.pull();if(result===false)throw new Error('Não foi possível confirmar a atualização');
+var result=false;
+for(var attempt=0;attempt<5;attempt++){
+result=await api.pull();
+if(result===true)break;
+await new Promise(function(resolve){setTimeout(resolve,650+attempt*450)});
+}
+if(result!==true)throw new Error('Servidor não confirmou a sincronização. Verifique a conexão e tente novamente.');
 if(typeof window.DFRenderSavedProductionOps==='function')window.DFRenderSavedProductionOps();
 btn.textContent='✓ ATUALIZADO';setTimeout(function(){btn.textContent='↻ ATUALIZAR'},1800);
 }catch(err){btn.textContent='↻ ATUALIZAR';alert('Não foi possível atualizar as OPs: '+(err&&err.message||'erro de conexão'));}finally{busy=false;btn.disabled=false}});
