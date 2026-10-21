@@ -1,6 +1,6 @@
 {
-  "version": "1.0.366",
-  "title": "DF EXTRUSOR PRO — exclusão compartilhada de formulações",
-  "message": "Excluir formulação salva envia exclusão ao servidor e sincroniza a equipe.",
+  "version": "1.0.367",
+  "title": "DF EXTRUSOR PRO — correção de milhar na OP",
+  "message": "Corrige 1.000 e 2.000 kg em cálculo, salvamento e OP PDF, inclusive metadados QR.",
   "updatedAt": "2026-10-21"
 }
