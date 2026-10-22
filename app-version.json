@@ -1,6 +1,6 @@
 {
-  "version": "1.0.372",
-  "title": "DF EXTRUSOR PRO — quantidade da OP",
-  "message": "Corrige conversão de milhar desde o campo de formulação e em ambos fluxos de gerar OP.",
+  "version": "1.0.373",
+  "title": "DF EXTRUSOR PRO — salvar formulação",
+  "message": "Salvar formulação usa a mesma interpretação de milhares do fluxo de OP.",
   "updatedAt": "2026-10-21"
 }
