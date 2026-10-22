@@ -1,6 +1,6 @@
 {
-  "version": "1.0.411",
-  "title": "DF EXTRUSOR PRO — selecionar máquina na OP pronta",
-  "message": "Atualiza a janela de edição da OP pronta para selecionar outra máquina e manter produção e apara no mesmo registro.",
+  "version": "1.0.412",
+  "title": "DF EXTRUSOR PRO — botão editar máquina",
+  "message": "Adiciona botão Editar Máquina abaixo de Editar em cada OP pronta, com seleção da máquina e transferência da produção.",
   "updatedAt": "2026-10-21"
 }
