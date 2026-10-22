@@ -44,6 +44,9 @@ function nameFromOcr(o){
 function currentNameInfo(id){
   var m=load(MANUAL,{}),o=findOp(id)||{},n=norm(id),v='';
   if((v=validName(m[n])))return{name:v,source:'salvo'};
+  for(var k of ['clientName','cliente','nomeCliente','customer','client','nome','name','title','formulaName','nomeFormula','descricaoProduto','description','opTitle']){if((v=validName(o[k])))return{name:v,source:'OP original'}}
+  var reg=load(REG,{}),entry=reg[id]||reg[n]||{};for(var key of Object.keys(reg)){if(norm(reg[key]&&reg[key].id||key)===n){entry=reg[key];break}}
+  var ex=entry.expected||{};for(var field of ['clientName','cliente','nomeCliente','title','produto','product','name']){if((v=validName(ex[field])))return{name:v,source:'QR da OP'}}
   if((v=validName(o.serverProductName)))return{name:v,source:'servidor'};
   if((v=validName(o.manualProductName)))return{name:v,source:'salvo'};
   if((v=validName(o.clienteFormulacao)))return{name:v,source:'op'};
