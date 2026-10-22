@@ -1,6 +1,6 @@
 {
-  "version": "1.0.389",
-  "title": "DF EXTRUSOR PRO — pesquisa só de OPs baixadas",
-  "message": "Pesquisa em OPs Prontas mostra somente rodadas com baixa concluída, sem pendentes ou não baixadas.",
+  "version": "1.0.390",
+  "title": "DF EXTRUSOR PRO — sem aba Agora",
+  "message": "Remove da interface a aba Agora e o painel Produção Agora, preservando os dados.",
   "updatedAt": "2026-10-21"
 }
