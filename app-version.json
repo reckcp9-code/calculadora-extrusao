@@ -1,6 +1,6 @@
 {
-  "version": "1.0.399",
-  "title": "DF EXTRUSOR PRO — recuperação das formulações",
-  "message": "Recupera materiais de OPs baixadas a partir das formulações originais compartilhadas pelo QR na nuvem.",
+  "version": "1.0.400",
+  "title": "DF EXTRUSOR PRO — vírgula automática",
+  "message": "Nos campos numéricos de Sacolas, digitar zero primeiro insere automaticamente 0, e permite continuar digitando os decimais.",
   "updatedAt": "2026-10-21"
 }
