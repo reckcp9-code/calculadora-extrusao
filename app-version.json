@@ -1,6 +1,6 @@
 {
-  "version": "1.0.381",
-  "title": "DF EXTRUSOR PRO — resposta da sanfona",
-  "message": "Caixa amarela com esquerda, meio, direita e total, atualizada ao digitar a sanfona.",
+  "version": "1.0.382",
+  "title": "DF EXTRUSOR PRO — cálculo da sanfona",
+  "message": "Corrige DF-CALC-339 carregando cálculo de sanfona como módulo independente.",
   "updatedAt": "2026-10-21"
 }
