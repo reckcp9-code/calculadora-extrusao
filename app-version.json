@@ -1,6 +1,6 @@
 {
-  "version": "1.0.402",
-  "title": "DF EXTRUSOR PRO — apagar valores normalmente",
-  "message": "Vírgula automática somente ao digitar zero; apagar com backspace remove vírgula e zero sem reinserir.",
+  "version": "1.0.403",
+  "title": "DF EXTRUSOR PRO — minimizar cadastro fixo",
+  "message": "Mantém o botão de minimizar cadastro de material disponível mesmo após atualização dinâmica da tela.",
   "updatedAt": "2026-10-21"
 }
