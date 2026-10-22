@@ -3854,7 +3854,7 @@
     const d=Number(srv.diferencaPara100)||0;
     if(Math.abs(d)>0.05&&!confirm('A formulação não fechou 100%. Salvar mesmo assim?'))return;
     const rec={id:Date.now(),nome,total,rows,custo:Number(srv.custoTotal)||0,custoKg:Number(srv.custoKgFinal)||0,op:getExtrusaoOP(),criado:new Date().toISOString()};
-    const a=load();a.unshift(rec);save(a);alert('Formulação salva.');
+    const a=load();a.unshift(rec);save(a);alert('Formulação salva: '+fm(total,0)+' KG.');
   }
 
   async function pdf(f){
@@ -3891,7 +3891,7 @@
   }
 
   document.addEventListener('click',function(ev){
-    if(ev.target?.id==='foSave'){
+    if(ev.target?.closest?.('#foSave')){
       ev.preventDefault();ev.stopImmediatePropagation();saveFormulaSafe();return;
     }
     const act=ev.target?.dataset?.fosafe;if(!act)return;
