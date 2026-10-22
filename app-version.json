@@ -1,6 +1,6 @@
 {
-  "version": "1.0.388",
-  "title": "DF EXTRUSOR PRO — estabilidade e desempenho",
-  "message": "Reduz atualizações repetidas da tela de OPs e reforça validação automática de inicialização e módulos.",
+  "version": "1.0.389",
+  "title": "DF EXTRUSOR PRO — somente OPs baixadas",
+  "message": "Na pesquisa de OPs Prontas exibe somente OPs concluídas, sem pendentes e sem baixa.",
   "updatedAt": "2026-10-21"
 }
