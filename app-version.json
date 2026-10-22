@@ -1,6 +1,6 @@
 {
-  "version": "1.0.373",
-  "title": "DF EXTRUSOR PRO — salvar formulação",
-  "message": "Salvar formulação usa a mesma interpretação de milhares do fluxo de OP.",
+  "version": "1.0.374",
+  "title": "DF EXTRUSOR PRO — confirmar kg salvos",
+  "message": "Salvar formulação passa a informar explicitamente o peso salvo, para verificar a etapa de gravação.",
   "updatedAt": "2026-10-21"
 }
