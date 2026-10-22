@@ -3286,8 +3286,8 @@
       return;
     }
 
-    const digitado=pn(q('dfMixBatchKg')?.value);
-    const totalMistura=digitado>0?digitado:(Number(window.dfMixBatchKgCurrent)||totalProducao);
+    const digitado=parseKgProducao(q('dfMixBatchKg')?.value);
+    const totalMistura=digitado>0?digitado:totalProducao;
     const atual=currentOp(),dados=f.op||{};
     const largura=Number(dados.largura||atual.largura)||0;
     const comprimento=Number(dados.comprimento||atual.comprimento)||0;
@@ -3784,6 +3784,17 @@
   'use strict';
   const q=id=>document.getElementById(id);
   const pn=v=>typeof window.DFParsePtNumber==='function'?window.DFParsePtNumber(v):0;
+  // Parse de kg pt-BR: 5.000 = 5000; 5.000,5 = 5000.5.
+  const parseProductionKg=value=>{
+    const raw=String(value??'').trim().replace(/\\s/g,'').replace(/[^0-9,.-]/g,'');
+    if(!raw)return 0;
+    let normalized=raw;
+    if(raw.includes(',')&&raw.includes('.'))normalized=raw.lastIndexOf(',')>raw.lastIndexOf('.')?raw.replace(/\\./g,'').replace(',','.'):raw.replace(/,/g,'');
+    else if(raw.includes(','))normalized=raw.replace(/\\./g,'').replace(',','.');
+    else if(/^\\d{1,3}(\\.\\d{3})+$/.test(raw))normalized=raw.replace(/\\./g,'');
+    const n=Number(normalized);
+    return Number.isFinite(n)&&n>0?n:0;
+  };
   const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fm=(v,d=2)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'};
   const money=v=>Number(v)>0?'R$ '+fm(v,2):'sem custo';
