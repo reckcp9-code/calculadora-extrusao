@@ -1,6 +1,6 @@
 {
-  "version": "1.0.412",
+  "version": "1.0.361",
   "title": "DF EXTRUSOR PRO — botão editar máquina",
-  "message": "Adiciona botão Editar Máquina abaixo de Editar em cada OP pronta, com seleção da máquina e transferência da produção.",
-  "updatedAt": "2026-10-21"
+  "message": "Editar máquina nas OPs prontas, transferindo produção e apara sem duplicação.",
+  "updatedAt": "2026-10-22"
 }
