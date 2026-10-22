@@ -1,6 +1,6 @@
 {
-  "version": "1.0.370",
-  "title": "DF EXTRUSOR PRO — recuperação de acesso",
-  "message": "Corrige inicialização e renova cache do shell sem alterar dados da equipe.",
+  "version": "1.0.371",
+  "title": "DF EXTRUSOR PRO — peso correto na OP",
+  "message": "Corrige interpretação de milhares em formulação e na OP: 5.000 kg permanece 5.000 kg.",
   "updatedAt": "2026-10-21"
 }
