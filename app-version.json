@@ -1,6 +1,6 @@
 {
-  "version": "1.0.416",
-  "title": "DF EXTRUSOR PRO — estabilidade do AGORA",
-  "message": "Mantém máquinas com produção mensal mesmo durante falha de sincronização do cadastro, reduz leituras repetidas e atualizações desnecessárias.",
+  "version": "1.0.417",
+  "title": "DF EXTRUSOR PRO — relatório mensal",
+  "message": "Remove a seção Materiais do PDF de fechamento mensal, mantendo indicadores, OPs, operadores e máquinas.",
   "updatedAt": "2026-10-22"
 }
