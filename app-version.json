@@ -1,6 +1,6 @@
 {
-  "version": "1.0.383",
-  "title": "DF EXTRUSOR PRO — sanfona na OP",
-  "message": "Mostra o tamanho e dimensionamento da sanfona no quadro amarelo da OP.",
+  "version": "1.0.384",
+  "title": "DF EXTRUSOR PRO — regulagem da sanfona na OP",
+  "message": "Mostra 15 + 15 + 15 = 45 cm fechado e 75 cm aberto, sem confundir operador.",
   "updatedAt": "2026-10-21"
 }
