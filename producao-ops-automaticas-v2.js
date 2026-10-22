@@ -130,7 +130,7 @@ window.DFShowProductionAuto=show;window.DFHideProductionAuto=hide;
 
 const paneId=name=>'dfPAPane'+({read:'Read',ok:'Ok',pending:'Pending',now:'Now',month:'Month',archive:'Archive'}[name]||'Read');
 function switchPane(name){document.querySelectorAll('#dfProdAuto [data-pa-pane]').forEach(b=>b.classList.toggle('on',b.dataset.paPane===name));document.querySelectorAll('#dfProdAuto .dfPAPane').forEach(p=>p.classList.remove('on'));$(paneId(name))?.classList.add('on');if(name==='ok')renderOk();if(name==='pending')renderPending();if(name==='now')renderNow();if(name==='month')renderMonth();if(name==='archive')renderArchive()}
-function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||r.opId||r.id)+'</strong><span class="dfPABadge '+(pending?'warn':'ok')+'">'+(pending?'PENDENTE':'OK')+'</span><div class="dfPATiny">'+esc(r.product||r.reason||'')+(r.measure?' • '+esc(r.measure):'')+(pending?'':'<br>Produção '+fmt(r.production)+' kg • Apara '+fmt(r.scrap)+' kg • Líquida '+fmt(r.net)+' kg')+'</div>'+(r.photoId?'<button class="dfPABtn gray" data-pa-view="'+esc(r.photoId)+'">ABRIR FOTO</button>':'')+(pending?'<button class="dfPABtn alt" data-pa-retry="'+esc(r.id)+'">IDENTIFICAR PELO ID</button>':'')+'<button class="dfPABtn danger" data-pa-del="'+esc(r.id)+'">EXCLUIR REGISTRO</button></div>'}
+function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||r.opId||r.id)+'</strong><span class="dfPABadge '+(pending?'warn':'ok')+'">'+(pending?'PENDENTE':'OK')+'</span><div class="dfPATiny">'+esc(r.product||r.reason||'')+(r.measure?' • '+esc(r.measure):'')+(pending?'':'<br>Produção '+fmt(r.production)+' kg • Apara '+fmt(r.scrap)+' kg • Líquida '+fmt(r.net)+' kg')+'</div>'+(r.photoId?'<button class="dfPABtn gray" data-pa-view="'+esc(r.photoId)+'">ABRIR FOTO</button>':'')+(pending?'<button class="dfPABtn alt" data-pa-retry="'+esc(r.id)+'">IDENTIFICAR PELO ID</button>':'')+(pending?'':'<button class="dfPABtn alt" data-pa-machine="'+esc(r.id)+'">EDITAR MÁQUINA</button>')+'<button class="dfPABtn danger" data-pa-del="'+esc(r.id)+'">EXCLUIR REGISTRO</button></div>'}
 function renderAll(){repairRecords();renderOk();renderPending();renderNow();renderMonth();renderArchive()}
 function renderOk(){const b=$('dfPAOkList');if(!b)return;const a=autos().filter(x=>x.status==='ok').sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));b.innerHTML=a.length?a.map(x=>card(x,false)).join(''):'<div class="dfPATiny">Nenhuma OP pronta ainda.</div>'}
 function renderPending(){const b=$('dfPAPendingList');if(!b)return;const a=autos().filter(x=>x.status!=='ok').sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));b.innerHTML=a.length?a.map(x=>card(x,true)).join(''):'<div class="dfPATiny">Nenhuma pendência.</div>'}
@@ -208,9 +208,47 @@ async function saveCurrent(){
 async function openPhoto(id){try{const r=await photoGet(id);if(!r?.blob)return alert('Foto não encontrada neste aparelho.');const u=URL.createObjectURL(r.blob);$('dfPAModalBody').innerHTML='<img src="'+u+'"><div class="dfPATiny" style="margin-top:8px">'+esc(r.opId||id)+'</div>';$('dfPAModal').classList.add('on')}catch(e){alert('Não foi possível abrir a foto.')}}
 function closeModal(){$('dfPAModal')?.classList.remove('on');$('dfPAModalBody').innerHTML=''}
 async function deleteAuto(id){if(!confirm('Excluir este registro automático?'))return;const a=autos(),r=a.find(x=>x.id===id);write(AUTO_KEY,a.filter(x=>x.id!==id));if(r?.photoId)try{await photoDelete(r.photoId)}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-auto-deleted',{detail:{opId:normId(r?.opId||r?.id||id)}}))}catch(e){}renderAll()}
+function editCompletedMachine(id){
+ const records=autos(),record=records.find(x=>String(x.id)===String(id)&&x.status==='ok');
+ if(!record)return alert('OP pronta não encontrada.');
+ const cad=read('df_producao_cadastros_v1',{}),names=[];
+ for(const sector of ['Picote','Sacoleira','Blocadora']){
+  const arr=cad?.[sector]?.machines;
+  if(Array.isArray(arr))for(const item of arr){
+   const name=String(typeof item==='string'?item:(item?.name||item?.nome||'')).trim();
+   if(name&&!names.some(x=>x.toLocaleUpperCase('pt-BR')===name.toLocaleUpperCase('pt-BR')))names.push(name);
+  }
+ }
+ if(!names.length)return alert('Nenhuma máquina cadastrada. Cadastre a máquina primeiro.');
+ const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#000b;display:flex;align-items:center;justify-content:center;padding:18px';
+ const box=document.createElement('div');box.style.cssText='background:#101a2d;color:white;border:1px solid #40516e;border-radius:16px;padding:20px;width:min(100%,520px);box-sizing:border-box';
+ box.innerHTML='<h2 style="margin:0 0 12px">EDITAR MÁQUINA</h2><p style="color:#b9c5da">Produção: '+fmt(record.production)+' kg • Apara: '+fmt(record.scrap)+' kg</p><p>Máquina atual: <b>'+esc(record.machine)+'</b></p><label for="dfChangeMachineSelect">SELECIONAR MÁQUINA</label><select id="dfChangeMachineSelect" style="width:100%;padding:15px;background:#0c1527;color:white;border:1px solid #526482;border-radius:9px;font-size:16px;margin:12px 0"><option value="">Selecione...</option>'+names.sort((a,b)=>a.localeCompare(b,'pt-BR')).map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join('')+'</select><div style="display:flex;gap:10px"><button type="button" id="dfChangeMachineCancel" style="flex:1;padding:14px">CANCELAR</button><button type="button" id="dfChangeMachineSave" style="flex:1;padding:14px;background:#f7af22;color:#101010;font-weight:bold">SALVAR</button></div>';
+ overlay.appendChild(box);document.body.appendChild(overlay);
+ box.querySelector('#dfChangeMachineCancel').onclick=()=>overlay.remove();
+ box.querySelector('#dfChangeMachineSave').onclick=()=>{
+  const machine=box.querySelector('#dfChangeMachineSelect').value;
+  if(!machine)return alert('Selecione uma máquina cadastrada.');
+  if(machine===record.machine){overlay.remove();return}
+  if(!confirm('Mover '+fmt(record.production)+' kg e '+fmt(record.scrap)+' kg de apara de '+record.machine+' para '+machine+'?'))return;
+  const latest=autos(),i=latest.findIndex(x=>String(x.id)===String(id)&&x.status==='ok');
+  if(i<0)return alert('Registro não encontrado. Atualize a tela.');
+  const oldMachine=latest[i].machine;
+  latest[i]={...latest[i],machine};
+  if(!write(AUTO_KEY,latest))return alert('Não foi possível salvar. Nada foi alterado.');
+  const opId=normId(latest[i].opId||'');
+  if(opId){
+   const allOps=ops(),j=allOps.findIndex(o=>normId(o?.id)===opId);
+   if(j>=0){allOps[j]={...allOps[j],machine};write(OPS_KEY,allOps)}
+   const reg=registry();if(reg[opId]?.expected){reg[opId].expected.machine=machine;write(QR_KEY,reg)}
+  }
+  try{window.dispatchEvent(new CustomEvent('df-producao-auto-saved',{detail:{opId,oldMachine,machine,machineChanged:true}}))}catch(e){}
+  try{window.DFProducaoEquipeOnline?.push?.()}catch(e){}
+  overlay.remove();renderAll();alert('Máquina alterada. Produção e apara transferidas sem duplicar os totais.');
+ };
+}
 function retryPending(id){const r=autos().find(x=>x.id===id);if(!r)return;currentPendingId=r.id||'';currentPhotoId=r.photoId||'';currentFile=null;currentOp=null;switchPane('read');setStatus('⚠️ Digite o ID da OP para concluir este registro.','warn');showManual(normId(r.opId||''));if(currentPhotoId)photoGet(currentPhotoId).then(p=>{if(p?.blob){const img=$('dfPAPreview');if(img){img.src=URL.createObjectURL(p.blob);img.style.display='block'}}}).catch(()=>{})}
 
-function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel)return;panel.addEventListener('click',e=>{const pane=e.target.closest('[data-pa-pane]');if(pane){switchPane(pane.dataset.paPane);return}const view=e.target.closest('[data-pa-view]');if(view){openPhoto(view.dataset.paView);return}const del=e.target.closest('[data-pa-del]');if(del){deleteAuto(del.dataset.paDel);return}const retry=e.target.closest('[data-pa-retry]');if(retry){retryPending(retry.dataset.paRetry);return}if(e.target.closest('#dfPATake')){$('dfPATakeInput')?.click();return}if(e.target.closest('#dfPAUpload')){$('dfPAUploadInput')?.click();return}if(e.target.closest('#dfPAManualFind')){identifyManual();return}if(e.target.closest('#dfPARecoverMissing')){recoverMissingOp();return}if(e.target.closest('#dfPASave')){saveCurrent();return}if(e.target.closest('#dfPACloseModal')){closeModal();return}});panel.addEventListener('change',e=>{if(e.target.id==='dfPATakeInput'||e.target.id==='dfPAUploadInput'){const f=e.target.files?.[0];e.target.value='';handleFile(f);return}if(e.target.id==='dfPAMonth')renderMonth()});panel.addEventListener('input',e=>{if(e.target.id==='dfPAManualId')offerRecovery(e.target.value)});panel.addEventListener('keydown',e=>{if(e.target.id==='dfPAManualId'&&e.key==='Enter'){e.preventDefault();identifyManual()}});if($('dfPAMonth'))$('dfPAMonth').value=monthNow()}
+function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel)return;panel.addEventListener('click',e=>{const pane=e.target.closest('[data-pa-pane]');if(pane){switchPane(pane.dataset.paPane);return}const view=e.target.closest('[data-pa-view]');if(view){openPhoto(view.dataset.paView);return}const change=e.target.closest('[data-pa-machine]');if(change){editCompletedMachine(change.dataset.paMachine);return}const del=e.target.closest('[data-pa-del]');if(del){deleteAuto(del.dataset.paDel);return}const retry=e.target.closest('[data-pa-retry]');if(retry){retryPending(retry.dataset.paRetry);return}if(e.target.closest('#dfPATake')){$('dfPATakeInput')?.click();return}if(e.target.closest('#dfPAUpload')){$('dfPAUploadInput')?.click();return}if(e.target.closest('#dfPAManualFind')){identifyManual();return}if(e.target.closest('#dfPARecoverMissing')){recoverMissingOp();return}if(e.target.closest('#dfPASave')){saveCurrent();return}if(e.target.closest('#dfPACloseModal')){closeModal();return}});panel.addEventListener('change',e=>{if(e.target.id==='dfPATakeInput'||e.target.id==='dfPAUploadInput'){const f=e.target.files?.[0];e.target.value='';handleFile(f);return}if(e.target.id==='dfPAMonth')renderMonth()});panel.addEventListener('input',e=>{if(e.target.id==='dfPAManualId')offerRecovery(e.target.value)});panel.addEventListener('keydown',e=>{if(e.target.id==='dfPAManualId'&&e.key==='Enter'){e.preventDefault();identifyManual()}});if($('dfPAMonth'))$('dfPAMonth').value=monthNow()}
 
 function start(){mount()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
