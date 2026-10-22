@@ -1,6 +1,6 @@
 {
-  "version": "1.0.398",
-  "title": "DF EXTRUSOR PRO — recálculo das OPs prontas",
-  "message": "Recalcula materiais das OPs baixadas pela produção real, recupera formulações locais e identifica totais parciais.",
+  "version": "1.0.399",
+  "title": "DF EXTRUSOR PRO — recuperação das formulações",
+  "message": "Recupera materiais de OPs baixadas a partir das formulações originais compartilhadas pelo QR na nuvem.",
   "updatedAt": "2026-10-21"
 }
