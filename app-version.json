@@ -1,6 +1,6 @@
 {
-  "version": "1.0.396",
-  "title": "DF EXTRUSOR PRO — materiais pela produção real",
-  "message": "Calcula materiais pela quantidade efetivamente produzida na baixa, preservando porcentagens originais da OP.",
+  "version": "1.0.397",
+  "title": "DF EXTRUSOR PRO — sincronização rápida",
+  "message": "Materiais exibidos imediatamente enquanto sincroniza a equipe, com limite de espera e migração em segundo plano.",
   "updatedAt": "2026-10-21"
 }
