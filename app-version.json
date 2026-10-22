@@ -1,6 +1,6 @@
 {
-  "version": "1.0.401",
-  "title": "DF EXTRUSOR PRO — vírgula automática global",
-  "message": "Digitar zero em campos decimais do aplicativo inicia 0, automaticamente, preservando campos de códigos e contagens inteiras.",
+  "version": "1.0.402",
+  "title": "DF EXTRUSOR PRO — apagar valores normalmente",
+  "message": "Vírgula automática somente ao digitar zero; apagar com backspace remove vírgula e zero sem reinserir.",
   "updatedAt": "2026-10-21"
 }
