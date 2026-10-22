@@ -1,6 +1,6 @@
 {
-  "version": "1.0.392",
-  "title": "DF EXTRUSOR PRO — relatório do mês",
-  "message": "Remove a lista duplicada de materiais calculados da tela Mês, preservando indicadores e a aba exclusiva de materiais.",
+  "version": "1.0.393",
+  "title": "DF EXTRUSOR PRO — relatório de materiais",
+  "message": "Botão para gerar relatório imprimível em PDF com materiais calculados das OPs baixadas no mês selecionado.",
   "updatedAt": "2026-10-21"
 }
