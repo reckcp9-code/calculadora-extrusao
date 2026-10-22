@@ -29,10 +29,10 @@ out.push({opCode:id,production:prod,scrap:num(o.apara||o.scrap),materials:materi
 async function syncMaterials(force){var team=currentTeam(),tid=String(team&&team.teamId||'');if(!tid||cloudBusy||navigator.onLine===false)return;
 if(!force&&cloudTeam===tid&&cloudMonth===month&&Date.now()-cloudLast<15000)return;
 cloudBusy=true;try{
-var migrateKey='df_materials_migrated_v395_'+tid,seed=localClosedForMigration(tid);
-if(seed.length&&localStorage.getItem(migrateKey)!=='done'){
+var migrateKey='df_materials_migrated_v395_'+tid,seed=localClosedForMigration(tid),seedSignature=JSON.stringify(seed.map(function(x){return [x.opCode,x.production,x.scrap,x.materials]}));
+if(seed.length&&localStorage.getItem(migrateKey)!==seedSignature){
 var migrated=await cloudPost('/op/record/migrate',{teamId:tid,records:seed.slice(0,500)});
-if(migrated&&migrated.ok&&migrated.invalid===0)localStorage.setItem(migrateKey,'done');
+if(migrated&&migrated.ok&&migrated.invalid===0)localStorage.setItem(migrateKey,seedSignature);
 }
 var result=await cloudPost('/op/record/list',{teamId:tid,month:month,includeDeleted:false});
 if(String(result.teamId||'')!==tid)throw Error('Equipe divergente');
