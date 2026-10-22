@@ -1,6 +1,6 @@
 {
-  "version": "1.0.380",
-  "title": "DF EXTRUSOR PRO — dimensionamento da sanfona",
-  "message": "Exibe esquerda, meio, direita e largura total automaticamente ao informar a sanfona.",
+  "version": "1.0.381",
+  "title": "DF EXTRUSOR PRO — resposta da sanfona",
+  "message": "Caixa amarela com esquerda, meio, direita e total, atualizada ao digitar a sanfona.",
   "updatedAt": "2026-10-21"
 }
