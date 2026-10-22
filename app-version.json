@@ -1,6 +1,6 @@
 {
-  "version": "1.0.384",
-  "title": "DF EXTRUSOR PRO — regulagem da sanfona na OP",
-  "message": "Mostra 15 + 15 + 15 = 45 cm fechado e 75 cm aberto, sem confundir operador.",
+  "version": "1.0.385",
+  "title": "DF EXTRUSOR PRO — nome da OP pelo QR",
+  "message": "Recupera nome do cliente/produto pelos metadados da OP identificada.",
   "updatedAt": "2026-10-21"
 }
