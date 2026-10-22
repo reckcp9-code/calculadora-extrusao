@@ -1,6 +1,6 @@
 {
-  "version": "1.0.376",
-  "title": "DF EXTRUSOR PRO — salvar e selecionar",
-  "message": "Ao salvar formulação, preserva milhares, seleciona a mais recente e não abre OP automaticamente.",
+  "version": "1.0.377",
+  "title": "DF EXTRUSOR PRO — última fórmula da equipe",
+  "message": "Todos os aparelhos selecionam automaticamente a formulação mais recente após sincronizar a equipe.",
   "updatedAt": "2026-10-21"
 }
