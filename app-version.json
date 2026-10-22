@@ -1,6 +1,6 @@
 {
-  "version": "1.0.408",
-  "title": "DF EXTRUSOR PRO — mistura padrão 100 kg",
-  "message": "Campo Calcular mistura em kg inicia preenchido com 100 kg e continua totalmente editável.",
+  "version": "1.0.409",
+  "title": "DF EXTRUSOR PRO — editar máquina em OP pronta",
+  "message": "Permite selecionar a máquina correta ao editar uma OP concluída, atualizando a produção e a apara sem duplicar a OP.",
   "updatedAt": "2026-10-21"
 }
