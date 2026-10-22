@@ -1,6 +1,6 @@
 {
-  "version": "1.0.400",
-  "title": "DF EXTRUSOR PRO — vírgula automática",
-  "message": "Nos campos numéricos de Sacolas, digitar zero primeiro insere automaticamente 0, e permite continuar digitando os decimais.",
+  "version": "1.0.401",
+  "title": "DF EXTRUSOR PRO — vírgula automática global",
+  "message": "Digitar zero em campos decimais do aplicativo inicia 0, automaticamente, preservando campos de códigos e contagens inteiras.",
   "updatedAt": "2026-10-21"
 }
