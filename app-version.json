@@ -1,6 +1,6 @@
 {
-  "version": "1.0.395",
-  "title": "DF EXTRUSOR PRO — materiais sincronizados",
-  "message": "Materiais calculados e relatório mensal consultam OPs baixadas compartilhadas pela equipe.",
+  "version": "1.0.396",
+  "title": "DF EXTRUSOR PRO — materiais pela produção real",
+  "message": "Calcula materiais pela quantidade efetivamente produzida na baixa, preservando porcentagens originais da OP.",
   "updatedAt": "2026-10-21"
 }
