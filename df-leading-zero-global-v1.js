@@ -16,6 +16,8 @@ return /(?:peso|kg|gram|micra|espessura|largura|comprimento|densidade|desconto|p
 var busy=false;
 document.addEventListener('input',function(e){
 if(busy||e.isComposing||!e.isTrusted)return;
+// Nunca recolocar a vírgula ao apagar: somente ao digitar o primeiro zero.
+if(e.inputType!=='insertText'||e.data!=='0')return;
 var el=e.target;if(!eligible(el)||el.value!=='0')return;
 busy=true;
 try{
