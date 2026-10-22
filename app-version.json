@@ -1,6 +1,6 @@
 {
-  "version": "1.0.407",
-  "title": "DF EXTRUSOR PRO — estabilidade e desempenho",
-  "message": "Reduz disputa de carregamento na inicialização, antecipa módulos leves e carrega OPs quando o aparelho estiver ocioso; atualiza cache do aplicativo.",
+  "version": "1.0.408",
+  "title": "DF EXTRUSOR PRO — mistura padrão 100 kg",
+  "message": "Campo Calcular mistura em kg inicia preenchido com 100 kg e continua totalmente editável.",
   "updatedAt": "2026-10-21"
 }
