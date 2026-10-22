@@ -1,6 +1,6 @@
 {
-  "version": "1.0.379",
-  "title": "DF EXTRUSOR PRO — campo de sanfona",
-  "message": "Mostra o campo para dimensionar sanfona ao marcar FILME SANFONADO.",
+  "version": "1.0.380",
+  "title": "DF EXTRUSOR PRO — dimensionamento da sanfona",
+  "message": "Exibe esquerda, meio, direita e largura total automaticamente ao informar a sanfona.",
   "updatedAt": "2026-10-21"
 }
