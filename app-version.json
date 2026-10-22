@@ -1,6 +1,6 @@
 {
-  "version": "1.0.378",
-  "title": "DF EXTRUSOR PRO — filme sanfonado",
-  "message": "Opção de sanfona na extrusão com cálculo automático do meio sem alterar a largura total.",
+  "version": "1.0.379",
+  "title": "DF EXTRUSOR PRO — campo de sanfona",
+  "message": "Mostra o campo para dimensionar sanfona ao marcar FILME SANFONADO.",
   "updatedAt": "2026-10-21"
 }
