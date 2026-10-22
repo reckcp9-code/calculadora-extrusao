@@ -3,7 +3,7 @@
 if(window.DF_FORMULA_SAVE_FIRST_OP_V1)return;window.DF_FORMULA_SAVE_FIRST_OP_V1=true;
 const KEY='df_formulacoes_v2';
 const q=id=>document.getElementById(id);
-const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
+const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');else if(s.includes(','))s=s.replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');const n=Number(s);return Number.isFinite(n)&&n>0?n:0};
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){try{return Array.isArray(window.loadForms?.())?window.loadForms():[]}catch(_){return[]}}};
 const time=f=>{const a=Date.parse(String(f?.updatedAt||f?.criado||''));if(Number.isFinite(a))return a;const id=Number(f?.id);return Number.isFinite(id)?id:0};
 const newest=a=>a.slice().sort((x,y)=>time(y)-time(x)||Number(y?.id||0)-Number(x?.id||0));
@@ -53,7 +53,6 @@ async function saveAndOpen(){
   if(!rows.length){alert('Escolha pelo menos 1 material.');return}
   const pct=rows.reduce((s,r)=>s+(Number(r.pct)||0),0);
   if(Math.abs(100-pct)>0.05&&!confirm('A formulação não fechou 100%. Salvar mesmo assim?'))return;
-  const pop=popupNow();
   let srv=null;
   try{
     if(typeof window.dfCalc==='function'){
@@ -61,12 +60,13 @@ async function saveAndOpen(){
       srv=await window.dfCalc('formulacao',{totalKg:total,rows:calcRows});
     }
   }catch(e){console.error('DF formula save:',e)}
-  if(!srv){closePopup(pop);alert('Não foi possível calcular a formulação no servidor.');return}
+  if(!srv){alert('Não foi possível calcular a formulação no servidor.');return}
   const now=Date.now(),rec={id:now,nome,total,rows,custo:Number(srv.custoTotal)||0,custoKg:Number(srv.custoKgFinal)||0,op:(typeof window.getExtrusaoOP==='function'?window.getExtrusaoOP():{}),criado:new Date(now).toISOString(),updatedAt:new Date(now).toISOString()};
   const a=load().filter(f=>String(f?.id)!==String(rec.id));a.unshift(rec);
-  if(!write(a)){closePopup(pop);alert('Não foi possível salvar a formulação neste aparelho.');return}
+  if(!write(a)){alert('Não foi possível salvar a formulação neste aparelho.');return}
   refresh(rec.id);
-  printInPopup(rec,pop);
+  const select=q('foSavedSelect');if(select){select.value=String(rec.id);select.dispatchEvent(new Event('change',{bubbles:true}));}
+  window.dispatchEvent(new CustomEvent('df-formula-saved',{detail:{id:rec.id,total:rec.total}}));
 }
 window.addEventListener('click',function(ev){
   const btn=ev.target&&ev.target.closest?ev.target.closest('#foSave'):null;if(!btn)return;
