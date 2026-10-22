@@ -1,6 +1,6 @@
 {
-  "version": "1.0.406",
-  "title": "DF EXTRUSOR PRO — minimizar cadastro",
-  "message": "Botão minimizar do Cadastro de Material carregado junto da tela principal.",
+  "version": "1.0.407",
+  "title": "DF EXTRUSOR PRO — estabilidade e desempenho",
+  "message": "Reduz disputa de carregamento na inicialização, antecipa módulos leves e carrega OPs quando o aparelho estiver ocioso; atualiza cache do aplicativo.",
   "updatedAt": "2026-10-21"
 }
