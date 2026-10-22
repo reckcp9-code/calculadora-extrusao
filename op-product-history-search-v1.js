@@ -43,12 +43,12 @@ function openExisting(id){
 function render(){
   var input=$('dfProductHistorySearch'),out=$('dfProductHistoryResults');if(!input||!out)return;
   var q=normText(input.value);if(!q){out.innerHTML='<div class="dfPhHint">Digite parte do nome do produto. Ex.: <b>Coque</b>.</div>';return}
-  var list=buildIndex().filter(function(r){return r.name&&normText(r.name).indexOf(q)>=0});
+  var list=buildIndex().filter(function(r){return r.name&&r.op&&statusFor(r).key==='ok'&&normText(r.name).indexOf(q)>=0});
   list.sort(function(a,b){return String(b.op&&b.op.data||b.createdAt||'').localeCompare(String(a.op&&a.op.data||a.createdAt||''))});
-  var produced=0,ready=0,pending=0,none=0;
-  list.forEach(function(r){var s=statusFor(r);if(s.key==='ok')ready++;else if(s.key==='pending')pending++;else if(s.key==='none')none++;if(r.op)produced+=Number(r.op.produzido||0)});
-  if(!list.length){out.innerHTML='<div class="dfPhEmpty">Nenhuma OP encontrada com <b>'+esc(input.value.trim())+'</b>.</div>';return}
-  var summary='<div class="dfPhSummary"><div><span>OPs encontradas</span><b>'+list.length+'</b></div><div><span>Rodadas / prontas</span><b>'+ready+'</b></div><div><span>Sem baixa</span><b>'+none+'</b></div><div><span>Produção encontrada</span><b>'+fmt(produced,2)+' kg</b></div></div>'+(pending?'<div class="dfPhPendingNote">⚠️ '+pending+' OP(s) aparecem como pendentes.</div>':'');
+  var produced=0,ready=0;
+  list.forEach(function(r){var s=statusFor(r);if(s.key==='ok')ready++;if(r.op)produced+=Number(r.op.produzido||0)});
+  if(!list.length){out.innerHTML='<div class="dfPhEmpty">Nenhuma OP baixada encontrada com <b>'+esc(input.value.trim())+'</b>.</div>';return}
+  var summary='<div class="dfPhSummary"><div><span>OPs baixadas</span><b>'+ready+'</b></div><div><span>Produção encontrada</span><b>'+fmt(produced,2)+' kg</b></div></div>';
   var cards=list.map(function(r){var o=r.op,s=statusFor(r),date=String(o&&o.data||r.createdAt||'').slice(0,10),prod=o?Number(o.produzido||0):0,ap=o?Number(o.apara||0):0,canOpen=!!o;return '<div class="dfPhRow"><div class="dfPhTop"><div><strong>'+esc(r.name)+'</strong><small>'+esc(r.id)+'</small></div><span class="dfPhBadge '+s.cls+'">'+esc(s.label)+'</span></div><div class="dfPhMeta">'+(date?esc(date)+' • ':'')+(canOpen?'Produção '+fmt(prod,2)+' kg • Apara '+fmt(ap,2)+' kg':'Ainda não há baixa/foto processada para esta OP')+'</div><button type="button" class="dfPhOpen" data-ph-open="'+esc(r.id)+'" '+(canOpen?'':'disabled')+'>'+(canOpen?'ABRIR FOTO':'SEM FOTO / SEM BAIXA')+'</button></div>'}).join('');
   out.innerHTML=summary+cards;
   out.querySelectorAll('[data-ph-open]').forEach(function(b){b.onclick=function(){openExisting(b.getAttribute('data-ph-open'))}});
