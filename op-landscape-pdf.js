@@ -109,6 +109,19 @@
     return bytes(pdf);
   }
 
+  function gussetInfo(data){
+    const el=id=>document.getElementById(id);
+    const checked=el('exSanfonado')?.checked;
+    const saved=Number(data?.sanfonaCm??data?.gussetCm??0);
+    const depth=saved>0?saved:checked?parseNum(el('exSanfona')?.value):0;
+    const width=parseNum(data?.width)||parseNum(el('exL')?.value);
+    if(!(depth>0&&width>=depth*4))return null;
+    const currentWidth=parseNum(el('exL')?.value);
+    if(!saved&&(!checked||Math.abs(width-currentWidth)>0.01))return null;
+    const fmt=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:2});
+    return {title:'TAMANHO DA SANFONA: '+fmt(depth)+' CM',detail:fmt(depth*2)+' + '+fmt(width-depth*4)+' + '+fmt(depth*2)+' = '+fmt(width)+' CM'};
+  }
+
   function create(data){
     data=data||{};
     const opId=clean(data.__dfOpId||makeId());
@@ -234,7 +247,7 @@
     spanRow([
       {span:3,lines:[{text:'LARGURA DA BOBINA',size:6.2,bold:true},{text:data.width||'_____ CM',size:11.2,bold:true}],fill:[1,.93,.42],strong:true},
       {span:3,lines:[{text:'LARGURA DO BALAO',size:6.2,bold:true},{text:data.width||'_____ CM',size:11.2,bold:true}],fill:[1,.93,.42],strong:true},
-      {span:3,text:'',size:8}
+      {span:3,lines:(function(){const g=gussetInfo(data);return g?[{text:g.title,size:6.1,bold:true},{text:g.detail,size:9.0,bold:true}]:[{text:'',size:8}]}()),fill:[1,.93,.42],strong:true}
     ],24);
     spanRow([{span:9,lines:[{text:'OBSERVACOES IMPORTANTES',size:5.4},{text:'',size:8}]}],26);
 
