@@ -41,9 +41,29 @@ function nameFromOcr(o){
   }
   return'';
 }
+function nameFromTeamServer(id){
+  var api=window.DFOpProductD1Authority,cache=null,n=norm(id);
+  try{cache=api&&typeof api.cache==='function'?api.cache():null}catch(e){}
+  var rows=cache&&cache.products;
+  if(Array.isArray(rows))for(var i=0;i<rows.length;i++){var x=rows[i]||{};if(norm(x.opCode||x.id)===n){var v=validName(x.productName||x.name);if(v)return v}}
+  return '';
+}
+function nameFromHistoricOp(id){
+  var n=norm(id),sources=['df_formula_ops_auto_v2','df_op_qr_registry_v1'],v='';
+  var ops=load(sources[0],[]);
+  if(Array.isArray(ops))for(var i=0;i<ops.length;i++){var o=ops[i]||{};if(ids(o).indexOf(n)<0)continue;for(var k of ['serverProductName','manualProductName','clienteFormulacao','nomeCliente','cliente','produto','product','nomeProduto','opNome','name','title']){if((v=validName(o[k])))return v}}
+  return '';
+}
+function updateOpenName(){
+  if(!currentId)return;
+  var input=document.getElementById('dfManualProductName');if(!input||String(input.value||'').trim())return;
+  var name=nameFromTeamServer(currentId)||nameFromHistoricOp(currentId)||findRegName(currentId);
+  if(name){input.value=name;var hint=document.getElementById('dfManualProductHint');if(hint)hint.textContent='Nome recuperado automaticamente da OP já concluída.'}
+}
 function currentNameInfo(id){
   var m=load(MANUAL,{}),o=findOp(id)||{},n=norm(id),v='';
   if((v=validName(m[n])))return{name:v,source:'salvo'};
+  if((v=nameFromTeamServer(id)))return{name:v,source:'servidor da equipe'};
   for(var k of ['clientName','cliente','nomeCliente','customer','client','nome','name','title','formulaName','nomeFormula','descricaoProduto','description','opTitle']){if((v=validName(o[k])))return{name:v,source:'OP original'}}
   var reg=load(REG,{}),entry=reg[id]||reg[n]||{};for(var key of Object.keys(reg)){if(norm(reg[key]&&reg[key].id||key)===n){entry=reg[key];break}}
   var ex=entry.expected||{};for(var field of ['clientName','cliente','nomeCliente','title','produto','product','name']){if((v=validName(ex[field])))return{name:v,source:'QR da OP'}}
@@ -106,6 +126,8 @@ function mount(){
   var hint=name&&info.source==='foto'?'✅ Nome sugerido automaticamente pela leitura da foto. Confira antes de salvar.':'Esta OP já está concluída. Salvar o nome do produto não altera o status: ela permanece em PRONTAS.';
   box.innerHTML='<label for="dfManualProductName" style="display:block;color:#ffd36a;font-size:13px;font-weight:900;margin:0 0 7px">NOME DO PRODUTO</label><input id="dfManualProductName" value="'+esc(name)+'" placeholder="Digite o nome do produto" autocomplete="off" style="width:100%;box-sizing:border-box;border:1px solid #f5a000;background:#0f172a;color:#fff;border-radius:10px;padding:13px;font-size:17px"><div id="dfManualProductHint" style="margin-top:7px;color:'+(info.source==='foto'?'#86efac':'#cbd5e1')+';font-size:11px;line-height:1.4">'+esc(hint)+'</div>';
   saveBtn.parentNode.insertBefore(box,saveBtn);
+  setTimeout(updateOpenName,120);
+  try{window.DFOpProductD1Authority?.pull?.(false).then(function(){setTimeout(updateOpenName,100)})}catch(e){}
   saveBtn.textContent=openedWasReady?'✅ SALVAR NOME E MANTER EM PRONTAS':'✅ SALVAR CORREÇÃO E CONCLUIR';
   return true;
 }
@@ -133,6 +155,6 @@ document.addEventListener('click',function(e){
 },true);
 
 var obs=new MutationObserver(function(){var modal=document.getElementById('dfOpModal');if(currentId&&modal&&modal.classList.contains('on')&&!document.getElementById('dfManualProductName'))mount()});
-function boot(){repairV14Move();obs.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});setTimeout(repairV14Move,800)}
+function boot(){window.addEventListener('df-op-d1-applied',updateOpenName);window.addEventListener('df-prontas-products-synced',updateOpenName);repairV14Move();obs.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});setTimeout(repairV14Move,800)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
