@@ -1,6 +1,6 @@
 {
-  "version": "1.0.413",
-  "title": "DF EXTRUSOR PRO — edição de máquina na Produção",
-  "message": "Corrigida a página real de Produção que ainda carregava o editor antigo; mostra Selecionar Máquina e Editar Máquina nas OPs prontas.",
+  "version": "1.0.414",
+  "title": "DF EXTRUSOR PRO — desempenho e estabilidade",
+  "message": "Reduz a espera na atualização da Produção e elimina o adiamento desnecessário da renderização de OPs, preservando dados e layout.",
   "updatedAt": "2026-10-22"
 }
