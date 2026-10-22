@@ -1,6 +1,6 @@
 {
-  "version": "1.0.415",
-  "title": "DF EXTRUSOR PRO — Sacoleira Flex 900 no Agora",
-  "message": "Reexibe a Sacoleira Flex 900 no painel de produção mensal por máquina com os totais das OPs baixadas.",
+  "version": "1.0.416",
+  "title": "DF EXTRUSOR PRO — estabilidade do AGORA",
+  "message": "Mantém máquinas com produção mensal mesmo durante falha de sincronização do cadastro, reduz leituras repetidas e atualizações desnecessárias.",
   "updatedAt": "2026-10-22"
 }
