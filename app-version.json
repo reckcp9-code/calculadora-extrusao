@@ -1,6 +1,6 @@
 {
-  "version": "1.0.382",
-  "title": "DF EXTRUSOR PRO — cálculo da sanfona",
-  "message": "Corrige DF-CALC-339 carregando cálculo de sanfona como módulo independente.",
+  "version": "1.0.383",
+  "title": "DF EXTRUSOR PRO — sanfona na OP",
+  "message": "Mostra o tamanho e dimensionamento da sanfona no quadro amarelo da OP.",
   "updatedAt": "2026-10-21"
 }
