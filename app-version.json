@@ -1,6 +1,6 @@
 {
-  "version": "1.0.390",
-  "title": "DF EXTRUSOR PRO — sem aba Agora",
-  "message": "Remove da interface a aba Agora e o painel Produção Agora, preservando os dados.",
+  "version": "1.0.391",
+  "title": "DF EXTRUSOR PRO — materiais calculados",
+  "message": "Substitui Agora por materiais calculados no mês somente de OPs com baixa concluída.",
   "updatedAt": "2026-10-21"
 }
