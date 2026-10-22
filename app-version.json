@@ -1,6 +1,6 @@
 {
   "version": "1.0.389",
-  "title": "DF EXTRUSOR PRO — somente OPs baixadas",
-  "message": "Na pesquisa de OPs Prontas exibe somente OPs concluídas, sem pendentes e sem baixa.",
+  "title": "DF EXTRUSOR PRO — pesquisa de OPs baixadas",
+  "message": "Pesquisa em OPs Prontas mostra somente OPs com baixa concluída, excluindo não baixadas e pendentes.",
   "updatedAt": "2026-10-21"
 }
