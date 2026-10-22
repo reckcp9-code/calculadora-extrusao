@@ -49,14 +49,42 @@ if(String(result.teamId||'')!==tid)throw Error('Equipe divergente');
 cloudRecords=Array.isArray(result.records)?result.records:[];cloudTeam=tid;cloudMonth=requestedMonth;cloudLast=Date.now();
 try{localStorage.setItem('df_materials_team_cache_v397_'+tid+'_'+requestedMonth,JSON.stringify(cloudRecords))}catch(e){}
 if(month===requestedMonth)render();
+setTimeout(function(){recoverOriginals(tid,requestedMonth)},50);
 setTimeout(function(){migrateInBackground(tid)},150);
 }catch(e){cloudError='⚠️ Não foi possível atualizar agora. Exibindo últimos dados disponíveis.';cloudLast=Date.now();render()}
 finally{cloudBusy=false}
 }
+
+// Recupera as formulações originais publicadas na nuvem com o ID de cada OP.
+var originalCloud={},originalBusy=false,originalTeam='',originalMonth='';
+async function recoverOriginals(tid,m){
+if(originalBusy)return;
+var api=window.DFOpRegistryCloudTestV174;
+if(!api||typeof api.readOriginalProducts!=='function')return;
+originalBusy=true;
+try{
+var originals=await api.readOriginalProducts(m);
+if(currentTeam()&&String(currentTeam().teamId||'')===tid&&month===m){
+originalCloud=originals||{};originalTeam=tid;originalMonth=m;render();
+}
+}catch(e){}finally{originalBusy=false}
+}
+function formulaFor(id,reg,tid){
+var entry=reg[id]||Object.values(reg).find(function(r){return norm(r&&r.id)===id})||{};
+return (originalTeam===tid&&originalMonth===month&&originalCloud[id])||entry.expected||{};
+}
+function materialRows(mats,actual,planned){
+if(!Array.isArray(mats))return[];
+return mats.map(function(m){
+var name=String(m.name||m.nome||m.material||'').trim(),pct=num(m.pct||m.percent||m.porcentagem||m.percentage),kg=num(m.kg);
+if(!pct&&planned>0&&kg>0)pct=kg*100/planned;
+return {name:name,pct:pct,kg:actual>0&&pct>0?actual*pct/100:kg};
+}).filter(function(m){return m.name&&m.kg>0});
+}
 function render(){var pane=document.getElementById('dfPaneNow');if(!pane||!pane.classList.contains('on'))return;var team=currentTeam(),tid=String(team&&team.teamId||''),shared=!!tid,usingCloud=shared&&cloudTeam===tid&&cloudMonth===month&&Array.isArray(cloudRecords);var cached=[];if(shared&&!usingCloud){cached=read('df_materials_team_cache_v397_'+tid+'_'+month,[]);if(!Array.isArray(cached))cached=[]}var showCache=shared&&!usingCloud&&cached.length>0;var ops=usingCloud?cloudRecords:showCache?cached:read(OPS,[]),reg=read(REG,{}),rows={},seen=new Set(),count=0,missing=0,kgTotal=0;
-(Array.isArray(ops)?ops:[]).forEach(function(o){if(!o||(usingCloud||showCache?o.state!=='ready':o.status!=='ok')||(usingCloud||showCache?String(o.localDate||o.completedAt||'').slice(0,7):date(o))!==month)return;var id=norm(usingCloud||showCache?o.opCode:(o.id||o.qr||o.numero||o.opId||o.codigo));if(!id||seen.has(id))return;seen.add(id);count++;var rec=reg[id]||Object.values(reg).find(function(r){return norm(r&&r.id)===id})||{},mats=(o.materials&&o.materials.length?o.materials:rec.expected&&rec.expected.materials);if(!Array.isArray(mats)||!mats.length){missing++;return}mats.forEach(function(m){var n=String(m.name||'').trim(),kg=num(m.kg);if(!n||kg<=0)return;var actual=num(usingCloud||showCache?o.production:o.produzido),pct=num(m.pct),planned=num(rec.expected&&rec.expected.totalKg);if(actual>0&&pct>0)kg=actual*pct/100;else if(actual>0&&planned>0)kg=actual*kg/planned;var key=n.toLocaleUpperCase('pt-BR');if(!rows[key])rows[key]={name:n,kg:0};rows[key].kg+=kg;kgTotal+=kg})});
+(Array.isArray(ops)?ops:[]).forEach(function(o){if(!o||(usingCloud||showCache?o.state!=='ready':o.status!=='ok')||(usingCloud||showCache?String(o.localDate||o.completedAt||'').slice(0,7):date(o))!==month)return;var id=norm(usingCloud||showCache?o.opCode:(o.id||o.qr||o.numero||o.opId||o.codigo));if(!id||seen.has(id))return;seen.add(id);count++;var expected=formulaFor(id,reg,tid),actual=num(usingCloud||showCache?o.production:o.produzido),mats=materialRows(o.materials,actual,num(expected.totalKg));if(!mats.length)mats=materialRows(expected.materials,actual,num(expected.totalKg));if(!mats.length){missing++;return}mats.forEach(function(m){var n=String(m.name||'').trim(),kg=num(m.kg);var key=n.toLocaleUpperCase('pt-BR');if(!rows[key])rows[key]={name:n,kg:0};rows[key].kg+=kg;kgTotal+=kg})});
 var list=Object.values(rows).sort(function(a,b){return b.kg-a.kg});var withMaterials=count-missing;window.DFMaterialsMonthlyReport={month:month,count:count,missing:missing,withMaterials:withMaterials,total:kgTotal,items:list.map(function(x){return {name:x.name,kg:x.kg}})};pane.innerHTML='<section class="dfMaterialsMonth"><h3>📦 MATERIAIS CALCULADOS</h3><p>Somente OPs com baixa concluída no mês. Quantidades previstas na formulação de cada OP, não consumo medido.</p><label for="dfMaterialsMonthSelect">MÊS</label><input id="dfMaterialsMonthSelect" type="month" value="'+esc(month)+'"><div id="dfMaterialsSyncStatus" style="margin-top:9px;color:#93c5fd;font-size:12px">'+(cloudError|| (usingCloud?'☁️ Dados oficiais sincronizados da equipe':showCache?'⏳ Atualizando dados da equipe (última sincronização exibida)':shared?'⏳ Atualizando dados da equipe (dados locais provisórios)':'Dados deste aparelho — conecte-se à equipe para compartilhar'))+'</div><div class="dfMaterialsSummary">OPs baixadas: <b>'+count+'</b> · Total calculado: <b>'+fmt(kgTotal)+' kg</b></div>'+(missing?'<p class="dfMaterialsWarning">⚠️ '+missing+' de '+count+' OP(s) baixada(s) ainda estão sem formulação recuperada. Total de materiais parcial: somente '+withMaterials+' OP(s) incluída(s). Confira os materiais originais dessas OPs.</p>':'')+(list.length?list.map(function(x){return '<div class="dfMaterialsRow"><span>'+esc(x.name)+'</span><b>'+fmt(x.kg)+' kg</b></div>'}).join(''):'<p>Nenhum material calculado encontrado nas OPs baixadas deste mês.</p>')+'<button type="button" id="dfMaterialsPdfBtn" class="dfMaterialsPdfBtn">📄 GERAR RELATÓRIO PDF</button></section>';
-var inp=document.getElementById('dfMaterialsMonthSelect');if(inp)inp.onchange=function(){month=inp.value;render();syncMaterials(true)};var pdf=document.getElementById('dfMaterialsPdfBtn');if(pdf)pdf.onclick=printMaterialsReport;if(shared&&!usingCloud)syncMaterials(false)}
+var inp=document.getElementById('dfMaterialsMonthSelect');if(inp)inp.onchange=function(){month=inp.value;originalCloud={};originalMonth='';render();syncMaterials(true)};var pdf=document.getElementById('dfMaterialsPdfBtn');if(pdf)pdf.onclick=printMaterialsReport;if(shared&&!usingCloud)syncMaterials(false)}
 function printMaterialsReport(){
 var data=window.DFMaterialsMonthlyReport;if(!data)return;
 var period=String(data.month||'').split('-'),monthNames=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
