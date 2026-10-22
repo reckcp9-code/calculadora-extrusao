@@ -1,6 +1,6 @@
 {
-  "version": "1.0.393",
-  "title": "DF EXTRUSOR PRO — relatório de materiais",
-  "message": "Botão para gerar relatório imprimível em PDF com materiais calculados das OPs baixadas no mês selecionado.",
+  "version": "1.0.394",
+  "title": "DF EXTRUSOR PRO — relatório profissional",
+  "message": "Relatório de materiais com layout profissional, totais e botão voltar para Formulação.",
   "updatedAt": "2026-10-21"
 }
