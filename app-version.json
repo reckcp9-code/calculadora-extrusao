@@ -1,6 +1,6 @@
 {
-  "version": "1.0.391",
-  "title": "DF EXTRUSOR PRO — materiais calculados",
-  "message": "Substitui Agora por materiais calculados no mês somente de OPs com baixa concluída.",
+  "version": "1.0.392",
+  "title": "DF EXTRUSOR PRO — relatório do mês",
+  "message": "Remove a lista duplicada de materiais calculados da tela Mês, preservando indicadores e a aba exclusiva de materiais.",
   "updatedAt": "2026-10-21"
 }
