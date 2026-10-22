@@ -1,6 +1,6 @@
 {
-  "version": "1.0.404",
-  "title": "DF EXTRUSOR PRO — inicialização restaurada",
-  "message": "Corrigida falha de carregamento e mantido botão minimizar cadastro de material.",
+  "version": "1.0.406",
+  "title": "DF EXTRUSOR PRO — minimizar cadastro",
+  "message": "Botão minimizar do Cadastro de Material carregado junto da tela principal.",
   "updatedAt": "2026-10-21"
 }
