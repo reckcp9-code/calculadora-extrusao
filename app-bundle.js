@@ -3543,7 +3543,7 @@
 
   function openOP(f){
     if(!f){alert('Formulação não encontrada.');return;}
-    const nome=f.nome||'Formulação',total=Number(f.total)||0,rows=f.rows||[];
+    const nome=f.nome||'Formulação',total=(function(v){const raw=String(v??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');if(!raw)return 0;let z=raw;if(raw.includes(',')&&raw.includes('.'))z=raw.lastIndexOf(',')>raw.lastIndexOf('.')?raw.replace(/\./g,'').replace(',','.'):raw.replace(/,/g,'');else if(raw.includes(','))z=raw.replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(raw))z=raw.replace(/\./g,'');return Number(z)||0})(q('foTotal')?.value)||Number(f.total)||0,rows=f.rows||[];
     const atual=currentOp(),dados=f.op||{};
     const largura=Number(dados.largura||atual.largura)||0;
     const comprimento=Number(dados.comprimento||atual.comprimento)||0;
