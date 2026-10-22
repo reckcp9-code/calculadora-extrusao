@@ -1,6 +1,6 @@
 {
-  "version": "1.0.387",
-  "title": "DF EXTRUSOR PRO — nome vinculado ao QR",
-  "message": "Ao gerar OP, vincula nome do produto e ID e tenta sincronizar o cadastro com a equipe.",
+  "version": "1.0.388",
+  "title": "DF EXTRUSOR PRO — estabilidade e desempenho",
+  "message": "Reduz atualizações repetidas da tela de OPs e reforça validação automática de inicialização e módulos.",
   "updatedAt": "2026-10-21"
 }
