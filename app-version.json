@@ -1,6 +1,6 @@
 {
-  "version": "1.0.385",
-  "title": "DF EXTRUSOR PRO — nome da OP pelo QR",
-  "message": "Recupera nome do cliente/produto pelos metadados da OP identificada.",
+  "version": "1.0.386",
+  "title": "DF EXTRUSOR PRO — OPs antigas",
+  "message": "Preenche nome das OPs já concluídas usando histórico e cadastro sincronizado por ID.",
   "updatedAt": "2026-10-21"
 }
