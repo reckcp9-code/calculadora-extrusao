@@ -1,6 +1,6 @@
 {
-  "version": "1.0.403",
-  "title": "DF EXTRUSOR PRO — minimizar cadastro fixo",
-  "message": "Mantém o botão de minimizar cadastro de material disponível mesmo após atualização dinâmica da tela.",
+  "version": "1.0.404",
+  "title": "DF EXTRUSOR PRO — inicialização restaurada",
+  "message": "Corrigida falha de carregamento e mantido botão minimizar cadastro de material.",
   "updatedAt": "2026-10-21"
 }
