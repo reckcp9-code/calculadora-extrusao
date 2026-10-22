@@ -119,7 +119,7 @@
     const currentWidth=parseNum(el('exL')?.value);
     if(!saved&&(!checked||Math.abs(width-currentWidth)>0.01))return null;
     const fmt=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:2});
-    return {title:'TAMANHO DA SANFONA: '+fmt(depth)+' CM',detail:fmt(depth*2)+' + '+fmt(width-depth*4)+' + '+fmt(depth*2)+' = '+fmt(width)+' CM'};
+    return {title:'REGULAGEM DA SANFONA: '+fmt(depth)+' CM',detail:fmt(depth)+' + '+fmt(width-depth*4)+' + '+fmt(depth)+' = '+fmt(width-depth*2)+' CM FECHADO / '+fmt(width)+' CM ABERTO'};
   }
 
   function create(data){
