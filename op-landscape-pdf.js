@@ -57,7 +57,9 @@
         id,
         createdAt:new Date().toISOString(),
         expected:{
-          title:clean(data.name||''),
+          title:clean(data.name||data.cliente||data.clientName||''),
+          cliente:clean(data.cliente||data.clientName||data.name||''),
+          produto:clean(data.product||data.produto||data.name||''),
           date:clean(data.date||''),
           totalKg:parseNum(data.production||data.total||''),
           largura:parseNum(data.width||''),
