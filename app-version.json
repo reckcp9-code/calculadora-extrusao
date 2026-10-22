@@ -1,6 +1,6 @@
 {
-  "version": "1.0.397",
-  "title": "DF EXTRUSOR PRO — sincronização rápida",
-  "message": "Materiais exibidos imediatamente enquanto sincroniza a equipe, com limite de espera e migração em segundo plano.",
+  "version": "1.0.398",
+  "title": "DF EXTRUSOR PRO — recálculo das OPs prontas",
+  "message": "Recalcula materiais das OPs baixadas pela produção real, recupera formulações locais e identifica totais parciais.",
   "updatedAt": "2026-10-21"
 }
