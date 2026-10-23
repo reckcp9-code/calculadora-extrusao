@@ -1,6 +1,6 @@
 {
-  "version": "1.0.417",
-  "title": "DF EXTRUSOR PRO — relatório mensal",
-  "message": "Remove a seção Materiais do PDF de fechamento mensal, mantendo indicadores, OPs, operadores e máquinas.",
-  "updatedAt": "2026-10-22"
+  "version": "1.0.418",
+  "title": "DF EXTRUSOR PRO — ordem das formulações",
+  "message": "Ordena as formulações salvas pela data sincronizada, com a mais recente primeiro, inclusive quando a lista estiver aberta.",
+  "updatedAt": "2026-10-23"
 }
