@@ -9,24 +9,20 @@ function isFav(v){return getFav().includes(String(v))}
 function toggleFav(v){v=String(v);let a=getFav();a=a.includes(v)?a.filter(x=>x!==v):[v,...a];setFav(a)}
 let active=null;
 function isFormulaSelect(el){if(!el||el.tagName!=='SELECT')return false;const id=norm(el.id),name=norm(el.name),aria=norm(el.getAttribute('aria-label'));if(/formul/.test(id+' '+name+' '+aria))return true;const p=el.closest('.card,.savedItem,section,div');return !!(p&&/formula(c|ç)(a|ã)o|formula/.test(norm(p.textContent).slice(0,900))&&el.options&&el.options.length>2)}
-function weight(o,i){const forms=(()=>{try{return JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}})();const f=Array.isArray(forms)?forms.find(x=>String(x.id)===String(o.value)):null;const date=f&&(f.updatedAt||f.criado||f.createdAt);const stamp=date?Date.parse(date):NaN;return Number.isFinite(stamp)?stamp:-i}
+function timestamp(f){const raw=f?.updatedAt||f?.criado||f?.createdAt||'';const t=Date.parse(String(raw));if(Number.isFinite(t))return t;const id=Number(f?.id);return Number.isFinite(id)?id:0}
 function sortedOptions(sel){
   const selected=sel.value;
-  const arr=[...sel.options].map((o,i)=>({text:o.textContent,value:o.value,disabled:o.disabled,weight:weight(o,i),i}));
-  const sorted=arr.filter(x=>x.value).sort((a,b)=>b.weight-a.weight||a.i-b.i);
-  const seenValue=new Set(),data=[];
-  for(const x of sorted){
-    const valueKey=String(x.value);
-
-    if(seenValue.has(valueKey))continue;
-    seenValue.add(valueKey);
-
-    data.push(x);
-  }
-  return{selected,items:data}
+  let forms=[];try{const a=JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]');if(Array.isArray(a))forms=a}catch(e){}
+  const rank=new Map(forms.map((f,i)=>[String(f.id),{stamp:timestamp(f),i}]));
+  const arr=[...sel.options].map((o,i)=>({text:o.textContent,value:o.value,disabled:o.disabled,i,meta:rank.get(String(o.value))}));
+  // A ordem oficial vem dos registros sincronizados, não da posição antiga do SELECT.
+  arr.sort((a,b)=>{if(a.meta&&!b.meta)return -1;if(!a.meta&&b.meta)return 1;if(a.meta&&b.meta)return b.meta.stamp-a.meta.stamp||a.meta.i-b.meta.i;return a.i-b.i});
+  const seen=new Set(),items=[];
+  for(const x of arr){if(!x.value||seen.has(String(x.value)))continue;seen.add(String(x.value));items.push(x)}
+  return{selected,items};
 }
 let savedScroll=null;
-function close(){if(active){active.remove();active=null}if(savedScroll){const v=savedScroll;savedScroll=null;document.body.style.position=v.position;document.body.style.top=v.top;document.body.style.left=v.left;document.body.style.right=v.right;document.body.style.width=v.width;document.documentElement.style.overflow=v.htmlOverflow;document.body.style.overflow=v.bodyOverflow;window.scrollTo(0,v.y)}}
+function close(){if(active){active.__dispose?.();active.remove();active=null}if(savedScroll){const v=savedScroll;savedScroll=null;document.body.style.position=v.position;document.body.style.top=v.top;document.body.style.left=v.left;document.body.style.right=v.right;document.body.style.width=v.width;document.documentElement.style.overflow=v.htmlOverflow;document.body.style.overflow=v.bodyOverflow;window.scrollTo(0,v.y)}}
 function lockPage(){if(savedScroll)return;const b=document.body,h=document.documentElement,y=window.scrollY;savedScroll={y,position:b.style.position,top:b.style.top,left:b.style.left,right:b.style.right,width:b.style.width,htmlOverflow:h.style.overflow,bodyOverflow:b.style.overflow};b.style.position='fixed';b.style.top=(-y)+'px';b.style.left='0';b.style.right='0';b.style.width='100%';b.style.overflow='hidden';h.style.overflow='hidden'}
 function open(sel){
   close();
@@ -94,7 +90,12 @@ function open(sel){
     moved=false;
   },{passive:true});
 
+  const controller=new AbortController();
+  ov.__dispose=()=>controller.abort();
   render(true);
+  // Atualiza a lista aberta quando a biblioteca oficial chega da nuvem.
+  const refresh=()=>{if(active!==ov)return;const next=sortedOptions(sel);data.items=next.items;render(false)};
+  window.addEventListener('df-team-formulas-updated',refresh,{signal:controller.signal});
   input.addEventListener('input',()=>render(true));
   ov.querySelectorAll('.df-fp-filter button').forEach(b=>b.onclick=()=>{
     filter=b.dataset.filter;
