@@ -133,9 +133,7 @@
     const r=await fetch(API+path,{
       method:'POST',
       headers:{'Content-Type':'application/json','X-DF-Device':deviceId()},
-      body:JSON.stringify(body),
-      cache:'no-store'
-    });
+      body:JSON.stringify(body)});
     let j={};
     try{j=await r.json()}catch(e){}
     return {r,j};
