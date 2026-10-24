@@ -1,6 +1,6 @@
 {
-  "version": "1.0.434",
-  "title": "DF EXTRUSOR PRO — Validação de licença",
-  "message": "Aumenta prazo de resposta da validação manual para 25 segundos, sem alterar chaves e vínculos.",
+  "version": "1.0.435",
+  "title": "DF EXTRUSOR PRO — Entrada automática",
+  "message": "Restaura ativação automática de novos usuários com KEY do estoque D1; mantém digitação manual como alternativa.",
   "updatedAt": "2026-10-24"
 }
