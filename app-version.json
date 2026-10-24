@@ -1,6 +1,6 @@
 {
-  "version": "1.0.433",
-  "title": "DF EXTRUSOR PRO — Correção de licença",
-  "message": "Remove RequestInit cache incompatível do app-bundle e app-shell, força atualização de shell e bundle.",
+  "version": "1.0.434",
+  "title": "DF EXTRUSOR PRO — Validação de licença",
+  "message": "Aumenta prazo de resposta da validação manual para 25 segundos, sem alterar chaves e vínculos.",
   "updatedAt": "2026-10-24"
 }
