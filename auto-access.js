@@ -122,9 +122,28 @@ function prepareManual(){
   if(form)form.style.display='block';
   msg('Digite a KEY fornecida pelo administrador para acessar.',true);
 }
+async function recoverExisting(){
+  // Primeiro recuperar os acessos antigos, sem consumir outra KEY.
+  if(saved()){
+    if(await restore())return true;
+    try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
+  }else{
+    try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
+  }
+  // A identificacao antiga so pode recuperar uma licenca ja existente no D1.
+  // O servidor nao distribui KEY nova por esta rota.
+  try{
+    const identity=automaticIdentity();
+    const r=await request('/access/identify',{identity,deviceId:device()},15000);
+    const j=await r.json();
+    if(r.ok&&j.ok!==false&&j.token&&j.accessCredential){save(j,true);unlock();return true}
+  }catch(e){}
+  return false;
+}
 function prepare(){
-  if(saved()){restore().then(ok=>{if(!ok)prepareManual()});return}
-  prepareManual();
+  gate();
+  msg('Verificando acesso já instalado neste aparelho...',true);
+  recoverExisting().then(ok=>{if(!ok)prepareManual()}).catch(()=>prepareManual());
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepare,{once:true});else prepare();
 })();
