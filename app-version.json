@@ -1,6 +1,6 @@
 {
-  "version": "1.0.426",
-  "title": "DF EXTRUSOR PRO — Blocadora unificada",
-  "message": "Soma a produção e a apara da BLOCADORA VM 900 na BLOCADORA FLEX 900 no AGORA e no relatório mensal, preservando as OPs e os totais.",
+  "version": "1.0.427",
+  "title": "DF EXTRUSOR PRO — Produtos em maiúsculas",
+  "message": "No relatório mensal, todos os nomes dos produtos são exibidos em LETRAS MAIÚSCULAS, sem modificar os cadastros originais.",
   "updatedAt": "2026-10-24"
 }
