@@ -50,7 +50,7 @@
     if(binding||navigator.onLine===false)return false;const credential=savedCredential();if(!credential)return false;const secret=recoverySecret();if(!secret)return false;
     try{if(String(localStorage.getItem(BOUND_KEY)||'')===credential)return true}catch(e){}
     binding=true;
-    try{const dev=deviceId();const r=await nativeFetch(API+'/access/recovery/bind',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,recoverySecret:secret,deviceId:dev,platform:platform()}),cache:'no-store'});if(r.status===404)return false;let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)return false;try{localStorage.setItem(BOUND_KEY,credential)}catch(e){}return true}catch(e){return false}finally{binding=false}
+    try{const dev=deviceId();const r=await nativeFetch(API+'/access/recovery/bind',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,recoverySecret:secret,deviceId:dev,platform:platform()})});if(r.status===404)return false;let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)return false;try{localStorage.setItem(BOUND_KEY,credential)}catch(e){}return true}catch(e){return false}finally{binding=false}
   }
 
   // Repara um acesso salvo que ficou inválido para o device atual. Não depende
@@ -61,7 +61,7 @@
     repairing=true;
     try{
       const dev=deviceId();
-      const r=await nativeFetch(API+'/access/recovery/restore',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({recoverySecret:secret,deviceId:dev,platform:platform()}),cache:'no-store'});
+      const r=await nativeFetch(API+'/access/recovery/restore',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({recoverySecret:secret,deviceId:dev,platform:platform()})});
       if(r.status===404)return null;
       let j={};try{j=await r.json()}catch(e){}
       if(!r.ok||j.ok===false)return null;
