@@ -77,7 +77,11 @@ function ensureIdentityUi(){
         const r=await request('/access/recover-license',{licenseKey:key,deviceId:device()},10000);
         const j=await r.json();
         if(!r.ok||j.ok===false)throw Error(j.error||'Key não encontrada ou inválida.');
-        save(j);msg('Key validada.',true);unlock();
+        save(j);msg('Key validada. Abrindo aplicativo...',true);unlock();
+        // Recarrega com a credencial validada para que o shell e os módulos de licença
+        // iniciem no mesmo estado. Evita permanecer na tela de KEY após a ativação.
+        const next=new URL(location.href);next.searchParams.delete('acesso');next.searchParams.set('entrada','key');
+        location.replace(next.pathname+next.search+next.hash);
       }catch(e){msg(String(e.message||'Não foi possível validar a key.'),false)}
       finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
     };
@@ -100,8 +104,13 @@ async function identify(){
     btn.disabled=false;btn.textContent='TENTAR NOVAMENTE';return false
   }finally{identifying=false}
 }
+function prepareIdentityFallback(){
+  const btn=ensureIdentityUi();if(!btn)return;
+  btn.onclick=function(e){e.preventDefault();e.stopPropagation();identify()};
+  msg('Acesso salvo inválido. Digite sua key manualmente ou tente novamente.',false);
+}
 function prepare(){
-  if(saved()){restore();return}
+  if(saved()){restore().then(ok=>{if(!ok&&generalMode)prepareIdentityFallback()});return}
   if(!generalMode)return;
   const btn=ensureIdentityUi();if(!btn)return;
   btn.onclick=function(e){e.preventDefault();e.stopPropagation();identify()};
