@@ -49,7 +49,7 @@ async function restore(){
   if(!saved())return false;
   unlock();
   try{
-    const r=await request('/access/session',{credential:saved(),deviceId:device()},8000);let j={};try{j=await r.json()}catch(e){}
+    const r=await request('/access/session',{credential:saved(),deviceId:device()},25000);let j={};try{j=await r.json()}catch(e){}
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));return true}
     if([401,403,404,410].includes(r.status)){localStorage.removeItem(ACCESS_KEY);sessionStorage.removeItem(TOKEN_KEY);gate();return false}
     return true
@@ -83,7 +83,7 @@ function ensureIdentityUi(){
         // iniciem no mesmo estado. Evita permanecer na tela de KEY após a ativação.
         const next=new URL(location.href);next.searchParams.delete('acesso');next.searchParams.set('entrada','key');
         location.replace(next.pathname+next.search+next.hash);
-      }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças não respondeu em 8 segundos. Confira a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
+      }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças demorou mais de 25 segundos. Verifique a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
       finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
     };
   }
