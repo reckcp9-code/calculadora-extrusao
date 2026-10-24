@@ -1,6 +1,6 @@
 {
-  "version": "1.0.432",
-  "title": "DF EXTRUSOR PRO — Acesso iPhone",
-  "message": "Corrige opção cache não suportada nas rotinas de licença, recuperação e carregamento do app.",
+  "version": "1.0.433",
+  "title": "DF EXTRUSOR PRO — Correção de licença",
+  "message": "Remove RequestInit cache incompatível do app-bundle e app-shell, força atualização de shell e bundle.",
   "updatedAt": "2026-10-24"
 }
