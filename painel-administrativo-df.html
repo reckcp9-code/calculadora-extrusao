@@ -121,17 +121,37 @@
 
   async function toggleAccess(it,action,targetMsg,btn){
     if(!it||!it.id)return;
-    const pausing=action==='pause';
+    const pausing=action==='pause',wanted=pausing?'paused':'used';
     const nome=it.identity||'este acesso';
     const question=pausing
-      ?'Pausar o acesso de '+nome+'?\n\nO aparelho será bloqueado imediatamente. A key continuará reservada para o mesmo usuário.'
-      :'Reativar o acesso de '+nome+'?\n\nO Worker vai confirmar a key no LicenseAuth antes de liberar.';
+      ?'Pausar o acesso de '+nome+'?\\n\\nO aparelho será bloqueado e a key continuará vinculada ao usuário.'
+      :'Reativar o acesso de '+nome+'?\\n\\nO painel verificará o resultado no servidor.';
     if(!confirm(question))return;
     if(btn){btn.disabled=true;btn.textContent=pausing?'PAUSANDO...':'REATIVANDO...'}
-    try{
-      const j=await post('/admin/access/'+action,{keyId:it.id});
-      await reloadAll(targetMsg,j.message||(pausing?'Acesso pausado.':'Acesso reativado.'));
-    }catch(e){if(targetMsg){$(targetMsg).textContent=e.message;$(targetMsg).className='status bad'}if(btn){btn.disabled=false;btn.textContent=pausing?'PAUSAR':'REATIVAR'}}
+    const label=pausing?'PAUSAR':'REATIVAR';
+    let requestError=null;
+    try{await post('/admin/access/'+action,{keyId:it.id})}
+    catch(e){requestError=e}
+    // A operação pode ter sido aplicada mesmo quando a resposta falhou.
+    // Verificar o estado real antes de anunciar sucesso ou permitir nova tentativa.
+    let confirmed=false,checkError=null;
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const result=await post('/admin/access/list-used',{});
+        const current=(Array.isArray(result.items)?result.items:[]).find(x=>Number(x.id)===Number(it.id));
+        if(current&&String(current.status)===wanted){confirmed=true;break}
+        if(current&&String(current.status)!==(pausing?'used':'paused'))break;
+      }catch(e){checkError=e}
+      if(attempt<2)await new Promise(resolve=>setTimeout(resolve,900));
+    }
+    try{await reloadAll(targetMsg,confirmed?(pausing?'Acesso pausado e confirmado.':'Acesso reativado e confirmado.'):'Estado não confirmado.')}catch(e){checkError=e}
+    if(targetMsg){
+      $(targetMsg).textContent=confirmed
+        ?(pausing?'Acesso pausado e confirmado no servidor.':'Acesso reativado e confirmado no servidor.')
+        :(requestError?'Falha na operação: '+requestError.message:'Não foi possível confirmar a mudança no servidor.')+(checkError?' Verificação: '+checkError.message:'');
+      $(targetMsg).className='status '+(confirmed?'ok':'bad');
+    }
+    if(btn&&btn.isConnected){btn.disabled=false;btn.textContent=label}
   }
 
   function updateStockSelection(){
