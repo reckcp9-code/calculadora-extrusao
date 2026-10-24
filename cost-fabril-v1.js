@@ -27,8 +27,8 @@
   const kgMoney=v=>(Number.isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2,maximumFractionDigits:4})+'/kg';
   const pct=v=>(Number.isFinite(v)?v:0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
 
-  const GROUP_KEYS=new Set(['aluguel','energia','folha','producao','aparaKg','embalagem','depBase','manValor']);
-  const DECIMAL_KEYS=new Set(['reprocKg','formula','depPct','manPct']);
+  const GROUP_KEYS=new Set(['aluguel','energia','folha','producao','aparaKg','embalagem','depBase','manValor','roscaValor','reservaValor']);
+  const DECIMAL_KEYS=new Set(['reprocKg','formula','depPct','manPct','roscaMeses']);
 
   function groupDigits(digits){
     digits=String(digits||'').replace(/^0+(?=\d)/,'');
@@ -169,7 +169,7 @@
       </div>
 
       <div class="cfField full">
-        <label>8. Depreciação das máquinas</label>
+        <label>8. Depreciação das máquinas</label><div class="cfHelp">Depreciação é o custo contábil do equipamento ao longo de sua vida útil, mesmo se continuar produzindo normalmente. Exemplo linear: 10% ao ano = 0,8333% ao mês. Máquina totalmente depreciada não precisa continuar depreciando.</div>
         <select data-cf="depIncluir" id="cfDepIncluir">
           <option value="nao">Não incluir depreciação</option>
           <option value="sim">Sim, incluir depreciação</option>
@@ -187,7 +187,7 @@
       </div>
 
       <div class="cfField full">
-        <label>9. Manutenção fabril</label>
+        <label>9. Manutenção fabril</label><div class="cfHelp">Conservação e reparos mensais. Não inclua aqui uma rosca que já será contabilizada abaixo.</div>
         <select data-cf="manModo" id="cfManModo">
           <option value="valor">Valor mensal — R$</option>
           <option value="percentual">Percentual — %</option>
@@ -207,6 +207,18 @@
         </div>
       </div>
 
+      <div class="cfField full">
+        <label>10. Reposição de rosca</label>
+        <div class="cfHelp">Custo da rosca dividido pelos meses de vida útil. Exemplo: R$ 8 mil a R$ 30 mil, com troca anual quando aplicável. Não é a mesma coisa que depreciação da máquina.</div>
+        <div class="cfPair"><div><label>Valor da rosca — R$</label><input data-cf="roscaValor" inputmode="decimal" placeholder="Ex.: 20.000"></div><div><label>Vida útil — meses</label><input data-cf="roscaMeses" inputmode="decimal" placeholder="Ex.: 12"></div></div>
+        <div class="cfMiniResult"><div><span>Custo mensal equivalente</span><b id="cfRoscaMes">R$ 0,00</b></div><div><span>Rosca por kg produzido</span><b id="cfRoscaKg">R$ 0,00/kg</b></div></div>
+      </div>
+      <div class="cfField full">
+        <label>11. Reserva para máquina nova (opcional)</label>
+        <div class="cfHelp">Valor que você decide guardar para renovar o equipamento. Não é depreciação nem despesa contábil; aparece separado e não aumenta o custo fabril.</div>
+        <input data-cf="reservaValor" inputmode="decimal" placeholder="Reserva mensal — Ex.: 1.250">
+        <div class="cfMiniResult"><div><span>Reserva por kg (informativo)</span><b id="cfReservaKg">R$ 0,00/kg</b></div></div>
+      </div>
       <div class="cfMainResult">
         <span>CUSTO FINAL DO PRODUTO</span>
         <b id="cfCustoFinal">R$ 0,00/kg</b>
@@ -219,11 +231,11 @@
         <div class="cfRow"><span>Folha salarial por kg</span><b id="cfFolhaKg">R$ 0,00/kg</b></div>
         <div class="cfRow"><span>Reprocesso da apara por kg</span><b id="cfReprocessoKg">R$ 0,00/kg</b></div>
         <div class="cfRow"><span>Embalagem personalizada por kg</span><b id="cfEmbalagemKg">R$ 0,00/kg</b></div>
-        <div class="cfRow"><span>Manutenção por kg</span><b id="cfManutencaoKg">R$ 0,00/kg</b></div>
+        <div class="cfRow"><span>Rosca por kg</span><b id="cfRoscaResumoKg">R$ 0,00/kg</b></div><div class="cfRow"><span>Manutenção por kg</span><b id="cfManutencaoKg">R$ 0,00/kg</b></div>
         <div class="cfRow" id="cfDepRow"><span>Depreciação por kg</span><b id="cfDepreciacaoKg">R$ 0,00/kg</b></div>
         <div class="cfRow strong"><span>Custo industrial por kg</span><b id="cfIndustrialKg">R$ 0,00/kg</b></div>
         <div class="cfRow"><span>Preço da formulação por kg</span><b id="cfFormulaKg">R$ 0,00/kg</b></div>
-        <div class="cfRow strong"><span>Total dos custos mensais</span><b id="cfTotalMensal">R$ 0,00</b></div>
+        <div class="cfRow"><span>Reserva para máquina nova (fora do custo)</span><b id="cfReservaResumo">R$ 0,00/mês</b></div><div class="cfRow strong"><span>Total dos custos mensais</span><b id="cfTotalMensal">R$ 0,00</b></div>
       </div>
 
       <div class="cfReportWrap">
@@ -341,7 +353,11 @@
     const manMes=manMode==='percentual'?baseMan*val('manPct')/100:val('manValor');
     const manKg=prod>0?manMes/prod:0;
 
-    const industrialMes=baseMan+manMes;
+    const roscaMes=val('roscaMeses')>0?val('roscaValor')/val('roscaMeses'):0;
+    const roscaKg=prod>0?roscaMes/prod:0;
+    const reservaMes=val('reservaValor');
+    const reservaKg=prod>0?reservaMes/prod:0;
+    const industrialMes=baseMan+manMes+roscaMes;
     const industrialKg=prod>0?industrialMes/prod:0;
     const formulaMes=prod*formula;
     const totalMensal=industrialMes+formulaMes;
@@ -352,6 +368,11 @@
     setText('cfReprocKgProd',kgMoney(reprocKg));
     setText('cfDepMes',money(depMes));
     setText('cfDepKg',kgMoney(depKg));
+    setText('cfRoscaMes',money(roscaMes));
+    setText('cfRoscaKg',kgMoney(roscaKg));
+    setText('cfRoscaResumoKg',kgMoney(roscaKg));
+    setText('cfReservaKg',kgMoney(reservaKg));
+    setText('cfReservaResumo',money(reservaMes)+'/mês');
     setText('cfManMes',money(manMes));
     setText('cfManKg',kgMoney(manKg));
     setText('cfManBaseTexto','Base: aluguel + energia + folha + reprocesso + embalagem'+(depOn?' + depreciação':'')+' = '+money(baseMan)+'.');
@@ -397,12 +418,16 @@
     const manPct=manMode==='percentual'?val('manPct'):0;
     const manMes=manMode==='percentual'?baseMan*manPct/100:val('manValor');
     const manKg=prod>0?manMes/prod:0;
-    const industrialMes=baseMan+manMes;
+    const roscaMes=val('roscaMeses')>0?val('roscaValor')/val('roscaMeses'):0;
+    const roscaKg=prod>0?roscaMes/prod:0;
+    const reservaMes=val('reservaValor');
+    const reservaKg=prod>0?reservaMes/prod:0;
+    const industrialMes=baseMan+manMes+roscaMes;
     const industrialKg=prod>0?industrialMes/prod:0;
     const formulaMes=prod*formula;
     const totalMensal=industrialMes+formulaMes;
     const finalKg=industrialKg+formula;
-    return {prod,aluguel,energia,folha,apara,reprocUnit,formula,embalagem,depOn,depBase,depPct,depMes,depKg,aparaPct,reprocMes,reprocKg,aluguelKg,energiaKg,folhaKg,embalagemKg,baseMan,manMode,manPct,manMes,manKg,industrialMes,industrialKg,formulaMes,totalMensal,finalKg};
+    return {prod,aluguel,energia,folha,apara,reprocUnit,formula,embalagem,depOn,depBase,depPct,depMes,depKg,aparaPct,reprocMes,reprocKg,aluguelKg,energiaKg,folhaKg,embalagemKg,baseMan,manMode,manPct,manMes,manKg,roscaMes,roscaKg,reservaMes,reservaKg,industrialMes,industrialKg,formulaMes,totalMensal,finalKg};
   }
 
   function reportNumber(v,dec){
@@ -519,6 +544,7 @@
     y=row('Reprocesso da apara',money(d.reprocMes),kgMoney(d.reprocKg),y,false);
     y=row('Embalagem personalizada',money(d.embalagem),kgMoney(d.embalagemKg),y,false);
     y=row('Manutenção fabril',money(d.manMes),kgMoney(d.manKg),y,false);
+    y=row('Reposição de rosca',money(d.roscaMes),kgMoney(d.roscaKg),y,false);
     if(d.depOn)y=row('Depreciação das máquinas',money(d.depMes),kgMoney(d.depKg),y,false);
     y=row('Custo industrial',money(d.industrialMes),kgMoney(d.industrialKg),y,true);
     y=row('Formulação',money(d.formulaMes),kgMoney(d.formula),y,false);
