@@ -87,9 +87,7 @@
       const r=await nativeFetch(API+'/access/install-handoff/claim',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':dev},
-        body:JSON.stringify({token:installToken,deviceId:dev,platformKey:platformKey()}),
-        cache:'no-store'
-      });
+        body:JSON.stringify({token:installToken,deviceId:dev,platformKey:platformKey()})});
       let j={};try{j=await r.json()}catch(e){}
       if(!r.ok||j.ok===false)return false;
 
@@ -124,9 +122,7 @@
       const r=await nativeFetch(API+'/access/install-handoff/create',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':dev},
-        body:JSON.stringify({credential:cred,deviceId:dev,platformKey:platformKey()}),
-        cache:'no-store'
-      });
+        body:JSON.stringify({credential:cred,deviceId:dev,platformKey:platformKey()})});
       let j={};try{j=await r.json()}catch(e){}
       if(!r.ok||j.ok===false)return;
       const token=String(j.installToken||'').trim();
