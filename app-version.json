@@ -1,6 +1,6 @@
 {
-  "version": "1.0.418",
-  "title": "DF EXTRUSOR PRO — ordem das formulações",
-  "message": "Ordena as formulações salvas pela data sincronizada, com a mais recente primeiro, inclusive quando a lista estiver aberta.",
+  "version": "1.0.419",
+  "title": "DF EXTRUSOR PRO — key manual",
+  "message": "Adiciona opção de digitar e validar uma licença manualmente na tela de acesso.",
   "updatedAt": "2026-10-23"
 }
