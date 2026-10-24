@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v482-pdf-fabril';
+const DF_CACHE='df-extrusor-shell-v483-fast-start';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
