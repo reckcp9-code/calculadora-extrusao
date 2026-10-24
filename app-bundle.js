@@ -116,8 +116,7 @@
       const r=await nativeFetch(API+'/access/install-handoff/create',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':deviceId()},
-        body:JSON.stringify({credential,deviceId:deviceId(),platformKey:platformKey()}),
-        cache:'no-store'
+        body:JSON.stringify({credential,deviceId:deviceId(),platformKey:platformKey()})
       });
       let j={};try{j=await r.json()}catch(e){}
       if(!r.ok||j.ok===false)throw new Error(j.error||'Não foi possível preparar a instalação.');
@@ -212,7 +211,7 @@
   async function renewAccess(){
     const credential=savedCredential();if(!credential||isOffline())return '';
     if(renewPromise)return renewPromise;
-    renewPromise=(async()=>{try{const dev=deviceId();const r=await previousFetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false){if(r.status===401||r.status===403||r.status===404||r.status===410){try{localStorage.removeItem(ACCESS_KEY)}catch(e){}try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}}return ''}const t=String(j.token||'').trim();if(t)sessionStorage.setItem(TOKEN_KEY,t);return t}catch(e){return ''}finally{renewPromise=null}})();
+    renewPromise=(async()=>{try{const dev=deviceId();const r=await previousFetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev})});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false){if(r.status===401||r.status===403||r.status===404||r.status===410){try{localStorage.removeItem(ACCESS_KEY)}catch(e){}try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}}return ''}const t=String(j.token||'').trim();if(t)sessionStorage.setItem(TOKEN_KEY,t);return t}catch(e){return ''}finally{renewPromise=null}})();
     return renewPromise;
   }
 
@@ -226,13 +225,13 @@
     if(isOffline()){showOfflineGate();return false}
     if(!linkToken||generalMode)return false;
     const btn=document.getElementById('licenseBtn');if(btn){btn.disabled=true;btn.textContent='LIBERANDO ACESSO...'}setMessage('Preparando seu acesso automático...',false);
-    try{const dev=deviceId();const r=await previousFetch(API+'/access/redeem',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({token:linkToken,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||'Não foi possível liberar este acesso.');saveAccess(j);cleanAccessParam();setMessage('Acesso liberado. Entrando...',true);if(btn){btn.textContent='ACESSO LIBERADO';btn.disabled=false}unlock();return true}catch(e){setMessage(String(e&&e.message||e),false);if(btn){btn.disabled=false;btn.textContent='ACESSAR'}return false}
+    try{const dev=deviceId();const r=await previousFetch(API+'/access/redeem',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({token:linkToken,deviceId:dev})});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||'Não foi possível liberar este acesso.');saveAccess(j);cleanAccessParam();setMessage('Acesso liberado. Entrando...',true);if(btn){btn.textContent='ACESSO LIBERADO';btn.disabled=false}unlock();return true}catch(e){setMessage(String(e&&e.message||e),false);if(btn){btn.disabled=false;btn.textContent='ACESSAR'}return false}
   }
 
   async function redeemIdentity(){
     if(isOffline()){showOfflineGate();return false}
     const input=document.getElementById('dfAccessIdentity');const identity=String(input&&input.value||'').trim();const btn=document.getElementById('licenseBtn');if(!identity){setMessage('Digite sua identificação.',false);if(input)input.focus();return false}if(btn){btn.disabled=true;btn.textContent='LIBERANDO ACESSO...'}setMessage('Verificando sua identificação...',false);
-    try{const dev=deviceId();const r=await previousFetch(API+'/access/identify',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({identity,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('Falha no acesso ('+r.status+').'));saveAccess(j);cleanAccessParam();setMessage(j.reused?'Acesso reconhecido. Entrando...':'Acesso criado. Entrando...',true);if(btn){btn.textContent='ACESSO LIBERADO';btn.disabled=false}unlock();return true}catch(e){setMessage(String(e&&e.message||e),false);if(btn){btn.disabled=false;btn.textContent='ACESSAR'}return false}
+    try{const dev=deviceId();const r=await previousFetch(API+'/access/identify',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({identity,deviceId:dev})});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('Falha no acesso ('+r.status+').'));saveAccess(j);cleanAccessParam();setMessage(j.reused?'Acesso reconhecido. Entrando...':'Acesso criado. Entrando...',true);if(btn){btn.textContent='ACESSO LIBERADO';btn.disabled=false}unlock();return true}catch(e){setMessage(String(e&&e.message||e),false);if(btn){btn.disabled=false;btn.textContent='ACESSAR'}return false}
   }
 
   function prepareGeneralGate(){
@@ -568,8 +567,7 @@
       return await fetch(API+'/access/presence',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':dev},
-        body:JSON.stringify({credential:cred,deviceId:dev,state:'online',platform:platform()}),
-        cache:'no-store'
+        body:JSON.stringify({credential:cred,deviceId:dev,state:'online',platform:platform()})
       });
     }catch(e){return null}
   }
@@ -729,7 +727,7 @@
   function dfLocked(){if($('licenseGate'))$('licenseGate').style.display='flex';if($('appContent'))$('appContent').style.display='none'}
   function dfUnlocked(){if($('licenseGate'))$('licenseGate').style.display='none';if($('appContent'))$('appContent').style.display='block'}
 
-  async function rawPost(path,body,useToken=true,signal){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),cache:'no-store',signal});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
+  async function rawPost(path,body,useToken=true,signal){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),signal});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
   async function dfLicenseAuthLogin(key,silent=false){const k=String(key||'').trim();if(!k){dfMsg('Digite sua licença.');return false}const btn=$('licenseBtn');if(btn)btn.disabled=true;if(!silent)dfMsg('Verificando licença no LicenseAuth...');try{const j=await rawPost('/auth',{licenseKey:k,deviceId:deviceId()},false);token=j.token||'';if(!token)throw new Error('Servidor não retornou uma sessão válida.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(LICENSE_KEY,k);dfMsg('Licença válida. Acesso liberado.',true);setTimeout(dfUnlocked,120);return true}catch(e){token='';sessionStorage.removeItem(TOKEN_KEY);localStorage.removeItem(LICENSE_KEY);dfLocked();dfMsg(e.message||'Não foi possível validar a licença.');return false}finally{if(btn)btn.disabled=false}}
   async function dfCalc(type,input){if(!window.DFLocalCalculations||typeof window.DFLocalCalculations.calculate!=='function')throw new Error('Motor local de cálculos indisponível.');return window.DFLocalCalculations.calculate(type,input||{})}
   function apiError(e){if(e&&e.name==='AbortError')return;console.error('DF API:',e)}
@@ -2161,7 +2159,7 @@
   async function apiPost(path,body){
     const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};
     const t=token();if(t)headers.Authorization='Bearer '+t;
-    const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body||{}),cache:'no-store'});
+    const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body||{})});
     let j={};try{j=await r.json();}catch(e){}
     if(!r.ok||j.ok===false){
       const err=new Error(j.error||('Erro HTTP '+r.status));err.status=r.status;throw err;
@@ -4240,8 +4238,7 @@
       const r=await fetch(API+'/access/session',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':device},
-        body:JSON.stringify({credential,deviceId:device}),
-        cache:'no-store'
+        body:JSON.stringify({credential,deviceId:device})
       });
       let j={};try{j=await r.json()}catch(e){}
       if(!r.ok||j.ok===false)throw new Error(j.error||'Não foi possível renovar o acesso automático.');
@@ -4320,7 +4317,7 @@
       r=await fetch(API+path,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device},
-        body:JSON.stringify(body||{}),cache:'no-store'
+        body:JSON.stringify(body||{})
       });
     }catch(e){e.network=true;throw e}
     let j={};try{j=await r.json()}catch(e){}
@@ -4503,7 +4500,7 @@
   async function cloud(path,body){
     const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};
     const tk=token();if(tk)headers.Authorization='Bearer '+tk;
-    const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body||{}),cache:'no-store'});
+    const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body||{})});
     let j={};try{j=await r.json()}catch(e){}
     if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
     return j;
