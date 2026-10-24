@@ -1,6 +1,6 @@
 {
-  "version": "1.0.430",
-  "title": "DF EXTRUSOR PRO — Correção de custos",
-  "message": "Corrigido erro de sintaxe DF-APP-756 no custo fabril.",
+  "version": "1.0.431",
+  "title": "DF EXTRUSOR PRO — Licença iPhone",
+  "message": "Remove opção de cache incompatível no fluxo de validação da licença no iPhone.",
   "updatedAt": "2026-10-24"
 }
