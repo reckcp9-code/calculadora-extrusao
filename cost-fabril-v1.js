@@ -361,7 +361,8 @@
     const industrialKg=prod>0?industrialMes/prod:0;
     const formulaMes=prod*formula;
     const totalMensal=industrialMes+formulaMes;
-    const reservaIncluir=String(root?.querySelector('#cfReservaIncluir')?.value||'nao')==='sim';\n    const finalKg=industrialKg+formula+(reservaIncluir?reservaKg:0);
+    const reservaIncluir=String(root?.querySelector('#cfReservaIncluir')?.value||'nao')==='sim';
+    const finalKg=industrialKg+formula+(reservaIncluir?reservaKg:0);
 
     setText('cfAparaPct',pct(aparaPct));
     setText('cfReprocMes',money(reprocMes));
@@ -387,7 +388,8 @@
     setText('cfIndustrialKg',kgMoney(industrialKg));
     setText('cfFormulaKg',kgMoney(formula));
     setText('cfTotalMensal',money(totalMensal));
-    setText('cfCustoFinal',kgMoney(finalKg));\n    setText('cfCustoFinalTitulo',reservaIncluir?'CUSTO + META DE RESERVA POR KG':'CUSTO FINAL DO PRODUTO');
+    setText('cfCustoFinal',kgMoney(finalKg));
+    setText('cfCustoFinalTitulo',reservaIncluir?'CUSTO + META DE RESERVA POR KG':'CUSTO FINAL DO PRODUTO');
   }
 
 
