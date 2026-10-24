@@ -37,7 +37,7 @@ function gate(){const g=document.getElementById('licenseGate'),a=document.getEle
 async function request(path,body,timeout){
   const c='AbortController'in window?new AbortController():null;
   const tm=c?setTimeout(()=>c.abort(),timeout||9000):null;
-  try{return await previousFetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':device()},body:JSON.stringify(body),cache:'no-store',signal:c?c.signal:undefined})}
+  try{return await previousFetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':device()},body:JSON.stringify(body),signal:c?c.signal:undefined})}
   finally{if(tm)clearTimeout(tm)}
 }
 function save(j){const token=String(j&&j.token||'').trim(),credential=String(j&&j.accessCredential||'').trim();if(!token||!credential)throw Error('Resposta de acesso incompleta.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(ACCESS_KEY,credential)}
