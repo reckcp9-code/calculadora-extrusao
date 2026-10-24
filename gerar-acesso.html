@@ -29,7 +29,16 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
 @media(max-width:420px){.wrap{width:94%;padding-top:12px}.card{padding:15px}.adminHero{padding:18px 15px}.counts{grid-template-columns:repeat(2,minmax(0,1fr))}.count{padding:12px 6px}.usedActions{grid-template-columns:repeat(2,minmax(0,1fr))}.adminNav a{font-size:11px}}
 
 </style>
-</head>
+<style id="dfAdminPagesStyle">
+.adminNav{display:none!important}.adminHero{margin-bottom:16px}
+.dfAdminHome{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.dfAdminTile{min-height:112px;text-align:left;padding:17px;border-radius:16px;border:1px solid #365c85;background:linear-gradient(140deg,#183a60,#101e34);color:#eef6ff;cursor:pointer;font:800 15px system-ui}
+.dfAdminTile small{display:block;color:#a8c2dd;font-size:12px;font-weight:500;margin-top:9px}
+.dfAdminBack{background:#123b65;border:1px solid #3b82f6;color:#fff;border-radius:12px;padding:12px 17px;font-weight:800;cursor:pointer;margin-bottom:12px}
+.dfAdminPageTitle{font-size:22px;margin:8px 0 14px}
+.dfAdminHidden{display:none!important}
+@media(max-width:420px){.dfAdminTile{min-height:100px;padding:13px;font-size:13px}}
+</style></head>
 <body>
 <div class="wrap">
 <header class="adminHero"><span class="tag">PAINEL ADMINISTRATIVO</span><h1>DF EXTRUSOR PRO</h1><p>Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.</p><nav class="adminNav" aria-label="Seções do painel"><a href="#equipes">EQUIPES</a><a href="#acessos">ACESSOS</a><a href="#estoque">ESTOQUE</a><a href="#gerenciar">GERENCIAR</a></nav></header>
@@ -306,5 +315,25 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
 <script src="./gerador-renew-expired-v1.js?v=20261009-admin-static-v2"></script>
 <script src="./gerador-bulk-days-v1.js?v=20261009-admin-static-v2"></script>
 <script src="./gerador-owner-recovery-v191.js?v=20261009-admin-static-v2"></script>
-</body>
+<script id="dfAdminPagesScript">
+(function(){
+const pages=[
+['visao','VISÃO GERAL','Resumo e indicadores','resumo'],
+['usuarios','USUÁRIOS','Clientes e acessos','gerenciar'],
+['licencas','LICENÇAS / KEYS','Estoque e novas keys','acessos','adicionar','estoque'],
+['equipes','EQUIPES','Códigos e membros','equipes'],
+['dispositivos','DISPOSITIVOS','Aparelhos vinculados','gerenciar'],
+['configuracoes','CONFIGURAÇÕES','Segurança e administração']
+];
+const wrap=document.querySelector('.wrap'),hero=document.querySelector('.adminHero');if(!wrap||!hero)return;
+const home=document.createElement('div');home.className='dfAdminHome';home.id='dfAdminHome';
+pages.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='dfAdminTile';b.textContent=p[1];const sm=document.createElement('small');sm.textContent=p[2];b.appendChild(sm);b.onclick=()=>show(p[0]);home.appendChild(b)});
+hero.insertAdjacentElement('afterend',home);
+const bar=document.createElement('div');bar.id='dfAdminBar';bar.className='dfAdminHidden';const back=document.createElement('button');back.type='button';back.className='dfAdminBack';back.textContent='← VOLTAR AO PAINEL';back.onclick=()=>show('');const title=document.createElement('h2');title.className='dfAdminPageTitle';bar.append(back,title);home.insertAdjacentElement('afterend',bar);
+const config=document.createElement('div');config.id='dfAdminConfig';config.className='card dfAdminHidden';config.innerHTML='<h2>Configurações administrativas</h2><p class="sub">A senha administrativa e a opção de salvar neste aparelho ficam na Visão Geral. As permissões e os dados do sistema permanecem inalterados.</p>';bar.insertAdjacentElement('afterend',config);
+const sections=['resumo','gerenciar','acessos','adicionar','estoque','equipes'];
+function show(key){const page=pages.find(p=>p[0]===key);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',!page||!page.slice(3).includes(id))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
+show(pages.some(p=>'#'+p[0]===location.hash)?location.hash.slice(1):'');
+})();
+</script></body>
 </html>
