@@ -216,11 +216,11 @@
       <div class="cfField full">
         <label>11. Reserva para máquina nova (opcional)</label>
         <div class="cfHelp">Valor que você decide guardar para renovar o equipamento. Não é depreciação nem despesa contábil; aparece separado e não aumenta o custo fabril.</div>
-        <input data-cf="reservaValor" inputmode="decimal" placeholder="Reserva mensal — Ex.: 1.250">
+        <input data-cf="reservaValor" inputmode="decimal" placeholder="Reserva mensal — Ex.: 1.250"><label style="margin-top:12px">Incluir reserva no preço calculado?</label><select data-cf="reservaIncluir" id="cfReservaIncluir"><option value="nao">Não — mostrar somente como reserva</option><option value="sim">Sim — incluir na meta de preço por kg</option></select><div class="cfHelp">Quando SIM, a reserva aumenta a meta de preço por kg, mas continua fora do custo contábil industrial.</div>
         <div class="cfMiniResult"><div><span>Reserva por kg (informativo)</span><b id="cfReservaKg">R$ 0,00/kg</b></div></div>
       </div>
       <div class="cfMainResult">
-        <span>CUSTO FINAL DO PRODUTO</span>
+        <span id="cfCustoFinalTitulo">CUSTO FINAL DO PRODUTO</span>
         <b id="cfCustoFinal">R$ 0,00/kg</b>
       </div>
 
@@ -361,7 +361,7 @@
     const industrialKg=prod>0?industrialMes/prod:0;
     const formulaMes=prod*formula;
     const totalMensal=industrialMes+formulaMes;
-    const finalKg=industrialKg+formula;
+    const reservaIncluir=String(root?.querySelector('#cfReservaIncluir')?.value||'nao')==='sim';\n    const finalKg=industrialKg+formula+(reservaIncluir?reservaKg:0);
 
     setText('cfAparaPct',pct(aparaPct));
     setText('cfReprocMes',money(reprocMes));
@@ -387,7 +387,7 @@
     setText('cfIndustrialKg',kgMoney(industrialKg));
     setText('cfFormulaKg',kgMoney(formula));
     setText('cfTotalMensal',money(totalMensal));
-    setText('cfCustoFinal',kgMoney(finalKg));
+    setText('cfCustoFinal',kgMoney(finalKg));\n    setText('cfCustoFinalTitulo',reservaIncluir?'CUSTO + META DE RESERVA POR KG':'CUSTO FINAL DO PRODUTO');
   }
 
 
@@ -427,7 +427,7 @@
     const formulaMes=prod*formula;
     const totalMensal=industrialMes+formulaMes;
     const finalKg=industrialKg+formula;
-    return {prod,aluguel,energia,folha,apara,reprocUnit,formula,embalagem,depOn,depBase,depPct,depMes,depKg,aparaPct,reprocMes,reprocKg,aluguelKg,energiaKg,folhaKg,embalagemKg,baseMan,manMode,manPct,manMes,manKg,roscaMes,roscaKg,reservaMes,reservaKg,industrialMes,industrialKg,formulaMes,totalMensal,finalKg};
+    return {prod,aluguel,energia,folha,apara,reprocUnit,formula,embalagem,depOn,depBase,depPct,depMes,depKg,aparaPct,reprocMes,reprocKg,aluguelKg,energiaKg,folhaKg,embalagemKg,baseMan,manMode,manPct,manMes,manKg,roscaMes,roscaKg,reservaMes,reservaKg,reservaIncluir,industrialMes,industrialKg,formulaMes,totalMensal,finalKg};
   }
 
   function reportNumber(v,dec){
@@ -548,6 +548,7 @@
     if(d.depOn)y=row('Depreciação das máquinas',money(d.depMes),kgMoney(d.depKg),y,false);
     y=row('Custo industrial',money(d.industrialMes),kgMoney(d.industrialKg),y,true);
     y=row('Formulação',money(d.formulaMes),kgMoney(d.formula),y,false);
+    if(d.reservaIncluir)y=row('Reserva (meta de preço)',money(d.reservaMes),kgMoney(d.reservaKg),y,false);
     y=row('TOTAL DOS CUSTOS MENSAIS',money(d.totalMensal),kgMoney(d.finalKg),y,true);
 
     y+=26;
