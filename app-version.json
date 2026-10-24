@@ -1,6 +1,6 @@
 {
-  "version": "1.0.427",
-  "title": "DF EXTRUSOR PRO — Produtos em maiúsculas",
-  "message": "No relatório mensal, todos os nomes dos produtos são exibidos em LETRAS MAIÚSCULAS, sem modificar os cadastros originais.",
+  "version": "1.0.428",
+  "title": "DF EXTRUSOR PRO — Custo fabril",
+  "message": "Inclui custo de reposição de rosca por mês e por kg, explica depreciação e separa reserva para máquina nova do custo fabril.",
   "updatedAt": "2026-10-24"
 }
