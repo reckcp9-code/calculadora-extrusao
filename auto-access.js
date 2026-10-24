@@ -153,7 +153,10 @@ function dfAccessLock(reason){
 async function dfAccessRevalidate(){
   if(dfAccessChecking||document.hidden)return;
   const credential=saved();
-  if(!credential){dfAccessLock('Acesso não encontrado. Digite sua KEY para continuar.');return}
+  if(!credential){
+    // Acesso manual sem persistência ou formulário de login: não interferir.
+    return;
+  }
   dfAccessChecking=true;
   try{
     const r=await request('/access/session',{credential,deviceId:device()},12000);
