@@ -63,6 +63,26 @@ function ensureIdentityUi(){
   if(!wrap){wrap=document.createElement('div');wrap.id='dfAccessIdentityWrap';wrap.innerHTML='<input id="dfAccessIdentity" type="text" autocomplete="username" placeholder="Código de acesso" style="display:none;width:100%;box-sizing:border-box;min-height:52px;border:1px solid #475569;background:#111827;color:#fff;border-radius:12px;padding:12px 14px;font:600 16px system-ui;margin:12px 0">';btn.parentNode.insertBefore(wrap,btn)}
   const input=document.getElementById('dfAccessIdentity');if(input&&!input.value)input.value=automaticIdentity();
   btn.disabled=false;btn.textContent='ACESSAR';
+  let manual=document.getElementById('dfManualKeyOption');
+  if(!manual){
+    manual=document.createElement('div');manual.id='dfManualKeyOption';
+    manual.innerHTML='<button type="button" id="dfManualKeyToggle" style="width:100%;margin:12px 0;padding:14px;border:1px solid #e5a500;border-radius:12px;background:#251800;color:#ffd56c;font-weight:800">🔑 DIGITAR KEY MANUALMENTE</button><div id="dfManualKeyForm" style="display:none"><input id="dfManualKeyValue" placeholder="Digite sua key" autocomplete="off" style="box-sizing:border-box;width:100%;padding:14px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:12px"><button type="button" id="dfManualKeyConfirm" style="width:100%;margin:10px 0;padding:14px;background:#064e3b;color:#a7f3d0;border:1px solid #16a34a;border-radius:12px;font-weight:800">VALIDAR KEY</button></div>';
+    btn.insertAdjacentElement('afterend',manual);
+    manual.querySelector('#dfManualKeyToggle').onclick=()=>{const form=manual.querySelector('#dfManualKeyForm');form.style.display=form.style.display==='none'?'block':'none'};
+    manual.querySelector('#dfManualKeyConfirm').onclick=async()=>{
+      const key=manual.querySelector('#dfManualKeyValue').value.trim();
+      if(!key){msg('Digite sua key.',false);return}
+      const submit=manual.querySelector('#dfManualKeyConfirm');submit.disabled=true;submit.textContent='VALIDANDO...';
+      try{
+        const r=await request('/access/recover-license',{licenseKey:key,deviceId:device()},10000);
+        const j=await r.json();
+        if(!r.ok||j.ok===false)throw Error(j.error||'Key não encontrada ou inválida.');
+        save(j);msg('Key validada.',true);unlock();
+      }catch(e){msg(String(e.message||'Não foi possível validar a key.'),false)}
+      finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
+    };
+  }
+
   return btn;
 }
 async function identify(){
