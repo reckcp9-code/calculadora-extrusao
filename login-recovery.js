@@ -38,9 +38,7 @@
       const r=await fetch(API+'/auth',{
         method:'POST',
         headers:{'Content-Type':'application/json','X-DF-Device':deviceId()},
-        body:JSON.stringify({licenseKey:k,deviceId:deviceId()}),
-        cache:'no-store'
-      });
+        body:JSON.stringify({licenseKey:k,deviceId:deviceId()})});
       let j={};try{j=await r.json()}catch(_){}
       if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
       if(!j.token)throw new Error('Servidor não retornou uma sessão válida.');
