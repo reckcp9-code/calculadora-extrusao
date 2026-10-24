@@ -287,6 +287,33 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     try{const j=await post('/admin/access/list-used',{});usedItems=Array.isArray(j.items)?j.items:[];$('usedMsg').textContent=usedItems.length+' acesso(s) ativo(s) ou pausado(s).';$('usedMsg').className='status ok';renderUsed()}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad'}finally{btn.disabled=false}
   }
 
+  // Sincronização visual periódica: o servidor continua sendo a fonte da verdade.
+  let dfStockSyncBusy=false;
+  async function dfSyncStock(){
+    if(dfStockSyncBusy||document.hidden||!String($('secret')?.value||'').trim())return;
+    dfStockSyncBusy=true;
+    try{
+      const [stock,statusData]=await Promise.all([
+        post('/admin/access/list-stock',{}),
+        post('/admin/access/status',{})
+      ]);
+      if(Array.isArray(stock.items)){
+        const previous=JSON.stringify(stockItems.map(x=>[x.id,x.status]));
+        const next=JSON.stringify(stock.items.map(x=>[x.id,x.status]));
+        stockItems=stock.items;
+        if(previous!==next){selectedStock.clear();renderStock()}
+        $('stockMsg').textContent=stockItems.length+' key(s) no estoque • sincronizado.';
+      }
+      $('free').textContent=statusData.free??0;
+      $('reserved').textContent=statusData.reserved??0;
+      $('used').textContent=statusData.used??0;
+      $('paused').textContent=statusData.paused??0;
+      $('revoked').textContent=statusData.revoked??0;
+    }catch(e){/* manter dados anteriores e permitir atualização manual */}
+    finally{dfStockSyncBusy=false}
+  }
+  setInterval(dfSyncStock,15000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)dfSyncStock()});
   try{
     const savedSecret=String(localStorage.getItem(ADMIN_SECRET_KEY)||'').trim();
     if(savedSecret){$('secret').value=savedSecret;$('rememberSecret').checked=true}
