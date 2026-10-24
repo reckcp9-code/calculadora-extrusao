@@ -1,6 +1,6 @@
 {
-  "version": "1.0.421",
-  "title": "DF EXTRUSOR PRO — acesso por key",
-  "message": "Corrige a entrada no aplicativo após validar a key manual e recupera a tela quando a credencial salva está inválida.",
+  "version": "1.0.422",
+  "title": "DF EXTRUSOR PRO — validação da KEY",
+  "message": "Evita espera indefinida na validação manual da KEY e apresenta erros do servidor com opção de nova tentativa.",
   "updatedAt": "2026-10-23"
 }
