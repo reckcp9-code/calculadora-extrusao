@@ -1,6 +1,6 @@
 {
-  "version": "1.0.429",
-  "title": "DF EXTRUSOR PRO — Custo e reserva",
-  "message": "Adiciona opção de incluir a reserva de renovação na meta de preço por kg, com recálculo imediato e custo contábil separado.",
+  "version": "1.0.430",
+  "title": "DF EXTRUSOR PRO — Correção de custos",
+  "message": "Corrigido erro de sintaxe DF-APP-756 no custo fabril.",
   "updatedAt": "2026-10-24"
 }
