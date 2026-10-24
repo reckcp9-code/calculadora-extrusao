@@ -74,15 +74,16 @@ function ensureIdentityUi(){
       if(!key){msg('Digite sua key.',false);return}
       const submit=manual.querySelector('#dfManualKeyConfirm');submit.disabled=true;submit.textContent='VALIDANDO...';
       try{
-        const r=await request('/access/recover-license',{licenseKey:key,deviceId:device()},10000);
-        const j=await r.json();
-        if(!r.ok||j.ok===false)throw Error(j.error||'Key não encontrada ou inválida.');
+        msg('Consultando a licença no servidor...',true);
+        const r=await request('/access/recover-license',{licenseKey:key,deviceId:device()},8000);
+        let j={};try{j=await r.json()}catch(e){throw Error('Servidor retornou uma resposta inválida ('+r.status+').')}
+        if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
         save(j);msg('Key validada. Abrindo aplicativo...',true);unlock();
         // Recarrega com a credencial validada para que o shell e os módulos de licença
         // iniciem no mesmo estado. Evita permanecer na tela de KEY após a ativação.
         const next=new URL(location.href);next.searchParams.delete('acesso');next.searchParams.set('entrada','key');
         location.replace(next.pathname+next.search+next.hash);
-      }catch(e){msg(String(e.message||'Não foi possível validar a key.'),false)}
+      }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças não respondeu em 8 segundos. Confira a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
       finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
     };
   }
