@@ -35,9 +35,33 @@ document.addEventListener('click',function(e){
   const n=clean($('dfTeamJoinName')?.value||'');if(!n){e.preventDefault();e.stopImmediatePropagation();alert('Digite o nome do operador antes de entrar na equipe.');$('dfTeamJoinName')?.focus();return}setSavedName(n);
 },true);
 
-async function post(path,body){
-  const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j;
+const TOKEN_KEY='df_secure_token_v2',DEVICE_KEY='df_licenseauth_device_v1',ACCESS_KEY='df_auto_access_credential_v1';
+function deviceId(){try{if(window.DFDeviceIdentity&&typeof window.DFDeviceIdentity.get==='function'){const d=String(window.DFDeviceIdentity.get()||'').trim();if(d)return d}}catch(e){}return String(localStorage.getItem(DEVICE_KEY)||'').trim()}
+async function renewToken(force){
+  let token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim();
+  if(token&&!force)return token;
+  const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();
+  if(!credential||!dev)throw new Error('Sessão não encontrada. Reabra o aplicativo com seu acesso atual.');
+  const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||j.ok===false||!j.token)throw new Error(j.error||'Não foi possível renovar a sessão.');
+  token=String(j.token);sessionStorage.setItem(TOKEN_KEY,token);return token;
 }
+async function post(path,body,retry=true){
+  const token=await renewToken(false),dev=deviceId();
+  const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body||{}),cache:'no-store'});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401&&retry){await renewToken(true);return post(path,body,false)}
+  if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+function showMembersError(error){
+  const box=$('dfOpTeamCloud');if(!box)return;
+  let el=$('dfTeamMembersSyncError');
+  if(!el){el=document.createElement('div');el.id='dfTeamMembersSyncError';el.style.cssText='margin-top:8px;padding:9px;border:1px solid #f59e0b;border-radius:9px;background:#241600;color:#fde68a;font-size:11px;font-weight:700';box.appendChild(el)}
+  el.textContent='⚠️ Equipe aguardando sincronização: '+String(error&&error.message||error||'Falha de conexão');
+}
+
 async function saveMyName(){
   const t=loadTeam(),input=$('dfMyMemberName'),name=clean(input&&input.value);if(!t||!t.teamId||!name){alert('Digite o nome do operador.');return}
   const b=$('dfSaveMemberName');if(b){b.disabled=true;b.textContent='SALVANDO...'}
@@ -59,7 +83,7 @@ function renderMembers(members){
 }
 async function refreshMembers(force){
   const t=loadTeam();if(!t||!t.teamId||membersBusy)return;if(!force&&Date.now()-lastMembersAt<4000)return;membersBusy=true;
-  try{const j=await post('/op/team/members',{teamId:t.teamId});lastMembersAt=Date.now();renderMembers(j.members||[])}catch(e){}finally{membersBusy=false}
+  try{const j=await post('/op/team/members',{teamId:t.teamId});lastMembersAt=Date.now();$('dfTeamMembersSyncError')?.remove();renderMembers(j.members||[])}catch(e){showMembersError(e)}finally{membersBusy=false}
 }
 function render(force){addStyle();mountJoinName();renderEditor();const t=loadTeam();if(t&&t.teamId)refreshMembers(!!force);else{$('dfTeamMembersNames')?.remove();$('dfMemberNameEditor')?.remove()}}
 function schedule(delay,force){clearTimeout(tm);tm=setTimeout(()=>render(!!force),delay==null?120:delay)}
