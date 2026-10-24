@@ -47,13 +47,13 @@ function makeCode(id){let h=2166136261;const s=String(id||'DF');for(let i=0;i<s.
 function automaticIdentity(){let code=readCookie(USER_COOKIE);try{if(!code)code=String(localStorage.getItem(USER_KEY)||'').trim()}catch(e){}if(!/^DF-[A-Z0-9]{2}-[A-Z0-9]{2}$/.test(code))code=makeCode(device());try{localStorage.setItem(USER_KEY,code)}catch(e){}writeCookie(USER_COOKIE,code);window.DF_AUTO_USER=code;return code}
 async function restore(){
   if(!saved())return false;
-  unlock();
+  gate();
   try{
     const r=await request('/access/session',{credential:saved(),deviceId:device()},25000);let j={};try{j=await r.json()}catch(e){}
-    if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));return true}
+    if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
     if([401,403,404,410].includes(r.status)){localStorage.removeItem(ACCESS_KEY);sessionStorage.removeItem(TOKEN_KEY);gate();return false}
-    return true
-  }catch(e){return true}
+    gate();return false
+  }catch(e){gate();return false}
 }
 function ensureIdentityUi(){
   gate();
@@ -75,7 +75,7 @@ function ensureIdentityUi(){
       const submit=manual.querySelector('#dfManualKeyConfirm');submit.disabled=true;submit.textContent='VALIDANDO...';
       try{
         msg('Consultando a licença no servidor...',true);
-        const r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},8000);
+        const r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},20000);
         let j={};try{j=await r.json()}catch(e){throw Error('Servidor retornou uma resposta inválida ('+r.status+').')}
         if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
         save(j);msg('Key validada. Abrindo aplicativo...',true);unlock();
@@ -105,19 +105,21 @@ async function identify(){
     btn.disabled=false;btn.textContent='TENTAR NOVAMENTE';return false
   }finally{identifying=false}
 }
-function prepareIdentityFallback(){
+function prepareIdentityFallback(){prepareManual()}
+function prepareManual(){
   const btn=ensureIdentityUi();if(!btn)return;
-  btn.onclick=function(e){e.preventDefault();e.stopPropagation();identify()};
-  msg('Acesso salvo inválido. Digite sua key manualmente ou tente novamente.',false);
+  btn.style.display='none';
+  const option=document.getElementById('dfManualKeyOption');
+  const toggle=document.getElementById('dfManualKeyToggle');
+  const form=document.getElementById('dfManualKeyForm');
+  if(option)option.style.display='block';
+  if(toggle)toggle.style.display='none';
+  if(form)form.style.display='block';
+  msg('Digite a KEY fornecida pelo administrador para acessar.',true);
 }
 function prepare(){
-  if(saved()){restore().then(ok=>{if(!ok&&generalMode)prepareIdentityFallback()});return}
-  if(!generalMode)return;
-  const btn=ensureIdentityUi();if(!btn)return;
-  btn.onclick=function(e){e.preventDefault();e.stopPropagation();identify()};
-  msg('Liberando acesso deste aparelho...',true);
-  try{window.dispatchEvent(new CustomEvent('df-access-gate-ready'))}catch(e){}
-  if(!autoStarted){autoStarted=true;setTimeout(()=>identify(),80)}
+  if(saved()){restore().then(ok=>{if(!ok)prepareManual()});return}
+  prepareManual();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',prepare,{once:true});else prepare();
 })();
