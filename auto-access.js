@@ -75,7 +75,7 @@ function ensureIdentityUi(){
       const submit=manual.querySelector('#dfManualKeyConfirm');submit.disabled=true;submit.textContent='VALIDANDO...';
       try{
         msg('Consultando a licença no servidor...',true);
-        const r=await request('/access/recover-license',{licenseKey:key,deviceId:device()},8000);
+        const r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},8000);
         let j={};try{j=await r.json()}catch(e){throw Error('Servidor retornou uma resposta inválida ('+r.status+').')}
         if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
         save(j);msg('Key validada. Abrindo aplicativo...',true);unlock();
