@@ -38,7 +38,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
 .dfAdminPageTitle{font-size:22px;margin:8px 0 14px}
 .dfAdminHidden{display:none!important}
 @media(max-width:420px){.dfAdminTile{min-height:100px;padding:13px;font-size:13px}}
-</style></head>
+</style><style>.dfDaysBadge,.dfDaysUnknown{display:inline-block;margin:8px 0 3px;padding:7px 10px;border-radius:9px;font-size:12px;font-weight:900}.dfDaysBadge.valid{color:#86efac;background:#052e16;border:1px solid #166534}.dfDaysBadge.soon{color:#fde68a;background:#2b1d00;border:1px solid #a16207}.dfDaysBadge.urgent,.dfDaysBadge.expired{color:#fecaca;background:#3b0a0a;border:1px solid #dc2626}.dfDaysUnknown{color:#cbd5e1;background:#172033;border:1px solid #475569}</style></head>
 <body>
 <div class="wrap">
 <header class="adminHero"><span class="tag">PAINEL ADMINISTRATIVO</span><h1>DF EXTRUSOR PRO</h1><p>Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.</p><nav class="adminNav" aria-label="Seções do painel"><a href="#equipes">EQUIPES</a><a href="#acessos">ACESSOS</a><a href="#estoque">ESTOQUE</a><a href="#gerenciar">GERENCIAR</a></nav></header>
@@ -238,6 +238,19 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     try{const j=await post('/admin/access/delete-stock',all?{all:true}:{ids});$('stockMsg').textContent=(j.deleted||0)+' key(s) apagada(s) do estoque.';$('stockMsg').className='status ok';selectedStock.clear();await loadStock();await loadUsedKeys();await status(false)}catch(e){$('stockMsg').textContent=e.message;$('stockMsg').className='status bad'}finally{btn.disabled=false;btn.textContent=all?'APAGAR TODAS':'APAGAR MARCADAS';updateStockSelection()}
   }
 
+  function licenseRemaining(it){
+    const fields=['expiresAt','expireAt','expirationAt','expiryAt','validUntil','expires_at','expiration_date','expiresOn','accessExpiresAt','licenseExpiresAt','expires_at_ms'];
+    let value=null;
+    for(const key of fields){if(it[key]!==undefined&&it[key]!==null&&it[key]!==''){value=it[key];break}}
+    if(value===null)return '<span class="dfDaysUnknown">⏳ VALIDADE: NÃO INFORMADA</span>';
+    let stamp=typeof value==='number'?(value<1e11?value*1000:value):Date.parse(String(value));
+    if(!Number.isFinite(stamp))return '<span class="dfDaysUnknown">⏳ VALIDADE: NÃO INFORMADA</span>';
+    const days=Math.max(0,Math.ceil((stamp-Date.now())/86400000));
+    const expired=stamp<=Date.now();
+    const tone=expired?'expired':days<=3?'urgent':days<=7?'soon':'valid';
+    const label=expired?'🔴 KEY VENCIDA':days===1?'🟠 FALTA 1 DIA':'⏳ FALTAM '+days+' DIAS';
+    return '<span class="dfDaysBadge '+tone+'">'+label+'</span><br>Vencimento: '+esc(datePt(stamp));
+  }
   function renderUsed(){
     const term=String($('usedSearch')?.value||'').trim().toLocaleUpperCase('pt-BR');
     const filtered=term?usedItems.map((it,i)=>({...it,__index:i})).filter(it=>String(it.identity||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.licenseKey||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.id||'').includes(term)):usedItems.map((it,i)=>({...it,__index:i}));
@@ -249,7 +262,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
       const cls=paused?'paused':pending?'wait':'';
       const toggle=paused?'<button class="miniBtn resume" data-resume="'+i+'">REATIVAR</button>':'<button class="miniBtn pause" data-pause="'+i+'">PAUSAR</button>';
       const reset=(!paused&&it.identity)?'<button class="miniBtn reset" data-reset="'+i+'" '+(pending?'disabled':'')+'>'+(pending?'RESETADO':'RESETAR APARELHO')+'</button>':'';
-      return '<div class="usedItem"><span class="pill '+cls+'">'+badge+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'Acesso antigo')+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Último uso: '+esc(datePt(it.lastUsedAt||it.usedAt))+'<br>Aparelho: '+esc(pending?'LIBERADO PELO ADMINISTRADOR':shortDevice(it.deviceId))+'</div></div><div class="usedActions"><button class="miniBtn" data-copy="'+i+'">COPIAR KEY</button>'+toggle+reset+'<button class="miniBtn delete" data-delete="'+i+'">EXCLUIR ACESSO</button></div></div></div>';
+      return '<div class="usedItem"><span class="pill '+cls+'">'+badge+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'Acesso antigo')+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Último uso: '+esc(datePt(it.lastUsedAt||it.usedAt))+'<br>'+licenseRemaining(it)+'<br>Aparelho: '+esc(pending?'LIBERADO PELO ADMINISTRADOR':shortDevice(it.deviceId))+'</div></div><div class="usedActions"><button class="miniBtn" data-copy="'+i+'">COPIAR KEY</button>'+toggle+reset+'<button class="miniBtn delete" data-delete="'+i+'">EXCLUIR ACESSO</button></div></div></div>';
     }).join('');
     $('usedList').querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const it=usedItems[Number(b.dataset.copy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
     $('usedList').querySelectorAll('[data-pause]').forEach(b=>b.onclick=()=>toggleAccess(usedItems[Number(b.dataset.pause)],'pause','usedMsg',b));
