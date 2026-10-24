@@ -1,6 +1,6 @@
 {
-  "version": "1.0.419",
-  "title": "DF EXTRUSOR PRO — key manual",
-  "message": "Adiciona opção de digitar e validar uma licença manualmente na tela de acesso.",
+  "version": "1.0.420",
+  "title": "DF EXTRUSOR PRO — painel administrativo",
+  "message": "Filtro para exibir somente keys livres e botão para copiar uma key disponível no estoque.",
   "updatedAt": "2026-10-23"
 }
