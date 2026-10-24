@@ -1,6 +1,6 @@
 {
-  "version": "1.0.428",
-  "title": "DF EXTRUSOR PRO — Custo fabril",
-  "message": "Inclui custo de reposição de rosca por mês e por kg, explica depreciação e separa reserva para máquina nova do custo fabril.",
+  "version": "1.0.429",
+  "title": "DF EXTRUSOR PRO — Custo e reserva",
+  "message": "Adiciona opção de incluir a reserva de renovação na meta de preço por kg, com recálculo imediato e custo contábil separado.",
   "updatedAt": "2026-10-24"
 }
