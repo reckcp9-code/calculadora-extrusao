@@ -1,6 +1,6 @@
 {
-  "version": "1.0.423",
+  "version": "1.0.424",
   "title": "DF EXTRUSOR PRO — tela de licença",
-  "message": "Permite rolar a tela de licença no iPhone e visualizar toda a mensagem de erro da KEY.",
+  "message": "Corrige rolagem travada da tela de licença no iPhone, removendo centralização que impedia acesso ao final.",
   "updatedAt": "2026-10-23"
 }
