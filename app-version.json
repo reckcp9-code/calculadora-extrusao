@@ -1,6 +1,6 @@
 {
-  "version": "1.0.420",
-  "title": "DF EXTRUSOR PRO — painel administrativo",
-  "message": "Filtro para exibir somente keys livres e botão para copiar uma key disponível no estoque.",
+  "version": "1.0.421",
+  "title": "DF EXTRUSOR PRO — acesso por key",
+  "message": "Corrige a entrada no aplicativo após validar a key manual e recupera a tela quando a credencial salva está inválida.",
   "updatedAt": "2026-10-23"
 }
