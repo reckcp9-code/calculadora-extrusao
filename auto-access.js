@@ -140,6 +140,45 @@ async function recoverExisting(){
   }catch(e){}
   return false;
 }
+
+// Revalida a credencial periodicamente: pausar/revogar no painel bloqueia
+// também uma sessão que já estava aberta, sem depender de recarregar a página.
+let dfAccessChecking=false;
+let dfAccessLastVerified=0;
+function dfAccessLock(reason){
+  try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}
+  gate();
+  msg(reason||'Acesso pausado ou bloqueado pelo administrador.',false);
+}
+async function dfAccessRevalidate(){
+  if(dfAccessChecking||document.hidden)return;
+  const credential=saved();
+  if(!credential){dfAccessLock('Acesso não encontrado. Digite sua KEY para continuar.');return}
+  dfAccessChecking=true;
+  try{
+    const r=await request('/access/session',{credential,deviceId:device()},12000);
+    let j={};try{j=await r.json()}catch(e){}
+    if(r.ok&&j.ok!==false&&j.token){
+      sessionStorage.setItem(TOKEN_KEY,String(j.token));
+      dfAccessLastVerified=Date.now();
+    }else if([401,403,404,410,423].includes(r.status)||j.paused===true||j.revoked===true){
+      dfAccessLock('KEY pausada, vencida ou bloqueada. Solicite a liberação ao administrador.');
+    }else{
+      // Em falhas temporárias, não manter o aplicativo aberto indefinidamente.
+      if(Date.now()-dfAccessLastVerified>60000)dfAccessLock('Não foi possível confirmar sua licença. Verifique a conexão.');
+    }
+  }catch(e){
+    if(Date.now()-dfAccessLastVerified>60000)dfAccessLock('Não foi possível confirmar sua licença. Verifique a conexão.');
+  }finally{dfAccessChecking=false}
+}
+window.addEventListener('df-auth-ready',function(){
+  dfAccessLastVerified=Date.now();
+  dfAccessRevalidate();
+});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)dfAccessRevalidate()});
+window.addEventListener('focus',function(){dfAccessRevalidate()});
+setInterval(dfAccessRevalidate,15000);
+
 function prepare(){
   gate();
   msg('Verificando acesso já instalado neste aparelho...',true);
