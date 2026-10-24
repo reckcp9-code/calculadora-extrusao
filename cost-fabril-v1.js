@@ -422,13 +422,14 @@
     const manKg=prod>0?manMes/prod:0;
     const roscaMes=val('roscaMeses')>0?val('roscaValor')/val('roscaMeses'):0;
     const roscaKg=prod>0?roscaMes/prod:0;
+    const reservaIncluir=String(root?.querySelector('#cfReservaIncluir')?.value||'nao')==='sim';
     const reservaMes=val('reservaValor');
     const reservaKg=prod>0?reservaMes/prod:0;
     const industrialMes=baseMan+manMes+roscaMes;
     const industrialKg=prod>0?industrialMes/prod:0;
     const formulaMes=prod*formula;
     const totalMensal=industrialMes+formulaMes;
-    const finalKg=industrialKg+formula;
+    const finalKg=industrialKg+formula+(reservaIncluir?reservaKg:0);
     return {prod,aluguel,energia,folha,apara,reprocUnit,formula,embalagem,depOn,depBase,depPct,depMes,depKg,aparaPct,reprocMes,reprocKg,aluguelKg,energiaKg,folhaKg,embalagemKg,baseMan,manMode,manPct,manMes,manKg,roscaMes,roscaKg,reservaMes,reservaKg,reservaIncluir,industrialMes,industrialKg,formulaMes,totalMensal,finalKg};
   }
 
