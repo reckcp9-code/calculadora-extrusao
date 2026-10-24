@@ -1,6 +1,6 @@
 {
-  "version": "1.0.431",
-  "title": "DF EXTRUSOR PRO — Licença iPhone",
-  "message": "Remove opção de cache incompatível no fluxo de validação da licença no iPhone.",
+  "version": "1.0.432",
+  "title": "DF EXTRUSOR PRO — Acesso iPhone",
+  "message": "Corrige opção cache não suportada nas rotinas de licença, recuperação e carregamento do app.",
   "updatedAt": "2026-10-24"
 }
