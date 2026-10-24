@@ -1,6 +1,6 @@
 {
-  "version": "1.0.424",
-  "title": "DF EXTRUSOR PRO — tela de licença",
-  "message": "Corrige rolagem travada da tela de licença no iPhone, removendo centralização que impedia acesso ao final.",
+  "version": "1.0.425",
+  "title": "DF EXTRUSOR PRO — KEY manual",
+  "message": "KEY manual agora valida diretamente no servidor e libera o aparelho sem exigir nome ou WhatsApp. KEY já vinculada a outro aparelho continua protegida.",
   "updatedAt": "2026-10-23"
 }
