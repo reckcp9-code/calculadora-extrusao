@@ -96,12 +96,12 @@ async function identify(){
   const input=document.getElementById('dfAccessIdentity');const identity=String(input&&input.value||automaticIdentity()).trim();
   identifying=true;btn.disabled=true;btn.textContent='VALIDANDO ACESSO...';msg('Validando seu acesso...',true);
   try{
-    const r=await request('/access/identify',{identity,deviceId:device()},9000);let j={};try{j=await r.json()}catch(e){}
+    const r=await request('/access/identify',{identity,deviceId:device()},20000);let j={};try{j=await r.json()}catch(e){}
     if(!r.ok||j.ok===false)throw Error(j.error||('Falha no acesso ('+r.status+').'));
     save(j);msg('Acesso liberado. Entrando...',true);btn.textContent='ACESSO LIBERADO';unlock();return true
   }catch(err){
     const timeout=err&&err.name==='AbortError';
-    msg(timeout?'A validação demorou demais. Toque em TENTAR NOVAMENTE.':String(err&&err.message||err),false);
+    msg(timeout?'Servidor demorou para responder. Tente novamente ou use KEY manual.':String(err&&err.message||err),false);
     btn.disabled=false;btn.textContent='TENTAR NOVAMENTE';return false
   }finally{identifying=false}
 }
