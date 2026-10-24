@@ -622,7 +622,7 @@
       console.error('DF Custo Fabril PDF',e);
       try{
         w.document.open();
-        w.document.write('<!doctype html><body style="font-family:system-ui;padding:32px"><b>Não foi possível gerar o PDF.</b><div style="margin-top:10px">Feche esta janela e tente novamente.</div></body>');
+        w.document.write('<!doctype html><html lang="pt-BR"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:system-ui;padding:32px;color:#111;background:#fff"><b>Falha ao gerar PDF do Custo Fabril.</b><p>Detalhe técnico: '+String(e&&e.message||e).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</p><button onclick="location.reload()">TENTAR NOVAMENTE</button></body></html>');
         w.document.close();
       }catch(_){}
     }
