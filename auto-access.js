@@ -34,9 +34,9 @@ function device(){
   return id;
 }
 function msg(t,ok){const e=document.getElementById('licenseMsg');if(e){e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}}
-function unlock(){try{document.documentElement.classList.remove('df-license-locked');document.getElementById('licenseGate')?.style.removeProperty('display');document.getElementById('appContent')?.style.removeProperty('display');if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}window.dispatchEvent(new CustomEvent('df-auth-ready',{detail:{ok:true}}))}catch(e){}}
+function unlock(){try{document.documentElement.classList.remove('df-access-restoring');document.documentElement.classList.remove('df-license-locked');document.getElementById('licenseGate')?.style.removeProperty('display');document.getElementById('appContent')?.style.removeProperty('display');if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}window.dispatchEvent(new CustomEvent('df-auth-ready',{detail:{ok:true}}))}catch(e){}}
 function gate(){document.documentElement.classList.add('df-license-locked');const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.setProperty('display','flex','important');if(a)a.style.setProperty('display','none','important')}
-(function(){const st=document.createElement('style');st.textContent='html.df-license-locked #licenseGate{display:flex!important;visibility:visible!important}html.df-license-locked #appContent{display:none!important;visibility:hidden!important}';document.head.appendChild(st)})();
+(function(){const st=document.createElement('style');st.textContent='html.df-license-locked:not(.df-access-restoring) #licenseGate{display:flex!important;visibility:visible!important}html.df-access-restoring #licenseGate{display:none!important;visibility:hidden!important}html.df-license-locked #appContent{display:none!important;visibility:hidden!important}';document.head.appendChild(st)})();
 async function request(path,body,timeout){
   const c='AbortController'in window?new AbortController():null;
   const tm=c?setTimeout(()=>c.abort(),timeout||9000):null;
@@ -113,6 +113,7 @@ async function identify(){
 }
 function prepareIdentityFallback(){prepareManual()}
 function prepareManual(){
+  document.documentElement.classList.remove('df-access-restoring');
   const btn=ensureIdentityUi();if(!btn)return;
   btn.style.display='none';
   const option=document.getElementById('dfManualKeyOption');
@@ -147,6 +148,7 @@ async function recoverExisting(){
 let dfAccessChecking=false;
 let dfAccessLastVerified=0;
 function dfAccessLock(reason){
+  document.documentElement.classList.remove('df-access-restoring');
   try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}
   gate();
   msg(reason||'Acesso pausado ou bloqueado pelo administrador.',false);
@@ -184,6 +186,7 @@ window.addEventListener('focus',function(){dfAccessRevalidate()});
 setInterval(dfAccessRevalidate,15000);
 
 function prepare(){
+  if(saved())document.documentElement.classList.add('df-access-restoring');
   gate();
   msg('Verificando acesso já instalado neste aparelho...',true);
   recoverExisting().then(ok=>{if(!ok)prepareManual()}).catch(()=>prepareManual());
