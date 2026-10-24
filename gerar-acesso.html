@@ -73,6 +73,8 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     <h2>Estoque de licenças</h2>
     <div class="sub">Mostra keys livres, reservadas, em uso, pausadas ou bloqueadas.</div>
     <button class="btn copy" id="stockBtn">PUXAR LISTA DO ESTOQUE</button>
+    <button class="btn alt" id="stockFreeOnlyBtn" aria-pressed="false">🔑 VER SOMENTE KEYS LIVRES</button>
+    <button class="btn copy" id="copyFreeKeyBtn">📋 COPIAR UMA KEY LIVRE</button>
     <div class="bulkBar" id="stockBulkBar" style="display:none">
       <label class="bulkSelect"><input id="stockSelectAll" type="checkbox"> SELECIONAR TODAS</label>
       <span class="bulkCount" id="stockSelectedCount">0 MARCADAS</span>
@@ -101,6 +103,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
   const ADMIN_SECRET_KEY='df_access_admin_secret_saved_v1';
   let usedItems=[];
   let stockItems=[];
+  let freeOnly=false;
   const selectedStock=new Set();
 
   async function post(path,body){
@@ -167,21 +170,25 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
 
   function renderStock(){
     const has=stockItems.length>0;
+    const visibleItems=freeOnly?stockItems.filter(it=>it.status==='free'):stockItems;
+    $('stockFreeOnlyBtn').textContent=freeOnly?'MOSTRAR TODAS AS KEYS':'🔑 VER SOMENTE KEYS LIVRES';
+    $('stockFreeOnlyBtn').setAttribute('aria-pressed',String(freeOnly));
     $('stockBulkBar').style.display=has?'flex':'none';
     $('stockBulkActions').style.display=has?'grid':'none';
+    if(!visibleItems.length){$('stockList').innerHTML=freeOnly?'<div class="empty">Nenhuma key livre disponível.</div>':'<div class="empty">Nenhuma key cadastrada no estoque.</div>';selectedStock.clear();updateStockSelection();return}
     if(!has){$('stockList').innerHTML='<div class="empty">Nenhuma key cadastrada no estoque.</div>';selectedStock.clear();updateStockSelection();return}
-    $('stockList').innerHTML=stockItems.map((it,i)=>{
+    $('stockList').innerHTML=visibleItems.map((it,i)=>{
       const st=statusLabel(it.status),checked=selectedStock.has(Number(it.id))?' checked':'';
       const control=it.status==='used'?'<button class="miniBtn pause" data-stock-pause="'+i+'">PAUSAR</button>':it.status==='paused'?'<button class="miniBtn resume" data-stock-resume="'+i+'">REATIVAR</button>':'';
       const del=(it.status==='used'||it.status==='paused')?'<button class="miniBtn delete" data-stock-delete="'+i+'">EXCLUIR ACESSO</button>':'';
       return '<div class="usedItem"><label class="stockSelect"><input type="checkbox" data-stock-check="'+i+'"'+checked+'> MARCAR</label><br><span class="pill '+st[1]+'">'+st[0]+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'—')+'<br>Cadastrada: '+esc(datePt(it.createdAt))+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Aparelho: '+esc(shortDevice(it.deviceId))+'</div></div><div class="usedActions"><button class="miniBtn" data-stock-copy="'+i+'">COPIAR KEY</button>'+control+del+'</div></div></div>';
     }).join('');
-    $('stockList').querySelectorAll('[data-stock-check]').forEach(c=>c.onchange=()=>{const it=stockItems[Number(c.dataset.stockCheck)];if(!it)return;const id=Number(it.id);if(c.checked)selectedStock.add(id);else selectedStock.delete(id);updateStockSelection()});
-    $('stockList').querySelectorAll('[data-stock-copy]').forEach(b=>b.onclick=async()=>{const it=stockItems[Number(b.dataset.stockCopy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
-    $('stockList').querySelectorAll('[data-stock-pause]').forEach(b=>b.onclick=()=>toggleAccess(stockItems[Number(b.dataset.stockPause)],'pause','stockMsg',b));
-    $('stockList').querySelectorAll('[data-stock-resume]').forEach(b=>b.onclick=()=>toggleAccess(stockItems[Number(b.dataset.stockResume)],'resume','stockMsg',b));
+    $('stockList').querySelectorAll('[data-stock-check]').forEach(c=>c.onchange=()=>{const it=visibleItems[Number(c.dataset.stockCheck)];if(!it)return;const id=Number(it.id);if(c.checked)selectedStock.add(id);else selectedStock.delete(id);updateStockSelection()});
+    $('stockList').querySelectorAll('[data-stock-copy]').forEach(b=>b.onclick=async()=>{const it=visibleItems[Number(b.dataset.stockCopy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
+    $('stockList').querySelectorAll('[data-stock-pause]').forEach(b=>b.onclick=()=>toggleAccess(visibleItems[Number(b.dataset.stockPause)],'pause','stockMsg',b));
+    $('stockList').querySelectorAll('[data-stock-resume]').forEach(b=>b.onclick=()=>toggleAccess(visibleItems[Number(b.dataset.stockResume)],'resume','stockMsg',b));
     $('stockList').querySelectorAll('[data-stock-delete]').forEach(b=>b.onclick=async()=>{
-      const it=stockItems[Number(b.dataset.stockDelete)];if(!it||!it.id)return;
+      const it=visibleItems[Number(b.dataset.stockDelete)];if(!it||!it.id)return;
       const nome=it.identity||'este acesso';
       if(!confirm('Excluir o acesso de '+nome+'?\n\nO acesso será cortado imediatamente e a key VOLTARÁ para LIVRE no estoque.'))return;
       b.disabled=true;b.textContent='EXCLUINDO...';
@@ -189,6 +196,18 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     });
     updateStockSelection();
   }
+
+  $('stockFreeOnlyBtn').onclick=async()=>{freeOnly=!freeOnly;if(!stockItems.length)await loadStock();else renderStock()};
+  $('copyFreeKeyBtn').onclick=async()=>{
+    const b=$('copyFreeKeyBtn');
+    try{
+      if(!stockItems.length)await loadStock();
+      const it=stockItems.find(x=>x.status==='free'&&String(x.licenseKey||'').trim());
+      if(!it)throw new Error('Nenhuma key livre disponível.');
+      await navigator.clipboard.writeText(String(it.licenseKey));
+      b.textContent='✅ KEY LIVRE COPIADA';setTimeout(()=>b.textContent='📋 COPIAR UMA KEY LIVRE',1600);
+    }catch(e){$('stockMsg').textContent=e.message||'Não foi possível copiar.';$('stockMsg').className='status bad'}
+  };
 
   async function loadStock(){
     const btn=$('stockBtn');btn.disabled=true;$('stockMsg').textContent='Carregando estoque...';$('stockMsg').className='status';
