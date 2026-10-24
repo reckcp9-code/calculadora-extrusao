@@ -1,6 +1,6 @@
 {
-  "version": "1.0.436",
-  "title": "DF EXTRUSOR PRO — Acesso por KEY",
+  "version": "1.0.437",
+  "title": "DF EXTRUSOR PRO — Salvar no dispositivo",
   "message": "Novos usuários precisam digitar KEY; clientes existentes com sessão válida continuam acessando; distribuição automática desativada.",
   "updatedAt": "2026-10-24"
 }
