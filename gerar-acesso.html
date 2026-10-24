@@ -90,7 +90,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
   <div class="card" id="gerenciar">
     <h2>Gerenciar acessos e aparelhos</h2>
     <div class="sub">Aqui você pode PAUSAR, REATIVAR, RESETAR APARELHO ou EXCLUIR ACESSO. Excluir devolve a key para LIVRE.</div>
-    <button class="btn copy" id="usedBtn">ATUALIZAR ACESSOS</button>
+    <label for="usedSearch">PESQUISAR POR NOME OU KEY</label><input id="usedSearch" type="search" placeholder="Ex.: DAVID ou parte da KEY" autocomplete="off" autocapitalize="characters"><button class="btn copy" id="usedBtn">ATUALIZAR ACESSOS</button>
     <div id="usedMsg" class="status"></div>
     <div id="usedList" class="usedList"><div class="empty">Clique em ATUALIZAR ACESSOS.</div></div>
   </div>
@@ -224,8 +224,11 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
   }
 
   function renderUsed(){
+    const term=String($('usedSearch')?.value||'').trim().toLocaleUpperCase('pt-BR');
+    const filtered=term?usedItems.map((it,i)=>({...it,__index:i})).filter(it=>String(it.identity||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.licenseKey||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.id||'').includes(term)):usedItems.map((it,i)=>({...it,__index:i}));
     if(!usedItems.length){$('usedList').innerHTML='<div class="empty">Nenhum acesso ativo ou pausado.</div>';return}
-    $('usedList').innerHTML=usedItems.map((it,i)=>{
+    if(!filtered.length){$('usedList').innerHTML='<div class="empty">Nenhum acesso encontrado para essa pesquisa.</div>';return}
+    $('usedList').innerHTML=filtered.map((it)=>{const i=it.__index;
       const paused=String(it.status||'')==='paused',pending=!!it.resetPending;
       const badge=paused?'PAUSADA':pending?'AGUARDANDO NOVO APARELHO':'EM USO';
       const cls=paused?'paused':pending?'wait':'';
@@ -250,6 +253,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     });
   }
 
+  $('usedSearch').addEventListener('input',renderUsed);
   async function loadUsedKeys(){
     const btn=$('usedBtn');btn.disabled=true;$('usedMsg').textContent='Carregando...';$('usedMsg').className='status';
     try{const j=await post('/admin/access/list-used',{});usedItems=Array.isArray(j.items)?j.items:[];$('usedMsg').textContent=usedItems.length+' acesso(s) ativo(s) ou pausado(s).';$('usedMsg').className='status ok';renderUsed()}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad'}finally{btn.disabled=false}
