@@ -64,8 +64,9 @@
     // restaurações concorrentes, mais tráfego e estados visuais diferentes.
     hideVerification();
     cleanGeneralParam();
-    unlock();
-    setMessage('Acesso salvo restaurado.',true);
+    // Nunca liberar apenas porque existe uma credencial no armazenamento.
+    // O auto-access.js valida a sessão com o servidor antes de abrir o app.
+    setMessage('Validando acesso salvo com o servidor...',true);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',guard,{once:true});
