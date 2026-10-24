@@ -1,6 +1,6 @@
 {
-  "version": "1.0.438",
-  "title": "DF EXTRUSOR PRO — Restaurar clientes existentes",
-  "message": "Novos usuários precisam digitar KEY; clientes existentes com sessão válida continuam acessando; distribuição automática desativada.",
+  "version": "1.0.479",
+  "title": "DF EXTRUSOR PRO — Correção de sincronização de equipe",
+  "message": "Consulta de integrantes com autenticação, renovação de sessão e mensagem de erro quando a sincronização falhar.",
   "updatedAt": "2026-10-24"
 }
