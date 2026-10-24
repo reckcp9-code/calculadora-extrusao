@@ -5,6 +5,7 @@ const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const TOKEN_KEY='df_secure_token_v2';
 const DEVICE_KEY='df_licenseauth_device_v1';
 const ACCESS_KEY='df_auto_access_credential_v1';
+const SAVE_DEVICE_KEY='df_access_save_device_v1';
 const USER_KEY='df_auto_user_code_v1';
 const USER_COOKIE='df_auto_user_code_v1';
 const COOKIE_MAX_AGE=315360000;
@@ -25,6 +26,7 @@ if(generalMode){
 }
 
 function saved(){try{return String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){return''}}
+function savedOnDevice(){try{return localStorage.getItem(SAVE_DEVICE_KEY)!=='0'}catch(e){return true}}
 function device(){
   try{if(window.DFDeviceIdentity&&typeof window.DFDeviceIdentity.get==='function'){const x=String(window.DFDeviceIdentity.get()||'').trim();if(x)return x}}catch(e){}
   let id='';try{id=String(localStorage.getItem(DEVICE_KEY)||'').trim()}catch(e){}
@@ -40,7 +42,7 @@ async function request(path,body,timeout){
   try{return await previousFetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':device()},body:JSON.stringify(body),signal:c?c.signal:undefined})}
   finally{if(tm)clearTimeout(tm)}
 }
-function save(j){const token=String(j&&j.token||'').trim(),credential=String(j&&j.accessCredential||'').trim();if(!token||!credential)throw Error('Resposta de acesso incompleta.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(ACCESS_KEY,credential)}
+function save(j,persist=true){const token=String(j&&j.token||'').trim(),credential=String(j&&j.accessCredential||'').trim();if(!token||!credential)throw Error('Resposta de acesso incompleta.');sessionStorage.setItem(TOKEN_KEY,token);if(persist){localStorage.setItem(ACCESS_KEY,credential);localStorage.setItem(SAVE_DEVICE_KEY,'1')}else{localStorage.removeItem(ACCESS_KEY);localStorage.setItem(SAVE_DEVICE_KEY,'0')}}
 function readCookie(name){try{const p=name+'=';for(const part of String(document.cookie||'').split(';')){const s=part.trim();if(s.startsWith(p))return decodeURIComponent(s.slice(p.length)).trim()}}catch(e){}return''}
 function writeCookie(name,value){try{document.cookie=name+'='+encodeURIComponent(value)+'; Max-Age='+COOKIE_MAX_AGE+'; Path=/; SameSite=Lax; Secure'}catch(e){}}
 function makeCode(id){let h=2166136261;const s=String(id||'DF');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}h>>>=0;const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let x=h,out='';for(let i=0;i<4;i++){out+=alphabet[x&31];x=(x>>>5)^Math.imul(x,2654435761);x>>>=0}return'DF-'+out.slice(0,2)+'-'+out.slice(2,4)}
@@ -68,6 +70,8 @@ function ensureIdentityUi(){
     manual=document.createElement('div');manual.id='dfManualKeyOption';
     manual.innerHTML='<button type="button" id="dfManualKeyToggle" style="width:100%;margin:12px 0;padding:14px;border:1px solid #e5a500;border-radius:12px;background:#251800;color:#ffd56c;font-weight:800">🔑 DIGITAR KEY MANUALMENTE</button><div id="dfManualKeyForm" style="display:none"><input id="dfManualKeyValue" placeholder="Digite sua key" autocomplete="off" style="box-sizing:border-box;width:100%;padding:14px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:12px"><button type="button" id="dfManualKeyConfirm" style="width:100%;margin:10px 0;padding:14px;background:#064e3b;color:#a7f3d0;border:1px solid #16a34a;border-radius:12px;font-weight:800">VALIDAR KEY</button></div>';
     btn.insertAdjacentElement('afterend',manual);
+    const formEl=manual.querySelector('#dfManualKeyForm');
+    const remember=document.createElement('label');remember.style.cssText='display:flex;align-items:center;gap:10px;margin:14px 0;color:#e2e8f0;font:600 14px system-ui';remember.innerHTML='<input type="checkbox" id="dfSaveKeyDevice" checked style="width:20px;height:20px;accent-color:#16a34a"> SALVAR ACESSO NESTE DISPOSITIVO';formEl.insertBefore(remember,formEl.querySelector('#dfManualKeyConfirm'));
     manual.querySelector('#dfManualKeyToggle').onclick=()=>{const form=manual.querySelector('#dfManualKeyForm');form.style.display=form.style.display==='none'?'block':'none'};
     manual.querySelector('#dfManualKeyConfirm').onclick=async()=>{
       const key=manual.querySelector('#dfManualKeyValue').value.trim();
@@ -78,11 +82,12 @@ function ensureIdentityUi(){
         const r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},20000);
         let j={};try{j=await r.json()}catch(e){throw Error('Servidor retornou uma resposta inválida ('+r.status+').')}
         if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
-        save(j);msg('Key validada. Abrindo aplicativo...',true);unlock();
+        const rememberChoice=!!manual.querySelector('#dfSaveKeyDevice')?.checked;
+        save(j,rememberChoice);msg('Key validada. Abrindo aplicativo...',true);unlock();
         // Recarrega com a credencial validada para que o shell e os módulos de licença
         // iniciem no mesmo estado. Evita permanecer na tela de KEY após a ativação.
         const next=new URL(location.href);next.searchParams.delete('acesso');next.searchParams.set('entrada','key');
-        location.replace(next.pathname+next.search+next.hash);
+        if(rememberChoice)location.replace(next.pathname+next.search+next.hash);
       }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças demorou mais de 25 segundos. Verifique a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
       finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
     };
