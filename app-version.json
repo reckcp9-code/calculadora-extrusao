@@ -1,6 +1,6 @@
 {
-  "version": "1.0.422",
-  "title": "DF EXTRUSOR PRO — validação da KEY",
-  "message": "Evita espera indefinida na validação manual da KEY e apresenta erros do servidor com opção de nova tentativa.",
+  "version": "1.0.423",
+  "title": "DF EXTRUSOR PRO — tela de licença",
+  "message": "Permite rolar a tela de licença no iPhone e visualizar toda a mensagem de erro da KEY.",
   "updatedAt": "2026-10-23"
 }
