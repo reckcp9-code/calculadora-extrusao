@@ -2042,7 +2042,7 @@
 
   async function currentVersion(){
     try{
-      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+      const r=await fetch(VERSION_URL+'?t='+Date.now(),{});
       if(!r.ok)return'';
       const j=await r.json();
       return String(j&&j.version||'').trim();
@@ -2054,7 +2054,7 @@
       const u=new URL(API+'/update/notification-policy');
       u.searchParams.set('version',String(version||''));
       u.searchParams.set('t',Date.now());
-      const r=await fetch(u.toString(),{cache:'no-store'});
+      const r=await fetch(u.toString(),{});
       if(!r.ok)return true;
       const j=await r.json();
       return j&&j.notify===true;
@@ -2169,7 +2169,7 @@
 
   async function currentVersionData(){
     try{
-      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+      const r=await fetch(VERSION_URL+'?t='+Date.now(),{});
       return r.ok?await r.json():null;
     }catch(e){return null;}
   }
@@ -2802,7 +2802,7 @@
 
   async function latestVersionData(){
     try{
-      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+      const r=await fetch(VERSION_URL+'?t='+Date.now(),{});
       if(!r.ok)return null;
       return await r.json();
     }catch(e){return null}
