@@ -1,6 +1,6 @@
 {
-  "version": "1.0.493",
-  "title": "DF EXTRUSOR PRO — Largura fixa no celular",
-  "message": "Correção do deslocamento horizontal no iPhone: página limitada à largura da tela, mantendo o layout azul. Expulsão de operadores não incluída nesta versão.",
+  "version": "1.0.494",
+  "title": "DF EXTRUSOR PRO — Zoom no iPhone",
+  "message": "Permite ampliar a tela com dois dedos (até 5x), mantendo a largura normal do aplicativo. Sem alterações nas equipes, OPs ou dados.",
   "updatedAt": "2026-10-25"
 }
