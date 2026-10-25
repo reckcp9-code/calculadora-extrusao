@@ -38,7 +38,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
 .dfAdminPageTitle{font-size:22px;margin:8px 0 14px}
 .dfAdminHidden{display:none!important}
 @media(max-width:420px){.dfAdminTile{min-height:100px;padding:13px;font-size:13px}}
-</style><style>.dfDaysBadge,.dfDaysUnknown{display:inline-block;margin:8px 0 3px;padding:7px 10px;border-radius:9px;font-size:12px;font-weight:900}.dfDaysBadge.valid{color:#86efac;background:#052e16;border:1px solid #166534}.dfDaysBadge.soon{color:#fde68a;background:#2b1d00;border:1px solid #a16207}.dfDaysBadge.urgent,.dfDaysBadge.expired{color:#fecaca;background:#3b0a0a;border:1px solid #dc2626}.dfDaysUnknown{color:#cbd5e1;background:#172033;border:1px solid #475569}</style></head>
+</style><style>.dfDaysBadge,.dfDaysUnknown{display:inline-block;margin:8px 0 3px;padding:7px 10px;border-radius:9px;font-size:12px;font-weight:900}.dfDaysBadge.valid{color:#86efac;background:#052e16;border:1px solid #166534}.dfDaysBadge.soon{color:#fde68a;background:#2b1d00;border:1px solid #a16207}.dfDaysBadge.urgent,.dfDaysBadge.expired{color:#fecaca;background:#3b0a0a;border:1px solid #dc2626}.dfDaysUnknown{color:#cbd5e1;background:#172033;border:1px solid #475569}</style><style>.dfClientName{padding:9px 11px;margin-bottom:10px;border:1px solid #35577c;border-radius:11px;background:#102744;color:#dbeafe;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.dfClientName span{font-weight:800;color:#fff}.dfClientName button{margin-left:auto}</style></head>
 <body>
 <div class="wrap">
 <header class="adminHero"><span class="tag">PAINEL ADMINISTRATIVO</span><h1>DF EXTRUSOR PRO</h1><p>Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.</p><nav class="adminNav" aria-label="Seções do painel"><a href="#equipes">EQUIPES</a><a href="#acessos">ACESSOS</a><a href="#estoque">ESTOQUE</a><a href="#gerenciar">GERENCIAR</a></nav></header>
@@ -251,9 +251,19 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     const label=expired?'🔴 KEY VENCIDA':days===1?'🟠 FALTA 1 DIA':'⏳ FALTAM '+days+' DIAS';
     return '<span class="dfDaysBadge '+tone+'">'+label+'</span><br>Vencimento: '+esc(datePt(stamp));
   }
+  const CLIENT_NAMES_KEY='df_admin_client_names_v1';
+  function getClientNames(){try{return JSON.parse(localStorage.getItem(CLIENT_NAMES_KEY)||'{}')||{}}catch(e){return {}}}
+  function clientId(it){return String(it.licenseKey||it.id||'').trim()}
+  function clientName(it){return String(getClientNames()[clientId(it)]||'')}
+  function saveClientName(it,name){
+    const names=getClientNames(),id=clientId(it);if(!id)return;
+    const value=String(name||'').trim().slice(0,100);
+    if(value)names[id]=value;else delete names[id];
+    try{localStorage.setItem(CLIENT_NAMES_KEY,JSON.stringify(names));return true}catch(e){return false}
+  }
   function renderUsed(){
     const term=String($('usedSearch')?.value||'').trim().toLocaleUpperCase('pt-BR');
-    const filtered=term?usedItems.map((it,i)=>({...it,__index:i})).filter(it=>String(it.identity||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.licenseKey||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.id||'').includes(term)):usedItems.map((it,i)=>({...it,__index:i}));
+    const filtered=term?usedItems.map((it,i)=>({...it,__index:i})).filter(it=>String(it.identity||'').toLocaleUpperCase('pt-BR').includes(term)||clientName(it).toLocaleUpperCase('pt-BR').includes(term)||String(it.licenseKey||'').toLocaleUpperCase('pt-BR').includes(term)||String(it.id||'').includes(term)):usedItems.map((it,i)=>({...it,__index:i}));
     if(!usedItems.length){$('usedList').innerHTML='<div class="empty">Nenhum acesso ativo ou pausado.</div>';return}
     if(!filtered.length){$('usedList').innerHTML='<div class="empty">Nenhum acesso encontrado para essa pesquisa.</div>';return}
     $('usedList').innerHTML=filtered.map((it)=>{const i=it.__index;
@@ -262,8 +272,13 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
       const cls=paused?'paused':pending?'wait':'';
       const toggle=paused?'<button class="miniBtn resume" data-resume="'+i+'">REATIVAR</button>':'<button class="miniBtn pause" data-pause="'+i+'">PAUSAR</button>';
       const reset=(!paused&&it.identity)?'<button class="miniBtn reset" data-reset="'+i+'" '+(pending?'disabled':'')+'>'+(pending?'RESETADO':'RESETAR APARELHO')+'</button>':'';
-      return '<div class="usedItem"><span class="pill '+cls+'">'+badge+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'Acesso antigo')+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Último uso: '+esc(datePt(it.lastUsedAt||it.usedAt))+'<br>Aparelho: '+esc(pending?'LIBERADO PELO ADMINISTRADOR':shortDevice(it.deviceId))+'<br>'+licenseRemaining(it)+'</div></div><div class="usedActions"><button class="miniBtn" data-copy="'+i+'">COPIAR KEY</button>'+toggle+reset+'<button class="miniBtn delete" data-delete="'+i+'">EXCLUIR ACESSO</button></div></div></div>';
+      return '<div class="usedItem"><div class="dfClientName"><b>CLIENTE:</b> <span>'+esc(clientName(it)||'NÃO CADASTRADO')+'</span> <button type="button" class="miniBtn" data-client-name="'+i+'">EDITAR NOME</button></div><span class="pill '+cls+'">'+badge+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'Acesso antigo')+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Último uso: '+esc(datePt(it.lastUsedAt||it.usedAt))+'<br>Aparelho: '+esc(pending?'LIBERADO PELO ADMINISTRADOR':shortDevice(it.deviceId))+'<br>'+licenseRemaining(it)+'</div></div><div class="usedActions"><button class="miniBtn" data-copy="'+i+'">COPIAR KEY</button>'+toggle+reset+'<button class="miniBtn delete" data-delete="'+i+'">EXCLUIR ACESSO</button></div></div></div>';
     }).join('');
+    $('usedList').querySelectorAll('[data-client-name]').forEach(b=>b.onclick=()=>{
+      const it=usedItems[Number(b.dataset.clientName)];if(!it)return;
+      const value=prompt('Nome do cliente para esta KEY:',clientName(it));if(value===null)return;
+      if(saveClientName(it,value))renderUsed();else alert('Não foi possível salvar o nome neste aparelho.');
+    });
     $('usedList').querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const it=usedItems[Number(b.dataset.copy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
     $('usedList').querySelectorAll('[data-pause]').forEach(b=>b.onclick=()=>toggleAccess(usedItems[Number(b.dataset.pause)],'pause','usedMsg',b));
     $('usedList').querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>toggleAccess(usedItems[Number(b.dataset.resume)],'resume','usedMsg',b));
