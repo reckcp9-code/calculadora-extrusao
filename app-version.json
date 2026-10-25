@@ -1,6 +1,6 @@
 {
-  "version": "1.0.505",
-  "title": "DF EXTRUSOR PRO — Reset de KEY e novo login",
-  "message": "Worker Cloudflare atualizado: reset encerra sessão antiga; mesma KEY pode ser digitada novamente no mesmo celular para recuperar a conta; outra KEY abre sua própria conta. Aplicativo força tela de KEY após reset. Dados preservados.",
+  "version": "1.0.506",
+  "title": "DF EXTRUSOR PRO — Instalação antes da KEY",
+  "message": "Na tela de licença, iPhone exibe tutorial de adicionar à tela inicial pelo Safari; Android oferece instalação nativa quando suportada. Acesso no navegador permanece opcional e usuários já instalados não são interrompidos.",
   "updatedAt": "2026-10-24"
 }
