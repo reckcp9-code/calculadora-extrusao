@@ -84,7 +84,7 @@ async function restore(){
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
     if(j.paused===true||r.status===423){dfAccessLock('KEY pausada pelo administrador.');return false}
     if(j.revoked===true||r.status===410){dfAccessLock('Acesso resetado. Digite sua KEY novamente.',true);return false}
-    if(r.status===401||r.status===403){gate();msg('Não foi possível validar a licença. Tente novamente quando houver conexão.',false);return true}
+    if(r.status===401||r.status===403){unlock();return true}
     // Respostas temporárias não apagam a KEY nem forçam um novo login.
     unlock();return true
   }catch(e){unlock();return true}
@@ -226,7 +226,15 @@ window.addEventListener('focus',function(){dfAccessRevalidate()});
 setInterval(dfAccessRevalidate,15000);
 
 function prepare(){
-  if(saved())document.documentElement.classList.add('df-access-restoring');
+  // Licença já instalada: abrir imediatamente e validar em segundo plano.
+  // Apenas pausa/reset confirmados pelo servidor podem bloquear o aplicativo.
+  const existing=saved();
+  const resetRequired=localStorage.getItem('df_manual_key_required_after_reset')==='1';
+  if(existing&&!resetRequired){
+    unlock();
+    recoverExisting().catch(()=>{});
+    return;
+  }
   gate();
   msg('Verificando acesso já instalado neste aparelho...',true);
   recoverExisting().then(ok=>{if(!ok)prepareManual()}).catch(()=>prepareManual());
