@@ -67,8 +67,41 @@
     const box=document.createElement('div');box.id='dfBulkDaysBox';box.className='dfBulkDaysBox';
     box.innerHTML='<div class="dfBulkDaysTitle">DAR MAIS DIAS PARA TODOS</div><div class="dfBulkDaysSub">Soma dias ao prazo atual de quem já está usando e também renova quem já venceu. Acessos sem prazo ficam sem alteração.</div><div class="dfBulkDaysRow"><input id="dfBulkDaysInput" type="number" min="1" max="3650" step="1" inputmode="numeric" value="5"><button id="dfBulkDaysBtn" type="button">DAR + DIAS PARA TODOS</button></div><div class="dfBulkQuick"><button type="button" data-bulk-extra="5">+ 5 DIAS</button><button type="button" data-bulk-extra="7">+ 7 DIAS</button><button type="button" data-bulk-extra="15">+ 15 DIAS</button><button type="button" data-bulk-extra="30">+ 30 DIAS</button></div><div id="dfBulkDaysMsg" class="dfBulkDaysMsg"></div>';
     usedMsg.insertAdjacentElement('afterend',box);
+    ensureSingleKeyUI();
     document.getElementById('dfBulkDaysBtn').onclick=()=>addToAll(Number(document.getElementById('dfBulkDaysInput').value),false);
     box.querySelectorAll('[data-bulk-extra]').forEach(b=>b.onclick=()=>{document.getElementById('dfBulkDaysInput').value=b.dataset.bulkExtra;addToAll(Number(b.dataset.bulkExtra),false)});
+  }
+
+  function ensureSingleKeyUI(){
+    const bulk=document.getElementById('dfBulkDaysBox');
+    if(!bulk||document.getElementById('dfSingleKeyBox'))return;
+    const box=document.createElement('div');box.id='dfSingleKeyBox';box.className='dfBulkDaysBox';
+    box.innerHTML='<div class="dfBulkDaysTitle">DAR MAIS DIAS PARA UMA KEY</div><div class="dfBulkDaysSub">Digite a KEY completa, confira o usuário encontrado e escolha quantos dias adicionar somente a ela.</div><input id="dfSingleKeySearch" type="text" placeholder="DIGITE A KEY" autocomplete="off" autocapitalize="characters"><div id="dfSingleKeyMatch" class="dfBulkDaysMsg">Digite a KEY para localizar o acesso.</div><div class="dfBulkDaysRow" style="margin-top:10px"><input id="dfSingleKeyDays" type="number" min="1" max="3650" step="1" inputmode="numeric" value="7"><button id="dfSingleKeyApply" type="button" disabled>ADICIONAR DIAS À KEY</button></div><div id="dfSingleKeyResult" class="dfBulkDaysMsg"></div>';
+    bulk.insertAdjacentElement('afterend',box);
+    const input=box.querySelector('#dfSingleKeySearch'),match=box.querySelector('#dfSingleKeyMatch'),apply=box.querySelector('#dfSingleKeyApply'),result=box.querySelector('#dfSingleKeyResult');
+    let selected=null;
+    function lookup(){
+      const q=input.value.trim().toUpperCase();
+      selected=q?items.find(it=>String(it.licenseKey||'').trim().toUpperCase()===q):null;
+      const partial=q?items.filter(it=>String(it.licenseKey||'').toUpperCase().includes(q)).slice(0,5):[];
+      apply.disabled=!selected||busy;
+      match.textContent=selected?'KEY ENCONTRADA: '+selected.licenseKey+' • '+(selected.identity||'USUÁRIO SEM NOME')+' • '+currentDays(selected)+' DIA(S) RESTANTE(S)':partial.length?'KEYS ENCONTRADAS: '+partial.map(it=>it.licenseKey).join(' • ') : q?'KEY NÃO ENCONTRADA. Atualize os acessos.':'Digite a KEY para localizar o acesso.';
+    }
+    input.addEventListener('input',lookup);
+    box.querySelector('#dfSingleKeyApply').onclick=async()=>{
+      lookup();
+      const days=Number(box.querySelector('#dfSingleKeyDays').value);
+      if(!selected||busy)return;
+      if(!Number.isInteger(days)||days<1||days>3650){result.textContent='Informe de 1 a 3650 dias.';return}
+      if(!selected.expiresAt){result.textContent='Esta KEY não possui prazo informado pelo servidor. Não é seguro somar dias sem confirmar a validade.';return}
+      if(!confirm('Adicionar +'+days+' dia(s) somente à KEY '+selected.licenseKey+'?'))return;
+      busy=true;apply.disabled=true;result.textContent='Atualizando KEY...';
+      try{await setDays(selected,days);result.textContent='KEY atualizada com sucesso. Atualizando lista...';const refresh=document.getElementById('usedBtn');if(refresh)refresh.click()}
+      catch(e){result.textContent='Erro: '+e.message}
+      finally{busy=false;lookup()}
+    };
+    const observer=new MutationObserver(lookup);
+    observer.observe(document.getElementById('usedList'),{childList:true});
   }
   function maybeAutoPlus5(){
     let done='';try{done=localStorage.getItem(AUTO_DONE_KEY)||''}catch(e){}
@@ -88,6 +121,6 @@
     return response;
   };
 
-  function init(){ensureUI();setInterval(()=>{ensureUI();maybeAutoPlus5()},1200)}
+  function init(){ensureUI();setInterval(()=>{ensureUI();ensureSingleKeyUI();maybeAutoPlus5()},1200)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
