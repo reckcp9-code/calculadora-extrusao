@@ -1,6 +1,6 @@
 {
-  "version": "1.0.507",
-  "title": "DF EXTRUSOR PRO — Dica de instalação discreta",
-  "message": "Tutorial de instalação no canto inferior direito, preservando a imagem DF e a tela de digitar KEY.",
-  "updatedAt": "2026-10-24"
+  "version": "1.0.508",
+  "title": "DF EXTRUSOR PRO — Abertura sem tela vazia",
+  "message": "Tela inicial de carregamento com logo DF exibida imediatamente enquanto a interface é preparada; mantém login automático com KEY válida.",
+  "updatedAt": "2026-10-25"
 }
