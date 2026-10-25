@@ -1,6 +1,6 @@
 {
-  "version": "1.0.515",
-  "title": "DF EXTRUSOR PRO — Códigos de parada",
-  "message": "Adicionados EMENDA BOBINA (11) e FORA DE ESPESSURA (12) ao PDF; MATERIAL MOLHADO já constava como código 05.",
+  "version": "1.0.516",
+  "title": "DF EXTRUSOR PRO — Inicialização mais leve",
+  "message": "Módulos de OP deixam de carregar automaticamente após a abertura e passam a iniciar ao acessar as funções correspondentes. Cache renovado; PDF de códigos de parada atualizado.",
   "updatedAt": "2026-10-25"
 }
