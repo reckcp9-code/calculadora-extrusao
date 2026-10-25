@@ -38,6 +38,17 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
 .dfAdminPageTitle{font-size:22px;margin:8px 0 14px}
 .dfAdminHidden{display:none!important}
 @media(max-width:420px){.dfAdminTile{min-height:100px;padding:13px;font-size:13px}}
+</style><style id="dfAdminPratico486">
+.dfAdminIntro{margin:16px 0 9px;display:grid;gap:5px}.dfAdminIntro strong{font-size:17px;letter-spacing:.2px}.dfAdminIntro span{font-size:12px;color:#b6c9e2;line-height:1.5}
+.dfAdminQuick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0 14px}
+.dfAdminQuick button{min-height:56px;border-radius:13px;background:#0d2b4d;color:#e5f3ff;border:1px solid #3276b8;font:800 12px system-ui;padding:10px;cursor:pointer}
+.dfAdminQuick button:active,.dfAdminTile:active{filter:brightness(1.3)}
+.dfAdminHome{gap:9px;margin:8px 0 15px}.dfAdminTile{min-height:80px;padding:13px 15px;font-size:14px}.dfAdminTile small{margin-top:5px;font-size:11px}
+#dfAdminBar{position:sticky;top:0;z-index:25;background:#080f1deb;padding:8px 0;backdrop-filter:blur(12px)}
+#dfAdminBar .dfAdminBack{margin:0 0 6px;padding:10px 13px}
+#dfAdminBar .dfAdminPageTitle{margin:0 0 5px;font-size:19px}
+#dfMetrics{margin-top:12px}
+@media(max-width:420px){.dfAdminTile{min-height:74px}.dfAdminQuick button{font-size:11px}}
 </style><style>.dfDaysBadge,.dfDaysUnknown{display:inline-block;margin:8px 0 3px;padding:7px 10px;border-radius:9px;font-size:12px;font-weight:900}.dfDaysBadge.valid{color:#86efac;background:#052e16;border:1px solid #166534}.dfDaysBadge.soon{color:#fde68a;background:#2b1d00;border:1px solid #a16207}.dfDaysBadge.urgent,.dfDaysBadge.expired{color:#fecaca;background:#3b0a0a;border:1px solid #dc2626}.dfDaysUnknown{color:#cbd5e1;background:#172033;border:1px solid #475569}</style><style>.dfClientName{padding:9px 11px;margin-bottom:10px;border:1px solid #35577c;border-radius:11px;background:#102744;color:#dbeafe;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.dfClientName span{font-weight:800;color:#fff}.dfClientName button{margin-left:auto}</style></head>
 <body>
 <div class="wrap">
@@ -389,9 +400,16 @@ const pages=[
 ];
 const wrap=document.querySelector('.wrap'),hero=document.querySelector('.adminHero');if(!wrap||!hero)return;
 const home=document.createElement('div');home.className='dfAdminHome';home.id='dfAdminHome';
+const intro=document.createElement('div');intro.className='dfAdminIntro';intro.innerHTML='<strong>O QUE VOCÊ QUER FAZER?</strong><span>Escolha uma ação. Os controles ficam separados por assunto, sem misturar as funções.</span>';
+hero.insertAdjacentElement('afterend',intro);
+const quick=document.createElement('div');quick.className='dfAdminQuick';
+const quickActions=[['👤 GERENCIAR CLIENTE','usuarios'],['🔑 CRIAR / LIBERAR KEY','licencas'],['⏸ PAUSAR / REATIVAR','usuarios'],['👥 VER EQUIPES','equipes']];
+quickActions.forEach(([label,key])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>show(key);quick.appendChild(b)});
+intro.insertAdjacentElement('afterend',quick);
+
 pages.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='dfAdminTile';b.textContent=p[1];const sm=document.createElement('small');sm.textContent=p[2];b.appendChild(sm);b.onclick=()=>show(p[0]);home.appendChild(b)});
-hero.insertAdjacentElement('afterend',home);
-const bar=document.createElement('div');bar.id='dfAdminBar';bar.className='dfAdminHidden';const back=document.createElement('button');back.type='button';back.className='dfAdminBack';back.textContent='← VOLTAR AO PAINEL';back.onclick=()=>show('');const title=document.createElement('h2');title.className='dfAdminPageTitle';bar.append(back,title);home.insertAdjacentElement('afterend',bar);
+quick.insertAdjacentElement('afterend',home);
+const bar=document.createElement('div');bar.id='dfAdminBar';bar.className='dfAdminHidden';const back=document.createElement('button');back.type='button';back.className='dfAdminBack';back.textContent='← INÍCIO';back.onclick=()=>show('');const title=document.createElement('h2');title.className='dfAdminPageTitle';bar.append(back,title);home.insertAdjacentElement('afterend',bar);
 const config=document.createElement('div');config.id='dfAdminConfig';config.className='card dfAdminHidden';config.innerHTML='<h2>Configurações administrativas</h2><p class="sub">A senha administrativa e a opção de salvar neste aparelho ficam na Visão Geral. As permissões e os dados do sistema permanecem inalterados.</p>';bar.insertAdjacentElement('afterend',config);
 const finance=document.createElement('div');finance.id='dfFinance';finance.className='card dfAdminHidden';finance.innerHTML='<h2>Controle financeiro</h2><p class="sub">Área preparada para valores de licenças, pagamentos e faturamento mensal. A integração financeira ainda não está conectada; nenhum pagamento será considerado confirmado sem registro no servidor.</p>';bar.insertAdjacentElement('afterend',finance);
 const audit=document.createElement('div');audit.id='dfAudit';audit.className='card dfAdminHidden';audit.innerHTML='<h2>Histórico administrativo</h2><p class="sub">Para registrar alterações de KEYs, renovações, pausas e exclusões com segurança, é necessário um histórico persistente no servidor. Esta tela não apresenta eventos fictícios.</p>';bar.insertAdjacentElement('afterend',audit);
@@ -401,7 +419,7 @@ const metricObserver=new MutationObserver(syncMetrics);const countBox=document.q
 const nativeFetch=window.fetch.bind(window);
 window.fetch=async function(input,init){const response=await nativeFetch(input,init);try{const u=new URL(typeof input==='string'?input:input.url,location.href);if(u.pathname==='/admin/access/list-used'&&response.ok){response.clone().json().then(j=>{if(!Array.isArray(j.items))return;const now=Date.now(),week=now+7*86400000;const exp=j.items.filter(it=>{const t=Date.parse(String(it.expiresAt||''));return Number.isFinite(t)&&t>now&&t<=week}).length;const target=document.getElementById('dfMetricExpiring');if(target)target.textContent=String(exp)}).catch(()=>{})}}catch(e){}return response};
 const sections=['resumo','gerenciar','acessos','adicionar','estoque','equipes'];
-function show(key){const page=pages.find(p=>p[0]===key);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');finance.classList.toggle('dfAdminHidden',key!=='financeiro');audit.classList.toggle('dfAdminHidden',key!=='historico');metrics.classList.toggle('dfAdminHidden',key!=='visao');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',!page||!page.slice(3).includes(id))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
+function show(key){const page=pages.find(p=>p[0]===key);intro.classList.toggle('dfAdminHidden',!!page);quick.classList.toggle('dfAdminHidden',!!page);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');finance.classList.toggle('dfAdminHidden',key!=='financeiro');audit.classList.toggle('dfAdminHidden',key!=='historico');metrics.classList.toggle('dfAdminHidden',key!=='visao'&&key!=='');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',!page||!page.slice(3).includes(id))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
 show(pages.some(p=>'#'+p[0]===location.hash)?location.hash.slice(1):'');
 })();
 </script></body>
