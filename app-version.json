@@ -1,6 +1,6 @@
 {
-  "version": "1.0.511",
-  "title": "DF EXTRUSOR PRO — KEY preservada após atualização",
-  "message": "Atualizar o aplicativo não apaga a KEY salva e falhas temporárias de rede não redirecionam para a tela de licença. Pausa e reset continuam revogando a sessão.",
+  "version": "1.0.512",
+  "title": "DF EXTRUSOR PRO — Menus fixos",
+  "message": "Menu superior de abas permanece visível ao rolar, respeitando a área segura do iPhone; cache da estrutura atualizado para aplicar a mudança.",
   "updatedAt": "2026-10-25"
 }
