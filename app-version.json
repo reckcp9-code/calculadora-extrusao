@@ -1,6 +1,6 @@
 {
-  "version": "1.0.509",
-  "title": "DF EXTRUSOR PRO — Largura fechada da sanfona",
-  "message": "No dimensionamento da sanfona, exibe também a largura do filme fechado: profundidade esquerda + meio + profundidade direita. Ex.: 10 + 45 + 10 = 65 cm.",
+  "version": "1.0.510",
+  "title": "DF EXTRUSOR PRO — Sanfona centralizada",
+  "message": "Largura do filme fechado apresentada em três linhas centralizadas no dimensionamento da sanfona: título, medida e conta.",
   "updatedAt": "2026-10-25"
 }
