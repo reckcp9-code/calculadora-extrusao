@@ -1,6 +1,6 @@
 {
-  "version": "1.0.492",
-  "title": "DF EXTRUSOR PRO — Monitoramento de presença",
-  "message": "Painel ADM agora consulta sinais reais de presença dos aparelhos via endpoint administrativo existente. Mostra último sinal e estados; vínculo individual dos nove membros da equipe depende de integração.",
-  "updatedAt": "2026-10-24"
+  "version": "1.0.493",
+  "title": "DF EXTRUSOR PRO — Largura fixa no celular",
+  "message": "Correção do deslocamento horizontal no iPhone: página limitada à largura da tela, mantendo o layout azul. Expulsão de operadores não incluída nesta versão.",
+  "updatedAt": "2026-10-25"
 }
