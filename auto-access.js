@@ -109,7 +109,7 @@ function ensureIdentityUi(){
         let j={};try{j=await r.json()}catch(e){throw Error('Servidor retornou uma resposta inválida ('+r.status+').')}
         if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
         const rememberChoice=!!manual.querySelector('#dfSaveKeyDevice')?.checked;
-        save(j,rememberChoice);msg('Key validada. Abrindo aplicativo...',true);unlock();
+        localStorage.removeItem('df_manual_key_required_after_reset');save(j,rememberChoice);msg('Key validada. Abrindo aplicativo...',true);unlock();
         // Recarrega com a credencial validada para que o shell e os módulos de licença
         // iniciem no mesmo estado. Evita permanecer na tela de KEY após a ativação.
         const next=new URL(location.href);next.searchParams.delete('acesso');next.searchParams.set('entrada','key');
@@ -151,6 +151,8 @@ function prepareManual(){
   msg('Digite a KEY fornecida pelo administrador para acessar.',true);
 }
 async function recoverExisting(){
+  // Após reset, nunca recuperar a licença automaticamente por identificação.
+  if(localStorage.getItem('df_manual_key_required_after_reset')==='1')return false;
   // Primeiro recuperar os acessos antigos, sem consumir outra KEY.
   if(saved()){
     if(await restore())return true;
@@ -173,12 +175,17 @@ async function recoverExisting(){
 // também uma sessão que já estava aberta, sem depender de recarregar a página.
 let dfAccessChecking=false;
 let dfAccessLastVerified=0;
-function dfAccessLock(reason){
+function dfAccessLock(reason,reset=false){
   removeSavedTransition();
   document.documentElement.classList.remove('df-access-restoring');
   try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}
+  if(reset){
+    try{localStorage.removeItem(ACCESS_KEY);localStorage.setItem('df_manual_key_required_after_reset','1')}catch(e){}
+    try{sessionStorage.removeItem('df_secure_token_v2')}catch(e){}
+  }
   gate();
-  msg(reason||'Acesso pausado ou bloqueado pelo administrador.',false);
+  if(reset)prepareManual();
+  msg(reason||(reset?'Aparelho resetado. Digite uma KEY para entrar.':'Acesso pausado ou bloqueado pelo administrador.'),false);
 }
 async function dfAccessRevalidate(){
   if(dfAccessChecking||document.hidden)return;
@@ -195,7 +202,8 @@ async function dfAccessRevalidate(){
       sessionStorage.setItem(TOKEN_KEY,String(j.token));
       dfAccessLastVerified=Date.now();
     }else if([401,403,404,410,423].includes(r.status)||j.paused===true||j.revoked===true){
-      dfAccessLock('KEY pausada, vencida ou bloqueada. Solicite a liberação ao administrador.');
+      const reset=([401,404,410].includes(r.status)&&/inválid|revogad|reset|aparelho/i.test(String(j.error||'')));
+      dfAccessLock(reset?'Aparelho resetado. Digite a mesma KEY ou outra KEY para entrar.':'KEY pausada, vencida ou bloqueada. Solicite a liberação ao administrador.',reset);
     }else{
       // Em falhas temporárias, não manter o aplicativo aberto indefinidamente.
       if(Date.now()-dfAccessLastVerified>60000)dfAccessLock('Não foi possível confirmar sua licença. Verifique a conexão.');
