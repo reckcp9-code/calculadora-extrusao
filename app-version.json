@@ -1,6 +1,6 @@
 {
-  "version": "1.0.508",
-  "title": "DF EXTRUSOR PRO — Abertura sem tela vazia",
-  "message": "Tela inicial de carregamento com logo DF exibida imediatamente enquanto a interface é preparada; mantém login automático com KEY válida.",
+  "version": "1.0.509",
+  "title": "DF EXTRUSOR PRO — Largura fechada da sanfona",
+  "message": "No dimensionamento da sanfona, exibe também a largura do filme fechado: profundidade esquerda + meio + profundidade direita. Ex.: 10 + 45 + 10 = 65 cm.",
   "updatedAt": "2026-10-25"
 }
