@@ -1,6 +1,6 @@
 {
-  "version": "1.0.516",
-  "title": "DF EXTRUSOR PRO — Inicialização mais leve",
-  "message": "Módulos de OP deixam de carregar automaticamente após a abertura e passam a iniciar ao acessar as funções correspondentes. Cache renovado; PDF de códigos de parada atualizado.",
+  "version": "1.0.517",
+  "title": "DF EXTRUSOR PRO — Abertura sem espera de cache",
+  "message": "O carregamento inicial não aguarda mais a gravação do HTML em cache; removido disparo duplicado do evento de interface pronta. Dados e layout preservados.",
   "updatedAt": "2026-10-25"
 }
