@@ -34,9 +34,29 @@ function device(){
   return id;
 }
 function msg(t,ok){const e=document.getElementById('licenseMsg');if(e){e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}}
-function unlock(){try{document.documentElement.classList.remove('df-access-restoring');document.documentElement.classList.remove('df-license-locked');document.getElementById('licenseGate')?.style.removeProperty('display');document.getElementById('appContent')?.style.removeProperty('display');if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}window.dispatchEvent(new CustomEvent('df-auth-ready',{detail:{ok:true}}))}catch(e){}}
-function gate(){document.documentElement.classList.add('df-license-locked');const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g){if(document.documentElement.classList.contains('df-access-restoring'))g.style.setProperty('display','none','important');else g.style.setProperty('display','flex','important')}if(a)a.style.setProperty('display','none','important')}
-(function(){const st=document.createElement('style');st.textContent='html.df-license-locked:not(.df-access-restoring) #licenseGate{display:flex!important;visibility:visible!important}html.df-access-restoring #licenseGate{display:flex!important;visibility:visible!important}html.df-access-restoring #licenseGate .licenseBox{opacity:1!important}html.df-license-locked #appContent{display:none!important;visibility:hidden!important}';document.head.appendChild(st)})();
+function unlock(){try{removeSavedTransition();document.documentElement.classList.remove('df-access-restoring');document.documentElement.classList.remove('df-license-locked');document.getElementById('licenseGate')?.style.removeProperty('display');document.getElementById('appContent')?.style.removeProperty('display');if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}window.dispatchEvent(new CustomEvent('df-auth-ready',{detail:{ok:true}}))}catch(e){}}
+function gate(){
+  document.documentElement.classList.add('df-license-locked');
+  const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');
+  if(g)g.style.setProperty('display',document.documentElement.classList.contains('df-access-restoring')?'none':'flex','important');
+  if(a)a.style.setProperty('display','none','important');
+}
+(function(){
+  const st=document.createElement('style');
+  st.textContent='html.df-license-locked:not(.df-access-restoring) #licenseGate{display:flex!important;visibility:visible!important}html.df-access-restoring #licenseGate{display:none!important;visibility:hidden!important}html.df-license-locked #appContent{display:none!important;visibility:hidden!important}';
+  document.head.appendChild(st);
+  // Quem já tem KEY salva vê apenas a transição discreta do aplicativo, nunca o formulário da KEY.
+  if(saved()){
+    const overlay=document.createElement('div');
+    overlay.id='dfSavedAccessTransition';
+    overlay.style.cssText='position:fixed;inset:0;z-index:2147483600;background:#080b13;color:#f8fafc;display:flex;align-items:center;justify-content:center;text-align:center;font:700 19px system-ui,-apple-system,sans-serif';
+    overlay.textContent='DF EXTRUSOR PRO';
+    const mount=()=>{if(!overlay.isConnected)document.body.appendChild(overlay)};
+    if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount,{once:true});
+  }
+})();
+function removeSavedTransition(){document.getElementById('dfSavedAccessTransition')?.remove()}
+
 async function request(path,body,timeout){
   const c='AbortController'in window?new AbortController():null;
   const tm=c?setTimeout(()=>c.abort(),timeout||9000):null;
@@ -113,6 +133,7 @@ async function identify(){
 }
 function prepareIdentityFallback(){prepareManual()}
 function prepareManual(){
+  removeSavedTransition();
   document.documentElement.classList.remove('df-access-restoring');
   const btn=ensureIdentityUi();if(!btn)return;
   btn.style.display='none';
@@ -148,6 +169,7 @@ async function recoverExisting(){
 let dfAccessChecking=false;
 let dfAccessLastVerified=0;
 function dfAccessLock(reason){
+  removeSavedTransition();
   document.documentElement.classList.remove('df-access-restoring');
   try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}
   gate();
