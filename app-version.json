@@ -1,6 +1,6 @@
 {
-  "version": "1.0.494",
-  "title": "DF EXTRUSOR PRO — Zoom no iPhone",
-  "message": "Permite ampliar a tela com dois dedos (até 5x), mantendo a largura normal do aplicativo. Sem alterações nas equipes, OPs ou dados.",
+  "version": "1.0.495",
+  "title": "DF EXTRUSOR PRO — Inicialização e modo offline",
+  "message": "Reduz o tempo de espera da inicialização quando a conexão está lenta e preserva a abertura por cache quando disponível. Correção inicial de desempenho; ainda não representa eliminação de todos os travamentos.",
   "updatedAt": "2026-10-25"
 }
