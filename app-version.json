@@ -1,6 +1,6 @@
 {
-  "version": "1.0.514",
-  "title": "DF EXTRUSOR PRO — Autorização sem retorno à KEY",
-  "message": "Após validar uma KEY, o aplicativo abre sem recarregar a página nem retornar ao formulário de licença.",
+  "version": "1.0.515",
+  "title": "DF EXTRUSOR PRO — Códigos de parada",
+  "message": "Adicionados EMENDA BOBINA (11) e FORA DE ESPESSURA (12) ao PDF; MATERIAL MOLHADO já constava como código 05.",
   "updatedAt": "2026-10-25"
 }
