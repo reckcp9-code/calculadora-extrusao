@@ -1,6 +1,6 @@
 {
-  "version": "1.0.513",
-  "title": "DF EXTRUSOR PRO — Fotos separadas",
-  "message": "Arquivo de fotos de produção removido da navegação de Formulação, preservando OPs e imagens armazenadas.",
+  "version": "1.0.514",
+  "title": "DF EXTRUSOR PRO — Autorização sem retorno à KEY",
+  "message": "Após validar uma KEY, o aplicativo abre sem recarregar a página nem retornar ao formulário de licença.",
   "updatedAt": "2026-10-25"
 }
