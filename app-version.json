@@ -1,6 +1,6 @@
 {
-  "version": "1.0.510",
-  "title": "DF EXTRUSOR PRO — Sanfona centralizada",
-  "message": "Largura do filme fechado apresentada em três linhas centralizadas no dimensionamento da sanfona: título, medida e conta.",
+  "version": "1.0.511",
+  "title": "DF EXTRUSOR PRO — KEY preservada após atualização",
+  "message": "Atualizar o aplicativo não apaga a KEY salva e falhas temporárias de rede não redirecionam para a tela de licença. Pausa e reset continuam revogando a sessão.",
   "updatedAt": "2026-10-25"
 }
