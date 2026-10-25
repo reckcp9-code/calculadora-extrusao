@@ -96,7 +96,7 @@
       if(!selected.expiresAt){result.textContent='Esta KEY não possui prazo informado pelo servidor. Não é seguro somar dias sem confirmar a validade.';return}
       if(!confirm('Adicionar +'+days+' dia(s) somente à KEY '+selected.licenseKey+'?'))return;
       busy=true;apply.disabled=true;result.textContent='Atualizando KEY...';
-      try{await setDays(selected,days);result.textContent='KEY atualizada com sucesso. Atualizando lista...';const refresh=document.getElementById('usedBtn');if(refresh)refresh.click()}
+      try{await setDays(selected,days);result.textContent='Dias adicionados com sucesso à KEY selecionada.';const refresh=document.getElementById('usedBtn');if(refresh&&!refresh.disabled)refresh.click()}
       catch(e){result.textContent='Erro: '+e.message}
       finally{busy=false;lookup()}
     };
@@ -115,12 +115,12 @@
     try{
       const u=new URL(typeof input==='string'?input:input.url,location.href);
       if(u.pathname==='/admin/access/list-used'&&response.ok){
-        response.clone().json().then(j=>{if(j&&Array.isArray(j.items)){items=j.items;ensureUI();setTimeout(maybeAutoPlus5,180)}}).catch(()=>{});
+        response.clone().json().then(j=>{if(j&&Array.isArray(j.items)){items=j.items;ensureUI();/* sem concessão automática de dias ao carregar */}}).catch(()=>{});
       }
     }catch(e){}
     return response;
   };
 
-  function init(){ensureUI();setInterval(()=>{ensureUI();ensureSingleKeyUI();maybeAutoPlus5()},1200)}
+  function init(){ensureUI();ensureSingleKeyUI()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
