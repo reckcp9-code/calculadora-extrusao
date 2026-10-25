@@ -1,6 +1,6 @@
 {
-  "version": "1.0.517",
-  "title": "DF EXTRUSOR PRO — Abertura sem espera de cache",
-  "message": "O carregamento inicial não aguarda mais a gravação do HTML em cache; removido disparo duplicado do evento de interface pronta. Dados e layout preservados.",
+  "version": "1.0.518",
+  "title": "DF EXTRUSOR PRO — Entrada automática rápida",
+  "message": "Com KEY salva, abre a interface imediatamente e revalida a sessão em segundo plano. KEY manual permanece para novos acessos e resets; pausa/revogação confirmada bloqueia.",
   "updatedAt": "2026-10-25"
 }
