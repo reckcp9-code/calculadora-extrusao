@@ -1,6 +1,6 @@
 {
-  "version": "1.0.502",
-  "title": "DF EXTRUSOR PRO — Estoque completo de KEYs",
-  "message": "Painel Gerador mostra todas as KEYs no estoque e exibe COPIAR KEY LIVRE ao lado somente das disponíveis, com pesquisa e filtro opcional.",
+  "version": "1.0.503",
+  "title": "DF EXTRUSOR PRO — Estoque no painel inicial",
+  "message": "Novo quadradinho ESTOQUE DE KEYS ao lado de MONITORAMENTO ONLINE. Abre a lista completa automaticamente e permite copiar individualmente apenas KEYs livres.",
   "updatedAt": "2026-10-24"
 }
