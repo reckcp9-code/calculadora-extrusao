@@ -169,8 +169,13 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     if(!confirm(question))return;
     if(btn){btn.disabled=true;btn.textContent=pausing?'PAUSANDO...':'REATIVANDO...'}
     try{
-      const j=await post('/admin/access/'+action,{keyId:it.id});
-      await reloadAll(targetMsg,j.message||(pausing?'Acesso pausado.':'Acesso reativado.'));
+      const request=post('/admin/access/'+action,{keyId:it.id});
+      const j=await Promise.race([request,new Promise((_,reject)=>setTimeout(()=>reject(new Error('O servidor demorou para responder. Atualize os acessos antes de tentar novamente, para evitar operações duplicadas.')),12000))]);
+      if(targetMsg){$(targetMsg).textContent=j.message||(pausing?'Acesso pausado.':'Reativação confirmada pelo servidor.');$(targetMsg).className='status ok'}
+      // Não bloquear o botão aguardando três consultas adicionais.
+      if(btn){btn.disabled=false;btn.textContent=pausing?'PAUSAR':'REATIVAR'}
+      const refresh=$('usedBtn');if(refresh&&!refresh.disabled)refresh.click();
+      status(false).catch(()=>{});
     }catch(e){if(targetMsg){$(targetMsg).textContent=e.message;$(targetMsg).className='status bad'}if(btn){btn.disabled=false;btn.textContent=pausing?'PAUSAR':'REATIVAR'}}
   }
 
