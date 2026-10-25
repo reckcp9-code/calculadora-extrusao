@@ -74,14 +74,19 @@ function writeCookie(name,value){try{document.cookie=name+'='+encodeURIComponent
 function makeCode(id){let h=2166136261;const s=String(id||'DF');for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}h>>>=0;const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let x=h,out='';for(let i=0;i<4;i++){out+=alphabet[x&31];x=(x>>>5)^Math.imul(x,2654435761);x>>>=0}return'DF-'+out.slice(0,2)+'-'+out.slice(2,4)}
 function automaticIdentity(){let code=readCookie(USER_COOKIE);try{if(!code)code=String(localStorage.getItem(USER_KEY)||'').trim()}catch(e){}if(!/^DF-[A-Z0-9]{2}-[A-Z0-9]{2}$/.test(code))code=makeCode(device());try{localStorage.setItem(USER_KEY,code)}catch(e){}writeCookie(USER_COOKIE,code);window.DF_AUTO_USER=code;return code}
 async function restore(){
-  if(!saved())return false;
-  gate();
+  const credential=saved();
+  if(!credential)return false;
+  // Atualizações e quedas de internet não são revogações de licença.
+  // Mantenha a tela do app visível enquanto o servidor responde.
   try{
-    const r=await request('/access/session',{credential:saved(),deviceId:device()},9000);let j={};try{j=await r.json()}catch(e){}
+    const r=await request('/access/session',{credential,deviceId:device()},9000);
+    let j={};try{j=await r.json()}catch(e){}
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
-    if([401,403,404,410].includes(r.status)){localStorage.removeItem(ACCESS_KEY);sessionStorage.removeItem(TOKEN_KEY);gate();return false}
-    gate();return false
-  }catch(e){gate();return false}
+    if(j.paused===true||r.status===423){dfAccessLock('KEY pausada pelo administrador.');return false}
+    if(j.revoked===true||r.status===410){dfAccessLock('Acesso resetado. Digite sua KEY novamente.',true);return false}
+    // Respostas ambíguas, indisponibilidade e erro de rede nunca apagam a KEY.
+    unlock();return true
+  }catch(e){unlock();return true}
 }
 function ensureIdentityUi(){
   gate();
@@ -201,15 +206,14 @@ async function dfAccessRevalidate(){
     if(r.ok&&j.ok!==false&&j.token){
       sessionStorage.setItem(TOKEN_KEY,String(j.token));
       dfAccessLastVerified=Date.now();
-    }else if([401,403,404,410,423].includes(r.status)||j.paused===true||j.revoked===true){
-      const reset=([401,404,410].includes(r.status)&&/inválid|revogad|reset|aparelho/i.test(String(j.error||'')));
+    }else if(r.status===423||j.paused===true||r.status===410||j.revoked===true){
+      const reset=r.status===410||j.revoked===true;
       dfAccessLock(reset?'Aparelho resetado. Digite a mesma KEY ou outra KEY para entrar.':'KEY pausada, vencida ou bloqueada. Solicite a liberação ao administrador.',reset);
     }else{
-      // Em falhas temporárias, não manter o aplicativo aberto indefinidamente.
-      if(Date.now()-dfAccessLastVerified>60000)dfAccessLock('Não foi possível confirmar sua licença. Verifique a conexão.');
+      // Falha temporária ou resposta ambígua: manter sessão e KEY intactas.
     }
   }catch(e){
-    if(Date.now()-dfAccessLastVerified>60000)dfAccessLock('Não foi possível confirmar sua licença. Verifique a conexão.');
+    // Offline: não forçar retorno à tela de licença.
   }finally{dfAccessChecking=false}
 }
 window.addEventListener('df-auth-ready',function(){
