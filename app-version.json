@@ -1,6 +1,6 @@
 {
-  "version": "1.0.485",
-  "title": "DF EXTRUSOR PRO — Entrada direta sem tela de KEY",
-  "message": "Usuários com acesso salvo entram diretamente no aplicativo; a atualização geral não mostra o formulário de KEY. A KEY permanece exigida em novos acessos e bloqueios.",
+  "version": "1.0.486",
+  "title": "DF EXTRUSOR PRO — Painel ADM mais prático",
+  "message": "Início do painel com ações rápidas para clientes, keys, pausar/reativar e equipes; navegação compacta e indicadores acessíveis.",
   "updatedAt": "2026-10-24"
 }
