@@ -1,6 +1,6 @@
 {
-  "version": "1.0.498",
-  "title": "DF EXTRUSOR PRO — Densidade PE reciclado",
-  "message": "Incluída opção 0,980 — PE RECICLADO nos seletores de densidade da extrusão e da sacoleira, mantendo as opções anteriores.",
+  "version": "1.0.499",
+  "title": "DF EXTRUSOR PRO — Entrada após atualização",
+  "message": "Corrige a transição visual que podia ficar presa após autorizar atualização. A tela de transição é removida ao iniciar a interface ou após limite de segurança, sem alterar validação da KEY.",
   "updatedAt": "2026-10-25"
 }
