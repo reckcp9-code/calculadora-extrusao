@@ -201,24 +201,62 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
     await loadStock();await loadUsedKeys();await status(false);
   }
 
+  const dfAccessMutations=new Set();
   async function toggleAccess(it,action,targetMsg,btn){
     if(!it||!it.id)return;
+    const keyId=Number(it.id);
+    if(!Number.isSafeInteger(keyId)||keyId<=0)return;
+    if(dfAccessMutations.has(keyId))return;
     const pausing=action==='pause';
     const nome=it.identity||'este acesso';
     const question=pausing
       ?'Pausar o acesso de '+nome+'?\n\nO aparelho será bloqueado imediatamente. A key continuará reservada para o mesmo usuário.'
       :'Reativar o acesso de '+nome+'?\n\nO Worker vai confirmar a key no LicenseAuth antes de liberar.';
     if(!confirm(question))return;
+    dfAccessMutations.add(keyId);
+    const originalText=btn?.textContent||'';
     if(btn){btn.disabled=true;btn.textContent=pausing?'PAUSANDO...':'REATIVANDO...'}
+    if(targetMsg&&$(targetMsg)){$(targetMsg).textContent='Confirmando operação no servidor...';$(targetMsg).className='status'}
     try{
-      const request=post('/admin/access/'+action,{keyId:it.id});
-      const j=await Promise.race([request,new Promise((_,reject)=>setTimeout(()=>reject(new Error('A validação do LicenseAuth não respondeu em até 28 segundos. Confira o estado da KEY antes de tentar novamente.')),28000))]);
-      if(targetMsg){$(targetMsg).textContent=j.message||(pausing?'Acesso pausado.':'Reativação confirmada pelo servidor.');$(targetMsg).className='status ok'}
-      // Não bloquear o botão aguardando três consultas adicionais.
-      if(btn){btn.disabled=false;btn.textContent=pausing?'PAUSAR':'REATIVAR'}
-      const refresh=$('usedBtn');if(refresh&&!refresh.disabled)refresh.click();
-      status(false).catch(()=>{});
-    }catch(e){if(targetMsg){$(targetMsg).textContent='FALHA AO '+(pausing?'PAUSAR':'REATIVAR')+': '+e.message;$(targetMsg).className='status bad';$(targetMsg).scrollIntoView({behavior:'smooth',block:'center'})}alert('Não foi possível '+(pausing?'pausar':'reativar')+' esta KEY. Motivo: '+e.message);if(btn){btn.disabled=false;btn.textContent=pausing?'PAUSAR':'REATIVAR'}}
+      // O tempo limite não significa que a operação falhou: confirmar o estado antes de permitir nova tentativa.
+      let requestError=null;
+      try{
+        await Promise.race([
+          post('/admin/access/'+action,{keyId}),
+          new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo de resposta excedido.')),16000))
+        ]);
+      }catch(e){requestError=e}
+      let confirmed=false,latest=null;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          const result=await Promise.race([
+            post('/admin/access/list-used',{}),
+            new Promise((_,reject)=>setTimeout(()=>reject(new Error('Consulta excedeu o limite.')),6000))
+          ]);
+          if(Array.isArray(result.items)){
+            usedItems=result.items;
+            latest=usedItems.find(x=>Number(x.id)===keyId);
+            const state=String(latest?.status||'').toLowerCase();
+            confirmed=pausing?state==='paused':state==='used';
+            if(confirmed)break;
+          }
+        }catch(e){if(!requestError)requestError=e}
+        if(attempt<2)await new Promise(resolve=>setTimeout(resolve,550));
+      }
+      if(confirmed){
+        if(targetMsg&&$(targetMsg)){$(targetMsg).textContent=pausing?'Acesso PAUSADO e confirmado.':'Acesso REATIVADO e confirmado.';$(targetMsg).className='status ok'}
+        renderUsed();
+        status(false).catch(()=>{});
+      }else{
+        const reason=requestError?.message||'Estado ainda não confirmado.';
+        if(targetMsg&&$(targetMsg)){$(targetMsg).textContent='Não foi possível confirmar a alteração: '+reason+' Atualize a lista antes de tentar novamente.';$(targetMsg).className='status bad'}
+        // Nunca afirmar sucesso nem repetir automaticamente uma alteração de licença.
+        if(Array.isArray(usedItems)&&usedItems.length)renderUsed();
+      }
+    }finally{
+      dfAccessMutations.delete(keyId);
+      if(btn&&btn.isConnected){btn.disabled=false;btn.textContent=originalText}
+    }
   }
 
   function updateStockSelection(){
