@@ -53,7 +53,7 @@ function open(sel){
       const pick=document.createElement('button');
       pick.type='button';
       pick.className='df-fp-item';
-      pick.innerHTML='<span class="df-fp-check">'+(x.value===data.selected?'✓':'')+'</span><span>'+String(x.text).replace(/\s*[—-]\s*/g,'<small> — </small>')+'</span>';
+      pick.innerHTML='<span class="df-fp-check">'+(x.value===data.selected?'✓':'')+'</span><span>'+String(x.text).toLocaleUpperCase('pt-BR').replace(/\s*[—-]\s*/g,'<small> — </small>')+'</span>';
       pick.onclick=e=>{
         if(Date.now()<suppressUntil){e.preventDefault();e.stopPropagation();return}
         // A primeira seleção deve atualizar o SELECT e os ouvintes imediatamente.
