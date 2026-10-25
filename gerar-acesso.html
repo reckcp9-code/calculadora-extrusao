@@ -419,22 +419,13 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 <script src="./gerador-owner-recovery-v191.js?v=20261009-admin-static-v2"></script>
 <script id="dfAdminPagesScript">
 (function(){
-const pages=[
-['visao','VISÃO GERAL','Resumo e indicadores','resumo'],
-['usuarios','USUÁRIOS','Clientes e acessos','gerenciar'],
-['licencas','LICENÇAS / KEYS','Estoque e novas keys','acessos','adicionar','estoque'],
-['equipes','EQUIPES','Códigos e membros','equipes'],
-['dispositivos','DISPOSITIVOS','Aparelhos vinculados','gerenciar'],
-['financeiro','FINANCEIRO','Receitas e pagamentos'],
-['historico','HISTÓRICO','Auditoria administrativa'],
-['configuracoes','CONFIGURAÇÕES','Segurança e administração']
-];
+const pages=[['usuarios','GERENCIAR CLIENTES','Clientes e acessos','gerenciar'],['visao','INDICADORES DE LICENÇAS','Resumo de licenças','resumo']];
 const wrap=document.querySelector('.wrap'),hero=document.querySelector('.adminHero');if(!wrap||!hero)return;
 const home=document.createElement('div');home.className='dfAdminHome';home.id='dfAdminHome';
-const intro=document.createElement('div');intro.className='dfAdminIntro';intro.innerHTML='<strong>O QUE VOCÊ QUER FAZER?</strong><span>Escolha uma ação. Os controles ficam separados por assunto, sem misturar as funções.</span>';
+const intro=document.createElement('div');intro.className='dfAdminIntro';intro.innerHTML='<strong>PAINEL ADMINISTRATIVO</strong><span>Gerenciar clientes e indicadores de licenças.</span>';
 hero.insertAdjacentElement('afterend',intro);
 const quick=document.createElement('div');quick.className='dfAdminQuick';
-const quickActions=[['👤 GERENCIAR CLIENTE','usuarios'],['🔑 CRIAR / LIBERAR KEY','licencas'],['⏸ PAUSAR / REATIVAR','usuarios'],['👥 VER EQUIPES','equipes']];
+const quickActions=[];
 quickActions.forEach(([label,key])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>show(key);quick.appendChild(b)});
 intro.insertAdjacentElement('afterend',quick);
 
@@ -450,7 +441,7 @@ const metricObserver=new MutationObserver(syncMetrics);const countBox=document.q
 const nativeFetch=window.fetch.bind(window);
 window.fetch=async function(input,init){const response=await nativeFetch(input,init);try{const u=new URL(typeof input==='string'?input:input.url,location.href);if(u.pathname==='/admin/access/list-used'&&response.ok){response.clone().json().then(j=>{if(!Array.isArray(j.items))return;const now=Date.now(),week=now+7*86400000;const exp=j.items.filter(it=>{const t=Date.parse(String(it.expiresAt||''));return Number.isFinite(t)&&t>now&&t<=week}).length;const target=document.getElementById('dfMetricExpiring');if(target)target.textContent=String(exp)}).catch(()=>{})}}catch(e){}return response};
 const sections=['resumo','gerenciar','acessos','adicionar','estoque','equipes'];
-function show(key){const page=pages.find(p=>p[0]===key);intro.classList.toggle('dfAdminHidden',!!page);quick.classList.toggle('dfAdminHidden',!!page);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');finance.classList.toggle('dfAdminHidden',key!=='financeiro');audit.classList.toggle('dfAdminHidden',key!=='historico');metrics.classList.toggle('dfAdminHidden',key!=='visao'&&key!=='');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',!page||!page.slice(3).includes(id))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Central de gerenciamento de acessos, licenças, aparelhos e estoque de chaves.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
+function show(key){const page=pages.find(p=>p[0]===key);intro.classList.toggle('dfAdminHidden',!!page);quick.classList.toggle('dfAdminHidden',!!page);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');finance.classList.toggle('dfAdminHidden',key!=='financeiro');audit.classList.toggle('dfAdminHidden',key!=='historico');metrics.classList.add('dfAdminHidden');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',id==='resumo'?false:(!page||!page.slice(3).includes(id)))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Gerencie clientes e acompanhe suas licenças.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
 show(pages.some(p=>'#'+p[0]===location.hash)?location.hash.slice(1):'');
 })();
 </script></body>
