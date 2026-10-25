@@ -1,6 +1,6 @@
 {
-  "version": "1.0.488",
-  "title": "DF EXTRUSOR PRO — Painel ADM simplificado",
-  "message": "Painel administrativo com apenas Gerenciar Clientes e Indicadores de Licenças. Demais menus ocultos, mantendo dados e rotinas internas sem exclusões.",
+  "version": "1.0.489",
+  "title": "DF EXTRUSOR PRO — ADM somente clientes e indicadores",
+  "message": "Removidos os menus extras do painel, mantendo somente Gerenciar Clientes e Indicadores de Licenças, sem apagar dados ou rotinas do servidor.",
   "updatedAt": "2026-10-24"
 }
