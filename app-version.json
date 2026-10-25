@@ -1,6 +1,6 @@
 {
-  "version": "1.0.504",
-  "title": "DF EXTRUSOR PRO — Tela de KEY após reset",
-  "message": "Ao detectar sessão revogada por reset, limpa o acesso automático e abre a tela de digitar KEY, sem tentar recuperar a sessão antiga automaticamente. Reativação da mesma KEY ainda requer ajuste no Worker.",
+  "version": "1.0.505",
+  "title": "DF EXTRUSOR PRO — Reset de KEY e novo login",
+  "message": "Worker Cloudflare atualizado: reset encerra sessão antiga; mesma KEY pode ser digitada novamente no mesmo celular para recuperar a conta; outra KEY abre sua própria conta. Aplicativo força tela de KEY após reset. Dados preservados.",
   "updatedAt": "2026-10-24"
 }
