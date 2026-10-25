@@ -1,6 +1,6 @@
 {
-  "version": "1.0.495",
-  "title": "DF EXTRUSOR PRO — Inicialização e modo offline",
-  "message": "Reduz o tempo de espera da inicialização quando a conexão está lenta e preserva a abertura por cache quando disponível. Correção inicial de desempenho; ainda não representa eliminação de todos os travamentos.",
+  "version": "1.0.496",
+  "title": "DF EXTRUSOR PRO — Seleção de formulação no primeiro toque",
+  "message": "A seleção de formulações salvas agora confirma o valor imediatamente e dispara os eventos de entrada e alteração no primeiro toque. Cache do seletor atualizado.",
   "updatedAt": "2026-10-25"
 }
