@@ -290,7 +290,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
   // Sincronização visual periódica: o servidor continua sendo a fonte da verdade.
   let dfStockSyncBusy=false;
   async function dfSyncStock(){
-    if(dfStockSyncBusy||document.hidden||!String($('secret')?.value||'').trim())return;
+    if(dfStockSyncBusy||document.hidden||!['#licencas','#visao'].includes(location.hash)||!String($('secret')?.value||'').trim())return;
     dfStockSyncBusy=true;
     try{
       const [stock,statusData]=await Promise.all([
@@ -312,7 +312,7 @@ html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 50% -10%,
     }catch(e){/* manter dados anteriores e permitir atualização manual */}
     finally{dfStockSyncBusy=false}
   }
-  setInterval(dfSyncStock,15000);
+  setInterval(dfSyncStock,30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)dfSyncStock()});
   try{
     const savedSecret=String(localStorage.getItem(ADMIN_SECRET_KEY)||'').trim();
