@@ -419,7 +419,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 <script src="./gerador-owner-recovery-v191.js?v=20261009-admin-static-v2"></script>
 <script id="dfAdminPagesScript">
 (function(){
-const pages=[['usuarios','GERENCIAR CLIENTES','Clientes e acessos','gerenciar'],['visao','INDICADORES DE LICENÇAS','Resumo de licenças','resumo']];
+const pages=[['usuarios','GERENCIAR CLIENTES','Clientes e acessos','gerenciar'],['visao','INDICADORES DE LICENÇAS','Resumo de licenças','resumo'],['online','MONITORAMENTO ONLINE','Acompanhar usuários conectados']];
 const wrap=document.querySelector('.wrap'),hero=document.querySelector('.adminHero');if(!wrap||!hero)return;
 const home=document.createElement('div');home.className='dfAdminHome';home.id='dfAdminHome';
 const intro=document.createElement('div');intro.className='dfAdminIntro';intro.innerHTML='<strong>PAINEL ADMINISTRATIVO</strong><span>Gerenciar clientes e indicadores de licenças.</span>';
@@ -435,13 +435,37 @@ const bar=document.createElement('div');bar.id='dfAdminBar';bar.className='dfAdm
 const config=document.createElement('div');config.id='dfAdminConfig';config.className='card dfAdminHidden';config.innerHTML='<h2>Configurações administrativas</h2><p class="sub">A senha administrativa e a opção de salvar neste aparelho ficam na Visão Geral. As permissões e os dados do sistema permanecem inalterados.</p>';bar.insertAdjacentElement('afterend',config);
 const finance=document.createElement('div');finance.id='dfFinance';finance.className='card dfAdminHidden';finance.innerHTML='<h2>Controle financeiro</h2><p class="sub">Área preparada para valores de licenças, pagamentos e faturamento mensal. A integração financeira ainda não está conectada; nenhum pagamento será considerado confirmado sem registro no servidor.</p>';bar.insertAdjacentElement('afterend',finance);
 const audit=document.createElement('div');audit.id='dfAudit';audit.className='card dfAdminHidden';audit.innerHTML='<h2>Histórico administrativo</h2><p class="sub">Para registrar alterações de KEYs, renovações, pausas e exclusões com segurança, é necessário um histórico persistente no servidor. Esta tela não apresenta eventos fictícios.</p>';bar.insertAdjacentElement('afterend',audit);
+const online=document.createElement('div');online.id='dfOnlineMonitor';online.className='card dfAdminHidden';
+online.innerHTML='<h2>Monitoramento do aplicativo</h2><p class="sub">Acompanhe quem está conectado ao DF Extrusor Pro. O status ONLINE só será mostrado quando houver confirmação recente do servidor.</p><div class="counts"><div class="count"><b id="dfOnlineCount">—</b><span>ONLINE AGORA</span></div><div class="count"><b id="dfOfflineCount">—</b><span>SEM ATIVIDADE</span></div></div><button class="btn copy" type="button" id="dfOnlineRefresh">ATUALIZAR MONITORAMENTO</button><div class="status" id="dfOnlineMessage">Aguardando integração de presença no servidor.</div><div id="dfOnlineList" class="usedList"></div>';
+bar.insertAdjacentElement('afterend',online);
+let onlineLoading=false;
+async function refreshOnline(){
+ if(onlineLoading)return;onlineLoading=true;
+ const msg=document.getElementById('dfOnlineMessage');
+ try{
+  const secret=document.getElementById('secret')?.value.trim();
+  if(!secret)throw new Error('Informe a senha administrativa em Indicadores de Licenças.');
+  const res=await fetch('https://df-extrusor-api.reck-cp9.workers.dev/admin/access/online',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:'{}',cache:'no-store'});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||data.ok===false)throw new Error(data.error||'O servidor ainda não disponibiliza monitoramento em tempo real.');
+  const users=Array.isArray(data.items)?data.items:[];
+  document.getElementById('dfOnlineCount').textContent=String(users.filter(x=>x.online===true).length);
+  document.getElementById('dfOfflineCount').textContent=String(users.filter(x=>x.online!==true).length);
+  const list=document.getElementById('dfOnlineList');list.replaceChildren();
+  for(const u of users){const card=document.createElement('div');card.className='usedItem';const name=document.createElement('strong');name.textContent=String(u.name||u.identity||'Usuário');const st=document.createElement('div');st.className='usedMeta';st.textContent=u.online===true?'● ONLINE':'○ SEM ATIVIDADE RECENTE';card.append(name,st);list.appendChild(card)}
+  msg.textContent=users.length?'Dados atualizados.':'Nenhum usuário identificado pelo servidor.';
+ }catch(e){document.getElementById('dfOnlineCount').textContent='—';document.getElementById('dfOfflineCount').textContent='—';document.getElementById('dfOnlineList').replaceChildren();msg.textContent='Monitoramento ainda indisponível: '+e.message}
+ finally{onlineLoading=false}
+}
+document.getElementById('dfOnlineRefresh').onclick=refreshOnline;
+setInterval(()=>{if(!online.classList.contains('dfAdminHidden')&&!document.hidden)refreshOnline()},30000);
 const metrics=document.createElement('div');metrics.id='dfMetrics';metrics.className='card dfAdminHidden';metrics.innerHTML='<h2>Indicadores de licenças</h2><div class="counts"><div class="count"><b id="dfMetricFree">—</b><span>KEYS LIVRES</span></div><div class="count"><b id="dfMetricUsed">—</b><span>EM USO</span></div><div class="count"><b id="dfMetricPaused">—</b><span>PAUSADAS</span></div><div class="count"><b id="dfMetricExpiring">—</b><span>VENCEM EM 7 DIAS</span></div></div><p class="sub">Os indicadores são calculados a partir das respostas do servidor; dados indisponíveis aparecem como —.</p>';bar.insertAdjacentElement('afterend',metrics);
 function syncMetrics(){for(const [from,to] of [['free','dfMetricFree'],['used','dfMetricUsed'],['paused','dfMetricPaused']]){const a=document.getElementById(from),b=document.getElementById(to);if(a&&b)b.textContent=a.textContent} }
 const metricObserver=new MutationObserver(syncMetrics);const countBox=document.querySelector('#resumo .counts');if(countBox)metricObserver.observe(countBox,{subtree:true,childList:true,characterData:true});syncMetrics();
 const nativeFetch=window.fetch.bind(window);
 window.fetch=async function(input,init){const response=await nativeFetch(input,init);try{const u=new URL(typeof input==='string'?input:input.url,location.href);if(u.pathname==='/admin/access/list-used'&&response.ok){response.clone().json().then(j=>{if(!Array.isArray(j.items))return;const now=Date.now(),week=now+7*86400000;const exp=j.items.filter(it=>{const t=Date.parse(String(it.expiresAt||''));return Number.isFinite(t)&&t>now&&t<=week}).length;const target=document.getElementById('dfMetricExpiring');if(target)target.textContent=String(exp)}).catch(()=>{})}}catch(e){}return response};
 const sections=['resumo','gerenciar','acessos','adicionar','estoque','equipes'];
-function show(key){const page=pages.find(p=>p[0]===key);intro.classList.toggle('dfAdminHidden',!!page);quick.classList.toggle('dfAdminHidden',!!page);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');finance.classList.toggle('dfAdminHidden',key!=='financeiro');audit.classList.toggle('dfAdminHidden',key!=='historico');metrics.classList.add('dfAdminHidden');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',id==='resumo'?false:(!page||!page.slice(3).includes(id)))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Gerencie clientes e acompanhe suas licenças.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
+function show(key){const page=pages.find(p=>p[0]===key);intro.classList.toggle('dfAdminHidden',!!page);quick.classList.toggle('dfAdminHidden',!!page);home.classList.toggle('dfAdminHidden',!!page);bar.classList.toggle('dfAdminHidden',!page);config.classList.toggle('dfAdminHidden',key!=='configuracoes');finance.classList.toggle('dfAdminHidden',key!=='financeiro');audit.classList.toggle('dfAdminHidden',key!=='historico');online.classList.toggle('dfAdminHidden',key!=='online');if(key==='online')refreshOnline();metrics.classList.add('dfAdminHidden');title.textContent=page?page[1]:'';sections.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('dfAdminHidden',id==='resumo'?false:(!page||!page.slice(3).includes(id)))});hero.querySelector('p').textContent=page?'Área: '+page[1]:'Gerencie clientes e acompanhe suas licenças.';if(key==='dispositivos'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar aparelhos e acessos'}else if(key==='usuarios'){const h=document.querySelector('#gerenciar h2');if(h)h.textContent='Gerenciar usuários e acessos'}history.replaceState(null,'',location.pathname+location.search+(key?'#'+key:''));window.scrollTo(0,0)}
 show(pages.some(p=>'#'+p[0]===location.hash)?location.hash.slice(1):'');
 })();
 </script></body>
