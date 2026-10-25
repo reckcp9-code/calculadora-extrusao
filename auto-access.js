@@ -84,7 +84,8 @@ async function restore(){
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
     if(j.paused===true||r.status===423){dfAccessLock('KEY pausada pelo administrador.');return false}
     if(j.revoked===true||r.status===410){dfAccessLock('Acesso resetado. Digite sua KEY novamente.',true);return false}
-    // Respostas ambíguas, indisponibilidade e erro de rede nunca apagam a KEY.
+    if(r.status===401||r.status===403){gate();msg('Não foi possível validar a licença. Tente novamente quando houver conexão.',false);return true}
+    // Respostas temporárias não apagam a KEY nem forçam um novo login.
     unlock();return true
   }catch(e){unlock();return true}
 }
