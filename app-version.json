@@ -1,6 +1,6 @@
 {
-  "version": "1.0.506",
-  "title": "DF EXTRUSOR PRO — Instalação antes da KEY",
-  "message": "Na tela de licença, iPhone exibe tutorial de adicionar à tela inicial pelo Safari; Android oferece instalação nativa quando suportada. Acesso no navegador permanece opcional e usuários já instalados não são interrompidos.",
+  "version": "1.0.507",
+  "title": "DF EXTRUSOR PRO — Dica de instalação discreta",
+  "message": "Tutorial de instalação no canto inferior direito, preservando a imagem DF e a tela de digitar KEY.",
   "updatedAt": "2026-10-24"
 }
