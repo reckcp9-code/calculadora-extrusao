@@ -1,6 +1,6 @@
 {
-  "version": "1.0.490",
-  "title": "DF EXTRUSOR PRO — Recuperação do Painel ADM",
-  "message": "Restaura o HTML completo do painel administrativo e reforça carregamento atualizado para evitar código bruto na tela.",
+  "version": "1.0.491",
+  "title": "DF EXTRUSOR PRO — Monitoramento online no ADM",
+  "message": "Adicionada tela de monitoramento de usuários, com atualização a cada 30 segundos e indicação de indisponibilidade até integração de presença no Worker.",
   "updatedAt": "2026-10-24"
 }
