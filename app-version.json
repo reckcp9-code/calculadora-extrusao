@@ -1,6 +1,6 @@
 {
-  "version": "1.0.501",
-  "title": "DF EXTRUSOR PRO — KEYs livres no Painel Gerador",
-  "message": "Painel Gerador abre estoque filtrando KEYs livres, oferece pesquisa por KEY e cópia individual para envio ao cliente, sem ativação automática.",
+  "version": "1.0.502",
+  "title": "DF EXTRUSOR PRO — Estoque completo de KEYs",
+  "message": "Painel Gerador mostra todas as KEYs no estoque e exibe COPIAR KEY LIVRE ao lado somente das disponíveis, com pesquisa e filtro opcional.",
   "updatedAt": "2026-10-24"
 }
