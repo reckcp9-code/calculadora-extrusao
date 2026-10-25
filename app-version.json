@@ -1,6 +1,6 @@
 {
-  "version": "1.0.496",
-  "title": "DF EXTRUSOR PRO — Seleção de formulação no primeiro toque",
-  "message": "A seleção de formulações salvas agora confirma o valor imediatamente e dispara os eventos de entrada e alteração no primeiro toque. Cache do seletor atualizado.",
+  "version": "1.0.497",
+  "title": "DF EXTRUSOR PRO — Fórmulas em maiúsculas",
+  "message": "Os nomes das formulações salvas passam a ser exibidos sempre em letras maiúsculas na tela de seleção, sem modificar os registros originais.",
   "updatedAt": "2026-10-25"
 }
