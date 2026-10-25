@@ -1,6 +1,6 @@
 {
-  "version": "1.0.503",
-  "title": "DF EXTRUSOR PRO — Estoque no painel inicial",
-  "message": "Novo quadradinho ESTOQUE DE KEYS ao lado de MONITORAMENTO ONLINE. Abre a lista completa automaticamente e permite copiar individualmente apenas KEYs livres.",
+  "version": "1.0.504",
+  "title": "DF EXTRUSOR PRO — Tela de KEY após reset",
+  "message": "Ao detectar sessão revogada por reset, limpa o acesso automático e abre a tela de digitar KEY, sem tentar recuperar a sessão antiga automaticamente. Reativação da mesma KEY ainda requer ajuste no Worker.",
   "updatedAt": "2026-10-24"
 }
