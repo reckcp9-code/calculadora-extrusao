@@ -1,6 +1,6 @@
 {
-  "version": "1.0.499",
-  "title": "DF EXTRUSOR PRO — Entrada após atualização",
-  "message": "Corrige a transição visual que podia ficar presa após autorizar atualização. A tela de transição é removida ao iniciar a interface ou após limite de segurança, sem alterar validação da KEY.",
+  "version": "1.0.500",
+  "title": "DF EXTRUSOR PRO — Painel administrativo",
+  "message": "Correção do fluxo de PAUSAR e REATIVAR no painel: bloqueia ações repetidas, consulta o estado no servidor e recupera os botões após atrasos. Nenhuma licença foi alterada nesta atualização.",
   "updatedAt": "2026-10-25"
 }
