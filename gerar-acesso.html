@@ -128,8 +128,8 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 
   <div class="card" id="estoque">
     <h2>Estoque de licenças</h2>
-    <div class="sub">Puxe todas as KEYs livres, procure a desejada e toque em COPIAR KEY para enviar ao cliente. Nenhuma KEY será ativada automaticamente.</div>
-    <button class="btn copy" id="stockBtn">🔑 PUXAR KEYS LIVRES DO ESTOQUE</button>\n    <input id="stockSearch" type="search" placeholder="PESQUISAR KEY LIVRE..." autocomplete="off" style="width:100%;margin:10px 0" aria-label="Pesquisar KEY no estoque">
+    <div class="sub">Veja todas as KEYs do estoque e seu status. Somente as LIVRES têm botão COPIAR KEY para enviar ao cliente.</div>
+    <button class="btn copy" id="stockBtn">📦 PUXAR TODAS AS KEYS DO ESTOQUE</button>\n    <input id="stockSearch" type="search" placeholder="PESQUISAR KEY LIVRE..." autocomplete="off" style="width:100%;margin:10px 0" aria-label="Pesquisar KEY no estoque">
     <button class="btn alt" id="stockFreeOnlyBtn" aria-pressed="false">🔑 VER SOMENTE KEYS LIVRES</button>
     <button class="btn copy" id="copyFreeKeyBtn">📋 COPIAR UMA KEY LIVRE</button>
     <div class="bulkBar" id="stockBulkBar" style="display:none">
@@ -160,7 +160,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
   const ADMIN_SECRET_KEY='df_access_admin_secret_saved_v1';
   let usedItems=[];
   let stockItems=[];
-  let freeOnly=true;
+  let freeOnly=false;
   const selectedStock=new Set();
 
   async function post(path,body){
@@ -270,7 +270,8 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 
   function renderStock(){
     const has=stockItems.length>0;
-    const term=String($('stockSearch')?.value||'').trim().toLowerCase();\n    const visibleItems=stockItems.filter(it=>(!freeOnly||it.status==='free')&&(!term||String(it.licenseKey||'').toLowerCase().includes(term)||String(it.identity||'').toLowerCase().includes(term)));
+    const term=String($('stockSearch')?.value||'').trim().toLowerCase();
+    const visibleItems=stockItems.filter(it=>(!freeOnly||it.status==='free')&&(!term||String(it.licenseKey||'').toLowerCase().includes(term)||String(it.identity||'').toLowerCase().includes(term)));
     $('stockFreeOnlyBtn').textContent=freeOnly?'MOSTRAR TODAS AS KEYS':'🔑 VER SOMENTE KEYS LIVRES';
     $('stockFreeOnlyBtn').setAttribute('aria-pressed',String(freeOnly));
     $('stockBulkBar').style.display=has?'flex':'none';
@@ -284,7 +285,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
       return '<div class="usedItem"><label class="stockSelect"><input type="checkbox" data-stock-check="'+i+'"'+checked+'> MARCAR</label><br><span class="pill '+st[1]+'">'+st[0]+'</span><div class="usedTop"><div><div class="usedKey">'+esc(it.licenseKey||'')+'</div><div class="usedMeta"><b>Identificação:</b> '+esc(it.identity||'—')+'<br>Cadastrada: '+esc(datePt(it.createdAt))+'<br>Ativada: '+esc(datePt(it.usedAt))+'<br>Aparelho: '+esc(shortDevice(it.deviceId))+'</div></div><div class="usedActions"><button class="miniBtn" data-stock-copy="'+i+'">COPIAR KEY</button>'+control+del+'</div></div></div>';
     }).join('');
     $('stockList').querySelectorAll('[data-stock-check]').forEach(c=>c.onchange=()=>{const it=visibleItems[Number(c.dataset.stockCheck)];if(!it)return;const id=Number(it.id);if(c.checked)selectedStock.add(id);else selectedStock.delete(id);updateStockSelection()});
-    $('stockList').querySelectorAll('[data-stock-copy]').forEach(b=>b.onclick=async()=>{const it=visibleItems[Number(b.dataset.stockCopy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='COPIAR KEY',1200)}catch(e){}});
+    $('stockList').querySelectorAll('[data-stock-copy]').forEach(b=>b.onclick=async()=>{const it=visibleItems[Number(b.dataset.stockCopy)];if(!it)return;try{await navigator.clipboard.writeText(String(it.licenseKey||''));b.textContent='COPIADA';setTimeout(()=>b.textContent='📋 COPIAR KEY LIVRE',1200)}catch(e){}});
     $('stockList').querySelectorAll('[data-stock-pause]').forEach(b=>b.onclick=()=>toggleAccess(visibleItems[Number(b.dataset.stockPause)],'pause','stockMsg',b));
     $('stockList').querySelectorAll('[data-stock-resume]').forEach(b=>b.onclick=()=>toggleAccess(visibleItems[Number(b.dataset.stockResume)],'resume','stockMsg',b));
     $('stockList').querySelectorAll('[data-stock-delete]').forEach(b=>b.onclick=async()=>{
@@ -297,7 +298,8 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
     updateStockSelection();
   }
 
-  $('stockSearch').addEventListener('input',()=>renderStock());\n  $('stockFreeOnlyBtn').onclick=async()=>{freeOnly=!freeOnly;if(!stockItems.length)await loadStock();else renderStock()};
+  $('stockSearch').addEventListener('input',()=>renderStock());
+  $('stockFreeOnlyBtn').onclick=async()=>{freeOnly=!freeOnly;if(!stockItems.length)await loadStock();else renderStock()};
   $('copyFreeKeyBtn').onclick=async()=>{
     const b=$('copyFreeKeyBtn');
     try{
