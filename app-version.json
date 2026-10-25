@@ -1,6 +1,6 @@
 {
-  "version": "1.0.479",
-  "title": "DF EXTRUSOR PRO — Correção de sincronização de equipe",
-  "message": "Consulta de integrantes com autenticação, renovação de sessão e mensagem de erro quando a sincronização falhar.",
+  "version": "1.0.485",
+  "title": "DF EXTRUSOR PRO — Entrada direta sem tela de KEY",
+  "message": "Usuários com acesso salvo entram diretamente no aplicativo; a atualização geral não mostra o formulário de KEY. A KEY permanece exigida em novos acessos e bloqueios.",
   "updatedAt": "2026-10-24"
 }
