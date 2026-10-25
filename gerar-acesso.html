@@ -436,7 +436,7 @@ const config=document.createElement('div');config.id='dfAdminConfig';config.clas
 const finance=document.createElement('div');finance.id='dfFinance';finance.className='card dfAdminHidden';finance.innerHTML='<h2>Controle financeiro</h2><p class="sub">Área preparada para valores de licenças, pagamentos e faturamento mensal. A integração financeira ainda não está conectada; nenhum pagamento será considerado confirmado sem registro no servidor.</p>';bar.insertAdjacentElement('afterend',finance);
 const audit=document.createElement('div');audit.id='dfAudit';audit.className='card dfAdminHidden';audit.innerHTML='<h2>Histórico administrativo</h2><p class="sub">Para registrar alterações de KEYs, renovações, pausas e exclusões com segurança, é necessário um histórico persistente no servidor. Esta tela não apresenta eventos fictícios.</p>';bar.insertAdjacentElement('afterend',audit);
 const online=document.createElement('div');online.id='dfOnlineMonitor';online.className='card dfAdminHidden';
-online.innerHTML='<h2>Monitoramento do aplicativo</h2><p class="sub">Acompanhe quem está conectado ao DF Extrusor Pro. O status ONLINE só será mostrado quando houver confirmação recente do servidor.</p><div class="counts"><div class="count"><b id="dfOnlineCount">—</b><span>ONLINE AGORA</span></div><div class="count"><b id="dfOfflineCount">—</b><span>SEM ATIVIDADE</span></div></div><button class="btn copy" type="button" id="dfOnlineRefresh">ATUALIZAR MONITORAMENTO</button><div class="status" id="dfOnlineMessage">Aguardando integração de presença no servidor.</div><div id="dfOnlineList" class="usedList"></div>';
+online.innerHTML='<h2>Monitoramento do aplicativo</h2><p class="sub">Acompanhe os acessos com atividade recente no DF Extrusor Pro. A equipe de Formulação será identificada individualmente quando o vínculo de membros estiver disponível no servidor.</p><div class="counts"><div class="count"><b id="dfOnlineCount">—</b><span>ONLINE AGORA</span></div><div class="count"><b id="dfOfflineCount">—</b><span>SEM ATIVIDADE</span></div></div><button class="btn copy" type="button" id="dfOnlineRefresh">ATUALIZAR MONITORAMENTO</button><div class="status" id="dfOnlineMessage">Aguardando integração de presença no servidor.</div><div id="dfOnlineList" class="usedList"></div>';
 bar.insertAdjacentElement('afterend',online);
 let onlineLoading=false;
 async function refreshOnline(){
@@ -445,16 +445,29 @@ async function refreshOnline(){
  try{
   const secret=document.getElementById('secret')?.value.trim();
   if(!secret)throw new Error('Informe a senha administrativa em Indicadores de Licenças.');
-  const res=await fetch('https://df-extrusor-api.reck-cp9.workers.dev/admin/access/online',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:'{}',cache:'no-store'});
+  const res=await fetch('https://df-extrusor-api.reck-cp9.workers.dev/admin/access/list-used',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:'{}',cache:'no-store'});
   const data=await res.json().catch(()=>({}));
-  if(!res.ok||data.ok===false)throw new Error(data.error||'O servidor ainda não disponibiliza monitoramento em tempo real.');
+  if(!res.ok||data.ok===false)throw new Error(data.error||'Não foi possível consultar os acessos.');
+  if(data.degraded)throw new Error('O servidor não retornou dados confiáveis de presença.');
   const users=Array.isArray(data.items)?data.items:[];
-  document.getElementById('dfOnlineCount').textContent=String(users.filter(x=>x.online===true).length);
-  document.getElementById('dfOfflineCount').textContent=String(users.filter(x=>x.online!==true).length);
+  const now=Date.now();
+  const online=u=>u.status==='used'&&Number.isFinite(Date.parse(u.presenceAt))&&now-Date.parse(u.presenceAt)<20*60000&&now>=Date.parse(u.presenceAt);
+  const sorted=users.slice().sort((a,b)=>Number(online(b))-Number(online(a)));
+  document.getElementById('dfOnlineCount').textContent=String(users.filter(online).length);
+  document.getElementById('dfOfflineCount').textContent=String(users.filter(u=>!online(u)).length);
   const list=document.getElementById('dfOnlineList');list.replaceChildren();
-  for(const u of users){const card=document.createElement('div');card.className='usedItem';const name=document.createElement('strong');name.textContent=String(u.name||u.identity||'Usuário');const st=document.createElement('div');st.className='usedMeta';st.textContent=u.online===true?'● ONLINE':'○ SEM ATIVIDADE RECENTE';card.append(name,st);list.appendChild(card)}
-  msg.textContent=users.length?'Dados atualizados.':'Nenhum usuário identificado pelo servidor.';
- }catch(e){document.getElementById('dfOnlineCount').textContent='—';document.getElementById('dfOfflineCount').textContent='—';document.getElementById('dfOnlineList').replaceChildren();msg.textContent='Monitoramento ainda indisponível: '+e.message}
+  for(const u of sorted){
+   const card=document.createElement('div');card.className='usedItem';
+   const name=document.createElement('strong');name.textContent=String(u.identity||'Usuário sem nome');
+   const st=document.createElement('div');st.className='usedMeta';
+   const active=online(u);const at=Date.parse(u.presenceAt);
+   st.textContent=active?'● ONLINE — atividade recente':u.status==='paused'?'⏸ ACESSO PAUSADO':'○ SEM ATIVIDADE RECENTE';
+   const detail=document.createElement('div');detail.className='usedMeta';
+   detail.textContent=Number.isFinite(at)&&at>0?'Último sinal: '+new Date(at).toLocaleString('pt-BR'):'Nenhum sinal de presença registrado';
+   card.append(name,st,detail);list.appendChild(card);
+  }
+  msg.textContent='Presença por aparelho/KEY, considerando online quem enviou sinal nos últimos 20 minutos. A lista de membros da equipe ainda não está vinculada individualmente a estes registros.';
+ }catch(e){document.getElementById('dfOnlineCount').textContent='—';document.getElementById('dfOfflineCount').textContent='—';document.getElementById('dfOnlineList').replaceChildren();msg.textContent='Monitoramento indisponível: '+e.message}
  finally{onlineLoading=false}
 }
 document.getElementById('dfOnlineRefresh').onclick=refreshOnline;
