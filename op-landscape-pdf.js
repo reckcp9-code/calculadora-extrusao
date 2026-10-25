@@ -280,12 +280,17 @@
 
     y-=3;
     const codeW=WIDTH/6;
-    x=MARGIN;
-    ['01 - TROCA DE TELA','02 - ACERTO','03 - M. MECANICA','04 - FALTA DE ENERGIA','05 - MATERIAL MOLHADO','06 - TESTE'].forEach(function(v){cell(x,y,codeW,14,v,{size:5.5,fill:.97});x+=codeW});
-    y-=14;
-    x=MARGIN;
-    ['07 - M. ELETRICA','08 - LIMPEZA DA BORDA','09 - TROCA DE TELA','10 - OUTROS'].forEach(function(v){cell(x,y,codeW,14,v,{size:5.5,fill:.97});x+=codeW});
-    cell(x,y,codeW*2,14,'DF EXTRUSOR PRO',{size:7,bold:true,align:'center',fill:.95});
+    const stopCodes=[
+      '01 - TROCA DE TELA','02 - ACERTO','03 - M. MECANICA',
+      '04 - FALTA DE ENERGIA','05 - MATERIAL MOLHADO','06 - TESTE',
+      '07 - M. ELETRICA','08 - LIMPEZA DA BORDA','09 - TROCA DE TELA',
+      '10 - OUTROS','11 - EMENDA BOBINA','12 - FORA DE ESPESSURA'
+    ];
+    for(let row=0;row<2;row++){
+      x=MARGIN;
+      stopCodes.slice(row*6,row*6+6).forEach(function(v){cell(x,y,codeW,14,v,{size:5.5,fill:.97});x+=codeW});
+      y-=14;
+    }
 
     return makePdf(ops.join('\n'),'OP '+(data.name||''));
   }
