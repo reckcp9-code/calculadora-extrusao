@@ -128,8 +128,8 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 
   <div class="card" id="estoque">
     <h2>Estoque de licenças</h2>
-    <div class="sub">Mostra keys livres, reservadas, em uso, pausadas ou bloqueadas.</div>
-    <button class="btn copy" id="stockBtn">PUXAR LISTA DO ESTOQUE</button>
+    <div class="sub">Puxe todas as KEYs livres, procure a desejada e toque em COPIAR KEY para enviar ao cliente. Nenhuma KEY será ativada automaticamente.</div>
+    <button class="btn copy" id="stockBtn">🔑 PUXAR KEYS LIVRES DO ESTOQUE</button>\n    <input id="stockSearch" type="search" placeholder="PESQUISAR KEY LIVRE..." autocomplete="off" style="width:100%;margin:10px 0" aria-label="Pesquisar KEY no estoque">
     <button class="btn alt" id="stockFreeOnlyBtn" aria-pressed="false">🔑 VER SOMENTE KEYS LIVRES</button>
     <button class="btn copy" id="copyFreeKeyBtn">📋 COPIAR UMA KEY LIVRE</button>
     <div class="bulkBar" id="stockBulkBar" style="display:none">
@@ -160,7 +160,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
   const ADMIN_SECRET_KEY='df_access_admin_secret_saved_v1';
   let usedItems=[];
   let stockItems=[];
-  let freeOnly=false;
+  let freeOnly=true;
   const selectedStock=new Set();
 
   async function post(path,body){
@@ -270,7 +270,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 
   function renderStock(){
     const has=stockItems.length>0;
-    const visibleItems=freeOnly?stockItems.filter(it=>it.status==='free'):stockItems;
+    const term=String($('stockSearch')?.value||'').trim().toLowerCase();\n    const visibleItems=stockItems.filter(it=>(!freeOnly||it.status==='free')&&(!term||String(it.licenseKey||'').toLowerCase().includes(term)||String(it.identity||'').toLowerCase().includes(term)));
     $('stockFreeOnlyBtn').textContent=freeOnly?'MOSTRAR TODAS AS KEYS':'🔑 VER SOMENTE KEYS LIVRES';
     $('stockFreeOnlyBtn').setAttribute('aria-pressed',String(freeOnly));
     $('stockBulkBar').style.display=has?'flex':'none';
@@ -297,7 +297,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
     updateStockSelection();
   }
 
-  $('stockFreeOnlyBtn').onclick=async()=>{freeOnly=!freeOnly;if(!stockItems.length)await loadStock();else renderStock()};
+  $('stockSearch').addEventListener('input',()=>renderStock());\n  $('stockFreeOnlyBtn').onclick=async()=>{freeOnly=!freeOnly;if(!stockItems.length)await loadStock();else renderStock()};
   $('copyFreeKeyBtn').onclick=async()=>{
     const b=$('copyFreeKeyBtn');
     try{
@@ -311,7 +311,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 
   async function loadStock(){
     const btn=$('stockBtn');btn.disabled=true;$('stockMsg').textContent='Carregando estoque...';$('stockMsg').className='status';
-    try{const j=await post('/admin/access/list-stock',{});stockItems=Array.isArray(j.items)?j.items:[];selectedStock.clear();$('stockMsg').textContent=stockItems.length+' key(s) no estoque.';$('stockMsg').className='status ok';renderStock()}catch(e){$('stockMsg').textContent=e.message;$('stockMsg').className='status bad'}finally{btn.disabled=false}
+    try{const j=await post('/admin/access/list-stock',{});stockItems=Array.isArray(j.items)?j.items:[];selectedStock.clear();$('stockMsg').textContent=stockItems.filter(it=>it.status==='free').length+' KEY(s) LIVRES disponíveis no estoque.';$('stockMsg').className='status ok';renderStock()}catch(e){$('stockMsg').textContent=e.message;$('stockMsg').className='status bad'}finally{btn.disabled=false}
   }
 
   async function deleteStockItems(all){
