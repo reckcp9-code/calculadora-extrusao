@@ -116,10 +116,10 @@ function ensureIdentityUi(){
         if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
         const rememberChoice=!!manual.querySelector('#dfSaveKeyDevice')?.checked;
         localStorage.removeItem('df_manual_key_required_after_reset');save(j,rememberChoice);msg('Key validada. Abrindo aplicativo...',true);unlock();
-        // Recarrega com a credencial validada para que o shell e os módulos de licença
-        // iniciem no mesmo estado. Evita permanecer na tela de KEY após a ativação.
-        const next=new URL(location.href);next.searchParams.delete('acesso');next.searchParams.set('entrada','key');
-        if(rememberChoice)location.replace(next.pathname+next.search+next.hash);
+        // A KEY já foi autorizada. Nunca recarregar aqui: o reload fazia o shell
+        // antigo exibir novamente a licença antes de recuperar a sessão.
+        // A transição deve ser imediata, sem navegação e sem perder a credencial.
+        window.dispatchEvent(new CustomEvent('df-access-authorized',{detail:{persisted:rememberChoice}}));
       }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças demorou mais de 25 segundos. Verifique a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
       finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
     };
