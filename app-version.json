@@ -1,6 +1,6 @@
 {
-  "version": "1.0.491",
-  "title": "DF EXTRUSOR PRO — Monitoramento online no ADM",
-  "message": "Adicionada tela de monitoramento de usuários, com atualização a cada 30 segundos e indicação de indisponibilidade até integração de presença no Worker.",
+  "version": "1.0.492",
+  "title": "DF EXTRUSOR PRO — Monitoramento de presença",
+  "message": "Painel ADM agora consulta sinais reais de presença dos aparelhos via endpoint administrativo existente. Mostra último sinal e estados; vínculo individual dos nove membros da equipe depende de integração.",
   "updatedAt": "2026-10-24"
 }
