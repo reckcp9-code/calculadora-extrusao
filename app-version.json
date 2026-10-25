@@ -1,6 +1,6 @@
 {
-  "version": "1.0.500",
-  "title": "DF EXTRUSOR PRO — Painel administrativo",
-  "message": "Correção do fluxo de PAUSAR e REATIVAR no painel: bloqueia ações repetidas, consulta o estado no servidor e recupera os botões após atrasos. Nenhuma licença foi alterada nesta atualização.",
-  "updatedAt": "2026-10-25"
+  "version": "1.0.501",
+  "title": "DF EXTRUSOR PRO — KEYs livres no Painel Gerador",
+  "message": "Painel Gerador abre estoque filtrando KEYs livres, oferece pesquisa por KEY e cópia individual para envio ao cliente, sem ativação automática.",
+  "updatedAt": "2026-10-24"
 }
