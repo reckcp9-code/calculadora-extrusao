@@ -53,6 +53,11 @@ function gate(){
     overlay.textContent='DF EXTRUSOR PRO';
     const mount=()=>{if(!overlay.isConnected)document.body.appendChild(overlay)};
     if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount,{once:true});
+    // A transição é apenas visual: nunca pode bloquear o aplicativo após uma atualização.
+    const release=()=>{const app=document.getElementById('appContent');if(app&&app.children.length)removeSavedTransition()};
+    document.addEventListener('DOMContentLoaded',release,{once:true});
+    window.addEventListener('df-ui-ready',release,{once:true});
+    setTimeout(()=>{removeSavedTransition();document.documentElement.classList.remove('df-access-restoring')},2500);
   }
 })();
 function removeSavedTransition(){document.getElementById('dfSavedAccessTransition')?.remove()}
