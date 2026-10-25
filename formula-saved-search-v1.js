@@ -56,7 +56,14 @@ function open(sel){
       pick.innerHTML='<span class="df-fp-check">'+(x.value===data.selected?'✓':'')+'</span><span>'+String(x.text).replace(/\s*[—-]\s*/g,'<small> — </small>')+'</span>';
       pick.onclick=e=>{
         if(Date.now()<suppressUntil){e.preventDefault();e.stopPropagation();return}
-        sel.value=x.value;
+        // A primeira seleção deve atualizar o SELECT e os ouvintes imediatamente.
+        // Evita que uma atualização assíncrona da lista substitua a escolha antes do evento.
+        const selectedValue=String(x.value);
+        const option=[...sel.options].find(o=>String(o.value)===selectedValue);
+        if(!option||option.disabled)return;
+        sel.value=selectedValue;
+        option.selected=true;
+        sel.dispatchEvent(new Event('input',{bubbles:true}));
         sel.dispatchEvent(new Event('change',{bubbles:true}));
         close();
       };
