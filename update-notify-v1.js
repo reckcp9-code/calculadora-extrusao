@@ -69,17 +69,32 @@
       window.dispatchEvent(new CustomEvent('df-update-available',{detail:{version:current}}));
     }catch(e){}
   }
+  // A atualização mantém a interface atual até preparar a nova página.
+  // Evita espera indefinida pelo Service Worker no Safari/iPhone.
   window.dfApplyUpdateManually=async function(){
     if(updating)return;
     updating=true;
+    let overlay=null;
     try{
       const current=window.DFUpdateAvailableVersion||'';
       if(current)localStorage.setItem(AUTO_KEY,current);
-      await refreshServiceWorker();
+      overlay=document.createElement('div');
+      overlay.id='dfUpdateFullScreenStatus';
+      overlay.setAttribute('role','status');
+      overlay.setAttribute('aria-live','polite');
+      overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#080b13;color:#f8fafc;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,sans-serif;text-align:center';
+      overlay.innerHTML='<div><div style="font-size:22px;font-weight:800;margin-bottom:12px">DF EXTRUSOR PRO</div><div style="color:#94a3b8;font-size:15px">Atualizando aplicativo...</div></div>';
+      document.body.appendChild(overlay);
+      // O SW não pode travar o comando de atualização.
+      await Promise.race([refreshServiceWorker(),new Promise(resolve=>setTimeout(resolve,1400))]);
       const u=new URL(location.href);
       if(current)u.searchParams.set('v',current);
+      // Preserva as credenciais e os dados; apenas reabre a interface.
       location.replace(u.toString());
-    }catch(e){updating=false}
+    }catch(e){
+      if(overlay)overlay.remove();
+      updating=false;
+    }
   };
 
   async function check(){
