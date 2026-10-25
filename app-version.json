@@ -1,6 +1,6 @@
 {
-  "version": "1.0.512",
-  "title": "DF EXTRUSOR PRO — Menus fixos",
-  "message": "Menu superior de abas permanece visível ao rolar, respeitando a área segura do iPhone; cache da estrutura atualizado para aplicar a mudança.",
+  "version": "1.0.513",
+  "title": "DF EXTRUSOR PRO — Fotos separadas",
+  "message": "Arquivo de fotos de produção removido da navegação de Formulação, preservando OPs e imagens armazenadas.",
   "updatedAt": "2026-10-25"
 }
