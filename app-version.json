@@ -1,6 +1,6 @@
 {
-  "version": "1.0.518",
-  "title": "DF EXTRUSOR PRO — Entrada automática rápida",
-  "message": "Com KEY salva, abre a interface imediatamente e revalida a sessão em segundo plano. KEY manual permanece para novos acessos e resets; pausa/revogação confirmada bloqueia.",
-  "updatedAt": "2026-10-25"
+  "version": "1.0.520",
+  "title": "DF EXTRUSOR PRO — Interface única",
+  "message": "Abertura com a interface atual diretamente, sem tela inicial antiga ou cópia desatualizada do layout. Mantidos os dados e a KEY salva.",
+  "updatedAt": "2026-10-26"
 }
