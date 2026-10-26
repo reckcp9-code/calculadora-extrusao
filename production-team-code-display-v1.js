@@ -1,6 +1,7 @@
 (function(){'use strict';if(window.DFProductionTeamCodeDisplayV1)return;window.DFProductionTeamCodeDisplayV1=true;
 const FALLBACK='38173149';let busy=false;
-function apply(){if(busy)return;busy=true;try{
+function hideSystemHealth(){for(const el of document.querySelectorAll('div,section,aside')){if(el.children.length>5)continue;const txt=(el.textContent||'').trim();if(!/SAÚDE DO SISTEMA/i.test(txt)||!/Produção automática pronta/i.test(txt))continue;const nested=Array.from(el.children).some(c=>/SAÚDE DO SISTEMA/i.test(c.textContent||'')&&/Produção automática pronta/i.test(c.textContent||''));if(!nested){el.style.display='none';el.setAttribute('data-df-hidden-health','true')}}}
+function apply(){if(busy)return;busy=true;try{hideSystemHealth();
 const cards=Array.from(document.querySelectorAll('#dfProdTeamV2')).filter(card=>/EQUIPE DE PRODUÇÃO/i.test(card.textContent||''));
 for(const card of cards){
 const line=card.querySelector('.code');if(!line||!/Equipe:/i.test(line.textContent||''))continue;
