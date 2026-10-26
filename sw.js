@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v484-auto-entry';
+const DF_CACHE='df-extrusor-shell-v520-single-interface';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -54,6 +54,8 @@ self.addEventListener('fetch',event=>{
   const url=new URL(req.url),same=url.origin===self.location.origin;if(!same)return;
   const p=url.pathname;
   if(req.mode==='navigate'){
+    if(p==='/'||p.endsWith('/')){event.respondWith(networkFirst(req));return}
+
     if(p.endsWith('/painel-administrativo-df.html')||p.endsWith('/gerar-acesso.html')||p.endsWith('/op-producao.html')||p.endsWith('/producao-agora-maquinas-v347.js')||p.endsWith('/acessar.html')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
     event.respondWith((async()=>{const out=await navigationCached(req);if(out.refresh)event.waitUntil(out.refresh);return out.response})());return
   }
