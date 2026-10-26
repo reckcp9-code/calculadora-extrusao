@@ -1,6 +1,6 @@
 {
-  "version": "1.0.530",
-  "title": "DF EXTRUSOR PRO — OP + QR",
-  "message": "Removida a exibição do aviso Saúde do Sistema na Produção.",
+  "version": "1.0.531",
+  "title": "DF EXTRUSOR PRO — Sincronização de fotos da Produção",
+  "message": "Não confirmar sincronização da OP se o envio da foto falhar; preservar dados locais para nova tentativa.",
   "updatedAt": "2026-10-26"
 }
