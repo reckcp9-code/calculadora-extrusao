@@ -12,6 +12,12 @@
 
 /* Exibe o campo mesmo se outro módulo substituir o manipulador de eventos. */
 #exSanfonaBox{display:none}div:has(>label>#exSanfonado:checked)>#exSanfonaBox{display:block!important}
+
+/* Sacolas: forçar o seletor nativo do iOS a acompanhar o tema escuro do app. */
+:root{color-scheme:dark}
+#pgSa,#pgSa select,#pgSa option{color-scheme:dark}
+#pgSa select{background-color:#222832;color:#f5f5f5;border-color:#505766}
+#pgSa option{background-color:#30343b;color:#f5f5f5}
 </style>
 </head>
 <body>
