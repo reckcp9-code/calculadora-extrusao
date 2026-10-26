@@ -1,6 +1,6 @@
 {
-  "version": "1.0.524",
-  "title": "DF EXTRUSOR PRO — Código na equipe de Produção",
-  "message": "Código confirmado 38173149 e botão copiar exibidos diretamente no painel de Produção.",
+  "version": "1.0.525",
+  "title": "DF EXTRUSOR PRO — Código da equipe na Produção",
+  "message": "Exibir código da equipe de Produção no painel existente, com botão copiar.",
   "updatedAt": "2026-10-26"
 }
