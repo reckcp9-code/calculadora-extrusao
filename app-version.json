@@ -1,6 +1,6 @@
 {
-  "version": "1.0.528",
-  "title": "DF EXTRUSOR PRO — Produção",
-  "message": "Ocultar quadro Saúde do Sistema na tela de Produção.",
+  "version": "1.0.529",
+  "title": "DF EXTRUSOR PRO — OP + QR",
+  "message": "Removido quadro Saúde do Sistema diretamente da tela OP + QR.",
   "updatedAt": "2026-10-26"
 }
