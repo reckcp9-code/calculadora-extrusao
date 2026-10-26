@@ -1,6 +1,6 @@
 {
-  "version": "1.0.525",
-  "title": "DF EXTRUSOR PRO — Código da equipe na Produção",
-  "message": "Exibir código da equipe de Produção no painel existente, com botão copiar.",
+  "version": "1.0.526",
+  "title": "DF EXTRUSOR PRO — Painel de Produção em português",
+  "message": "Exibir DONO em vez de OWNER na equipe de Produção.",
   "updatedAt": "2026-10-26"
 }
