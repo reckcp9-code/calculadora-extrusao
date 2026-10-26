@@ -1,6 +1,6 @@
 {
-  "version": "1.0.526",
-  "title": "DF EXTRUSOR PRO — Painel de Produção em português",
-  "message": "Exibir DONO em vez de OWNER na equipe de Produção.",
+  "version": "1.0.527",
+  "title": "DF EXTRUSOR PRO — Código no quadro da equipe",
+  "message": "Código da equipe de Produção exibido ao lado do nome no quadro.",
   "updatedAt": "2026-10-26"
 }
