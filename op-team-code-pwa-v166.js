@@ -21,7 +21,7 @@
 
   function digits(v){
     const s=String(v==null?'':v).replace(/\D/g,'');
-    return s.length>=6&&s.length<=12?s:'';
+    return s.length===6?s:'';
   }
   function loadTeam(){
     try{
@@ -34,10 +34,10 @@
   }
   function savedCode(){
     try{
-      const local=digits(localStorage.getItem(CODE_KEY)||'');
-      if(local)return local;
       const t=loadTeam();
-      return digits(t&&(t.joinCode||t.join_code||t.code||t.inviteCode||t.invite_code));
+      const serverCode=digits(t&&(t.joinCode||t.join_code||t.code||t.inviteCode||t.invite_code));
+      if(serverCode)return serverCode;
+      return digits(localStorage.getItem(CODE_KEY)||'');
     }catch(e){return ''}
   }
   function saveCode(v){
@@ -84,7 +84,7 @@
   function render(){
     bootstrapFromUrl();
     const t=loadTeam(),box=$('dfOpTeamCloud');
-    if(!box||!t||String(t.role||'').toLowerCase()!=='owner')return false;
+    if(!box||!t)return false;
     style();hideOldHelpers();
     let panel=$('dfTeamCodePwaV166');
     if(!panel){
@@ -94,10 +94,10 @@
     }
     const code=savedCode();
     if(code){
-      panel.innerHTML='<div>Código da equipe: <b>'+code+'</b></div><div class="dfPwaCodeRow"><button id="dfPwaCopyCode" type="button">📋 COPIAR CÓDIGO</button></div><small>Este código fica salvo neste app para conectar outros celulares.</small>';
+      panel.innerHTML='<div>Equipe: '+String(t.name||'DF PRODUÇÃO').replace(/[&<>]/g,'')+'</div><div>Código da equipe: <b>'+code+'</b></div><div class="dfPwaCodeRow"><button id="dfPwaCopyCode" type="button">📋 COPIAR CÓDIGO</button></div><small>Este código fica salvo neste app para conectar outros celulares.</small>';
       const b=$('dfPwaCopyCode');if(b)b.onclick=()=>copy(code,b);
     }else{
-      panel.innerHTML='<div>Código da equipe não está salvo neste app.</div><div class="dfPwaCodeRow"><input id="dfPwaCodeInput" inputmode="numeric" maxlength="12" placeholder="Digite o código da equipe"><button id="dfPwaSaveCode" type="button">💾 SALVAR CÓDIGO DA EQUIPE</button></div><small>No app instalado, o armazenamento pode ser separado do Safari. Informe o código uma única vez aqui.</small>';
+      panel.innerHTML='<div>Equipe: '+String(t.name||'DF PRODUÇÃO').replace(/[&<>]/g,'')+'</div><div>Código de 6 dígitos ainda não disponível neste aparelho.</div><div class="dfPwaCodeRow"><input id="dfPwaCodeInput" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos"><button id="dfPwaSaveCode" type="button">💾 SALVAR CÓDIGO DA EQUIPE</button></div><small>No app instalado, o armazenamento pode ser separado do Safari. Informe o código uma única vez aqui.</small>';
       const input=$('dfPwaCodeInput'),b=$('dfPwaSaveCode');
       if(b)b.onclick=()=>{
         const c=saveCode(input&&input.value);
