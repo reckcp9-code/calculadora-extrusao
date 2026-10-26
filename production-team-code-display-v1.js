@@ -1,7 +1,7 @@
 (function(){'use strict';if(window.DFProductionTeamCodeDisplayV1)return;window.DFProductionTeamCodeDisplayV1=true;
 const CODE='38173149',NAME='DF PRODUÇÃO';let busy=false;
 function apply(){if(busy)return;busy=true;try{
-const leaves=Array.from(document.querySelectorAll('div,span,b,strong,p')).filter(e=>e.children.length===0&&/Equipe:\\s*DF PRODUÇÃO/i.test(e.textContent||''));
+const leaves=Array.from(document.querySelectorAll('div,span,b,strong,p')).filter(e=>e.children.length===0&&/Equipe:.*DF PRODUÇÃO/i.test(e.textContent||''));
 for(const line of leaves){let card=line;for(let i=0;i<7&&card;i++,card=card.parentElement){if((card.textContent||'').includes('SINCRONIZAR PRODUÇÃO')&&(card.textContent||'').includes('EQUIPE DE PRODUÇÃO'))break}
 if(!card||!(card.textContent||'').includes('SINCRONIZAR PRODUÇÃO'))continue;
 let label=card.querySelector('#dfProductionConfirmedCode');if(!label){label=document.createElement('div');label.id='dfProductionConfirmedCode';label.style.cssText='color:#86efac;font-size:inherit;font-weight:900;margin-top:5px';line.insertAdjacentElement('afterend',label)}
