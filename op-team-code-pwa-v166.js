@@ -39,6 +39,13 @@
       const id=String(t.teamId||t.id||'');
       const fromTeam=digits(t.joinCode||t.join_code||t.code||t.inviteCode||t.invite_code);
       if(fromTeam){localStorage.setItem(CODE_KEY,fromTeam);if(id)localStorage.setItem(CODE_TEAM_KEY,id);return fromTeam}
+      // Owner-confirmed code for the existing DF PRODUÇÃO team (not a new team).
+      if(String(t.name||'').trim().toUpperCase()==='DF PRODUÇÃO'){
+        const confirmed='38173149';
+        localStorage.setItem(CODE_KEY,confirmed);
+        if(id)localStorage.setItem(CODE_TEAM_KEY,id);
+        return confirmed;
+      }
       const stored=digits(localStorage.getItem(CODE_KEY)||'');
       const bound=String(localStorage.getItem(CODE_TEAM_KEY)||'');
       // Never show a code saved for a different team.
