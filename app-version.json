@@ -1,6 +1,6 @@
 {
-  "version": "1.0.527",
-  "title": "DF EXTRUSOR PRO — Código no quadro da equipe",
-  "message": "Código da equipe de Produção exibido ao lado do nome no quadro.",
+  "version": "1.0.528",
+  "title": "DF EXTRUSOR PRO — Produção",
+  "message": "Ocultar quadro Saúde do Sistema na tela de Produção.",
   "updatedAt": "2026-10-26"
 }
