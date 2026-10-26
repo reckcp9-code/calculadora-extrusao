@@ -1,6 +1,6 @@
 {
-  "version": "1.0.521",
-  "title": "DF EXTRUSOR PRO — Código da equipe de produção",
-  "message": "Restaurada exibição do código original da equipe de Produção, incluindo códigos de oito dígitos, sem criar equipes novas.",
+  "version": "1.0.522",
+  "title": "DF EXTRUSOR PRO — Código da Produção sempre visível",
+  "message": "Painel de código da equipe carregado na inicialização, com identificação segura da equipe e suporte ao código original.",
   "updatedAt": "2026-10-26"
 }
