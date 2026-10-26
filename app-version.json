@@ -1,6 +1,6 @@
 {
-  "version": "1.0.522",
-  "title": "DF EXTRUSOR PRO — Código da Produção sempre visível",
-  "message": "Painel de código da equipe carregado na inicialização, com identificação segura da equipe e suporte ao código original.",
+  "version": "1.0.523",
+  "title": "DF EXTRUSOR PRO — Código da equipe confirmado",
+  "message": "Exibição do código 38173149 na equipe DF PRODUÇÃO, preservando a equipe e seus registros.",
   "updatedAt": "2026-10-26"
 }
