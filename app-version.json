@@ -1,6 +1,6 @@
 {
-  "version": "1.0.520",
-  "title": "DF EXTRUSOR PRO — Interface única",
-  "message": "Abertura com a interface atual diretamente, sem tela inicial antiga ou cópia desatualizada do layout. Mantidos os dados e a KEY salva.",
+  "version": "1.0.521",
+  "title": "DF EXTRUSOR PRO — Código da equipe de produção",
+  "message": "Restaurada exibição do código original da equipe de Produção, incluindo códigos de oito dígitos, sem criar equipes novas.",
   "updatedAt": "2026-10-26"
 }
