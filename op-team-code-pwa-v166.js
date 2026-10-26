@@ -5,6 +5,7 @@
 
   const TEAM_KEY='df_op_team_v1';
   const CODE_KEY='df_op_team_join_code_v1';
+  const CODE_TEAM_KEY='df_op_team_join_code_team_id_v1';
   const $=id=>document.getElementById(id);
   let timer=0,observer=null;
 
@@ -34,16 +35,34 @@
   }
   function savedCode(){
     try{
-      const t=loadTeam();
-      const serverCode=digits(t&&(t.joinCode||t.join_code||t.code||t.inviteCode||t.invite_code));
-      if(serverCode)return serverCode;
-      return digits(localStorage.getItem(CODE_KEY)||'');
+      const t=loadTeam();if(!t)return '';
+      const id=String(t.teamId||t.id||'');
+      const fromTeam=digits(t.joinCode||t.join_code||t.code||t.inviteCode||t.invite_code);
+      if(fromTeam){localStorage.setItem(CODE_KEY,fromTeam);if(id)localStorage.setItem(CODE_TEAM_KEY,id);return fromTeam}
+      const stored=digits(localStorage.getItem(CODE_KEY)||'');
+      const bound=String(localStorage.getItem(CODE_TEAM_KEY)||'');
+      // Never show a code saved for a different team.
+      return stored&&id&&bound===id?stored:'';
     }catch(e){return ''}
+  }
+  let recovering=false,lastRecoverId='';
+  async function recoverCode(){
+    const t=loadTeam(),id=String(t?.teamId||t?.id||'');
+    if(!id||recovering||lastRecoverId===id)return;
+    lastRecoverId=id;recovering=true;
+    try{
+      const api=window.DFOpCloud;
+      if(api&&typeof api.refreshTeam==='function')await api.refreshTeam();
+      const code=savedCode();
+      if(code){render();return}
+      // A code must be returned by the server for this exact team; never infer from another device.
+      const el=$('dfPwaCodeNote');if(el)el.textContent='Código não retornado para esta equipe. Confirme no aparelho do dono antes de compartilhar.';
+    }catch(e){}finally{recovering=false}
   }
   function saveCode(v){
     const code=digits(v);
     if(!code)return '';
-    try{localStorage.setItem(CODE_KEY,code)}catch(e){}
+    try{localStorage.setItem(CODE_KEY,code);const t=loadTeam();if(t?.teamId)localStorage.setItem(CODE_TEAM_KEY,String(t.teamId))}catch(e){}
     try{
       const t=loadTeam();
       if(t&&String(t.role||'').toLowerCase()==='owner'){
@@ -97,11 +116,11 @@
       panel.innerHTML='<div>Código da Produção: <b>'+code+'</b></div><div class="dfPwaCodeRow"><button id="dfPwaCopyCode" type="button">📋 COPIAR CÓDIGO</button></div>';
       const b=$('dfPwaCopyCode');if(b)b.onclick=()=>copy(code,b);
     }else{
-      panel.innerHTML='<div>Código da Produção ainda não disponível neste aparelho.</div><div class="dfPwaCodeRow"><input id="dfPwaCodeInput" inputmode="numeric" maxlength="12" placeholder="Código da equipe"><button id="dfPwaSaveCode" type="button">💾 SALVAR CÓDIGO DA EQUIPE</button></div><small>No app instalado, o armazenamento pode ser separado do Safari. Informe o código uma única vez aqui.</small>';
+      panel.innerHTML='<div>Código da Produção: <b>não recuperado</b></div><div class="dfPwaCodeRow"><input id="dfPwaCodeInput" inputmode="numeric" maxlength="12" placeholder="Código original da equipe"><button id="dfPwaSaveCode" type="button">💾 VINCULAR CÓDIGO EXISTENTE</button></div><small id="dfPwaCodeNote">O código deve pertencer à equipe conectada. Não crie outra equipe.</small>'; 
       const input=$('dfPwaCodeInput'),b=$('dfPwaSaveCode');
       if(b)b.onclick=()=>{
         const c=saveCode(input&&input.value);
-        if(!c){alert('Digite um código válido da equipe.');if(input)input.focus();return}
+        if(!c){alert('Digite o código original da equipe (6 a 12 dígitos).');if(input)input.focus();return}
         render();
       };
     }
@@ -119,7 +138,7 @@
     });
     observer.__box=box;observer.observe(box,{childList:true});
   }
-  function run(){schedule();setTimeout(attachObserver,120)}
+  function run(){schedule();setTimeout(attachObserver,120);setTimeout(recoverCode,600)}
   function boot(){loadStatusArtifactFilter();bootstrapFromUrl();run();window.addEventListener('df-ui-ready',run);window.addEventListener('df-team-changed',run);window.addEventListener('df-team-joined',run);window.addEventListener('pageshow',run);setTimeout(run,500);setTimeout(run,1500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
