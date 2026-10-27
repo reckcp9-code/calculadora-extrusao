@@ -109,16 +109,24 @@ async function wipeProductionLocal(){
  const keys=[];
  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(exact.has(k)||prefixes.some(p=>k.startsWith(p))))keys.push(k)}}catch(e){}
  for(const k of [...new Set([...exact,...keys])])remove(k);
- // Fotos da Produção no IndexedDB: aguardar resultado em vez de declarar sucesso antes da exclusão.
+ // Limpar os registros da base sem tentar deletar um banco ainda aberto por outras rotinas.
  if(typeof indexedDB!=='undefined'){
    await new Promise((resolve,reject)=>{
-     let done=false;const finish=(error)=>{if(done)return;done=true;error?reject(error):resolve()};
-     try{
-       const req=indexedDB.deleteDatabase(DB_NAME);
-       req.onsuccess=()=>finish();
-       req.onerror=()=>finish(new Error('Falha ao limpar banco de fotos da Produção.'));
-       req.onblocked=()=>finish(new Error('Banco de fotos ainda aberto. Feche outras abas do aplicativo e tente novamente.'));
-     }catch(e){finish(e)}
+     let request;
+     try{request=indexedDB.open(DB_NAME)}catch(e){reject(e);return}
+     request.onerror=()=>reject(new Error('Não foi possível abrir o banco de fotos para limpeza.'));
+     request.onsuccess=()=>{
+       const db=request.result;
+       try{
+         const stores=Array.from(db.objectStoreNames);
+         if(!stores.length){db.close();resolve();return}
+         const tx=db.transaction(stores,'readwrite');
+         tx.oncomplete=()=>{db.close();resolve()};
+         tx.onerror=()=>{db.close();reject(new Error('Falha ao limpar as fotos locais.'))};
+         tx.onabort=()=>{db.close();reject(new Error('Limpeza de fotos interrompida.'))};
+         stores.forEach(name=>tx.objectStore(name).clear());
+       }catch(e){db.close();reject(e)}
+     };
    });
  }
  try{window.dispatchEvent(new CustomEvent('df-producao-team-cleared'))}catch(e){}
