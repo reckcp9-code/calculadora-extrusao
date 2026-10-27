@@ -1,6 +1,6 @@
 {
-  "version": "1.0.541",
-  "title": "DF EXTRUSOR PRO — Correção de abertura do PWA",
-  "message": "Entrada do aplicativo instalado sem limpeza de caches ou desregistro do Service Worker.",
+  "version": "1.0.542",
+  "title": "DF EXTRUSOR PRO — Seletor de turnos",
+  "message": "Filtro Todas, Turno 1, Turno 2 e Turno 3 em barra única abaixo da pesquisa de OP, sem botão Atualizar.",
   "updatedAt": "2026-10-26"
 }
