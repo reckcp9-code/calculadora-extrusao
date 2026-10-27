@@ -186,8 +186,8 @@ async function saveCurrent(){
     if(!write(OPS_KEY,list))throw new Error('Não foi possível fechar a OP.');
 
     /* Conferência após a baixa: a pendência da foto usada não pode continuar visível. */
-    const after=autos();const stale=after.filter(r=>r&&r.status!=='ok'&&((photoId&&r.photoId===photoId)||(r.opId&&normId(r.opId)===opId)));if(stale.length){if(!write(AUTO_KEY,after.filter(r=>!stale.includes(r))))throw new Error('Não foi possível finalizar a limpeza da pendência.');}
-    const saved=autos().find(r=>r&&r.status==='ok'&&normId(r.opId||r.id)===opId);
+    const after=autos();const stale=after.filter(r=>r&&r.status!=='ok'&&r.status!=='pending'&&((photoId&&r.photoId===photoId)||(r.opId&&normId(r.opId)===opId)));if(stale.length){if(!write(AUTO_KEY,after.filter(r=>!stale.includes(r))))throw new Error('Não foi possível finalizar a limpeza da pendência.');}
+    const saved=autos().find(r=>r&&r.status===(isOperator?'pending':'ok')&&normId(r.opId||r.id)===opId);
     const savedOp=ops().find(o=>normId(o?.id)===opId);
     if(!saved||!savedOp||!['closed','pending'].includes(savedOp.status))throw new Error('A conferência da baixa falhou.');
 
