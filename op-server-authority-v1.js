@@ -6,7 +6,7 @@ const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const TOKEN_KEY='df_secure_token_v2',DEVICE_KEY='df_licenseauth_device_v1',ACCESS_KEY='df_auto_access_credential_v1';
 const OPS_KEY='df_formula_ops_auto_v2',TEAM_KEY='df_op_team_v1',TOMB_KEY='df_deleted_ops_v1';
 const QUEUE_KEY='df_op_server_queue_v1',MIG_PREFIX='df_op_d1_migrated_v1:';
-let syncing=false,flushing=false,migrating=false,timer=0,lastPull=0,supported=null,lastSummary=null,currentMonth='',booted=false;
+let syncing=false,flushing=false,migrating=false,timer=0,lastPull=0,supported=null,lastSummary=null,currentMonth='',booted=false;let pendingRecords=[];
 const $=id=>document.getElementById(id);
 const norm=v=>String(v||'').trim().toUpperCase();
 const validQr=v=>/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim());
@@ -21,7 +21,7 @@ function localMonth(){return localYmd().slice(0,7)}
 function selectedMonth(){return String($('dfOpMonth')?.value||localMonth()).slice(0,7)}
 function opId(o){const a=norm(o?.id),q=norm(o?.qr);return validQr(a)?a:(validQr(q)?q:'')}
 function completionValue(o){return o?.manualConfirmedAt||o?.cloudSyncedAt||o?.updatedAt||o?.createdAt||''}
-function completed(o){return !!(o&&opId(o)&&num(o.produzido)>0&&Number.isFinite(Number(o.apara))&&Number(o.apara)>=0&&(o.manualConfirmed||String(o.status||'')==='ok'||o.source==='foto-equipe'||/^foto\+recuperacao-prontas/i.test(String(o.source||''))||o.source==='d1-authority'))}
+function completed(o){return !!(o&&o.d1State!=='pending'&&o.status!=='pending'&&opId(o)&&num(o.produzido)>0&&Number.isFinite(Number(o.apara))&&Number(o.apara)>=0&&(o.manualConfirmed||String(o.status||'')==='ok'||o.source==='foto-equipe'||/^foto\+recuperacao-prontas/i.test(String(o.source||''))||o.source==='d1-authority'))}
 function productName(o){return clean(o?.serverProductName||o?.manualProductName||o?.clienteFormulacao||o?.produto||o?.product||o?.nomeProduto||o?.expected?.title||'')}
 function materials(o){return (Array.isArray(o?.materials)?o.materials:[]).slice(0,40).map(m=>({name:clean(m?.name||m?.nome||m?.material),pct:Math.max(0,num(m?.pct??m?.percent??m?.porcentagem)),kg:Math.max(0,num(m?.kg))})).filter(m=>m.name&&(m.pct>0||m.kg>0))}
 function localDateFor(o){const d=String(o?.data||'').slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:localYmd(completionValue(o))}
@@ -45,12 +45,12 @@ function localTombs(){const d=load(TOMB_KEY,{});return d&&typeof d==='object'&&!
 function migratePayloads(){return localOps().filter(completed).map(recordPayload).filter(x=>validQr(x.opCode)&&x.production>0)}
 async function migrateOnce(){const t=team();if(!t?.teamId||migrating||supported===false)return false;const key=MIG_PREFIX+String(t.teamId);if(localStorage.getItem(key)==='1')return true;migrating=true;try{const all=migratePayloads();for(let i=0;i<all.length;i+=200){await apiPost('/op/record/migrate',{teamId:t.teamId,records:all.slice(i,i+200)});supported=true}localStorage.setItem(key,'1');try{window.dispatchEvent(new CustomEvent('df-op-server-migrated',{detail:{teamId:t.teamId,count:all.length}}))}catch(e){}return true}catch(e){if(Number(e?.status)===404)supported=false;return false}finally{migrating=false;emitStatus()}}
 
-function serverRecToLocal(sr,base){const id=norm(sr?.opCode),ts=String(sr?.completedAt||sr?.updatedAt||new Date().toISOString()),p=num(sr?.production),a=num(sr?.scrap);return{...(base||{}),id,qr:id,createdAt:String(base?.createdAt||ts),updatedAt:String(sr?.updatedAt||ts),data:String(sr?.localDate||localYmd(ts)),numero:base?.numero||'',operador:clean(sr?.operatorName)||base?.operador||'',maquina:clean(sr?.machine)||base?.maquina||'',produto:clean(sr?.productName)||productName(base)||'',serverProductName:clean(sr?.productName)||base?.serverProductName||'',produzido:p,apara:a,materials:Array.isArray(sr?.materials)?sr.materials:materials(base),status:'ok',reasons:[],manualConfirmed:true,manualConfirmedAt:ts,source:'d1-authority',cloudPhotoId:clean(sr?.photoId)||base?.cloudPhotoId||'',d1Revision:num(sr?.revision),d1UpdatedAt:String(sr?.updatedAt||''),d1State:'ready'} }
+function serverRecToLocal(sr,base){const id=norm(sr?.opCode),ts=String(sr?.completedAt||sr?.updatedAt||new Date().toISOString()),p=num(sr?.production),a=num(sr?.scrap);return{...(base||{}),id,qr:id,createdAt:String(base?.createdAt||ts),updatedAt:String(sr?.updatedAt||ts),data:String(sr?.localDate||localYmd(ts)),numero:base?.numero||'',operador:clean(sr?.operatorName)||base?.operador||'',maquina:clean(sr?.machine)||base?.maquina||'',produto:clean(sr?.productName)||productName(base)||'',serverProductName:clean(sr?.productName)||base?.serverProductName||'',produzido:p,apara:a,materials:Array.isArray(sr?.materials)?sr.materials:materials(base),status:sr?.state==='pending'?'pending':'ok',reasons:[],manualConfirmed:sr?.state!=='pending',manualConfirmedAt:sr?.state==='pending'?'':ts,source:'d1-authority',cloudPhotoId:clean(sr?.photoId)||base?.cloudPhotoId||'',d1Revision:num(sr?.revision),d1UpdatedAt:String(sr?.updatedAt||''),d1State:sr?.state==='pending'?'pending':'ready'} }
 function recordMonth(o){const d=String(o?.data||'').slice(0,7);if(/^\d{4}-\d{2}$/.test(d))return d;return localYmd(completionValue(o)).slice(0,7)}
 function applyServerMonth(month,records,summary){
   if(!/^\d{4}-\d{2}$/.test(month))return false;const old=localOps(),oldBy=new Map();for(const o of old){const id=opId(o);if(id&&!oldBy.has(id))oldBy.set(id,o)}
   const tombs=localTombs(),server=Array.isArray(records)?records:[],serverIds=new Set(server.map(x=>norm(x?.opCode)).filter(validQr));
-  const next=old.filter(o=>{const id=opId(o);if(!id)return true;if(recordMonth(o)!==month)return true;if(!completed(o))return true;return false});
+  const next=old.filter(o=>{const id=opId(o);if(!id)return true;if(recordMonth(o)!==month)return true;if(!completed(o)&&o.d1State!=='pending')return true;return false});
   let changed=false;
   for(const sr of server){const id=norm(sr?.opCode);if(!validQr(id))continue;if(String(sr?.state||'ready')==='deleted'){const at=stamp(sr?.deletedAt)||Date.now();const prev=tombs[id];if(!prev||Number(prev.at||0)!==at||!prev.server){tombs[id]={at,server:true,cloudIds:sr?.photoId?[String(sr.photoId)]:[],produto:clean(sr?.productName),produzido:num(sr?.production),apara:num(sr?.scrap)};changed=true}continue}
     if(tombs[id]){delete tombs[id];changed=true}
@@ -60,7 +60,7 @@ function applyServerMonth(month,records,summary){
   try{const before=JSON.stringify(old),after=JSON.stringify(next);if(before!==after){save(OPS_KEY,next);changed=true}}catch(e){save(OPS_KEY,next);changed=true}
   save(TOMB_KEY,tombs);lastSummary=summary||lastSummary;currentMonth=month;
   if(changed){const m=$('dfOpMonth');if(m)try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){};try{window.DFOpTeamDateCanonical?.run?.()}catch(e){};try{window.dispatchEvent(new CustomEvent('df-op-d1-applied',{detail:{month,summary:lastSummary}}))}catch(e){}}
-  emitStatus();return changed
+  pendingRecords=server.filter(x=>x?.state==='pending');renderApprovalPanel();emitStatus();return changed
 }
 
 async function pullMonth(force,month){const t=team();if(!t?.teamId||syncing||navigator.onLine===false||document.hidden)return false;month=String(month||selectedMonth()).slice(0,7);if(!force&&month===currentMonth&&Date.now()-lastPull<20000)return true;syncing=true;try{await migrateOnce();if(supported===false)return false;await flushQueue();const j=await apiPost('/op/record/list',{teamId:t.teamId,month,includeDeleted:true});supported=true;lastPull=Date.now();applyServerMonth(month,j.records||[],j.summary||null);return true}catch(e){if(Number(e?.status)===404)supported=false;emitStatus();return false}finally{syncing=false}}
@@ -68,6 +68,24 @@ function schedule(ms,force,month){clearTimeout(timer);timer=setTimeout(()=>pullM
 
 async function onSaved(rec){if(!rec||!completed(rec))return;const t=team();if(!t?.teamId)return;const p=recordPayload(rec),key=p.requestKey;enqueue('upsert',p,key);if(navigator.onLine!==false){await flushQueue();schedule(250,true,String(p.localDate||'').slice(0,7)||selectedMonth())}}
 async function onDeleted(id){id=norm(id);if(!validQr(id))return;const t=team();if(!t?.teamId)return;const key='delete:'+id+':'+Date.now();enqueue('delete',{opCode:id,requestKey:key},key);if(navigator.onLine!==false){await flushQueue();schedule(300,true,selectedMonth())}}
+
+
+function renderApprovalPanel(){
+  let el=$('dfOwnerPendingApprovals');
+  const t=team(),owner=t?.role==='owner';
+  if(!owner){if(el)el.remove();return}
+  if(!el){el=document.createElement('section');el.id='dfOwnerPendingApprovals';el.style.cssText='margin:12px auto;padding:12px;max-width:760px;background:#19202c;color:white;border:1px solid #536070;border-radius:12px;position:relative;z-index:3';const host=$('dfFormulaOps')||$('appContent')||document.body;host.prepend(el)}
+  const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  el.innerHTML='<b>OPs aguardando sua confirmação ('+pendingRecords.length+')</b>'+(pendingRecords.length?pendingRecords.map(r=>'<div style="padding:10px 0;border-top:1px solid #536070"><div>'+esc(r.productName||r.opCode)+'</div><small>'+esc(r.opCode)+' · '+num(r.production)+' kg · apara '+num(r.scrap)+' kg</small><div><button type="button" data-df-approve="'+esc(r.opCode)+'" style="padding:9px 14px;margin-top:6px;background:#168044;color:white;border:0;border-radius:7px;font-weight:bold">CONFIRMAR OP</button></div></div>').join(''):'<p style="margin:8px 0 0">Nenhuma OP pendente neste mês.</p>');
+}
+async function approveOp(opCode,button){
+ const t=team();if(t?.role!=='owner')throw Error('Somente o dono pode confirmar.');
+ if(!pendingRecords.some(r=>norm(r.opCode)===norm(opCode)))throw Error('OP não está pendente.');
+ if(button){button.disabled=true;button.textContent='CONFIRMANDO...'}
+ try{await apiPost('/op/record/approve',{teamId:t.teamId,opCode});await pullMonth(true,selectedMonth());return true}
+ finally{if(button){button.disabled=false;button.textContent='CONFIRMAR OP'}}
+}
+document.addEventListener('click',e=>{const btn=e.target?.closest?.('[data-df-approve]');if(!btn)return;e.preventDefault();approveOp(btn.dataset.dfApprove,btn).catch(err=>alert('Não foi possível confirmar: '+String(err.message||err)))},true);
 
 function install(){if(booted)return;booted=true;
   window.addEventListener('df-op-saved',e=>{const r=e?.detail?.record;if(r&&r.source!=='d1-authority')onSaved(r)});
@@ -84,6 +102,6 @@ function install(){if(booted)return;booted=true;
   setTimeout(()=>{migrateOnce().then(()=>schedule(300,true))},1300);
 }
 
-window.DFOpServerAuthority={sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
+window.DFOpServerAuthority={approve:approveOp,pending:()=>pendingRecords.slice(),sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
