@@ -1,6 +1,6 @@
 {
-  "version": "1.0.545",
-  "title": "DF EXTRUSOR PRO — Seletor de turnos nativo",
-  "message": "Filtro de turnos integrado à tela de OPs salvas, sem injeções dinâmicas.",
+  "version": "1.0.546",
+  "title": "DF EXTRUSOR PRO — OPs salvas",
+  "message": "Seletor de turnos fixo no componente nativo e atualização do cache PWA.",
   "updatedAt": "2026-10-26"
 }
