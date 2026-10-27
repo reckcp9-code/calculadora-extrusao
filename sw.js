@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v591-embalagem-qr';
+const DF_CACHE='df-extrusor-shell-v592-fresh-online';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -57,13 +57,13 @@ self.addEventListener('fetch',event=>{
     if(p==='/'||p.endsWith('/')||p.endsWith('/acessar.html')||p.endsWith('/index.html')){event.respondWith((async()=>{try{const res=await fetchWithTimeout(req,10000);if(res&&res.ok){const c=await caches.open(DF_CACHE);c.put(req,res.clone()).catch(()=>{});return res}}catch(e){}const c=await caches.open(DF_CACHE);const safe=await c.match('./acessar.html')||await c.match('./index.html');return safe||new Response('Não foi possível abrir o DF Extrusor. Conecte à internet e tente novamente.',{status:503,headers:{'content-type':'text/plain;charset=utf-8'}})})());return}
 
     if(p.endsWith('/painel-administrativo-df.html')||p.endsWith('/gerar-acesso.html')||p.endsWith('/op-producao.html')||p.endsWith('/producao-agora-maquinas-v347.js')||p.endsWith('/acessar.html')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
-    event.respondWith((async()=>{const out=await navigationCached(req);if(out.refresh)event.waitUntil(out.refresh);return out.response})());return
+    event.respondWith(networkFirst(req));return
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/cost-simple-v154.js')||p.endsWith('/cost-fabril-v1.js')||p.endsWith('/cost-back-v155.js')||p.endsWith('/formula-saved-search-v1.js')||p.endsWith('/formula-save-first-op-v1.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/producao-machine-produtos-v1.js')||p.endsWith('/producao-produtos-fullscreen-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
-  event.respondWith(staleWhileRevalidate(req));
+  event.respondWith(networkFirst(req));
 });
 self.addEventListener('message',event=>{const data=event.data||{};if(data.type==='DF_SHOW_NOTIFICATION')event.waitUntil((async()=>{await notifyUpdate({title:data.title,body:data.body,message:data.body});await increaseBadge()})());if(data.type==='DF_SET_VERSION')event.waitUntil(setStoredVersion(data.version));if(data.type==='DF_CLEAR_BADGE')event.waitUntil(clearBadge());if(data.type==='DF_CACHE_NOW')event.waitUntil(precache());if(data.type==='SKIP_WAITING')self.skipWaiting()});
 self.addEventListener('periodicsync',event=>{if(event.tag!=='df-version-check')return;event.waitUntil((async()=>{try{const data=await currentVersionData();const current=String(data&&data.version||'').trim();if(!current)return;const previous=await getStoredVersion();if(previous&&previous!==current){await notifyUpdate(data||{});await increaseBadge()}await setStoredVersion(current)}catch(e){}})())});
