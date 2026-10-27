@@ -13,7 +13,7 @@ const next=read(QUEUE,{});items.forEach(x=>{if(next[x.opCode]?.createdAt===x.cre
 }catch(e){}finally{busy=false}}
 window.addEventListener('df-op-qr-created',e=>register(e.detail));
 // QR records can be persisted before the creation event listener runs. Recover them safely.
-function scanRegistry(){const reg=read(REG,{});for(const key of Object.keys(reg||{})){const row=reg[key];if(row&&typeof row==='object')register({...row,id:row.id||key});}}
+function scanRegistry(){const reg=read(REG,{}),tid=clean(team()?.teamId),done=read('df_op_name_create_scanned_v1:'+tid,{});if(!tid)return;let changed=false;for(const key of Object.keys(reg||{})){const row=reg[key],code=id(row?.id||key);if(!code||!row||typeof row!=='object'||done[code])continue;const e=row.expected||{},n=name(e.produto||e.title||e.cliente||'');if(!n)continue;register({...row,id:code});done[code]=true;changed=true;}if(changed)write('df_op_name_create_scanned_v1:'+tid,done);}
 
 window.addEventListener('online',flush);window.addEventListener('df-team-joined',flush);window.addEventListener('df-team-changed',flush);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)flush()});
