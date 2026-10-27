@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v617-d1-pending';
+const DF_CACHE='df-extrusor-shell-v618-exit-clean';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
