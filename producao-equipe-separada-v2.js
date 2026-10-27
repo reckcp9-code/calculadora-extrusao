@@ -100,7 +100,33 @@ async function openRemotePhoto(opId){const t=team();if(!t)return alert('Conecte 
 let membersBusy=false,lastMembersAt=0;
 async function refreshMembers(force){const t=team(),host=$('dfProdTeamV2Members');if(!t?.teamId||!host||membersBusy)return;if(!force&&Date.now()-lastMembersAt<5000)return;membersBusy=true;try{const j=await apiPost('/op/team/members',{teamId:t.teamId,area:AREA,scope:AREA});lastMembersAt=Date.now();const a=Array.isArray(j.members)?j.members:[];host.innerHTML='<b>👥 EQUIPE DE PRODUÇÃO • '+a.length+' '+(a.length===1?'pessoa':'pessoas')+'</b>'+a.map((m,i)=>'<div class="member"><span>'+esc(clean(m?.displayName)||(m?.role==='owner'?'Dono':'Operador '+(i+1)))+'</span><small>'+(m?.role==='owner'?'DONO':'OPERADOR')+'</small></div>').join('')}catch(e){host.innerHTML='<span class="tiny">Membros serão atualizados quando houver conexão.</span>'}finally{membersBusy=false}}
 async function createTeam(){const b=$('dfProdTeamV2Create'),name=clean($('dfProdTeamV2OwnerName')?.value)||'Dono';if(b){b.disabled=true;b.textContent='CRIANDO...'}setStatus('Criando uma equipe exclusiva da Produção...','');try{const j=await apiPost('/op/team/create',{name:'DF PRODUÇÃO',displayName:name,area:AREA,scope:AREA});if(!j.team?.teamId)throw Error('Servidor não retornou a equipe.');if(j.joinCode)rememberCode(j.joinCode,j.team);setDisplayName(name);write(SNAP_KEY,{});remove(CFG_SNAP_KEY);write(PHOTO_MAP_KEY,{});localStorage.removeItem(EXIT_MARK);setTeam({...j.team,role:'owner',area:AREA,displayName:j.team.displayName||name});renderTeam();await syncRemote(true);await syncLocal(true);refreshMembers(true)}catch(e){setStatus('⚠️ Não consegui criar a equipe de Produção: '+String(e?.message||e),'warn')}finally{if(b){b.disabled=false;b.textContent='👑 CRIAR EQUIPE DE PRODUÇÃO'}}}
-async function joinTeam(){const code=String($('dfProdTeamV2Code')?.value||'').replace(/\D/g,''),name=clean($('dfProdTeamV2JoinName')?.value);if(code.length<6)return setStatus('Digite o código da equipe de Produção.','warn');if(!name)return setStatus('Digite o nome do operador.','warn');const b=$('dfProdTeamV2Join');if(b){b.disabled=true;b.textContent='ENTRANDO...'}try{const j=await apiPost('/op/team/join',{code,displayName:name,area:AREA,scope:AREA});if(!j.team?.teamId)throw Error('Equipe não encontrada.');rememberCode(code,j.team);localStorage.removeItem(EXIT_MARK);setDisplayName(name);write(SNAP_KEY,{});remove(CFG_SNAP_KEY);write(PHOTO_MAP_KEY,{});setTeam({...j.team,area:AREA,displayName:j.team.displayName||name});renderTeam();await syncRemote(true);refreshMembers(true)}catch(e){setStatus('⚠️ Não consegui entrar na equipe de Produção: '+String(e?.message||e),'warn')}finally{if(b){b.disabled=false;b.textContent='🔗 ENTRAR NA EQUIPE DE PRODUÇÃO'}}}
+async function joinTeam(){
+ const code=String($('dfProdTeamV2Code')?.value||'').replace(/\D/g,''),name=clean($('dfProdTeamV2JoinName')?.value);
+ if(code.length<6)return setStatus('Digite o código da equipe de Produção.','warn');
+ if(!name)return setStatus('Digite o nome do operador.','warn');
+ if(team())return setStatus('Saia da equipe atual antes de entrar em outra.','warn');
+ const b=$('dfProdTeamV2Join');if(b){b.disabled=true;b.textContent='VALIDANDO...'}
+ try{
+   // A equipe é validada pelo servidor; não se publica nenhuma OP local no novo time.
+   // A limpeza acontece antes de gravar o novo vínculo no dispositivo.
+   if(!confirm('ENTRAR EM OUTRA EQUIPE DE PRODUÇÃO? É OBRIGATÓRIO APAGAR todas as OPs, baixas, fotos e cadastros locais anteriores deste aparelho. Dados já salvos no servidor de outra empresa permanecem lá. Deseja limpar e entrar?'))return;
+   localStorage.setItem(EXIT_MARK,'1');
+   clearTimeout(pushTimer);clearTimeout(pullTimer);
+   await wipeProductionLocal();
+   // wipeProductionLocal apaga marcadores de saída; mantê-lo até gravar o novo time.
+   localStorage.setItem(EXIT_MARK,'1');
+   if(b)b.textContent='ENTRANDO...';
+   const j=await apiPost('/op/team/join',{code,displayName:name,area:AREA,scope:AREA});
+   if(!j.team?.teamId)throw Error('Equipe não encontrada.');
+   rememberCode(code,j.team);
+   setDisplayName(name);write(SNAP_KEY,{});remove(CFG_SNAP_KEY);write(PHOTO_MAP_KEY,{});
+   setTeam({...j.team,area:AREA,displayName:j.team.displayName||name});
+   localStorage.removeItem(EXIT_MARK);
+   renderTeam();await syncRemote(true);refreshMembers(true);
+ }catch(e){
+   setStatus('⚠️ Entrada não concluída: '+String(e?.message||e)+'. Os dados locais antigos não serão enviados à nova equipe.','warn');
+ }finally{if(b){b.disabled=false;b.textContent='🔗 ENTRAR NA EQUIPE DE PRODUÇÃO'}}
+}
 async function saveName(){const t=team(),name=clean($('dfProdTeamV2MyName')?.value);if(!t||!name)return;const b=$('dfProdTeamV2SaveName');if(b)b.disabled=true;try{const j=await apiPost('/op/team/member-name',{teamId:t.teamId,displayName:name,area:AREA,scope:AREA});setDisplayName(String(j.displayName||name));setTeam({...t,displayName:String(j.displayName||name)});refreshMembers(true)}catch(e){setStatus('⚠️ Não foi possível salvar o nome agora.','warn')}finally{if(b)b.disabled=false}}
 let leavingProductionTeam=false;
 async function clearProductionTeam(){
