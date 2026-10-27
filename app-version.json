@@ -1,6 +1,6 @@
 {
-  "version": "1.0.626",
-  "title": "Proteção de produção e totais por máquina",
-  "message": "Impede exclusão implícita por cache incompleto; protege OP pronta contra retrocesso; AGORA soma OPs concluídas por máquina.",
+  "version": "1.0.627",
+  "title": "Sincronização isolada por OP",
+  "message": "Falha de foto em uma OP não interrompe as demais.",
   "updatedAt": "2026-10-27"
 }
