@@ -1,6 +1,6 @@
 {
-  "version": "1.0.623",
-  "title": "Baixa do dono soma mês e máquina imediatamente",
-  "message": "Baixa do dono atualiza MÊS e AGORA localmente e sincroniza no mesmo D1 da equipe; operadores recebem o acumulado oficial.",
+  "version": "1.0.624",
+  "title": "Correção de tela vazia em OPs Automáticas",
+  "message": "Corrigida referência de cache do módulo; se houver falha, exibe erro e botão tentar novamente em vez de tela preta.",
   "updatedAt": "2026-10-27"
 }
