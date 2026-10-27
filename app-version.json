@@ -1,6 +1,6 @@
 {
-  "version": "1.0.568",
-  "title": "DF EXTRUSOR PRO — Inicialização sem interface antiga",
-  "message": "Impede exibir o layout antigo do app-shell antes que a navegação moderna seja montada. Preserva licenças, OPs e dados existentes.",
+  "version": "1.0.569",
+  "title": "DF EXTRUSOR PRO — Menu antigo removido do shell",
+  "message": "Removido botão CURSO do menu antigo e incorporado PRODUÇÃO diretamente na estrutura inicial, mantendo funções e dados.",
   "updatedAt": "2026-10-27"
 }
