@@ -1,6 +1,6 @@
 {
-  "version": "1.0.620",
-  "title": "Baixa de operador enviada diretamente ao D1",
-  "message": "Confirma foto e OP no servidor antes de mostrar enviada; erro de envio fica visível. Preserva saída de equipe v618.",
+  "version": "1.0.621",
+  "title": "Baixa do dono atualiza D1 e produção",
+  "message": "Dono confirma baixa no D1 como pronta e atualiza produção mensal e por máquina; operador continua aguardando aprovação.",
   "updatedAt": "2026-10-27"
 }
