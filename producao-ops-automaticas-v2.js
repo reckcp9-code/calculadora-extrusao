@@ -200,6 +200,9 @@ async function saveCurrent(){
     currentOp=null;currentPendingId='';
     $('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');
     renderAll();
+    // A baixa do dono já soma localmente no MÊS e em AGORA, antes de qualquer resposta da nuvem.
+    // O mesmo evento atualiza o painel de máquinas sem exigir reabrir a tela.
+    try{window.dispatchEvent(new CustomEvent('df-producao-auto-saved',{detail:{opId,createdAt,photoId,production,scrap,machine:rec.machine,status:rec.status}}))}catch(e){}
     try{window.dispatchEvent(new CustomEvent('df-producao-team-synced',{detail:{opId,reason:'completion'}}))}catch(e){}
     setTimeout(()=>switchPane(isOperator?'pending':'ok'),120)
   }catch(e){
