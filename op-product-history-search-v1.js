@@ -42,8 +42,8 @@ function openExisting(id){
 }
 function render(){
   var input=$('dfProductHistorySearch'),out=$('dfProductHistoryResults');if(!input||!out)return;
-  var q=normText(input.value);if(!q){out.innerHTML='<div class="dfPhHint">Digite parte do nome do produto. Ex.: <b>Coque</b>.</div>';return}
-  var list=buildIndex().filter(function(r){return r.name&&r.op&&statusFor(r).key==='ok'&&normText(r.name).indexOf(q)>=0});
+  var q=normText(input.value);if(!q){out.innerHTML='<div class="dfPhHint">Digite o nome do produto ou o ID da OP. Ex.: <b>Coque</b> ou <b>DFOP-</b>.</div>';return}
+  var idQuery=normId(input.value);var list=buildIndex().filter(function(r){return r.op&&statusFor(r).key==='ok'&&((r.name&&normText(r.name).indexOf(q)>=0)||(idQuery&&[r.id].concat(ids(r.op)).some(function(code){return normId(code).indexOf(idQuery)>=0})))});
   list.sort(function(a,b){return String(b.op&&b.op.data||b.createdAt||'').localeCompare(String(a.op&&a.op.data||a.createdAt||''))});
   var produced=0,ready=0;
   list.forEach(function(r){var s=statusFor(r);if(s.key==='ok')ready++;if(r.op)produced+=Number(r.op.produzido||0)});
@@ -66,7 +66,7 @@ function style(){if($('dfProductHistoryStyle'))return;var s=document.createEleme
 @media(max-width:430px){.dfPhSearchLine{grid-template-columns:1fr}.dfPhSummary{grid-template-columns:1fr 1fr}}';document.head.appendChild(s)}
 function mount(){
   style();var list=$('dfOkList');if(!list||$('dfProductHistoryBox'))return !!list;
-  var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="Ex.: Coque" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite parte do nome do produto.</div></div>';
+  var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto ou pelo ID da OP para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="NOME DO PRODUTO OU ID DA OP" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite o nome do produto ou o ID da OP.</div></div>';
   list.parentNode.insertBefore(box,list);
   $('dfProductHistoryBtn').onclick=render;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(render,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render()}});
   return true;
