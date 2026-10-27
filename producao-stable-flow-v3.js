@@ -78,7 +78,7 @@ function openIntoForm(o){const S=window.__DF_PROD_V3_STATE||(window.__DF_PROD_V3
 function generateSafe(e){const b=e.target.closest&&e.target.closest('#prGenerate');if(!b)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(b.dataset.busy==='1')return;b.dataset.busy='1';setTimeout(()=>delete b.dataset.busy,700);const S=window.__DF_PROD_V3_STATE||{},sector=S.sector||'Picote',machine=$('prMachine')?.value.trim()||'',product=$('prProduct')?.value.trim()||'',measure=$('prMeasure')?.value.trim()||'',operator=$('prOperator')?.value.trim()||'',shift=$('prShift')?.value||'',start=$('prStart')?.value||'',end=$('prEnd')?.value||'';if(!machine||!product||!measure||!operator||!shift||!start||!end){notice('Preencha máquina, produto, medida, operador, turno e período.');return}const a=read(KEY,[]),old=a.find(x=>sameMachineShift(x,sector,machine,shift));if(old){notice('Essa máquina já possui uma OP aberta no Turno '+normalizeShift(shift)+'. Use a OP atual ou encerre esse turno antes de gerar outra.');return}const o={id:makeId(),sector,machine,product,measure,operator,shift,start,end,createdAt:new Date().toISOString(),status:'open',rolls:rolls(),stops:stops(),test:false};a.push(o);if(!saveOps(a)){notice('Não foi possível salvar a OP neste aparelho.');return}registerQR(o);notifyTeamChange();selectedId=o.id;mode='all';query='';notice('OP salva com sucesso. Esta máquina pode ter outra OP aberta em outro turno.','ok');renderSaved();setTimeout(()=>{const box=$('dfSavedOps');if(box)box.scrollIntoView({behavior:'smooth',block:'start'})},60)}
 
 function createNewFrom(o){return{id:makeId(),sector:o.sector||'Picote',machine:o.machine||'',product:o.product||'',measure:o.measure||'',operator:o.operator||'',shift:o.shift||'',start:o.start||'',end:o.end||'',createdAt:new Date().toISOString(),status:'open',rolls:rolls(),stops:stops(),test:false}}
-function handleActions(e){const el=e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]');if(!el)return;const id=el.dataset.opOpen||el.dataset.opPdf||el.dataset.opNew||el.dataset.opDel,a=read(KEY,[]),o=a.find(x=>x&&x.id===id);if(!o)return;if(el.dataset.opDel){e.preventDefault();e.stopPropagation();if(confirm('Excluir esta OP?')){saveOps(a.filter(x=>x.id!==id));notifyTeamChange();if(selectedId===id)selectedId='';renderSaved()}return}if(el.dataset.opNew){e.preventDefault();e.stopPropagation();const n=createNewFrom(o);while(a.some(x=>x&&x.id===n.id))n.id=makeId();if(!confirm('Gerar uma nova OP com os mesmos dados de '+o.machine+' e '+o.operator+'? Ela terá ID e QR Code novos, sem copiar pesos e apontamentos.'))return;a.push(n);if(!saveOps(a)){alert('Não foi possível gerar a nova OP.');return}registerQR(n);notifyTeamChange();selectedId=n.id;mode='all';query='';notice('Nova OP gerada com ID e QR Code diferentes.','ok');renderSaved();return}if(el.dataset.opPdf){e.preventDefault();e.stopPropagation();window.DF_PRODUCAO_OP_TEST?.print(o);return}if(el.dataset.opOpen){e.preventDefault();e.stopPropagation();openIntoForm(o)}}
+function handleActions(e){const el=e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]');if(!el)return;const id=el.dataset.opOpen||el.dataset.opPdf||el.dataset.opNew||el.dataset.opDel,a=read(KEY,[]),o=a.find(x=>x&&x.id===id);if(!o)return;if(el.dataset.opDel){e.preventDefault();e.stopPropagation();if(confirm('Excluir esta OP?')){saveOps(a.filter(x=>x.id!==id));window.DFProductionSavedD1Deleted?.(id);notifyTeamChange();if(selectedId===id)selectedId='';renderSaved()}return}if(el.dataset.opNew){e.preventDefault();e.stopPropagation();const n=createNewFrom(o);while(a.some(x=>x&&x.id===n.id))n.id=makeId();if(!confirm('Gerar uma nova OP com os mesmos dados de '+o.machine+' e '+o.operator+'? Ela terá ID e QR Code novos, sem copiar pesos e apontamentos.'))return;a.push(n);if(!saveOps(a)){alert('Não foi possível gerar a nova OP.');return}registerQR(n);notifyTeamChange();selectedId=n.id;mode='all';query='';notice('Nova OP gerada com ID e QR Code diferentes.','ok');renderSaved();return}if(el.dataset.opPdf){e.preventDefault();e.stopPropagation();window.DF_PRODUCAO_OP_TEST?.print(o);return}if(el.dataset.opOpen){e.preventDefault();e.stopPropagation();openIntoForm(o)}}
 
 function clearLegacyGeneratedPane(){const S=window.__DF_PROD_V3_STATE||{};if(S.pane!=='list')return;const body=$('dfPrBody');if(body&&body.childNodes.length)body.innerHTML=''}
 function cleanLegacy(){clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
@@ -92,4 +92,87 @@ document.addEventListener('click',handleActions,true);
 boot(0);
 window.addEventListener('pageshow',()=>{setTimeout(()=>{renderSaved();cleanLegacy();installObserver()},80)},true);
 window.addEventListener('focus',()=>setTimeout(cleanLegacy,80),true);
+
+/* D1 saved OP sync v550: preserve local data until server acknowledges. */
+(function(){
+const K='df_producao_ops_setores_test_v3', T='df_producao_team_v2', D='df_producao_saved_d1_shadow_v550', Q='df_op_qr_registry_test_setores_v3';
+const API='https://df-extrusor-api.reck-cp9.workers.dev';
+const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??d}catch(e){return d}};
+const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const id=o=>String(o?.id||'').trim().toUpperCase();
+const fingerprint=o=>JSON.stringify(o);
+let busy=false,queued=false,ready=false;
+function device(){return String(window.DFDeviceIdentity?.get?.()||localStorage.getItem('df_licenseauth_device_v1')||'').trim()}
+async function session(force){
+ let token=String(sessionStorage.getItem('df_secure_token_v2')||'').trim();
+ if(token&&!force)return token;
+ const credential=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim(),dev=device();
+ if(!credential||!dev)throw Error('Sem sessão para sincronizar');
+ const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
+ const j=await r.json();if(!r.ok||!j.token)throw Error(j.error||'Sessão indisponível');
+ sessionStorage.setItem('df_secure_token_v2',j.token);return j.token;
+}
+async function call(path,body,retry=true){
+ const token=await session(false),r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device()},body:JSON.stringify(body),cache:'no-store'});
+ const j=await r.json().catch(()=>({}));if(r.status===401&&retry){await session(true);return call(path,body,false)}
+ if(!r.ok||j.ok===false){const e=Error(j.error||'HTTP '+r.status);e.status=r.status;throw e}return j;
+}
+function local(){const a=read(K,[]);return Array.isArray(a)?a:[]}
+function shadow(teamId){const s=read(D,{});return s.teamId===teamId?s:{teamId,known:{},deleted:{}}}
+function updateUI(){try{window.DFRenderSavedProductionOps?.()}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-team-synced'))}catch(e){}}
+async function sync(){
+ if(busy||navigator.onLine===false||document.hidden)return;
+ const team=read(T,null);if(!team?.teamId)return;
+ busy=true;
+ try{
+  const tid=String(team.teamId),s=shadow(tid),body={teamId:tid},first=await call('/production/saved/list',body);
+  const remote=new Map((first.records||[]).filter(x=>x?.opCode).map(x=>[String(x.opCode).toUpperCase(),x]));
+  const current=local(),currentIds=new Set(current.map(id).filter(Boolean));
+  // Explicit local deletions only; never infer deletion from an empty cache.
+  for(const code of Object.keys(s.deleted||{})){
+   if(remote.get(code)?.state!=='deleted')await call('/production/saved/delete',{...body,opCode:code});
+   s.known[code]='__DELETED__';delete s.deleted[code];
+  }
+  for(const op of current){
+   const code=id(op);if(!code||s.known[code]==='__DELETED__')continue;
+   const rec=remote.get(code),sig=fingerprint(op);
+   if(rec?.state==='deleted'){s.known[code]='__DELETED__';continue}
+   // Upload only new local records or local edits known to this device.
+   if(!rec||s.known[code]&&s.known[code]!==sig){
+    try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig}
+    catch(e){if(e.status===409){s.known[code]='__DELETED__';continue}throw e}
+   }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
+  }
+  const latest=await call('/production/saved/list',body);
+  const merged=new Map(local().filter(o=>id(o)).map(o=>[id(o),o]));
+  for(const rec of latest.records||[]){
+   const code=String(rec.opCode||'').toUpperCase();if(!code)continue;
+   if(rec.state==='deleted'){merged.delete(code);s.known[code]='__DELETED__';continue}
+   if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object')continue;
+   const existing=merged.get(code);
+   // Local edits not yet uploaded must never be overwritten.
+   if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
+   merged.set(code,rec.payload);s.known[code]=fingerprint(rec.payload);
+  }
+  const next=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||id(b).localeCompare(id(a)));
+  if(fingerprint(next)!==fingerprint(local())){put(K,next);for(const o of next){const qr=read(Q,{});if(!qr[o.id]){qr[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};put(Q,qr)}}updateUI()}
+  put(D,s);ready=true;
+ }catch(e){console.warn('[DF Produção D1] Sincronização pendente:',e.message)}
+ finally{busy=false;if(queued){queued=false;setTimeout(sync,250)}}
+}
+function schedule(){if(busy){queued=true;return}setTimeout(sync,300)}
+window.DFProductionSavedD1={sync,ready:()=>ready};
+window.addEventListener('df-op-saved',schedule);
+window.addEventListener('df-producao-auto-saved',schedule);
+window.addEventListener('df-producao-team-changed',schedule);
+window.addEventListener('online',schedule);
+window.addEventListener('focus',schedule);
+window.addEventListener('pageshow',schedule);
+setInterval(sync,12000);setTimeout(sync,1800);
+window.DFProductionSavedD1Deleted=function(code){
+ const t=read(T,null);if(!t?.teamId)return;
+ const s=shadow(String(t.teamId));s.deleted[String(code).toUpperCase()]=true;put(D,s);schedule();
+};
+})();
+
 })();
