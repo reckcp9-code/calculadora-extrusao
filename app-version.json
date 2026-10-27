@@ -1,6 +1,6 @@
 {
-  "version": "1.0.615",
-  "title": "Recuperar código existente da Equipe de Produção",
-  "message": "Dono pode restaurar código conhecido no aparelho sem alterar equipe, operadores ou OPs.",
+  "version": "1.0.616",
+  "title": "Sincronização de baixas pendentes entre operador e dono",
+  "message": "Corrige envio de baixas sem OP no cadastro local e evita reenvio forçado de OPs antigas.",
   "updatedAt": "2026-10-27"
 }
