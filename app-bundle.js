@@ -4525,6 +4525,7 @@
       '.dfFeedbackPostType{display:inline-block;border:1px solid #475569;border-radius:999px;padding:4px 7px;color:#cbd5e1;font-size:10px;font-weight:900;margin-top:7px}.dfFeedbackPending{display:inline-block;margin-left:5px;border:1px solid #92400e;border-radius:999px;padding:4px 7px;color:#fbbf24;font-size:10px;font-weight:900}',
       '.dfFeedbackPostText{white-space:pre-wrap;word-break:break-word;color:#e2e8f0;line-height:1.45;margin-top:10px}.dfFeedbackPostDelete{border:1px solid #7f1d1d;background:#230b0b;color:#fca5a5;border-radius:9px;padding:6px 8px;font-size:10px;font-weight:900;cursor:pointer;flex:0 0 auto}',
       '.dfFeedbackWallNote{font-size:11px;color:#64748b;line-height:1.45;margin-top:8px}',
+      '.dfFeedbackDemo{margin-top:22px;border-top:1px solid #475569;padding-top:16px}.dfFeedbackDemo h3{font-size:17px;margin:0 0 8px}.dfFeedbackDemo>p{font-size:12px;color:#94a3b8;line-height:1.5;margin:0 0 12px}',
       '@media(max-width:560px){.tabs.dfFeedbackTabs{grid-template-columns:repeat(3,1fr)!important}.dfFeedbackActions{grid-template-columns:1fr}.dfFeedbackStars{gap:5px}.dfFeedbackStar{font-size:13px;padding:10px 2px}.dfFeedbackPostTop{gap:6px}}'
     ].join('');document.head.appendChild(st);
   }
@@ -4540,10 +4541,17 @@
   function loadPosts(){try{const a=JSON.parse(localStorage.getItem(POSTS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
   function savePosts(a){try{localStorage.setItem(POSTS_KEY,JSON.stringify((a||[]).slice(0,MAX_POSTS)))}catch(e){}}
   function stars(v){const n=Math.max(0,Math.min(5,Number(v)||0));return n?'⭐'.repeat(n):'Sem nota'}
+  function demoFeedbackHtml(){
+    const beginnings=['Aplicativo excelente!','Nota dez para o DF Extrusor!','Ferramenta muito útil!','Parabéns pelo aplicativo!','Ótimo para a rotina industrial!','Uma solução prática!','Aplicativo muito bem pensado!','Excelente apoio para a produção!','Muito bom para organizar o trabalho!','Uma ferramenta que vale conhecer!','Gostei da proposta!','Muito interessante para a extrusão!','Visual simples e funcional!','Boa iniciativa da DF Manutenção!','Uma ótima ideia para a indústria!','Ferramenta que facilita os cálculos!','Muito útil no dia a dia!','Parabéns pelo desenvolvimento!','Excelente proposta para a fábrica!','Aplicativo nota cinco estrelas!'];
+    const endings=['Ajuda a acompanhar a produtividade.','Facilita a organização das máquinas.','Deixa os cálculos mais acessíveis.','Pode melhorar o controle da produção.','Torna o planejamento mais simples.','Ajuda a visualizar os resultados.','É um apoio para quem trabalha com extrusão.','Incentiva a melhorar os processos.','Pode ajudar na gestão industrial.','Ajuda a entender melhor os indicadores.','Facilita a rotina dos operadores.','É uma boa ferramenta para aprender.','Aproxima a operação da gestão.','Traz mais clareza para a produção.','É uma solução interessante para equipes.'];
+    let html='<div class="dfFeedbackDemo"><h3>⭐ Avaliações demonstrativas (300 exemplos)</h3><p>Exemplos fictícios de comentários com cinco estrelas, criados para demonstração. Não são depoimentos de clientes nem avaliações enviadas à nuvem.</p>';
+    for(let i=0;i<300;i++){const a=beginnings[i%beginnings.length],b=endings[Math.floor(i/beginnings.length)%endings.length];html+='<div class="dfFeedbackPost"><div class="dfFeedbackPostTop"><div><div class="dfFeedbackPostName">Exemplo demonstrativo '+(i+1)+'</div><div class="dfFeedbackPostMeta">⭐⭐⭐⭐⭐</div><span class="dfFeedbackPostType">FICTÍCIO · DEMONSTRAÇÃO</span></div></div><div class="dfFeedbackPostText">'+esc(a+' '+b)+'</div></div>'}
+    return html+'</div>';
+  }
   function renderPosts(){
     const box=$('dfFeedbackPosts');if(!box)return;const posts=loadPosts();const count=$('dfFeedbackCount');if(count)count.textContent=String(posts.length);
-    if(!posts.length){box.innerHTML='<div class="dfFeedbackEmpty">Ainda não há comentários publicados.</div>';return}
-    box.innerHTML=posts.map(p=>'<div class="dfFeedbackPost '+(p.pending?'pending':'')+'"><div class="dfFeedbackPostTop"><div><div class="dfFeedbackPostName">'+esc(p.name||'Anônimo')+'</div><div class="dfFeedbackPostMeta">'+esc(fmtDate(p.createdAt))+' • '+esc(stars(p.score))+'</div><span class="dfFeedbackPostType">'+esc(p.type||'Feedback')+'</span>'+(p.pending?'<span class="dfFeedbackPending">AGUARDANDO NUVEM</span>':'')+'</div>'+((p.canDelete||p.pending)?'<button class="dfFeedbackPostDelete" type="button" data-feedback-delete="'+esc(p.id)+'">EXCLUIR</button>':'')+'</div><div class="dfFeedbackPostText">'+esc(p.text||'')+'</div></div>').join('');
+    if(!posts.length){box.innerHTML='<div class="dfFeedbackEmpty">Ainda não há comentários reais publicados.</div>'+demoFeedbackHtml();return}
+    box.innerHTML=posts.map(p=>'<div class="dfFeedbackPost '+(p.pending?'pending':'')+'"><div class="dfFeedbackPostTop"><div><div class="dfFeedbackPostName">'+esc(p.name||'Anônimo')+'</div><div class="dfFeedbackPostMeta">'+esc(fmtDate(p.createdAt))+' • '+esc(stars(p.score))+'</div><span class="dfFeedbackPostType">'+esc(p.type||'Feedback')+'</span>'+(p.pending?'<span class="dfFeedbackPending">AGUARDANDO NUVEM</span>':'')+'</div>'+((p.canDelete||p.pending)?'<button class="dfFeedbackPostDelete" type="button" data-feedback-delete="'+esc(p.id)+'">EXCLUIR</button>':'')+'</div><div class="dfFeedbackPostText">'+esc(p.text||'')+'</div></div>').join('')+demoFeedbackHtml();
   }
 
   async function loadCloudPosts(showStatus=true){
