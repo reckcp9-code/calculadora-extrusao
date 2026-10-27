@@ -14,11 +14,11 @@ function message(text){
 function guard(ev){
  const b=ev.target&&ev.target.closest&&ev.target.closest('#prGenerate');if(!b)return;
  const machine=val('prMachine'),product=val('prProduct'),measure=val('prMeasure');if(!machine)return;
- const old=ops().find(x=>x&&x.sector===sector()&&norm(x.machine)===norm(machine)&&x.status==='open');if(!old)return;
- ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
- const same=norm(old.product)===norm(product)&&norm(old.measure)===norm(measure);
- message(same?'Já existe uma OP aberta nessa máquina para esse produto/medida. Altere os campos ou use a OP existente.':'Essa máquina já tem uma OP aberta. Encerre a OP atual antes de gerar outra.');
- try{b.disabled=false;b.style.pointerEvents='auto';document.body.style.pointerEvents='auto';document.documentElement.style.pointerEvents='auto';document.body.style.overflow='';}catch(e){}
+ // A máquina pode ter várias OPs abertas; cada pedido possui ID/QR exclusivo.
+ // Não bloquear a criação pelo nome da máquina ou pela existência de outra OP.
+ const old=ops().find(x=>x&&x.sector===sector()&&norm(x.machine)===norm(machine)&&x.status==='open');
+ if(old){const m=document.getElementById('dfDuplicateMsgV2');if(m)m.remove();}
+
 }
 document.addEventListener('click',guard,true);
 })();
