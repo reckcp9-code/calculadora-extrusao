@@ -1,6 +1,6 @@
 {
-  "version": "1.0.617",
-  "title": "Pendências oficiais sincronizadas no Cloudflare D1",
-  "message": "Operador envia baixa e foto confirmadas ao servidor; dono recebe pendência via D1 e confirma antes de contabilizar.",
+  "version": "1.0.618",
+  "title": "Limpeza completa ao sair da equipe de Produção",
+  "message": "Corrigida a limpeza de fotos antigas, OPs, produção mensal e pendências no aparelho que sai da equipe.",
   "updatedAt": "2026-10-27"
 }
