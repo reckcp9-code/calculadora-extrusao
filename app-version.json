@@ -1,6 +1,6 @@
 {
-  "version": "1.0.569",
-  "title": "DF EXTRUSOR PRO — Menu antigo removido do shell",
-  "message": "Removido botão CURSO do menu antigo e incorporado PRODUÇÃO diretamente na estrutura inicial, mantendo funções e dados.",
+  "version": "1.0.570",
+  "title": "DF EXTRUSOR PRO — OPs e Fotos sem espera",
+  "message": "Módulos de OPs automáticas e Fotos passam a carregar junto à interface, sem esperar clique ou carregamento sequencial tardio. Dados e funções preservados.",
   "updatedAt": "2026-10-27"
 }
