@@ -9,7 +9,7 @@ function aplicarTurno(){
  var fav=findFavorites(), selected=turnoAtual();if(!fav)return;
  document.querySelectorAll('[data-df-turno]').forEach(function(b){var on=b.dataset.dfTurno===selected;b.style.background=on?'#251800':'#101827';b.style.borderColor=on?'#f5a000':'#41516a';b.style.color=on?'#ffd36a':'#cbd5e1'});
  var root=fav.closest('section,article,.card,.panel')||fav.parentElement?.parentElement?.parentElement?.parentElement;if(!root)return;
- var ops=[];root.querySelectorAll('*').forEach(function(n){if(n.children.length||!n.textContent)return;var m=n.textContent.trim().match(/DFOP-\\d{8}-\\d{6}-[A-Z0-9]+/i);if(!m)return;var item=n;for(var k=0;k<6&&item.parentElement&&item.parentElement!==root;k++){var p=item.parentElement;if(p.querySelectorAll('button').length>3||p.querySelectorAll('input').length)break;item=p}if(item!==root)ops.push({item:item,id:m[0].toUpperCase()})});
+ var ops=[];root.querySelectorAll('*').forEach(function(n){if(n.children.length||!n.textContent)return;var m=n.textContent.trim().match(/DFOP-\d{8}-\d{6}-[A-Z0-9]+/i);if(!m)return;var item=n;for(var k=0;k<6&&item.parentElement&&item.parentElement!==root;k++){var p=item.parentElement;if(p.querySelectorAll('button').length>3||p.querySelectorAll('input').length)break;item=p}if(item!==root)ops.push({item:item,id:m[0].toUpperCase()})});
  ops.forEach(function(o){var shift=turnoDaOp(o.id);o.item.style.display=selected==='Todos'||shift===selected||!shift?'':'none'});
 }
 function montarTurnos(){
