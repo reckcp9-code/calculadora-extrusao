@@ -108,7 +108,7 @@ async function clearProductionTeam(){
 }
 async function wipeProductionLocal(){
  // Limpeza restrita aos dados da Produção; não remove licença, sessão nem dados da Extrusão.
- const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY]);
+ const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY,'df_producao_ops_favoritas_v1','df_producao_saved_d1_shadow_v550']);
  const prefixes=['df_producao_','df_prod_team_','df_production_team_'];
  const keys=[];
  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(exact.has(k)||prefixes.some(p=>k.startsWith(p))))keys.push(k)}}catch(e){}
