@@ -21,7 +21,7 @@ function mount(){
  const host=pane.querySelector('#dfMonthlyPhotoRows');host.replaceChildren();
  if(!rows.length){host.textContent='Nenhuma OP baixada encontrada neste mês neste aparelho.';return}
  rows.forEach(o=>{const r=document.createElement('div');r.className='dfMonthlyRow';r.innerHTML='<strong>'+esc(name(o))+'</strong><div style="font-size:12px;color:#94a3b8;overflow-wrap:anywhere">'+esc(code(o))+'</div><div>Produção: '+esc(o.produzido||0)+' kg • Apara: '+esc(o.apara||0)+' kg</div><button type="button">✏️ EDITAR • SALVAR E MANTER EM PRONTAS</button>';
- r.querySelector('button').onclick=()=>{const ready=tabs.querySelector('[data-pane="ok"]');if(ready)ready.click();setTimeout(()=>{const view=[...document.querySelectorAll('[data-view]')].find(x=>String(x.getAttribute('data-view')).toUpperCase()===code(o));if(view)view.click();else alert('OP não disponível para edição neste aparelho. Nenhum dado foi alterado.')},120)};
+ r.querySelector('button').onclick=async()=>{if(typeof window.DFOpenStoredOpPhoto!=='function'){alert('Editor de fotos indisponível.');return}await window.DFOpenStoredOpPhoto(code(o));if(document.getElementById('dfOpModal')?.classList.contains('on'))window.DFOpReadyEditMount?.(code(o))};
  host.appendChild(r)});
  }
  b.onclick=()=>{tabs.querySelectorAll('[data-pane]').forEach(x=>x.classList.remove('on'));b.classList.add('on');tabs.parentElement.querySelectorAll('.dfOpsPane').forEach(x=>x.classList.remove('on'));pane.classList.add('on');render()};
