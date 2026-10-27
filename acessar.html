@@ -2,26 +2,20 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta name="theme-color" content="#080b13">
 <title>DF EXTRUSOR PRO</title>
 </head>
-<body style="margin:0;background:#080b13;color:#fff;font-family:system-ui;text-align:center;padding:48px 20px">
+<body style="margin:0;background:#080b13;color:#fff;font:16px system-ui;text-align:center;padding:48px 20px">
 <p>Abrindo DF EXTRUSOR PRO...</p>
+<p id="dfError" style="display:none">Se não abrir, <a style="color:#93c5fd" href="./index.html?acesso=geral">toque aqui para entrar</a>.</p>
 <script>
-(async function(){
- try{
-  if('serviceWorker' in navigator){
-   const regs=await navigator.serviceWorker.getRegistrations();
-   await Promise.all(regs.map(r=>r.unregister()));
-  }
-  if('caches' in window){
-   const keys=await caches.keys();
-   await Promise.all(keys.map(k=>caches.delete(k)));
-  }
- }catch(e){}
- location.replace('/?acesso=geral&cache=20261013-agora-full-v347');
+(function(){
+  // Não apagar CacheStorage nem desregistrar o SW: o app preserva dados locais.
+  var url='./index.html?acesso=geral&v=20261026-pwa-safe-v541';
+  try{location.replace(url)}catch(e){document.getElementById('dfError').style.display='block'}
+  setTimeout(function(){var el=document.getElementById('dfError');if(el)el.style.display='block'},4000);
 })();
 </script>
 </body>
