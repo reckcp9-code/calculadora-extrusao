@@ -157,6 +157,8 @@ async function sync(){
    if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
    merged.set(code,rec.payload);s.known[code]=fingerprint(rec.payload);
   }
+  const liveShadow=shadow(tid);for(const code of Object.keys(liveShadow.deleted))merged.delete(code);
+  for(const code of Object.keys(liveShadow.known))if(liveShadow.known[code]==='__DELETED__')merged.delete(code);
   const next=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||id(b).localeCompare(id(a)));
   if(fingerprint(next)!==fingerprint(local())){put(K,next);for(const o of next){const qr=read(Q,{});if(!qr[o.id]){qr[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};put(Q,qr)}}updateUI()}
   const beforeSave=shadow(tid);for(const code of Object.keys(beforeSave.deleted))s.deleted[code]=true;
