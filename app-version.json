@@ -1,6 +1,6 @@
 {
-  "version": "1.0.549",
-  "title": "DF EXTRUSOR PRO — Sincronização de equipe",
-  "message": "Sincronização periódica quando online, além dos eventos de geração e retorno à conexão.",
-  "updatedAt": "2026-10-26"
+  "version": "1.0.550",
+  "title": "DF EXTRUSOR PRO — OPs salvas em equipe",
+  "message": "Sincronização autenticada das OPs salvas no D1, preservando cópias locais e exclusões por equipe.",
+  "updatedAt": "2026-10-27"
 }
