@@ -137,6 +137,7 @@ function refreshReady(){
   setTimeout(function(){var b=document.querySelector('[data-pane="ok"]');if(b&&b.classList.contains('on')){try{b.click()}catch(e){}}},80);
 }
 
+window.DFOpReadyEditMount=function(id){currentId=String(id||'').trim();var op=findOp(currentId);openedWasReady=!!(op&&op.status==='ok');return mount()};
 document.addEventListener('click',function(e){
   var open=e.target&&e.target.closest?e.target.closest('[data-view]'):null;
   if(open){currentId=String(open.getAttribute('data-view')||'').trim();var op=findOp(currentId);openedWasReady=!!(op&&op.status==='ok');setTimeout(mount,30);setTimeout(mount,180);return}
