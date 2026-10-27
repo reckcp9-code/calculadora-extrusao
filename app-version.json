@@ -1,6 +1,6 @@
 {
-  "version": "1.0.565",
-  "title": "DF EXTRUSOR PRO — Foto original por QR",
-  "message": "Busca foto original pelo ID da OP também na lista de fotos da nuvem; avisa quando não encontrada, sem perder dados.",
+  "version": "1.0.566",
+  "title": "DF EXTRUSOR PRO — Recuperação de fotos da equipe",
+  "message": "Envio automático das fotos locais de OPs concluídas à nuvem, inclusive registros antigos sem manualConfirmed; abertura em outros aparelhos quando o arquivo estiver disponível.",
   "updatedAt": "2026-10-27"
 }
