@@ -1,6 +1,6 @@
 {
-  "version": "1.0.544",
-  "title": "DF EXTRUSOR PRO — Remoção de filtro instável",
-  "message": "Desativada a injeção instável de botões de turnos para evitar alternância de interface. Dados preservados.",
+  "version": "1.0.545",
+  "title": "DF EXTRUSOR PRO — Seletor de turnos nativo",
+  "message": "Filtro de turnos integrado à tela de OPs salvas, sem injeções dinâmicas.",
   "updatedAt": "2026-10-26"
 }
