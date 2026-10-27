@@ -1,6 +1,6 @@
 {
-  "version": "1.0.560",
-  "title": "DF EXTRUSOR PRO — Nome de produto por ID",
-  "message": "Recupera vínculos entre QR/ID de OP e nome de produto para sincronização na nuvem; geração de PDF segue inalterada.",
+  "version": "1.0.561",
+  "title": "DF EXTRUSOR PRO — Pesquisa por nome ou ID",
+  "message": "Pesquisa de OPs prontas pelo nome do produto ou código completo/parcial da OP, sem alterar o histórico.",
   "updatedAt": "2026-10-27"
 }
