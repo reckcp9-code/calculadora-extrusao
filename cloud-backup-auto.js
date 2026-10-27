@@ -163,6 +163,9 @@
     if(busy)return false;
     if(navigator.onLine===false){markPending();setStatus('Sem internet. Backup ficou na fila e será enviado automaticamente quando voltar.','warn');return false}
     if(!localStorage.getItem(ACCESS_KEY)){setStatus('Acesso automático ainda não foi liberado neste aparelho.','warn');return false}
+    // Nunca sobrescrever backup existente com instalação vazia após reinstalação.
+    const current=snapshot();
+    if(!Object.keys(current.data).length){setStatus('Sem dados locais para enviar. Backup anterior preservado na nuvem.','warn');return false}
     busy=true;toggleButtons(true);setStatus('Enviando backup criptografado...','');
     try{
       const owner=await ownerKey(false);
