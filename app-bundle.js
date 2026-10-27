@@ -211,7 +211,7 @@
   async function renewAccess(){
     const credential=savedCredential();if(!credential||isOffline())return '';
     if(renewPromise)return renewPromise;
-    renewPromise=(async()=>{try{const dev=deviceId();const r=await previousFetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev})});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false){if(r.status===401||r.status===403||r.status===404||r.status===410){try{localStorage.removeItem(ACCESS_KEY)}catch(e){}try{sessionStorage.removeItem(TOKEN_KEY)}catch(e){}}return ''}const t=String(j.token||'').trim();if(t)sessionStorage.setItem(TOKEN_KEY,t);return t}catch(e){return ''}finally{renewPromise=null}})();
+    renewPromise=(async()=>{try{const dev=deviceId();const r=await previousFetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev})});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false){// A validação antiga não pode apagar uma KEY persistida; o controlador de licenças trata pausa/reset confirmados.return ''}const t=String(j.token||'').trim();if(t)sessionStorage.setItem(TOKEN_KEY,t);return t}catch(e){return ''}finally{renewPromise=null}})();
     return renewPromise;
   }
 
@@ -244,7 +244,7 @@
     const input=document.getElementById('licenseKey');const btn=document.getElementById('licenseBtn');if(!btn)return false;if(input){input.value='';input.style.display='none'}setGateText('Seu acesso está pronto. Toque em ACESSAR para liberar este aparelho.');btn.disabled=false;btn.textContent='ACESSAR';if(!btn.dataset.dfAccessBound){btn.dataset.dfAccessBound='1';btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();redeemLegacy()},true)}setMessage('Link de acesso válido para um único aparelho.',true);emitGateReady();return true
   }
 
-  async function resumeSavedAccess(){if(!savedCredential()||isOffline())return;cleanAccessParam();const t=await renewAccess();if(t){setMessage('Acesso automático restaurado.',true);unlock()}else if(savedCredential()){setMessage('Não foi possível validar o acesso. Verifique sua internet.',false);lockToGate()}}
+  async function resumeSavedAccess(){if(!savedCredential()||isOffline())return;cleanAccessParam();const t=await renewAccess();if(t){setMessage('Acesso automático restaurado.',true);unlock()}else if(savedCredential()){setMessage('Conexão temporariamente indisponível. Acesso salvo mantido.',false);unlock()}}
 
   function boot(){if(booted)return;booted=true;if(isOffline()){resumeOfflineAccess();return}const restored=unlockSavedImmediately();if(!restored){prepareGeneralGate();prepareLegacyGate()}if(savedCredential())resumeSavedAccess()}
 
