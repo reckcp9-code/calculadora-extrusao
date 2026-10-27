@@ -43,7 +43,7 @@ function read(){
     return out;
   }catch(e){return empty()}
 }
-function write(v){try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
+function write(v){try{localStorage.setItem(KEY,JSON.stringify(v));window.dispatchEvent(new CustomEvent('df-producao-catalog-local-changed'))}catch(e){}}
 function readDeleted(){try{const x=JSON.parse(localStorage.getItem(DELETED_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
 function isDeleted(name){return !!readDeleted()[norm(name)]}
 function markDeleted(name){const k=norm(name);if(!k)return;const d=readDeleted();d[k]={name:String(name||'').trim(),at:Date.now()};try{localStorage.setItem(DELETED_KEY,JSON.stringify(d))}catch(e){}}
@@ -115,9 +115,11 @@ function close(){document.getElementById('dfRegModal')?.remove()}
 function choose(type,value){const el=document.getElementById(CFG[type].id);if(el){el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}))}close()}
 function confirmDelete(v){return window.confirm('Excluir "'+v+'" do cadastro?')}
 let editing=null;
-function startEdit(type,name){editing={type,old:name};const m=document.getElementById('dfRegModal');if(!m)return;const nameEl=m.querySelector('#dfRegNew'),measureEl=m.querySelector('#dfRegMeasure'),save=m.querySelector('#dfRegSave');nameEl.value=name;if(type==='product'&&measureEl)measureEl.value=measureFor(name);save.textContent='SALVAR ALTERAÇÃO';nameEl.focus()}
+function startEdit(type,name){
+  if(!canManage(type))return alert('Edição exclusiva do DONO da equipe.');editing={type,old:name};const m=document.getElementById('dfRegModal');if(!m)return;const nameEl=m.querySelector('#dfRegNew'),measureEl=m.querySelector('#dfRegMeasure'),save=m.querySelector('#dfRegSave');nameEl.value=name;if(type==='product'&&measureEl)measureEl.value=measureFor(name);save.textContent='SALVAR ALTERAÇÃO';nameEl.focus()}
 function cancelEdit(){editing=null;const m=document.getElementById('dfRegModal');if(!m)return;m.querySelector('#dfRegNew').value='';const me=m.querySelector('#dfRegMeasure');if(me)me.value='';m.querySelector('#dfRegSave').textContent='CADASTRAR'}
 function removeItem(type,name){
+  if(!canManage(type))return alert('Exclusão exclusiva do DONO da equipe.');
   if(!confirmDelete(name))return;
   if(type==='product')removeProduct(name);else if(type==='machine')removeMachine(name);else setList(type,list(type).filter(x=>x!==name));
   const el=document.getElementById(CFG[type].id);if(el&&el.value===name){el.value='';el.dispatchEvent(new Event('change',{bubbles:true}))}
@@ -153,13 +155,16 @@ function render(type){
   filterSearch(type)
 }
 function saveFromModal(type){
+  if(!canManage(type))return alert('Cadastro exclusivo do DONO da equipe.');
   const m=document.getElementById('dfRegModal'),name=String(m.querySelector('#dfRegNew')?.value||'').trim(),measure=String(m.querySelector('#dfRegMeasure')?.value||'').trim();if(!name)return;
   const old=editing&&editing.type===type?editing.old:null;
   if(list(type).some(x=>norm(x)===norm(name)&&x!==old)){alert('Esse item já está cadastrado.');return}
   if(type==='product'){if(!measure){alert('Informe a medida do produto.');return}saveProduct(name,measure,old)}else{let a=list(type);if(old)a=a.filter(x=>x!==old);a.push(name);setList(type,a)}
   cancelEdit();refreshType(type,name);render(type)
 }
+function canManage(type){if(type==='operator')return true;let t=null;try{t=JSON.parse(localStorage.getItem('df_producao_team_v2')||'null')}catch(e){};if(!t||!t.teamId)return false;return String(t.role||t.memberRole||t.myRole||'').toLowerCase()==='owner'}
 function openModal(type,mode){
+  if(mode==='manage'&&!canManage(type)){alert('Somente o DONO da equipe pode cadastrar ou editar máquinas e produtos.');return;}
   close();editing=null;const c=CFG[type],m=document.createElement('div');m.id='dfRegModal';m.className='dfRegModal';
   const add=mode==='manage'?'<div class="dfRegAdd '+(type==='product'?'product':'')+'"><input id="dfRegNew" placeholder="'+esc(c.placeholder)+'">'+(type==='product'?'<input id="dfRegMeasure" placeholder="Medida. Ex.: 39 x 58">':'')+'<button id="dfRegSave" type="button">CADASTRAR</button></div>':'';
   m.innerHTML='<div class="dfRegPanel"><div class="dfRegHead"><div><small>'+esc(sector()).toUpperCase()+'</small><b>'+esc(c.title)+'</b></div><button type="button" class="dfRegX">×</button></div><div class="dfRegSearch"><span>⌕</span><input id="dfRegSearch" type="search" autocomplete="off" placeholder="'+esc(c.search)+'"></div><div class="dfRegMeta"><span>TODOS</span><small class="dfRegCount"></small></div>'+add+'<div class="dfRegList"></div></div>';
