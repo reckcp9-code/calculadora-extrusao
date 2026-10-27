@@ -1,6 +1,6 @@
 {
-  "version": "1.0.611",
-  "title": "Limpeza completa de OPs Salvas ao sair da Produção",
-  "message": "Saída remove também favoritos e sombra de sincronização das OPs Salvas e bloqueia restauração após desconexão.",
+  "version": "1.0.612",
+  "title": "Código da Equipe de Produção",
+  "message": "Guarda o código em cópia adicional vinculada à equipe para evitar desaparecimento da tela.",
   "updatedAt": "2026-10-27"
 }
