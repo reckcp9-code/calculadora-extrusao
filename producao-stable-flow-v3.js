@@ -32,7 +32,7 @@ function savedRowsHtml(shown,fs){
   return shown.length?shown.map(o=>`<div class="dfOpRow ${o.id===selectedId?'sel':''}" data-op-row="${esc(o.id)}"><button type="button" class="dfOpStar ${fs.has(o.id)?'on':''}" data-op-star="${esc(o.id)}" aria-label="Favoritar">${fs.has(o.id)?'★':'☆'}</button><div class="dfOpTitle">${esc(o.machine)} — ${esc(o.measure)}</div><div class="dfOpProduct">${esc(o.product)}</div><div class="dfOpMeta">${esc(o.operator)} • Turno ${esc(normalizeShift(o.shift))} • ${o.status==='open'?'OP aberta':'Encerrada'}</div><div class="dfOpId">${esc(o.id)}</div>${o.id===selectedId?actionHtml(o):''}</div>`).join(''):'<div class="dfOpEmpty">Nenhuma OP encontrada.</div>'
 }
 function ensureSavedShell(box){
-  if(box.dataset.dfSavedShell==='1')return;
+  if(box.dataset.dfSavedShell==='1'&&box.querySelector('#dfOpShiftSelect'))return;
   box.dataset.dfSavedShell='1';
   box.innerHTML='<h2>OPs salvas</h2><div class="dfOpSearch"><input id="dfOpSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar OP..."></div><select id="dfOpShiftSelect" class="dfOpShiftSelect" aria-label="Filtrar OPs por turno"><option value="all">Todas</option><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select><div class="dfOpFilters"><button type="button" class="dfOpFilter" data-op-filter="fav">★ Favoritas</button></div><div class="dfOpList"></div>';
   const shiftSelect=box.querySelector('#dfOpShiftSelect');
