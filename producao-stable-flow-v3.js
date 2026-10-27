@@ -138,7 +138,7 @@ async function sync(){
    const rec=remote.get(code),sig=fingerprint(op);
    if(rec?.state==='deleted'){s.known[code]='__DELETED__';continue}
    // Upload only new local records or local edits known to this device.
-   if((!rec&&!s.known[code])||(rec&&s.known[code]&&s.known[code]!==sig)){
+   if(op.status==='open'&&((!rec&&!s.known[code])||(rec&&s.known[code]&&s.known[code]!==sig))){
     try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig}
     catch(e){if(e.status===409){s.known[code]='__DELETED__';continue}throw e}
    }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
@@ -147,11 +147,13 @@ async function sync(){
   // Deletions may arrive while requests are in flight. Always read the newest local tombstones.
   const newest=shadow(tid);for(const code of Object.keys(newest.deleted))s.deleted[code]=true;
   for(const code of Object.keys(newest.known))if(newest.known[code]==='__DELETED__')s.known[code]='__DELETED__';
-  const merged=new Map(local().filter(o=>id(o)&&!s.known[id(o)]&&!s.deleted[id(o)]&&o.status==='open').map(o=>[id(o),o]));
+  const merged=new Map(local().filter(o=>id(o)&&!s.deleted[id(o)]&&s.known[id(o)]!=='__DELETED__'&&(o.status!=='open'||!s.known[id(o)])).map(o=>[id(o),o]));
   for(const rec of latest.records||[]){
    const code=String(rec.opCode||'').toUpperCase();if(!code)continue;
    if(rec.state==='deleted'){merged.delete(code);s.known[code]='__DELETED__';continue}
    if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object'||rec.payload.status!=='open'||s.deleted[code]||s.known[code]==='__DELETED__')continue;
+   // Never revive a locally completed OP while its server close is still pending.
+   const localCopy=local().find(o=>id(o)===code);if(localCopy&&localCopy.status&&localCopy.status!=='open')continue;
    const existing=merged.get(code);
    // Local edits not yet uploaded must never be overwritten.
    if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
