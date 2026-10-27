@@ -1,6 +1,6 @@
 {
-  "version": "1.0.538",
-  "title": "DF EXTRUSOR PRO — Recuperação da tela preta",
-  "message": "Inicialização com interface estática, sem carregamento assíncrono que substitui o documento.",
+  "version": "1.0.540",
+  "title": "DF EXTRUSOR PRO — Recuperação PWA iPhone",
+  "message": "Renovação de cache e inicialização pelo endereço de acesso.",
   "updatedAt": "2026-10-26"
 }
