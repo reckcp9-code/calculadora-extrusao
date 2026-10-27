@@ -1,6 +1,6 @@
 {
-  "version": "1.0.537",
-  "title": "DF EXTRUSOR PRO — Recuperação de inicialização",
-  "message": "Removidos filtros injetados que poderiam travar o carregamento; prioridade para reabrir o aplicativo.",
+  "version": "1.0.538",
+  "title": "DF EXTRUSOR PRO — Recuperação da tela preta",
+  "message": "Inicialização com interface estática, sem carregamento assíncrono que substitui o documento.",
   "updatedAt": "2026-10-26"
 }
