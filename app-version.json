@@ -1,6 +1,6 @@
 {
-  "version": "1.0.546",
-  "title": "DF EXTRUSOR PRO — OPs salvas",
-  "message": "Seletor de turnos fixo no componente nativo e atualização do cache PWA.",
+  "version": "1.0.547",
+  "title": "DF EXTRUSOR PRO — Remoção da área antiga",
+  "message": "Área visual de OPs salvas removida da Produção; histórico e dados preservados.",
   "updatedAt": "2026-10-26"
 }
