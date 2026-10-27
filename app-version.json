@@ -1,6 +1,6 @@
 {
-  "version": "1.0.608",
-  "title": "Saída de equipe e isolamento de OPs",
-  "message": "Ao sair da Produção, dados locais são limpos e telas não restauram OPs de equipe desconectada.",
+  "version": "1.0.609",
+  "title": "Saída da Produção igual à Formulação",
+  "message": "Desvincula operador no servidor antes de limpar OPs, Prontas, Pendentes e fotos locais da Produção.",
   "updatedAt": "2026-10-27"
 }
