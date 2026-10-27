@@ -1,6 +1,6 @@
 {
-  "version": "1.0.554",
-  "title": "DF EXTRUSOR PRO — Lista estável",
-  "message": "Evita repintura desnecessária das OPs salvas e oscilação visual do estado de sincronização.",
+  "version": "1.0.555",
+  "title": "DF EXTRUSOR PRO — Exclusão definitiva de OPs",
+  "message": "Impede que OPs excluídas reapareçam após sincronização e reduz consultas desnecessárias.",
   "updatedAt": "2026-10-27"
 }
