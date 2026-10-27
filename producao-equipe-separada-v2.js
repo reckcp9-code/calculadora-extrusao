@@ -91,15 +91,16 @@ async function clearProductionTeam(){
  leavingProductionTeam=true;
  try{
    clearTimeout(pushTimer);clearTimeout(pullTimer);
-   // Não exigir upload: o usuário autorizou descartar os dados locais não sincronizados.
-   // Remover o vínculo ANTES da limpeza impede novas rotinas de sincronização da equipe.
-   remove(TEAM_KEY);remove(TEAM_CODE_KEY);remove(NAME_KEY);
+   // Mesmo fluxo da Formulação: primeiro desvincular o membro no servidor.
+   // Não sincronizar OPs locais, pois o dono autorizou descartá-las.
+   await apiPost('/op/team/leave',{teamId:t.teamId,area:AREA,scope:AREA});
    await wipeProductionLocal();
+   setTeam(null);
    renderTeam();refreshUi();
    alert('Saída concluída. Dados locais da Equipe de Produção apagados neste aparelho. O servidor não foi alterado.');
    location.reload();
  }catch(e){
-   alert('A limpeza local ainda não terminou: '+String(e?.message||e)+' Feche outras abas do aplicativo e abra novamente.');
+   alert('Não foi possível concluir a saída: '+String(e?.message||e)+'. Os dados locais não serão considerados limpos até a conclusão.');
  }finally{leavingProductionTeam=false}
 }
 async function wipeProductionLocal(){
