@@ -127,28 +127,28 @@ async function sync(){
  try{
   const tid=String(team.teamId),s=shadow(tid),body={teamId:tid},first=await call('/production/saved/list',body);
   const remote=new Map((first.records||[]).filter(x=>x?.opCode).map(x=>[String(x.opCode).toUpperCase(),x]));
-  const current=local(),currentIds=new Set(current.map(id).filter(Boolean));
+  const current=local();
   // Explicit local deletions only; never infer deletion from an empty cache.
   for(const code of Object.keys(s.deleted||{})){
    if(remote.get(code)?.state!=='deleted')await call('/production/saved/delete',{...body,opCode:code});
    s.known[code]='__DELETED__';delete s.deleted[code];
   }
   for(const op of current){
-   const code=id(op);if(!code||s.known[code]==='__DELETED__')continue;
+   const code=id(op);if(!code||s.known[code]==='__DELETED__'||s.deleted[code])continue;
    const rec=remote.get(code),sig=fingerprint(op);
    if(rec?.state==='deleted'){s.known[code]='__DELETED__';continue}
    // Upload only new local records or local edits known to this device.
-   if(!rec||s.known[code]&&s.known[code]!==sig){
+   if((!rec&&!s.known[code])||(rec&&s.known[code]&&s.known[code]!==sig)){
     try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig}
     catch(e){if(e.status===409){s.known[code]='__DELETED__';continue}throw e}
    }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
   }
   const latest=await call('/production/saved/list',body);
-  const merged=new Map(local().filter(o=>id(o)).map(o=>[id(o),o]));
+  const merged=new Map(local().filter(o=>id(o)&&s.known[id(o)]!=='__DELETED__'&&!s.deleted[id(o)]).map(o=>[id(o),o]));
   for(const rec of latest.records||[]){
    const code=String(rec.opCode||'').toUpperCase();if(!code)continue;
    if(rec.state==='deleted'){merged.delete(code);s.known[code]='__DELETED__';continue}
-   if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object')continue;
+   if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object'||s.deleted[code]||s.known[code]==='__DELETED__')continue;
    const existing=merged.get(code);
    // Local edits not yet uploaded must never be overwritten.
    if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
@@ -168,10 +168,10 @@ window.addEventListener('df-producao-team-changed',schedule);
 window.addEventListener('online',schedule);
 window.addEventListener('focus',schedule);
 window.addEventListener('pageshow',schedule);
-setInterval(sync,12000);setTimeout(sync,1800);
+setInterval(sync,30000);setTimeout(sync,1800);
 window.DFProductionSavedD1Deleted=function(code){
  const t=read(T,null);if(!t?.teamId)return;
- const s=shadow(String(t.teamId));s.deleted[String(code).toUpperCase()]=true;put(D,s);schedule();
+ const s=shadow(String(t.teamId));const key=String(code).toUpperCase();s.deleted[key]=true;s.known[key]='__DELETED__';put(D,s);schedule();
 };
 })();
 
