@@ -10,15 +10,15 @@ function aplicarTurno(){
  
  var root=fav.closest('section,article,.card,.panel')||fav.parentElement?.parentElement?.parentElement?.parentElement;if(!root)return;
  var ops=[];root.querySelectorAll('*').forEach(function(n){if(n.children.length||!n.textContent)return;var m=n.textContent.trim().match(/DFOP-\d{8}-\d{6}-[A-Z0-9]+/i);if(!m)return;var item=n;for(var k=0;k<6&&item.parentElement&&item.parentElement!==root;k++){var p=item.parentElement;if(p.querySelectorAll('button').length>3||p.querySelectorAll('input').length)break;item=p}if(item!==root)ops.push({item:item,id:m[0].toUpperCase()})});
- ops.forEach(function(o){var shift=turnoDaOp(o.id);o.item.style.display=selected==='Todos'||shift===selected||!shift?'':'none'});
+ ops.forEach(function(o){var shift=turnoDaOp(o.id);if(!shift){var m=o.item.textContent.match(/Turno\s*([123])/i);if(m)shift=m[1]}o.item.style.display=selected==='Todos'||shift===selected||!shift?'':'none'});
 }
 function montarTurnos(){
  var fav=findFavorites();if(!fav)return;
  var section=fav.closest('section,article,.card,.panel')||fav.parentElement?.parentElement?.parentElement;
  if(!section)return;
- var search=Array.from(section.querySelectorAll('input')).find(function(x){return /pesquisar op/i.test(x.placeholder||'')});
+ var search=Array.from(document.querySelectorAll('input')).find(function(x){return /pesquisar op/i.test(x.placeholder||'')&&x.offsetParent!==null});
  if(!search)return;
- var anchor=search.closest('label,.search,.search-box,.input-group')||search.parentElement;
+ var anchor=search.parentElement;
  var bar=document.getElementById('dfProdTurnoSelect');
  if(!bar){
   bar=document.createElement('select');bar.id='dfProdTurnoSelect';bar.setAttribute('aria-label','Filtrar OPs por turno');
