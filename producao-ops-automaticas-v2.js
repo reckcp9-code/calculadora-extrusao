@@ -207,7 +207,26 @@ async function saveCurrent(){
 }
 async function openPhoto(id){try{const r=await photoGet(id);if(!r?.blob)return alert('Foto não encontrada neste aparelho.');const u=URL.createObjectURL(r.blob);$('dfPAModalBody').innerHTML='<img src="'+u+'"><div class="dfPATiny" style="margin-top:8px">'+esc(r.opId||id)+'</div>';$('dfPAModal').classList.add('on')}catch(e){alert('Não foi possível abrir a foto.')}}
 function closeModal(){$('dfPAModal')?.classList.remove('on');$('dfPAModalBody').innerHTML=''}
-async function deleteAuto(id){if(!confirm('Excluir este registro automático?'))return;const a=autos(),r=a.find(x=>x.id===id);write(AUTO_KEY,a.filter(x=>x.id!==id));if(r?.photoId)try{await photoDelete(r.photoId)}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-auto-deleted',{detail:{opId:normId(r?.opId||r?.id||id)}}))}catch(e){}renderAll()}
+async function deleteAuto(id){
+  const a=autos(),r=a.find(x=>x.id===id);if(!r)return alert('Registro não encontrado.');
+  const opId=normId(r.opId||r.id||id);
+  if(!confirm('Excluir esta baixa da OP e retirar produção e apara dos totais da equipe? A OP poderá receber uma nova baixa depois.'))return;
+  if(navigator.onLine===false)return alert('Conecte-se à internet antes de excluir.');
+  const api=window.DFOpServerAuthority;
+  if(!api?.deleteOfficial)return alert('Atualize o aplicativo. A exclusão precisa ser confirmada pelo servidor.');
+  try{
+    await api.deleteOfficial(opId);
+    // Remove também os valores da OP-base: repairRecords usa esses valores para reconstruir PRONTAS.
+    const list=ops().map(o=>normId(o?.id)===opId?{...o,status:'open',closedAt:'',autoProduction:0,autoScrap:0,autoNet:0,autoUpdatedAt:'',deletedCompletionAt:new Date().toISOString()}:o);
+    if(!write(OPS_KEY,list))throw Error('Falha ao atualizar o cadastro local.');
+    if(!write(AUTO_KEY,a.filter(x=>normId(x?.opId||x?.id)!==opId)))throw Error('Falha ao atualizar as baixas locais.');
+    if(r.photoId)try{await photoDelete(r.photoId)}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('df-producao-auto-deleted',{detail:{opId,serverConfirmed:true}}))}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('df-producao-op-updated',{detail:{opId}}))}catch(e){}
+    try{await window.DFProducaoEquipeOnline?.push?.()}catch(e){}
+    renderAll();alert('Baixa excluída no servidor. Produção e apara removidas. É possível dar baixa novamente na mesma OP.');
+  }catch(e){alert('Exclusão não concluída: '+String(e?.message||e))}
+}
 function editCompletedMachine(id){
  const records=autos(),record=records.find(x=>String(x.id)===String(id)&&x.status==='ok');
  if(!record)return alert('OP pronta não encontrada.');
