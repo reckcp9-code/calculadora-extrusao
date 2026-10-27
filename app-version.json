@@ -1,6 +1,6 @@
 {
-  "version": "1.0.627",
-  "title": "Sincronização isolada por OP",
-  "message": "Falha de foto em uma OP não interrompe as demais.",
+  "version": "1.0.628",
+  "title": "Proteção de produção pronta e sincronização",
+  "message": "Bloqueia retrocesso de OP pronta por dados legados; preserva foto oficial e isola erros por OP.",
   "updatedAt": "2026-10-27"
 }
