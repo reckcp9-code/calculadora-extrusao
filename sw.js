@@ -55,7 +55,7 @@ async function staleWhileRevalidate(req){
 }
 async function navigationCached(req){const cache=await caches.open(DF_CACHE),url=new URL(req.url);let hit=await cache.match(req,{ignoreSearch:true});if(!hit){const fallback=url.pathname.endsWith('/acessar.html')?'./acessar.html':'./index.html';hit=await cache.match(fallback,{ignoreSearch:true})}if(hit)return{response:hit,refresh:updateCached(req)};const net=await updateCached(req);if(net)return{response:net,refresh:null};const index=await cache.match('./index.html',{ignoreSearch:true});return{response:index||new Response('DF EXTRUSOR PRO indisponível offline.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}}),refresh:null}}
 
-self.addEventListener('install',event=>{event.waitUntil(precache().then(()=>self.skipWaiting()))});
+self.addEventListener('install',event=>{event.waitUntil(self.skipWaiting().then(()=>precache()))});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('df-extrusor-shell-')&&k!==DF_CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});
 self.addEventListener('fetch',event=>{
   const req=event.request;if(req.method!=='GET')return;
