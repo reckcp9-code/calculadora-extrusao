@@ -4699,7 +4699,7 @@
 
   function getCourseButton(tabs){
     if(!tabs)return null;
-    const list=[...tabs.querySelectorAll('button,a')];
+    const list=[...tabs.querySelectorAll('button')];
     return list.find(b=>String(b.textContent||'').trim().replace(/\s+/g,' ').toUpperCase()==='CURSO')||null;
   }
 
@@ -4732,7 +4732,7 @@
     const box=ensureBox();
     if(!tabs||!box)return;
 
-    const course=getCourseButton(tabs)||[...box.querySelectorAll('button,a')].find(b=>String(b.textContent||'').trim().toUpperCase()==='CURSO');
+    const course=getCourseButton(tabs)||[...box.querySelectorAll('button')].find(b=>String(b.textContent||'').trim().toUpperCase()==='CURSO');
     const help=$('btAj');
     const feedback=$('btFb');
 
@@ -4742,7 +4742,7 @@
       if(btn.parentNode!==box)box.appendChild(btn);
     });
 
-    box.style.display=box.querySelector('button,a')?'grid':'none';
+    box.style.display=box.querySelector('button')?'grid':'none';
   }
 
   function init(){
