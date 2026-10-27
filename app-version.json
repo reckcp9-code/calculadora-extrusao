@@ -1,6 +1,6 @@
 {
-  "version": "1.0.553",
-  "title": "DF EXTRUSOR PRO — OPs sem bloqueio por turno",
-  "message": "Força carregamento atualizado do módulo de produção para permitir múltiplas OPs na mesma máquina e turno.",
+  "version": "1.0.554",
+  "title": "DF EXTRUSOR PRO — Lista estável",
+  "message": "Evita repintura desnecessária das OPs salvas e oscilação visual do estado de sincronização.",
   "updatedAt": "2026-10-27"
 }
