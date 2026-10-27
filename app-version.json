@@ -1,6 +1,6 @@
 {
-  "version": "1.0.567",
-  "title": "DF EXTRUSOR PRO — Acesso salvo resiliente",
-  "message": "Acesso já salvo abre o aplicativo e tenta recuperar autenticação sem exibir tela de licença em falhas transitórias; pausa e revogação explícitas continuam protegidas.",
+  "version": "1.0.568",
+  "title": "DF EXTRUSOR PRO — Inicialização sem interface antiga",
+  "message": "Impede exibir o layout antigo do app-shell antes que a navegação moderna seja montada. Preserva licenças, OPs e dados existentes.",
   "updatedAt": "2026-10-27"
 }
