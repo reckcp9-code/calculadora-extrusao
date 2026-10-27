@@ -7,7 +7,7 @@ const FORM_KEY='df_formulacoes_v2';
 const TEAM_KEY='df_op_team_v1';
 const TOMB_KEY='df_formula_deleted_tombstones_v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
-const TTL=90*24*60*60*1000;
+const TTL=Number.POSITIVE_INFINITY; // Exclusões confirmadas nunca expiram.
 
 function readJson(k,f){try{const v=JSON.parse(localStorage.getItem(k)||'');return v??f}catch(e){return f}}
 function team(){try{if(window.DFOpCloud&&typeof window.DFOpCloud.team==='function'){const t=window.DFOpCloud.team();if(t&&t.teamId)return t}}catch(e){}return readJson(TEAM_KEY,null)}
@@ -33,20 +33,9 @@ try{
   };
 }catch(e){}
 
-// Marca a formulação ANTES do manipulador antigo processar o clique de exclusão.
-window.addEventListener('click',function(e){
-  const b=e.target&&e.target.closest?e.target.closest('[data-fosafe="del"]'):null;
-  if(!b)return;
-  try{
-    const sel=document.getElementById('foSavedSelect');
-    const selectedId=String(sel?.value||'').trim();
-    if(selectedId){markDeleted(selectedId);return}
-    const forms=readJson(FORM_KEY,[]);
-    const name=String(document.getElementById('foNome')?.value||'').trim();
-    const f=(Array.isArray(forms)?forms:[]).find(x=>String(x?.nome||x?.name||'').trim()===name);
-    const id=idOf(f);if(id)markDeleted(id);
-  }catch(_e){}
-},true);
+// A exclusão só pode ser marcada após confirmação do usuário e sucesso no servidor.
+// Nunca registrar uma exclusão durante o clique de captura: o usuário pode cancelar.
+window.DFFormulaTombstones={markDeleted,isDeleted,filterDeleted,scrub:()=>scrub()};
 
 async function apiDelete(teamId,id){
   const r=await fetch(API+'/op/team/formulas/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({teamId:String(teamId),formulaId:String(id)}),cache:'no-store'});
@@ -58,10 +47,7 @@ async function apiDelete(teamId,id){
 async function flush(){
   const t=team();
   if(!t?.teamId||String(t.role||'').toLowerCase()!=='owner'||!navigator.onLine)return;
-  const tombs=getScopeTombs();
-  for(const id of Object.keys(tombs)){
-    try{await apiDelete(t.teamId,id)}catch(e){}
-  }
+  // Não reenviar exclusões já confirmadas. Um DELETE repetido retorna 404 e não ajuda.
 }
 function scrub(){
   try{
