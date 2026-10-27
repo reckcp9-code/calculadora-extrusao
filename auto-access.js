@@ -84,7 +84,8 @@ async function restore(){
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
     if(j.paused===true||r.status===423){dfAccessLock('KEY pausada pelo administrador.');return false}
     if(j.revoked===true||r.status===410){dfAccessLock('Acesso resetado. Digite sua KEY novamente.',true);return false}
-    if(r.status===401||r.status===403){gate();msg('Não foi possível validar a licença. Tente novamente quando houver conexão.',false);return false}
+    if(r.status===401||r.status===403){try{const fixed=await window.DFAccessRecovery?.repair?.();if(fixed?.token&&fixed?.credential){sessionStorage.setItem(TOKEN_KEY,String(fixed.token));unlock();return true}}catch(e){}// Falha de autenticação transitória: mantém a interface e a KEY salvas. O servidor continua protegendo as ações autenticadas.
+      unlock();msg('Conexão com a licença instável. O aplicativo tentará validar novamente.',false);return true}
     // Respostas temporárias não apagam a KEY nem forçam um novo login.
     unlock();return true
   }catch(e){unlock();return true}
