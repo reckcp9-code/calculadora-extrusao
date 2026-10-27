@@ -1,6 +1,6 @@
 {
-  "version": "1.0.555",
-  "title": "DF EXTRUSOR PRO — Exclusão definitiva de OPs",
-  "message": "Impede que OPs excluídas reapareçam após sincronização e reduz consultas desnecessárias.",
+  "version": "1.0.556",
+  "title": "DF EXTRUSOR PRO — Exclusões em toda a equipe",
+  "message": "A lista de OPs conhecidas passa a respeitar o servidor, sem ressuscitar registros excluídos ou encerrados.",
   "updatedAt": "2026-10-27"
 }
