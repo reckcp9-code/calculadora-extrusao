@@ -145,15 +145,8 @@ function ensureData(){
   fixedList('sacoleira-fixed').forEach(([n,m])=>{addProduct(pic,n,m);addProduct(sac,n,m)});
   seedKnownAssignments(d);
   OPS_KEYS.forEach(k=>{try{walkHistorical(d,JSON.parse(localStorage.getItem(k)||'null'),0)}catch(e){}});
-  // Catálogo único: produtos cadastrados em qualquer setor ficam disponíveis em todas as máquinas.
-  const globalProducts=new Map();
-  Object.keys(d).forEach(section=>{
-    const sec=ensureSector(d,section);
-    (sec.products||[]).forEach(name=>{if(name&&!isDeleted(name)&&!globalProducts.has(norm(name)))globalProducts.set(norm(name),{name,measure:sec.productMeasures?.[name]||''})});
-  });
   Object.keys(d).forEach(s=>{
     const sec=ensureSector(d,s);
-    globalProducts.forEach(({name,measure})=>addProduct(sec,name,measure));
     sec.products=uniq(sec.products).filter(v=>!isDeleted(v)).sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'}));
     Object.keys(sec.productMeasures||{}).forEach(k=>{if(isDeleted(k))delete sec.productMeasures[k]});
     Object.keys(sec.machineProducts||{}).forEach(k=>{sec.machineProducts[k]=uniq(sec.machineProducts[k]||[]).filter(v=>!isDeleted(v))});
@@ -168,10 +161,10 @@ function fixedList(rule){
   }).filter(([name])=>!isDeleted(name))
 }
 function allowedNames(machine){
-  if(machineRule(machine)==='none')return[];
-  const d=ensureData(),names=[];
-  Object.keys(d).forEach(section=>{const sec=ensureSector(d,section);names.push(...sec.products)});
-  return uniq(names).filter(v=>!isDeleted(v));
+  const rule=machineRule(machine),d=ensureData(),sec=ensureSector(d,currentSector());
+  if(rule==='none')return[];
+  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')return fixedList(rule).map(x=>x[0]);
+  return uniq(sec.machineProducts[norm(machine)]||[]).filter(v=>!isDeleted(v))
 }
 function productSelect(){return document.getElementById('prProduct')}
 function productTrigger(){return document.querySelector('[data-df-picker="product"]')}
@@ -205,7 +198,7 @@ function filterModal(){
     const ok=machineOk&&searchOk;item.style.display=ok?'':'none';
     if(ok){visible++;const a=item.querySelector('.dfRegActions');if(a)a.style.display=''}
   });
-  const add=m.querySelector('.dfRegAdd');if(add)add.style.display=rule==='none'?'none':'';
+  const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='none'||rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')?'none':'';
   const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 250 ROLL':rule==='sacoleira-fixed'?'SACOLEIRA':rule==='usn-fixed'?'USN':rule==='none'?'SELECIONE A MÁQUINA':(machine||'MÁQUINA');
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
   if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='none'?'Selecione uma máquina primeiro.':rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
@@ -236,19 +229,13 @@ function saveFixedEdit(rule,name,measure,oldName){
   write(d)
 }
 function assignNewProduct(name,oldName,measure){
-  if(!name)return;
-  const d=read();
-  ['Picote','Sacoleira','Blocadora'].forEach(section=>ensureSector(d,section));
-  Object.keys(d).forEach(section=>{
-    const sec=ensureSector(d,section);
-    if(oldName&&norm(oldName)!==norm(name)){
-      sec.products=sec.products.filter(v=>norm(v)!==norm(oldName));
-      Object.keys(sec.productMeasures).forEach(k=>{if(norm(k)===norm(oldName))delete sec.productMeasures[k]});
-    }
-    addProduct(sec,name,measure);
-  });
-  write(d);
-  try{window.dispatchEvent(new CustomEvent('df-producao-products-changed',{detail:{name,oldName,measure}}))}catch(e){}
+  const machine=currentMachine(),rule=machineRule(machine);if(!name)return;
+  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed'){saveFixedEdit(rule,name,measure,oldName);return}
+  if(rule!=='custom')return;
+  const d=read(),sec=ensureSector(d,currentSector()),k=norm(machine);let a=Array.isArray(sec.machineProducts[k])?sec.machineProducts[k]:[];
+  if(oldName)a=a.filter(v=>norm(v)!==norm(oldName));
+  if(!a.some(v=>norm(v)===norm(name)))a.push(name);
+  sec.machineProducts[k]=uniq(a);write(d)
 }
 function cleanupDeleted(name){
   const d=read(),target=norm(name);
