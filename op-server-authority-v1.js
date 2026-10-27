@@ -67,6 +67,7 @@ async function pullMonth(force,month){const t=team();if(!t?.teamId||syncing||nav
 function schedule(ms,force,month){clearTimeout(timer);timer=setTimeout(()=>pullMonth(!!force,month),ms==null?250:ms)}
 
 async function onSaved(rec){if(!rec||(!completed(rec)&&rec.status!=='pending'))return;const t=team();if(!t?.teamId)return;const p=recordPayload(rec),key=p.requestKey;enqueue('upsert',p,key);if(navigator.onLine!==false){await flushQueue();schedule(250,true,String(p.localDate||'').slice(0,7)||selectedMonth())}}
+async function deleteOfficial(id){id=norm(id);const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');if(navigator.onLine===false)throw Error('Conecte-se à internet para excluir definitivamente.');const result=await apiPost('/op/record/delete',{teamId:t.teamId,opCode:id,requestKey:'delete:'+id+':'+Date.now()});schedule(250,true);return result}
 async function onDeleted(id){id=norm(id);if(!validQr(id))return;const t=team();if(!t?.teamId)return;const key='delete:'+id+':'+Date.now();enqueue('delete',{opCode:id,requestKey:key},key);if(navigator.onLine!==false){await flushQueue();schedule(300,true,selectedMonth())}}
 
 
@@ -89,7 +90,7 @@ document.addEventListener('click',e=>{const btn=e.target?.closest?.('[data-df-ap
 
 function install(){if(booted)return;booted=true;
   window.addEventListener('df-op-saved',e=>{const r=e?.detail?.record;if(r&&r.source!=='d1-authority')onSaved(r)});
-  window.addEventListener('df-op-record-deleted',e=>onDeleted(e?.detail?.id));
+  window.addEventListener('df-op-record-deleted',e=>{if(!e?.detail?.serverConfirmed)onDeleted(e?.detail?.id)});
   window.addEventListener('df-team-joined',()=>{supported=null;localStorage.removeItem(MIG_PREFIX+String(team()?.teamId||''));schedule(500,true)});
   window.addEventListener('df-team-changed',()=>{supported=null;schedule(500,true)});
   window.addEventListener('online',()=>{flushQueue();schedule(500,true)});
@@ -102,6 +103,6 @@ function install(){if(booted)return;booted=true;
   setTimeout(()=>{migrateOnce().then(()=>schedule(300,true))},1300);
 }
 
-window.DFOpServerAuthority={approve:approveOp,pending:()=>pendingRecords.slice(),sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
+window.DFOpServerAuthority={deleteOfficial,approve:approveOp,pending:()=>pendingRecords.slice(),sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
