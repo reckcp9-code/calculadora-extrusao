@@ -1,6 +1,6 @@
 {
-  "version": "1.0.533",
-  "title": "DF EXTRUSOR PRO — Filtro por turno nas OPs Salvas",
-  "message": "Filtros TODOS, TURNO 1, TURNO 2 e TURNO 3 para organizar OPs Salvas sem alterar registros.",
+  "version": "1.0.534",
+  "title": "DF EXTRUSOR PRO — Turnos ao lado de Favoritas",
+  "message": "Adicionar botões TURNO 1, TURNO 2 e TURNO 3 junto de Favoritas em OPs Salvas.",
   "updatedAt": "2026-10-26"
 }
