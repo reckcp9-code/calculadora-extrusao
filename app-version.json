@@ -1,6 +1,6 @@
 {
-  "version": "1.0.601",
-  "title": "Sincronização e aprovação de OPs da Equipe de Produção",
-  "message": "Baixa de operador vai para Pendentes, dono confirma e exclusão remove baixa da equipe com atualização entre aparelhos.",
+  "version": "1.0.602",
+  "title": "Correção de retorno de baixas excluídas",
+  "message": "A sincronização agora aceita baixa removida do servidor mesmo quando o outro aparelho possui uma cópia antiga concluída.",
   "updatedAt": "2026-10-27"
 }
