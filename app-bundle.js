@@ -4541,26 +4541,10 @@
   function loadPosts(){try{const a=JSON.parse(localStorage.getItem(POSTS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
   function savePosts(a){try{localStorage.setItem(POSTS_KEY,JSON.stringify((a||[]).slice(0,MAX_POSTS)))}catch(e){}}
   function stars(v){const n=Math.max(0,Math.min(5,Number(v)||0));return n?'⭐'.repeat(n):'Sem nota'}
-  function demoFeedbackHtml(){
-    const names=['João','Miguel','Francisco','Pedro','Lucas','Gabriel','Rafael','Marcos','André','Felipe','Bruno','Carlos','Eduardo','Rodrigo','Gustavo','Fernando','Daniel','Ricardo','Paulo','Mateus','Diego','José','Antônio','Leandro','Alexandre','Vinícius','Roberto','Thiago','Henrique','Marcelo','Maria','Ana','Juliana','Patrícia','Camila','Fernanda','Silvana','Aline','Renata','Larissa'];
-    const surnames=['Silva','Oliveira','Santos','Costa','Almeida','Souza','Pereira','Ferreira','Rodrigues','Martins','Ribeiro','Lima','Barbosa','Gomes','Carvalho','Rocha','Mendes','Teixeira','Nascimento','Moreira'];
-    const short=['Muito bom!','Aplicativo nota 10.','Show, parabéns!','Gostei bastante.','Excelente ferramenta!','Muito prático.','Top demais!','Parabéns pelo trabalho.','Recomendo conhecer.','Ficou muito bom!','Ajuda muito.','Cinco estrelas!'];
-    const starts=['O aplicativo reúne ferramentas úteis para o dia a dia da extrusão.','Gostei da forma como as informações de produção são organizadas.','A proposta de acompanhar a produção em um só lugar é excelente.','Os cálculos e as opções de formulação são muito interessantes.','Uma solução pensada para quem trabalha com máquinas e produção.','A interface facilita encontrar os recursos do aplicativo.','Achei interessante a integração entre formulação e produção.','O acompanhamento de indicadores é uma ideia muito boa.','É um aplicativo com recursos relevantes para o setor plástico.','A organização das ordens de produção é um ponto positivo.'];
-    const ends=['Vale a pena explorar as funções.','Parabéns pela iniciativa!','Gostei da praticidade.','Uma ferramenta que pode facilitar a rotina.','A proposta é muito boa para a indústria.','É bom ver tecnologia voltada para esse setor.','Fica mais fácil acompanhar o trabalho.','Espero ver novas funcionalidades.','Tem bastante potencial.','Muito interessante para operadores e gestores.'];
-    let html='<div class="dfFeedbackDemo"><h3>⭐ Comentários ilustrativos</h3><p>Os 300 comentários abaixo são fictícios, com nomes e datas simulados para ilustrar o mural. Não foram enviados por clientes.</p>';
-    for(let i=0;i<300;i++){
-      const name=names[(i*13)%names.length]+' '+surnames[(i*7+Math.floor(i/40))%surnames.length];
-      const day=new Date(Date.UTC(2026,8,6)-i*3600000*13-i*180000);
-      const date=day.toLocaleString('pt-BR',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      const msg=i%4===0?short[(i*7)%short.length]:starts[(i*3)%starts.length]+' '+(i%3===0?ends[(i*11)%ends.length]+' ':'')+ends[(i*7+3)%ends.length];
-      html+='<div class="dfFeedbackPost"><div class="dfFeedbackPostTop"><div><div class="dfFeedbackPostName">'+esc(name)+'</div><div class="dfFeedbackPostMeta">'+esc(date)+' • ⭐⭐⭐⭐⭐</div><span class="dfFeedbackPostType">Elogio</span></div></div><div class="dfFeedbackPostText">'+esc(msg)+'</div></div>';
-    }
-    return html+'</div>';
-  }
   function renderPosts(){
     const box=$('dfFeedbackPosts');if(!box)return;const posts=loadPosts();const count=$('dfFeedbackCount');if(count)count.textContent=String(posts.length);
-    if(!posts.length){box.innerHTML='<div class="dfFeedbackEmpty">Ainda não há comentários reais publicados.</div>'+demoFeedbackHtml();return}
-    box.innerHTML=posts.map(p=>'<div class="dfFeedbackPost '+(p.pending?'pending':'')+'"><div class="dfFeedbackPostTop"><div><div class="dfFeedbackPostName">'+esc(p.name||'Anônimo')+'</div><div class="dfFeedbackPostMeta">'+esc(fmtDate(p.createdAt))+' • '+esc(stars(p.score))+'</div><span class="dfFeedbackPostType">'+esc(p.type||'Feedback')+'</span>'+(p.pending?'<span class="dfFeedbackPending">AGUARDANDO NUVEM</span>':'')+'</div>'+((p.canDelete||p.pending)?'<button class="dfFeedbackPostDelete" type="button" data-feedback-delete="'+esc(p.id)+'">EXCLUIR</button>':'')+'</div><div class="dfFeedbackPostText">'+esc(p.text||'')+'</div></div>').join('')+demoFeedbackHtml();
+    if(!posts.length){box.innerHTML='<div class="dfFeedbackEmpty">Ainda não há comentários publicados.</div>';return}
+    box.innerHTML=posts.map(p=>'<div class="dfFeedbackPost '+(p.pending?'pending':'')+'"><div class="dfFeedbackPostTop"><div><div class="dfFeedbackPostName">'+esc(p.name||'Anônimo')+'</div><div class="dfFeedbackPostMeta">'+esc(fmtDate(p.createdAt))+' • '+esc(stars(p.score))+'</div><span class="dfFeedbackPostType">'+esc(p.type||'Feedback')+'</span>'+(p.pending?'<span class="dfFeedbackPending">AGUARDANDO NUVEM</span>':'')+'</div>'+((p.canDelete||p.pending)?'<button class="dfFeedbackPostDelete" type="button" data-feedback-delete="'+esc(p.id)+'">EXCLUIR</button>':'')+'</div><div class="dfFeedbackPostText">'+esc(p.text||'')+'</div></div>').join('');
   }
 
   async function loadCloudPosts(showStatus=true){
