@@ -24,7 +24,7 @@ function loadDeleted(){const d=loadJson(TOMBSTONE_KEY,{});return d&&typeof d==='
 function saveDeleted(d){saveJson(TOMBSTONE_KEY,d)}
 function teamInfo(){const t=loadJson(TEAM_KEY,null);return t&&typeof t==='object'?t:null}
 function stamp(v){const n=Date.parse(String(v||''));return Number.isFinite(n)?n:0}
-function completed(o){return !!(o&&validQr(o.qr||o.id)&&num(o.produzido)>0&&Number.isFinite(Number(o.apara))&&Number(o.apara)>=0&&(o.status==='ok'||o.manualConfirmed||o.source==='foto-equipe'))}
+function completed(o){return !!(o&&o.d1State!=='pending'&&o.status!=='pending'&&validQr(o.qr||o.id)&&num(o.produzido)>0&&Number.isFinite(Number(o.apara))&&Number(o.apara)>=0&&(o.status==='ok'||o.manualConfirmed||o.source==='foto-equipe'))}
 function completionStamp(o){
   if(!o)return 0;
   if(o.manualConfirmed){const t=stamp(o.manualConfirmedAt);if(t)return t}
