@@ -121,6 +121,19 @@ async function syncOnePending(rawId){
  setStatus('✅ Baixa e foto da OP '+id+' confirmadas no D1.','ok');
  return official;
 }
+async function syncOneReady(rawId){
+ const id=norm(rawId),t=team();if(t?.role!=='owner'||leavingProductionTeam)throw Error('Somente o dono pode registrar baixa aprovada diretamente.');
+ const rec=autos().find(x=>norm(x?.opId||x?.id)===id&&x.status==='ok');
+ if(!rec||!(num(rec.production)>0))throw Error('OP pronta sem produção válida.');
+ let cloudId=String(rec.cloudPhotoId||'');
+ if(rec.photoId&&!String(rec.photoId).startsWith('CLOUDPROD:'))cloudId=await uploadReadyPhoto(t,id,rec);
+ if(rec.photoId&&!cloudId)throw Error('Foto não confirmada no servidor.');
+ const op=ops().find(x=>norm(x?.id)===id)||{id,machine:rec.machine,product:rec.product,operator:rec.operator,createdAt:rec.createdAt,status:'closed'};
+ const result=await publishOfficialPending(t,id,normalizedState(op,rec),cloudId);
+ if(result?.state!=='ready')throw Error('Servidor não confirmou OP como PRONTA.');
+ setStatus('✅ OP '+id+' contabilizada no D1.','ok');
+ return result;
+}
 async function syncLocal(force){if(leavingProductionTeam)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||uploadBusy)return false;uploadBusy=true;try{const cfg=config(),cfgHash=hash(cfg),cfgSnap=read(CFG_SNAP_KEY,null);const hasCatalog=Object.values(cfg).some(v=>v&&typeof v==='object'&&((['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)||Object.keys(v.deletedMachines||{}).length>0)));if(hasCatalog&&(force||!cfgSnap||cfgSnap.teamId!==t.teamId||cfgSnap.hash!==cfgHash)){const sent=await publishConfig(t,cfg);write(CFG_SNAP_KEY,{teamId:t.teamId,hash:cfgHash,ts:sent.ts,updatedAt:sent.updatedAt})}const states=currentStates(),snap=read(SNAP_KEY,{}),pending=read(DELETE_PENDING_KEY,{});for(const id of Object.keys(pending)){if(!id.startsWith('DFOP-'))continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);delete pending[id];write(DELETE_PENDING_KEY,pending)}for(const [id,state] of states){const h=hash(state),old=snap[id];if(!force&&old?.hash===h&&old?.teamId===t.teamId)continue;const ready=autos().find(x=>x&&(x.status==='ok'||x.status==='pending')&&norm(x.opId||x.id)===id)||null;let officialPhoto='';if(ready?.photoId){if(String(ready.photoId).startsWith('CLOUDPROD:'))officialPhoto=String(read(PHOTO_MAP_KEY,{})[id]?.cloudId||'');else officialPhoto=await uploadReadyPhoto(t,id,ready)}if(state.auto&&num(state.auto.production)>0&&!(t.role==='owner'&&state.auto.status==='pending')){if(state.auto.hasPhoto&&!officialPhoto)throw Error('Foto da OP '+id+' ainda não chegou ao servidor. A baixa continua aguardando envio.');await publishOfficialPending(t,id,state,officialPhoto)}const sent=await publishState(t,id,state,false);snap[id]={hash:h,teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap)}for(const id of Object.keys(snap)){if(snap[id]?.teamId!==t.teamId||states.has(id)||snap[id]?.hash==='__DELETED__')continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap)}setStatus('✅ Produção sincronizada somente com a EQUIPE DE PRODUÇÃO.','ok');return true}catch(e){setStatus('⚠️ Produção aguardando sincronização: '+String(e?.message||e),'warn');return false}finally{uploadBusy=false}}
 function schedulePush(ms,force){clearTimeout(pushTimer);pushTimer=setTimeout(()=>syncLocal(!!force),ms==null?450:ms)}
 
@@ -297,5 +310,5 @@ async function approveCompletion(rawId){
  const snap=read(SNAP_KEY,{});snap[id]={hash:hash(normalizedState(updated,ready)),teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);
  refreshUi();return true;
 }
-window.DFProducaoEquipeOnline={deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+window.DFProducaoEquipeOnline={deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),pushReady:(id)=>syncOneReady(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
