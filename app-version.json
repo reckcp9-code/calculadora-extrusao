@@ -1,6 +1,6 @@
 {
-  "version": "1.0.536",
-  "title": "DF EXTRUSOR PRO — Seletor de turno",
-  "message": "Seletor único TODAS AS OPs, TURNO 1, TURNO 2 e TURNO 3 abaixo da pesquisa.",
+  "version": "1.0.537",
+  "title": "DF EXTRUSOR PRO — Recuperação de inicialização",
+  "message": "Removidos filtros injetados que poderiam travar o carregamento; prioridade para reabrir o aplicativo.",
   "updatedAt": "2026-10-26"
 }
