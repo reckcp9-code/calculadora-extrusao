@@ -99,10 +99,12 @@ async function deleteSource(sourceId,cloudId,button){
   const old=button?.textContent||'';if(button){button.disabled=true;button.textContent='⏳ APAGANDO...'}
   try{
     let cloudIds=await findCloudIds(id,rec);if(cloudId&&!cloudIds.includes(String(cloudId)))cloudIds.push(String(cloudId));
+    if(!window.DFOpServerAuthority?.deleteOfficial)throw Error('Atualize o aplicativo para excluir com segurança.');
+    await window.DFOpServerAuthority.deleteOfficial(id);
     addTombstone(id,cloudIds,rec);
     const failed=await deleteCloudIds(cloudIds);setPendingCloudIds(id,failed);
     await deleteLocal(id);removeLocalRecord(id,cloudIds);refresh();syncBackupSoon();
-    try{window.dispatchEvent(new CustomEvent('df-op-record-deleted',{detail:{id}}))}catch(e){}
+    try{window.dispatchEvent(new CustomEvent('df-op-record-deleted',{detail:{id,serverConfirmed:true}}))}catch(e){}
     try{window.DFOpCloud?.sync?.(true)}catch(e){}
     if(failed.length)alert('✅ OP removida dos totais. A foto da nuvem ficou marcada para nova tentativa de exclusão quando a conexão permitir.');
     else alert('✅ OP e foto excluídas. Se você der baixa nessa mesma OP novamente, ela volta a entrar normalmente nos totais.');
