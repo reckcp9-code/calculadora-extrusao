@@ -1,6 +1,6 @@
 {
-  "version": "1.0.610",
-  "title": "Saída da equipe sem reconexão automática",
-  "message": "Após sair da Equipe de Produção, a recuperação automática respeita a saída e exige novo ingresso com código.",
+  "version": "1.0.611",
+  "title": "Limpeza completa de OPs Salvas ao sair da Produção",
+  "message": "Saída remove também favoritos e sombra de sincronização das OPs Salvas e bloqueia restauração após desconexão.",
   "updatedAt": "2026-10-27"
 }
