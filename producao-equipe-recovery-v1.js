@@ -10,6 +10,7 @@ const TOKEN_KEY='df_secure_token_v2';
 const DEVICE_KEY='df_licenseauth_device_v1';
 const ACCESS_KEY='df_auto_access_credential_v1';
 const SESSION_MARK='df_prod_team_recovered_v254';
+const EXIT_MARK='df_prod_team_explicit_exit_v1';
 let busy=false,lastTry=0;
 
 function readTeam(){try{const t=JSON.parse(localStorage.getItem(TEAM_KEY)||'null');return t&&t.teamId?t:null}catch(e){return null}}
@@ -42,6 +43,7 @@ async function status(retry){
   if(!r.ok||j.ok===false)throw Error(j.error||('HTTP '+r.status));return j;
 }
 function saveRecovered(t){
+  if(localStorage.getItem(EXIT_MARK)==='1')return false;
   const team={...t,area:AREA};
   try{localStorage.setItem(TEAM_KEY,JSON.stringify(team))}catch(e){return false}
   const n=String(team.displayName||'').trim();if(n)try{localStorage.setItem(NAME_KEY,n)}catch(e){}
@@ -49,6 +51,7 @@ function saveRecovered(t){
   return true;
 }
 async function recover(force){
+  if(localStorage.getItem(EXIT_MARK)==='1')return false;
   if(validTeam(readTeam()))return true;
   if(normalizeLegacy()&&validTeam(readTeam()))return true;
   if(navigator.onLine===false||busy)return false;
@@ -64,6 +67,7 @@ async function recover(force){
   }catch(e){return false}finally{busy=false}
 }
 function start(){
+  if(localStorage.getItem(EXIT_MARK)==='1')return;
   if(validTeam(readTeam()))return;
   recover(true);
   setTimeout(()=>recover(false),1200);
