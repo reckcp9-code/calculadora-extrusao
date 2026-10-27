@@ -39,6 +39,7 @@ function prepareRepair(){
   }catch(e){}
 }
 function ensureReadyBaseOps(){
+  if(!team())return false;
   const ready=readJson(AUTO_KEY,[]),ops=readJson(OPS_KEY,[]),snap=readJson(SNAP_KEY,{});
   if(!Array.isArray(ready)||!Array.isArray(ops))return false;
   const ids=new Set(ops.map(o=>norm(o&&o.id)).filter(Boolean));
