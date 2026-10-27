@@ -1,6 +1,6 @@
 {
-  "version": "1.0.531",
-  "title": "DF EXTRUSOR PRO — Sincronização de fotos da Produção",
-  "message": "Não confirmar sincronização da OP se o envio da foto falhar; preservar dados locais para nova tentativa.",
+  "version": "1.0.532",
+  "title": "DF EXTRUSOR PRO — Múltiplas OPs por máquina",
+  "message": "Permitir gerar novas OPs mesmo com pedidos abertos na mesma máquina. Fluxo de aprovação por dono ainda em desenvolvimento.",
   "updatedAt": "2026-10-26"
 }
