@@ -21,7 +21,7 @@ function sameMachineShift(o,sector,machine,shift){return !!o&&o.sector===sector&
 function favs(){const a=read(FAVKEY,[]);return new Set(Array.isArray(a)?a:[])}
 function saveFavs(s){try{localStorage.setItem(FAVKEY,JSON.stringify([...s]))}catch(e){}}
 function completedIds(){const a=read('df_producao_ops_auto_v1',[]);return new Set((Array.isArray(a)?a:[]).filter(x=>x&&x.status==='ok').map(x=>String(x.opId||x.id||'').trim().toUpperCase()).filter(Boolean))}
-function allOps(){const done=completedIds();const a=read(KEY,[]);return (Array.isArray(a)?a:[]).filter(o=>o&&o.id&&o.status!=='closed'&&o.status!=='completed'&&o.status!=='finished'&&!done.has(String(o.id).trim().toUpperCase())).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))}
+function allOps(){if(!localStorage.getItem('df_producao_team_v2'))return [];const done=completedIds();const a=read(KEY,[]);return (Array.isArray(a)?a:[]).filter(o=>o&&o.id&&o.status!=='closed'&&o.status!=='completed'&&o.status!=='finished'&&!done.has(String(o.id).trim().toUpperCase())).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))}
 function searchText(o){return[o.machine,o.product,o.measure,o.operator,o.shift,o.id,o.sector].join(' ').toLocaleLowerCase('pt-BR')}
 function registerQR(o){try{const r=read(QRKEY,{});r[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};localStorage.setItem(QRKEY,JSON.stringify(r))}catch(e){}}
 
@@ -121,6 +121,7 @@ function local(){const a=read(K,[]);return Array.isArray(a)?a:[]}
 function shadow(teamId){const s=read(D,{});return s.teamId===teamId?{teamId,known:s.known||{},deleted:s.deleted||{}}:{teamId,known:{},deleted:{}}}
 function updateUI(){try{window.DFRenderSavedProductionOps?.()}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-team-synced'))}catch(e){}}
 async function sync(){
+ if(localStorage.getItem('df_prod_team_explicit_exit_v1')==='1')return;
  if(busy||navigator.onLine===false||document.hidden)return;
  const team=read(T,null);if(!team?.teamId){status('⚠️ Conecte a EQUIPE DE PRODUÇÃO para sincronizar OPs.',false);return;}
  busy=true;if(!ready)status('🔄 Sincronizando OPs salvas com a equipe...',false);
@@ -169,6 +170,7 @@ async function sync(){
   const liveShadow=shadow(tid);for(const code of Object.keys(liveShadow.deleted))merged.delete(code);
   for(const code of Object.keys(liveShadow.known))if(liveShadow.known[code]==='__DELETED__')merged.delete(code);
   const next=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||id(b).localeCompare(id(a)));
+  if(localStorage.getItem('df_prod_team_explicit_exit_v1')==='1'||read(T,null)?.teamId!==tid)return;
   if(fingerprint(next)!==fingerprint(local())){put(K,next);for(const o of next){const qr=read(Q,{});if(!qr[o.id]){qr[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};put(Q,qr)}}updateUI()}
   const beforeSave=shadow(tid);for(const code of Object.keys(beforeSave.deleted))s.deleted[code]=true;
   for(const code of Object.keys(beforeSave.known))if(beforeSave.known[code]==='__DELETED__')s.known[code]='__DELETED__';
