@@ -1,6 +1,6 @@
 {
-  "version": "1.0.597",
-  "title": "Atualização do aplicativo DFS Airport para melhor desempenho no seu dia a dia",
-  "message": "Atualização de versão. A aprovação das OPs pelo dono ainda não está liberada nesta versão.",
+  "version": "1.0.598",
+  "title": "Aprovação de OPs pelo dono da equipe",
+  "message": "Baixas de operadores ficam em Pendentes até a confirmação do dono. Produção contabilizada após aprovação.",
   "updatedAt": "2026-10-27"
 }
