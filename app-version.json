@@ -1,6 +1,6 @@
 {
-  "version": "1.0.552",
-  "title": "DF EXTRUSOR PRO — Múltiplas OPs por máquina e turno",
-  "message": "Permite salvar várias OPs abertas na mesma máquina e no mesmo turno, mantendo IDs exclusivos e sincronização D1.",
+  "version": "1.0.553",
+  "title": "DF EXTRUSOR PRO — OPs sem bloqueio por turno",
+  "message": "Força carregamento atualizado do módulo de produção para permitir múltiplas OPs na mesma máquina e turno.",
   "updatedAt": "2026-10-27"
 }
