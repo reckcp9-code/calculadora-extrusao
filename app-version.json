@@ -1,6 +1,6 @@
 {
-  "version": "1.0.616",
-  "title": "Sincronização de baixas pendentes entre operador e dono",
-  "message": "Corrige envio de baixas sem OP no cadastro local e evita reenvio forçado de OPs antigas.",
+  "version": "1.0.617",
+  "title": "Pendências oficiais sincronizadas no Cloudflare D1",
+  "message": "Operador envia baixa e foto confirmadas ao servidor; dono recebe pendência via D1 e confirma antes de contabilizar.",
   "updatedAt": "2026-10-27"
 }
