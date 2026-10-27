@@ -101,7 +101,7 @@ const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??d}cat
 const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const id=o=>String(o?.id||'').trim().toUpperCase();
 const fingerprint=o=>JSON.stringify(o);
-let busy=false,queued=false,ready=false;
+let busy=false,queued=false,ready=false;function status(msg,ok){let box=document.getElementById('dfD1SavedStatus');if(!box){const parent=document.getElementById('dfSavedOps');if(!parent)return;box=document.createElement('div');box.id='dfD1SavedStatus';box.style.cssText='margin:8px 0;padding:10px;border:1px solid #334155;border-radius:10px;color:#bfdbfe;font:700 12px system-ui';parent.insertBefore(box,parent.querySelector('.dfOpSearch'))}box.textContent=msg;box.style.color=ok?'#86efac':'#fde68a';}
 function device(){return String(window.DFDeviceIdentity?.get?.()||localStorage.getItem('df_licenseauth_device_v1')||'').trim()}
 async function session(force){
  let token=String(sessionStorage.getItem('df_secure_token_v2')||'').trim();
@@ -122,8 +122,8 @@ function shadow(teamId){const s=read(D,{});return s.teamId===teamId?s:{teamId,kn
 function updateUI(){try{window.DFRenderSavedProductionOps?.()}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-team-synced'))}catch(e){}}
 async function sync(){
  if(busy||navigator.onLine===false||document.hidden)return;
- const team=read(T,null);if(!team?.teamId)return;
- busy=true;
+ const team=read(T,null);if(!team?.teamId){status('⚠️ Conecte a EQUIPE DE PRODUÇÃO para sincronizar OPs.',false);return;}
+ busy=true;status('🔄 Sincronizando OPs salvas com a equipe...',false);
  try{
   const tid=String(team.teamId),s=shadow(tid),body={teamId:tid},first=await call('/production/saved/list',body);
   const remote=new Map((first.records||[]).filter(x=>x?.opCode).map(x=>[String(x.opCode).toUpperCase(),x]));
@@ -156,8 +156,8 @@ async function sync(){
   }
   const next=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||id(b).localeCompare(id(a)));
   if(fingerprint(next)!==fingerprint(local())){put(K,next);for(const o of next){const qr=read(Q,{});if(!qr[o.id]){qr[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};put(Q,qr)}}updateUI()}
-  put(D,s);ready=true;
- }catch(e){console.warn('[DF Produção D1] Sincronização pendente:',e.message)}
+  put(D,s);ready=true;status('✅ OPs salvas sincronizadas com a equipe • '+(latest.records||[]).filter(x=>x.state==='open').length+' no servidor.',true);
+ }catch(e){status('⚠️ OPs não enviadas: '+String(e.message||e),false);console.warn('[DF Produção D1] Sincronização pendente:',e.message)}
  finally{busy=false;if(queued){queued=false;setTimeout(sync,250)}}
 }
 function schedule(){if(busy){queued=true;return}setTimeout(sync,300)}
