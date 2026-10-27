@@ -1,6 +1,6 @@
 {
-  "version": "1.0.612",
-  "title": "Código da Equipe de Produção",
-  "message": "Guarda o código em cópia adicional vinculada à equipe para evitar desaparecimento da tela.",
+  "version": "1.0.613",
+  "title": "Limpeza obrigatória antes de entrar em outra equipe",
+  "message": "Nova entrada na Equipe de Produção exige confirmação e limpeza de OPs, baixas, fotos e cadastros locais antes da vinculação.",
   "updatedAt": "2026-10-27"
 }
