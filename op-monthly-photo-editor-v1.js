@@ -20,7 +20,7 @@ function mount(){
  const rows=read().filter(o=>o?.status==='ok'&&code(o)&&month(o)===selected&&(!q||code(o).includes(q)||name(o).toUpperCase().includes(q))).sort((a,b)=>String(b.manualConfirmedAt||b.updatedAt||b.createdAt||'').localeCompare(String(a.manualConfirmedAt||a.updatedAt||a.createdAt||'')));
  const host=pane.querySelector('#dfMonthlyPhotoRows');host.replaceChildren();
  if(!rows.length){host.textContent='Nenhuma OP baixada encontrada neste mês neste aparelho.';return}
- rows.forEach(o=>{const r=document.createElement('div');r.className='dfMonthlyRow';r.innerHTML='<strong>'+esc(name(o))+'</strong><div style="font-size:12px;color:#94a3b8;overflow-wrap:anywhere">'+esc(code(o))+'</div><div>Produção: '+esc(o.produzido||0)+' kg • Apara: '+esc(o.apara||0)+' kg</div><button type="button">✏️ EDITAR • SALVAR E MANTER EM PRONTAS</button>';
+ rows.forEach(o=>{const r=document.createElement('div');r.className='dfMonthlyRow';r.innerHTML='<strong>'+esc(name(o))+'</strong><div style="font-size:12px;color:#94a3b8;overflow-wrap:anywhere">'+esc(code(o))+'</div><div>Produção: '+esc(o.produzido||0)+' kg • Apara: '+esc(o.apara||0)+' kg</div><button type="button">📸 ABRIR FOTO E EDITAR OP</button>';
  r.querySelector('button').onclick=async()=>{if(typeof window.DFOpenStoredOpPhoto!=='function'){alert('Editor de fotos indisponível.');return}await window.DFOpenStoredOpPhoto(code(o));if(document.getElementById('dfOpModal')?.classList.contains('on'))window.DFOpReadyEditMount?.(code(o))};
  host.appendChild(r)});
  }
