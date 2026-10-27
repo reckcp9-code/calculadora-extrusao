@@ -1,6 +1,6 @@
 {
-  "version": "1.0.629",
-  "title": "Correção de carregamento, foto e sincronização D1",
-  "message": "Corrigido JavaScript das baixas, removido upload fictício de foto para OPs prontas e priorizado o D1 existente.",
+  "version": "1.0.630",
+  "title": "Desempenho e sincronização de produção",
+  "message": "Reduz polling pesado, prioriza atualização manual e no salvamento, e evita uploads desnecessários de fotos.",
   "updatedAt": "2026-10-27"
 }
