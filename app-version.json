@@ -1,6 +1,6 @@
 {
-  "version": "1.0.566",
-  "title": "DF EXTRUSOR PRO — Recuperação de fotos da equipe",
-  "message": "Envio automático das fotos locais de OPs concluídas à nuvem, inclusive registros antigos sem manualConfirmed; abertura em outros aparelhos quando o arquivo estiver disponível.",
+  "version": "1.0.567",
+  "title": "DF EXTRUSOR PRO — Acesso salvo resiliente",
+  "message": "Acesso já salvo abre o aplicativo e tenta recuperar autenticação sem exibir tela de licença em falhas transitórias; pausa e revogação explícitas continuam protegidas.",
   "updatedAt": "2026-10-27"
 }
