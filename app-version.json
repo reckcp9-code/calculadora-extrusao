@@ -1,6 +1,6 @@
 {
-  "version": "1.0.614",
-  "title": "Apagar equipe quando só resta o dono",
-  "message": "Dono pode excluir equipe de Produção com apenas um membro, com dupla confirmação e limpeza local.",
+  "version": "1.0.615",
+  "title": "Recuperar código existente da Equipe de Produção",
+  "message": "Dono pode restaurar código conhecido no aparelho sem alterar equipe, operadores ou OPs.",
   "updatedAt": "2026-10-27"
 }
