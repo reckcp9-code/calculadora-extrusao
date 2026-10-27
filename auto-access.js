@@ -84,8 +84,9 @@ async function restore(){
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
     if(j.paused===true||r.status===423){dfAccessLock('KEY pausada pelo administrador.');return false}
     if(j.revoked===true||r.status===410){dfAccessLock('Acesso resetado. Digite sua KEY novamente.',true);return false}
-    if(r.status===401||r.status===403||r.status===404){dfAccessLock('Acesso não autorizado neste aparelho. Digite sua KEY novamente.',true);return false}
-    // Resposta temporária do servidor: não revogar sem confirmação.
+    if(r.status===401||r.status===403){try{const fixed=await window.DFAccessRecovery?.repair?.();if(fixed?.token&&fixed?.credential){sessionStorage.setItem(TOKEN_KEY,String(fixed.token));unlock();return true}}catch(e){}// Falha de autenticação transitória: mantém a interface e a KEY salvas. O servidor continua protegendo as ações autenticadas.
+      unlock();msg('Conexão com a licença instável. O aplicativo tentará validar novamente.',false);return true}
+    // Respostas temporárias não apagam a KEY nem forçam um novo login.
     unlock();return true
   }catch(e){unlock();return true}
 }
@@ -162,11 +163,10 @@ async function recoverExisting(){
   // Primeiro recuperar os acessos antigos, sem consumir outra KEY.
   if(saved()){
     if(await restore())return true;
-    // Nunca recuperar automaticamente uma credencial rejeitada pelo servidor.
+    try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
   }else{
     try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
   }
-  if(localStorage.getItem('df_manual_key_required_after_reset')==='1')return false;
   // A identificacao antiga so pode recuperar uma licenca ja existente no D1.
   // O servidor nao distribui KEY nova por esta rota.
   try{
@@ -178,8 +178,10 @@ async function recoverExisting(){
   return false;
 }
 
-// Reset/revogação é verificado na abertura ou atualização da página.
-// Não interromper uma sessão de trabalho no meio da operação.
+// Revalida a credencial periodicamente: pausar/revogar no painel bloqueia
+// também uma sessão que já estava aberta, sem depender de recarregar a página.
+let dfAccessChecking=false;
+let dfAccessLastVerified=0;
 function dfAccessLock(reason,reset=false){
   removeSavedTransition();
   document.documentElement.classList.remove('df-access-restoring');
@@ -192,14 +194,46 @@ function dfAccessLock(reason,reset=false){
   if(reset)prepareManual();
   msg(reason||(reset?'Aparelho resetado. Digite uma KEY para entrar.':'Acesso pausado ou bloqueado pelo administrador.'),false);
 }
+async function dfAccessRevalidate(){
+  if(dfAccessChecking||document.hidden)return;
+  const credential=saved();
+  if(!credential){
+    // Acesso manual sem persistência ou formulário de login: não interferir.
+    return;
+  }
+  dfAccessChecking=true;
+  try{
+    const r=await request('/access/session',{credential,deviceId:device()},12000);
+    let j={};try{j=await r.json()}catch(e){}
+    if(r.ok&&j.ok!==false&&j.token){
+      sessionStorage.setItem(TOKEN_KEY,String(j.token));
+      dfAccessLastVerified=Date.now();
+    }else if(r.status===423||j.paused===true||r.status===410||j.revoked===true){
+      const reset=r.status===410||j.revoked===true;
+      dfAccessLock(reset?'Aparelho resetado. Digite a mesma KEY ou outra KEY para entrar.':'KEY pausada, vencida ou bloqueada. Solicite a liberação ao administrador.',reset);
+    }else{
+      // Falha temporária ou resposta ambígua: manter sessão e KEY intactas.
+    }
+  }catch(e){
+    // Offline: não forçar retorno à tela de licença.
+  }finally{dfAccessChecking=false}
+}
+window.addEventListener('df-auth-ready',function(){
+  dfAccessLastVerified=Date.now();
+  dfAccessRevalidate();
+});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)dfAccessRevalidate()});
+window.addEventListener('focus',function(){dfAccessRevalidate()});
+setInterval(dfAccessRevalidate,15000);
+
 function prepare(){
   // Licença já instalada: abrir imediatamente e validar em segundo plano.
   // Apenas pausa/reset confirmados pelo servidor podem bloquear o aplicativo.
   const existing=saved();
   const resetRequired=localStorage.getItem('df_manual_key_required_after_reset')==='1';
   if(existing&&!resetRequired){
-    gate();
-    recoverExisting().then(ok=>{if(!ok)prepareManual()}).catch(()=>prepareManual());
+    unlock();
+    recoverExisting().catch(()=>{});
     return;
   }
   gate();
