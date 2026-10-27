@@ -1,6 +1,6 @@
 {
-  "version": "1.0.619",
-  "title": "Pendentes D1 independentes do histórico de fotos",
-  "message": "Mantida limpeza da equipe v618; dono consulta pendências no D1 mesmo se histórico mensal legado falhar.",
+  "version": "1.0.620",
+  "title": "Baixa de operador enviada diretamente ao D1",
+  "message": "Confirma foto e OP no servidor antes de mostrar enviada; erro de envio fica visível. Preserva saída de equipe v618.",
   "updatedAt": "2026-10-27"
 }
