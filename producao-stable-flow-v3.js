@@ -140,7 +140,12 @@ async function sync(){
    const rec=remote.get(code),sig=fingerprint(op);
    if(rec?.state==='deleted'){s.known[code]='__DELETED__';continue}
    // Upload only new local records or local edits known to this device.
-   if(op.status==='open'&&((!rec&&!s.known[code])||(rec&&s.known[code]&&s.known[code]!==sig))){
+   // Never upload an old local OP as a new server record after cleanup/reset.
+   // Only OPs created on/after the migration cutoff may be newly registered.
+   const migrationCutoff=Date.parse('2026-10-27T11:00:00Z');
+   const created=Date.parse(String(op.createdAt||''));
+   const isNewEligible=Number.isFinite(created)&&created>=migrationCutoff;
+   if(op.status==='open'&&((!rec&&!s.known[code]&&isNewEligible)||(rec&&s.known[code]&&s.known[code]!==sig))){
     try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig}
     catch(e){if(e.status===409){s.known[code]='__DELETED__';continue}throw e}
    }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
