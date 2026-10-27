@@ -1,6 +1,6 @@
 {
-  "version": "1.0.559",
-  "title": "DF EXTRUSOR PRO — Exclusão de formulações protegida",
-  "message": "Exclusões confirmadas não reaparecem na sincronização; D1 bloqueia recriação de IDs excluídos.",
+  "version": "1.0.560",
+  "title": "DF EXTRUSOR PRO — Nome de produto por ID",
+  "message": "Recupera vínculos entre QR/ID de OP e nome de produto para sincronização na nuvem; geração de PDF segue inalterada.",
   "updatedAt": "2026-10-27"
 }
