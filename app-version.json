@@ -1,6 +1,6 @@
 {
-  "version": "1.0.532",
-  "title": "DF EXTRUSOR PRO — Múltiplas OPs por máquina",
-  "message": "Permitir gerar novas OPs mesmo com pedidos abertos na mesma máquina. Fluxo de aprovação por dono ainda em desenvolvimento.",
+  "version": "1.0.533",
+  "title": "DF EXTRUSOR PRO — Filtro por turno nas OPs Salvas",
+  "message": "Filtros TODOS, TURNO 1, TURNO 2 e TURNO 3 para organizar OPs Salvas sem alterar registros.",
   "updatedAt": "2026-10-26"
 }
