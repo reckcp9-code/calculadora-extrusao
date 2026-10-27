@@ -1,6 +1,6 @@
 {
-  "version": "1.0.606",
-  "title": "Limpeza local da Equipe de Produção ao sair",
-  "message": "Apaga dados locais da Produção, incluindo fotos em IndexedDB, sem afetar dados de outras áreas ou servidor.",
+  "version": "1.0.607",
+  "title": "Correção da saída da Equipe de Produção",
+  "message": "Limpeza local sem bloqueio por banco de fotos aberto; saída sem exigir sincronização.",
   "updatedAt": "2026-10-27"
 }
