@@ -1,6 +1,6 @@
 {
-  "version": "1.0.603",
-  "title": "Correção de sincronização de OPs da Produção",
-  "message": "Dados das OPs sincronizam mesmo quando a foto estiver pendente; erros de sincronização agora são exibidos.",
+  "version": "1.0.604",
+  "title": "Saída segura da Equipe de Produção",
+  "message": "Ao sair, sincroniza antes e limpa dados locais de Produção; impede perda de OPs não sincronizadas.",
   "updatedAt": "2026-10-27"
 }
