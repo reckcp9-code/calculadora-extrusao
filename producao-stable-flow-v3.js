@@ -144,11 +144,11 @@ async function sync(){
    }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
   }
   const latest=await call('/production/saved/list',body);
-  const merged=new Map(local().filter(o=>id(o)&&s.known[id(o)]!=='__DELETED__'&&!s.deleted[id(o)]).map(o=>[id(o),o]));
+  const merged=new Map(local().filter(o=>id(o)&&!s.known[id(o)]&&!s.deleted[id(o)]&&o.status==='open').map(o=>[id(o),o]));
   for(const rec of latest.records||[]){
    const code=String(rec.opCode||'').toUpperCase();if(!code)continue;
    if(rec.state==='deleted'){merged.delete(code);s.known[code]='__DELETED__';continue}
-   if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object'||s.deleted[code]||s.known[code]==='__DELETED__')continue;
+   if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object'||rec.payload.status!=='open'||s.deleted[code]||s.known[code]==='__DELETED__')continue;
    const existing=merged.get(code);
    // Local edits not yet uploaded must never be overwritten.
    if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
@@ -156,7 +156,7 @@ async function sync(){
   }
   const next=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||id(b).localeCompare(id(a)));
   if(fingerprint(next)!==fingerprint(local())){put(K,next);for(const o of next){const qr=read(Q,{});if(!qr[o.id]){qr[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};put(Q,qr)}}updateUI()}
-  put(D,s);ready=true;status('✅ OPs salvas sincronizadas com a equipe • '+(latest.records||[]).filter(x=>x.state==='open').length+' no servidor.',true);
+  put(D,s);ready=true;status('✅ OPs salvas sincronizadas com a equipe • '+(latest.records||[]).filter(x=>x.state==='open'&&x.payload?.status==='open').length+' abertas no servidor.',true);
  }catch(e){status('⚠️ OPs não enviadas: '+String(e.message||e),false);console.warn('[DF Produção D1] Sincronização pendente:',e.message)}
  finally{busy=false;if(queued){queued=false;setTimeout(sync,250)}}
 }
