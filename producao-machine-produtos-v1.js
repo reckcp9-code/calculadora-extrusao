@@ -163,8 +163,9 @@ function fixedList(rule){
 function allowedNames(machine){
   const rule=machineRule(machine),d=ensureData(),sec=ensureSector(d,currentSector());
   if(rule==='none')return[];
-  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')return fixedList(rule).map(x=>x[0]);
-  return uniq(sec.machineProducts[norm(machine)]||[]).filter(v=>!isDeleted(v))
+  const assigned=sec.machineProducts[norm(machine)]||[];
+  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')return uniq([...fixedList(rule).map(x=>x[0]),...assigned]).filter(v=>!isDeleted(v));
+  return uniq(assigned).filter(v=>!isDeleted(v))
 }
 function productSelect(){return document.getElementById('prProduct')}
 function productTrigger(){return document.querySelector('[data-df-picker="product"]')}
@@ -198,7 +199,7 @@ function filterModal(){
     const ok=machineOk&&searchOk;item.style.display=ok?'':'none';
     if(ok){visible++;const a=item.querySelector('.dfRegActions');if(a)a.style.display=''}
   });
-  const add=m.querySelector('.dfRegAdd');if(add)add.style.display=(rule==='none'||rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed')?'none':'';
+  const add=m.querySelector('.dfRegAdd');if(add)add.style.display=rule==='none'?'none':'';
   const meta=m.querySelector('.dfRegMeta span');if(meta)meta.textContent=rule==='pesadao'?'MKB • UTZ • VM 250 ROLL':rule==='sacoleira-fixed'?'SACOLEIRA':rule==='usn-fixed'?'USN':rule==='none'?'SELECIONE A MÁQUINA':(machine||'MÁQUINA');
   const count=m.querySelector('.dfRegCount');if(count)count.textContent=visible+' cadastrado'+(visible===1?'':'s');
   if(visible===0&&list&&!q){const e=document.createElement('div');e.id='dfMachineEmpty';e.className='dfRegEmpty';e.textContent=rule==='none'?'Selecione uma máquina primeiro.':rule==='custom'?'Nenhum produto cadastrado para esta máquina. Use CADASTRAR para adicionar.':'Nenhum produto disponível para esta máquina.';list.prepend(e)}
@@ -230,12 +231,15 @@ function saveFixedEdit(rule,name,measure,oldName){
 }
 function assignNewProduct(name,oldName,measure){
   const machine=currentMachine(),rule=machineRule(machine);if(!name)return;
-  if(rule==='pesadao'||rule==='sacoleira-fixed'||rule==='usn-fixed'){saveFixedEdit(rule,name,measure,oldName);return}
-  if(rule!=='custom')return;
+  if(rule==='none')return;
+  // Existing predefined products keep their original group; new products belong only to the selected machine.
+  if(oldName&&fixedOriginalFor(rule,oldName)){saveFixedEdit(rule,name,measure,oldName);return}
   const d=read(),sec=ensureSector(d,currentSector()),k=norm(machine);let a=Array.isArray(sec.machineProducts[k])?sec.machineProducts[k]:[];
   if(oldName)a=a.filter(v=>norm(v)!==norm(oldName));
   if(!a.some(v=>norm(v)===norm(name)))a.push(name);
-  sec.machineProducts[k]=uniq(a);write(d)
+  sec.machineProducts[k]=uniq(a);
+  addProduct(sec,name,measure);
+  write(d)
 }
 function cleanupDeleted(name){
   const d=read(),target=norm(name);
