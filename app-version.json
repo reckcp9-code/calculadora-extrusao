@@ -1,6 +1,6 @@
 {
-  "version": "1.0.535",
-  "title": "DF EXTRUSOR PRO — Filtros por turno",
-  "message": "Botões TURNO 1, TURNO 2 e TURNO 3 carregados diretamente na interface junto a Favoritas.",
+  "version": "1.0.536",
+  "title": "DF EXTRUSOR PRO — Seletor de turno",
+  "message": "Seletor único TODAS AS OPs, TURNO 1, TURNO 2 e TURNO 3 abaixo da pesquisa.",
   "updatedAt": "2026-10-26"
 }
