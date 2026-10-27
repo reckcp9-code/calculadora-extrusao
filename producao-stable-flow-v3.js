@@ -34,14 +34,14 @@ function savedRowsHtml(shown,fs){
 function ensureSavedShell(box){
   if(box.dataset.dfSavedShell==='1')return;
   box.dataset.dfSavedShell='1';
-  box.innerHTML='<h2>OPs salvas</h2><div class="dfOpSearch"><input id="dfOpSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar OP..."></div><select id="dfOpShiftSelect" class="dfOpShiftSelect" aria-label="Filtrar OPs por turno"><option value="all">Todas</option><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select><div class="dfOpFilters"><button type="button" class="dfOpFilter" data-op-filter="all">Todas</button><button type="button" class="dfOpFilter" data-op-filter="fav">★ Favoritas</button></div><div class="dfOpList"></div>';
+  box.innerHTML='<h2>OPs salvas</h2><div class="dfOpSearch"><input id="dfOpSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar OP..."></div><select id="dfOpShiftSelect" class="dfOpShiftSelect" aria-label="Filtrar OPs por turno"><option value="all">Todas</option><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select><div class="dfOpFilters"><button type="button" class="dfOpFilter" data-op-filter="fav">★ Favoritas</button></div><div class="dfOpList"></div>';
   const shiftSelect=box.querySelector('#dfOpShiftSelect');
   if(shiftSelect)shiftSelect.addEventListener('change',e=>{shiftFilter=e.target.value;selectedId='';renderSaved()});
   const input=box.querySelector('#dfOpSearchInput');
   if(input)input.addEventListener('input',e=>{query=e.target.value;renderSaved()},{passive:true});
   box.addEventListener('click',e=>{
     const filter=e.target.closest&&e.target.closest('[data-op-filter]');
-    if(filter){mode=filter.dataset.opFilter;selectedId='';renderSaved();return}
+    if(filter){mode=mode==='fav'?'all':filter.dataset.opFilter;selectedId='';renderSaved();return}
     const star=e.target.closest&&e.target.closest('[data-op-star]');
     if(star){e.preventDefault();e.stopPropagation();const s=favs(),id=star.dataset.opStar;s.has(id)?s.delete(id):s.add(id);saveFavs(s);renderSaved();return}
     if(e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]'))return;
