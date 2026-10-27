@@ -199,32 +199,41 @@ async function clearProductionTeam(){
  }finally{leavingProductionTeam=false}
 }
 async function wipeProductionLocal(){
- // Limpeza restrita aos dados da Produção; não remove licença, sessão nem dados da Extrusão.
- const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,CODE_BACKUP_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY,'df_producao_ops_favoritas_v1','df_producao_saved_d1_shadow_v550']);
- const prefixes=['df_producao_','df_prod_team_','df_production_team_'];
- const keys=[];
- try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(exact.has(k)||prefixes.some(p=>k.startsWith(p))))keys.push(k)}}catch(e){}
- for(const k of [...new Set([...exact,...keys])])remove(k);
- // Limpar os registros da base sem tentar deletar um banco ainda aberto por outras rotinas.
- if(typeof indexedDB!=='undefined'){
-   await new Promise((resolve,reject)=>{
-     let request;
-     try{request=indexedDB.open(DB_NAME)}catch(e){reject(e);return}
-     request.onerror=()=>reject(new Error('Não foi possível abrir o banco de fotos para limpeza.'));
-     request.onsuccess=()=>{
-       const db=request.result;
-       try{
-         const stores=Array.from(db.objectStoreNames);
-         if(!stores.length){db.close();resolve();return}
-         const tx=db.transaction(stores,'readwrite');
-         tx.oncomplete=()=>{db.close();resolve()};
-         tx.onerror=()=>{db.close();reject(new Error('Falha ao limpar as fotos locais.'))};
-         tx.onabort=()=>{db.close();reject(new Error('Limpeza de fotos interrompida.'))};
-         stores.forEach(name=>tx.objectStore(name).clear());
-       }catch(e){db.close();reject(e)}
-     };
-   });
+ // Saída da Produção: apagar também o armazenamento legado usado por Fotos/Mês.
+ // Preservar somente credencial, licença e dados da equipe independente de Extrusão.
+ const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,CODE_BACKUP_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY,
+ 'df_producao_ops_favoritas_v1','df_producao_saved_d1_shadow_v550',
+ 'df_formula_ops_auto_v2','df_manual_op_product_v1','df_now_bridge_uploaded_v169',
+ 'df_op_registry_cloud_sent_test_v174','df_deleted_ops_v1']);
+ const prefixes=['df_producao_','df_prod_team_','df_production_team_','df_production_now','df_ops_','df_op_','df_test_photo_names_confirmed_'];
+ const shouldClear=k=>exact.has(k)||prefixes.some(p=>k.startsWith(p));
+ for(const area of [localStorage,sessionStorage]){
+  const keys=[];try{for(let i=0;i<area.length;i++){const k=area.key(i);if(k&&shouldClear(k))keys.push(k)}}catch(e){}
+  for(const k of keys)try{area.removeItem(k)}catch(e){}
  }
+ // Ambos os bancos armazenam fotos da Produção, inclusive fotos antigas da aba Mês.
+ if(typeof indexedDB!=='undefined'){
+  for(const dbName of [DB_NAME,'df_ops_fotos_v2']){
+   await new Promise((resolve,reject)=>{
+    let request;try{request=indexedDB.open(dbName)}catch(e){reject(e);return}
+    request.onerror=()=>reject(new Error('Não foi possível abrir o banco '+dbName+' para limpeza.'));
+    request.onsuccess=()=>{
+     const db=request.result;
+     try{
+      const stores=Array.from(db.objectStoreNames);
+      if(!stores.length){db.close();resolve();return}
+      const tx=db.transaction(stores,'readwrite');
+      tx.oncomplete=()=>{db.close();resolve()};
+      tx.onerror=()=>{db.close();reject(new Error('Falha ao limpar fotos em '+dbName))};
+      tx.onabort=()=>{db.close();reject(new Error('Limpeza de fotos interrompida em '+dbName))};
+      stores.forEach(name=>tx.objectStore(name).clear());
+     }catch(e){db.close();reject(e)}
+    };
+   });
+  }
+ }
+ // A marca de saída é necessária para impedir que um sincronizador antigo restaure a equipe.
+ localStorage.setItem(EXIT_MARK,'1');
  try{window.dispatchEvent(new CustomEvent('df-producao-team-cleared'))}catch(e){}
 }
 function restoreOwnerCode(){
