@@ -1,6 +1,6 @@
 {
-  "version": "1.0.547",
-  "title": "DF EXTRUSOR PRO — Remoção da área antiga",
-  "message": "Área visual de OPs salvas removida da Produção; histórico e dados preservados.",
+  "version": "1.0.548",
+  "title": "DF EXTRUSOR PRO — Seletor fixo de turnos",
+  "message": "Restaurado seletor de turnos dentro da tela de OPs salvas, preservando Favoritas e histórico.",
   "updatedAt": "2026-10-26"
 }
