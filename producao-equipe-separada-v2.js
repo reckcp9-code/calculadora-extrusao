@@ -99,21 +99,28 @@ async function clearProductionTeam(){
    alert('Saída concluída. Dados locais da Equipe de Produção apagados neste aparelho. O servidor não foi alterado.');
    location.reload();
  }catch(e){
-   alert('Não foi possível concluir a limpeza local: '+String(e?.message||e));
+   alert('A limpeza local ainda não terminou: '+String(e?.message||e)+' Feche outras abas do aplicativo e abra novamente.');
  }finally{leavingProductionTeam=false}
 }
 async function wipeProductionLocal(){
- const keys=[OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY];
- for(const key of keys)remove(key);
- // IndexedDB guarda as fotos. Excluir o banco inteiro desta área, sem tocar na Extrusão.
- try{
-   if(typeof indexedDB!=='undefined'){
-     await new Promise(resolve=>{
+ // Limpeza restrita aos dados da Produção; não remove licença, sessão nem dados da Extrusão.
+ const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY]);
+ const prefixes=['df_producao_','df_prod_team_','df_production_team_'];
+ const keys=[];
+ try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(exact.has(k)||prefixes.some(p=>k.startsWith(p))))keys.push(k)}}catch(e){}
+ for(const k of [...new Set([...exact,...keys])])remove(k);
+ // Fotos da Produção no IndexedDB: aguardar resultado em vez de declarar sucesso antes da exclusão.
+ if(typeof indexedDB!=='undefined'){
+   await new Promise((resolve,reject)=>{
+     let done=false;const finish=(error)=>{if(done)return;done=true;error?reject(error):resolve()};
+     try{
        const req=indexedDB.deleteDatabase(DB_NAME);
-       req.onsuccess=resolve;req.onerror=resolve;req.onblocked=resolve;
-     });
-   }
- }catch(e){console.warn('Limpeza de fotos locais pendente:',e)}
+       req.onsuccess=()=>finish();
+       req.onerror=()=>finish(new Error('Falha ao limpar banco de fotos da Produção.'));
+       req.onblocked=()=>finish(new Error('Banco de fotos ainda aberto. Feche outras abas do aplicativo e tente novamente.'));
+     }catch(e){finish(e)}
+   });
+ }
  try{window.dispatchEvent(new CustomEvent('df-producao-team-cleared'))}catch(e){}
 }
 async function copyCode(){const code=String(localStorage.getItem(TEAM_CODE_KEY)||'').trim();if(!code)return;try{await navigator.clipboard.writeText(code);const b=$('dfProdTeamV2Copy');if(b){b.textContent='✅ CÓDIGO COPIADO';setTimeout(()=>{if($('dfProdTeamV2Copy'))$('dfProdTeamV2Copy').textContent='📋 COPIAR CÓDIGO'},1200)}}catch(e){prompt('Código da equipe de Produção:',code)}}
