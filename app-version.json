@@ -1,6 +1,6 @@
 {
-  "version": "1.0.562",
-  "title": "DF EXTRUSOR PRO — FOTOS por mês",
-  "message": "Novo botão FOTOS ao lado de MÊS, pesquisa de OPs prontas por nome/ID e acesso à edição existente. Sincronização de correções entre aparelhos ainda pendente.",
+  "version": "1.0.563",
+  "title": "DF EXTRUSOR PRO — Editor de fotos direto",
+  "message": "Abre foto e campos de correção diretamente em FOTOS; fechar não muda para PRONTAS. Sincronização de correções entre celulares ainda pendente.",
   "updatedAt": "2026-10-27"
 }
