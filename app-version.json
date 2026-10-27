@@ -1,6 +1,6 @@
 {
-  "version": "1.0.561",
-  "title": "DF EXTRUSOR PRO — Pesquisa por nome ou ID",
-  "message": "Pesquisa de OPs prontas pelo nome do produto ou código completo/parcial da OP, sem alterar o histórico.",
+  "version": "1.0.562",
+  "title": "DF EXTRUSOR PRO — FOTOS por mês",
+  "message": "Novo botão FOTOS ao lado de MÊS, pesquisa de OPs prontas por nome/ID e acesso à edição existente. Sincronização de correções entre aparelhos ainda pendente.",
   "updatedAt": "2026-10-27"
 }
