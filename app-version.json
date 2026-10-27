@@ -1,6 +1,6 @@
 {
-  "version": "1.0.548",
-  "title": "DF EXTRUSOR PRO — Seletor fixo de turnos",
-  "message": "Restaurado seletor de turnos dentro da tela de OPs salvas, preservando Favoritas e histórico.",
+  "version": "1.0.549",
+  "title": "DF EXTRUSOR PRO — Sincronização de equipe",
+  "message": "Sincronização periódica quando online, além dos eventos de geração e retorno à conexão.",
   "updatedAt": "2026-10-26"
 }
