@@ -1,6 +1,6 @@
 {
-  "version": "1.0.598",
-  "title": "Aprovação de OPs pelo dono da equipe",
-  "message": "Baixas de operadores ficam em Pendentes até a confirmação do dono. Produção contabilizada após aprovação.",
+  "version": "1.0.599",
+  "title": "Exclusão de OP sincronizada para dono e operadores",
+  "message": "Exclusão de OP confirmada no servidor antes de retirar de Prontas e dos totais. Nova baixa permitida posteriormente.",
   "updatedAt": "2026-10-27"
 }
