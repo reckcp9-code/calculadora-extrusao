@@ -64,7 +64,7 @@ function renderSaved(){if(painting)return;const root=$('dfPrRoot')||$('pgPr');if
   const input=box.querySelector('#dfOpSearchInput');
   if(input&&document.activeElement!==input&&input.value!==query)input.value=query;
   box.querySelectorAll('[data-op-filter]').forEach(b=>b.classList.toggle('on',b.dataset.opFilter===mode));
-  const list=box.querySelector('.dfOpList');if(list)list.innerHTML=savedRowsHtml(shown,fs);
+  const list=box.querySelector('.dfOpList');if(list){const html=savedRowsHtml(shown,fs);if(list.__dfLastHtml!==html){list.innerHTML=html;list.__dfLastHtml=html}}
 }finally{painting=false}}
 window.DFRenderSavedProductionOps=renderSaved;
 window.addEventListener('df-producao-auto-saved',()=>{selectedId='';renderSaved()});
@@ -101,7 +101,7 @@ const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??d}cat
 const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const id=o=>String(o?.id||'').trim().toUpperCase();
 const fingerprint=o=>JSON.stringify(o);
-let busy=false,queued=false,ready=false;function status(msg,ok){let box=document.getElementById('dfD1SavedStatus');if(!box){const parent=document.getElementById('dfSavedOps');if(!parent)return;box=document.createElement('div');box.id='dfD1SavedStatus';box.style.cssText='margin:8px 0;padding:10px;border:1px solid #334155;border-radius:10px;color:#bfdbfe;font:700 12px system-ui';parent.insertBefore(box,parent.querySelector('.dfOpSearch'))}box.textContent=msg;box.style.color=ok?'#86efac':'#fde68a';}
+let busy=false,queued=false,ready=false;function status(msg,ok){let box=document.getElementById('dfD1SavedStatus');if(!box){const parent=document.getElementById('dfSavedOps');if(!parent)return;box=document.createElement('div');box.id='dfD1SavedStatus';box.style.cssText='margin:8px 0;padding:10px;border:1px solid #334155;border-radius:10px;color:#bfdbfe;font:700 12px system-ui';parent.insertBefore(box,parent.querySelector('.dfOpSearch'))}if(box.textContent!==msg)box.textContent=msg;box.style.color=ok?'#86efac':'#fde68a';}
 function device(){return String(window.DFDeviceIdentity?.get?.()||localStorage.getItem('df_licenseauth_device_v1')||'').trim()}
 async function session(force){
  let token=String(sessionStorage.getItem('df_secure_token_v2')||'').trim();
@@ -123,7 +123,7 @@ function updateUI(){try{window.DFRenderSavedProductionOps?.()}catch(e){}try{wind
 async function sync(){
  if(busy||navigator.onLine===false||document.hidden)return;
  const team=read(T,null);if(!team?.teamId){status('⚠️ Conecte a EQUIPE DE PRODUÇÃO para sincronizar OPs.',false);return;}
- busy=true;status('🔄 Sincronizando OPs salvas com a equipe...',false);
+ busy=true;if(!ready)status('🔄 Sincronizando OPs salvas com a equipe...',false);
  try{
   const tid=String(team.teamId),s=shadow(tid),body={teamId:tid},first=await call('/production/saved/list',body);
   const remote=new Map((first.records||[]).filter(x=>x?.opCode).map(x=>[String(x.opCode).toUpperCase(),x]));
