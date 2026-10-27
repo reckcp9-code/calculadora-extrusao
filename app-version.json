@@ -1,6 +1,6 @@
 {
-  "version": "1.0.609",
-  "title": "Saída da Produção igual à Formulação",
-  "message": "Desvincula operador no servidor antes de limpar OPs, Prontas, Pendentes e fotos locais da Produção.",
+  "version": "1.0.610",
+  "title": "Saída da equipe sem reconexão automática",
+  "message": "Após sair da Equipe de Produção, a recuperação automática respeita a saída e exige novo ingresso com código.",
   "updatedAt": "2026-10-27"
 }
