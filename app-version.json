@@ -1,6 +1,6 @@
 {
-  "version": "1.0.540",
-  "title": "DF EXTRUSOR PRO — Recuperação PWA iPhone",
-  "message": "Renovação de cache e inicialização pelo endereço de acesso.",
+  "version": "1.0.541",
+  "title": "DF EXTRUSOR PRO — Correção de abertura do PWA",
+  "message": "Entrada do aplicativo instalado sem limpeza de caches ou desregistro do Service Worker.",
   "updatedAt": "2026-10-26"
 }
