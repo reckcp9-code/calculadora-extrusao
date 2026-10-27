@@ -49,12 +49,21 @@ function ensureSavedShell(box){
     if(row){selectedId=selectedId===row.dataset.opRow?'':row.dataset.opRow;renderSaved()}
   });
 }
-// Área antiga de OPs salvas desativada por solicitação do proprietário.
-// Não altera armazenamento nem histórico de baixas.
-function renderSaved(){
-  const box=document.getElementById('dfSavedOps');
-  if(box)box.remove();
-}
+function renderSaved(){if(painting)return;const root=$('dfPrRoot')||$('pgPr');if(!root)return;painting=true;try{
+  ensureStyle();
+  let box=$('dfSavedOps');if(!box){box=document.createElement('section');box.id='dfSavedOps';box.className='dfPrCard';root.appendChild(box)}
+  ensureSavedShell(box);
+  const all=allOps(),ids=new Set(all.map(o=>o.id)),fs=favs();let favDirty=false;
+  [...fs].forEach(id=>{if(!ids.has(id)){fs.delete(id);favDirty=true}});if(favDirty)saveFavs(fs);
+  if(selectedId&&!ids.has(selectedId))selectedId='';
+  const q=query.trim().toLocaleLowerCase('pt-BR'),shown=all.filter(o=>(mode==='fav'?fs.has(o.id):true)&&(shiftFilter==='all'||normalizeShift(o.shift)===shiftFilter)&&(!q||searchText(o).includes(q)));
+  box.dataset.dfSavedV3='1';
+  const shiftEl=box.querySelector('#dfOpShiftSelect');if(shiftEl&&shiftEl.value!==shiftFilter)shiftEl.value=shiftFilter;
+  const input=box.querySelector('#dfOpSearchInput');
+  if(input&&document.activeElement!==input&&input.value!==query)input.value=query;
+  box.querySelectorAll('[data-op-filter]').forEach(b=>b.classList.toggle('on',b.dataset.opFilter===mode));
+  const list=box.querySelector('.dfOpList');if(list)list.innerHTML=savedRowsHtml(shown,fs);
+}finally{painting=false}}
 window.DFRenderSavedProductionOps=renderSaved;
 window.addEventListener('df-producao-auto-saved',()=>{selectedId='';renderSaved()});
 window.addEventListener('storage',e=>{if(e.key===KEY||e.key==='df_producao_ops_auto_v1')renderSaved()});
@@ -70,7 +79,7 @@ function createNewFrom(o){return{id:makeId(),sector:o.sector||'Picote',machine:o
 function handleActions(e){const el=e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]');if(!el)return;const id=el.dataset.opOpen||el.dataset.opPdf||el.dataset.opNew||el.dataset.opDel,a=read(KEY,[]),o=a.find(x=>x&&x.id===id);if(!o)return;if(el.dataset.opDel){e.preventDefault();e.stopPropagation();if(confirm('Excluir esta OP?')){saveOps(a.filter(x=>x.id!==id));if(selectedId===id)selectedId='';renderSaved()}return}if(el.dataset.opNew){e.preventDefault();e.stopPropagation();const n=createNewFrom(o);while(a.some(x=>x&&x.id===n.id))n.id=makeId();if(!confirm('Gerar uma nova OP com os mesmos dados de '+o.machine+' e '+o.operator+'? Ela terá ID e QR Code novos, sem copiar pesos e apontamentos.'))return;a.push(n);if(!saveOps(a)){alert('Não foi possível gerar a nova OP.');return}registerQR(n);selectedId=n.id;mode='all';query='';notice('Nova OP gerada com ID e QR Code diferentes.','ok');renderSaved();return}if(el.dataset.opPdf){e.preventDefault();e.stopPropagation();window.DF_PRODUCAO_OP_TEST?.print(o);return}if(el.dataset.opOpen){e.preventDefault();e.stopPropagation();openIntoForm(o)}}
 
 function clearLegacyGeneratedPane(){const S=window.__DF_PROD_V3_STATE||{};if(S.pane!=='list')return;const body=$('dfPrBody');if(body&&body.childNodes.length)body.innerHTML=''}
-function cleanLegacy(){renderSaved();clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box)renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
+function cleanLegacy(){clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
 function cleanAdded(node){if(!node||node.nodeType!==1)return;if(node.matches&&node.matches('[data-op-down]'))node.remove();else if(node.querySelectorAll)node.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
 function queueObserverRefresh(){if(observerQueued||painting)return;observerQueued=true;requestAnimationFrame(()=>{observerQueued=false;if(painting)return;clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved()})}
 function installObserver(){const root=$('dfPrRoot');if(!root||observer)return;observer=new MutationObserver(list=>{for(const m of list)for(const n of m.addedNodes)cleanAdded(n);queueObserverRefresh()});observer.observe(root,{childList:true,subtree:true})}
