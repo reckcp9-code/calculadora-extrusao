@@ -1,6 +1,6 @@
 {
-  "version": "1.0.624",
-  "title": "Correção de tela vazia em OPs Automáticas",
-  "message": "Corrigida referência de cache do módulo; se houver falha, exibe erro e botão tentar novamente em vez de tela preta.",
+  "version": "1.0.625",
+  "title": "Restaurado carregamento de OPs Automáticas",
+  "message": "Corrigido erro de sintaxe que bloqueava o módulo e mantidas baixas e fotos existentes.",
   "updatedAt": "2026-10-27"
 }
