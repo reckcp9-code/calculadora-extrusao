@@ -1,6 +1,6 @@
 {
-  "version": "1.0.558",
-  "title": "DF EXTRUSOR PRO — Proteção do histórico de OPs",
-  "message": "Preserva registros encerrados locais e impede que estado aberto antigo do servidor reative uma OP encerrada no aparelho.",
+  "version": "1.0.559",
+  "title": "DF EXTRUSOR PRO — Exclusão de formulações protegida",
+  "message": "Exclusões confirmadas não reaparecem na sincronização; D1 bloqueia recriação de IDs excluídos.",
   "updatedAt": "2026-10-27"
 }
