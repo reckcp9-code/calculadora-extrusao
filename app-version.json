@@ -1,6 +1,6 @@
 {
-  "version": "1.0.607",
-  "title": "Correção da saída da Equipe de Produção",
-  "message": "Limpeza local sem bloqueio por banco de fotos aberto; saída sem exigir sincronização.",
+  "version": "1.0.608",
+  "title": "Saída de equipe e isolamento de OPs",
+  "message": "Ao sair da Produção, dados locais são limpos e telas não restauram OPs de equipe desconectada.",
   "updatedAt": "2026-10-27"
 }
