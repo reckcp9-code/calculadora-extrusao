@@ -1,6 +1,6 @@
 {
-  "version": "1.0.602",
-  "title": "Correção de retorno de baixas excluídas",
-  "message": "A sincronização agora aceita baixa removida do servidor mesmo quando o outro aparelho possui uma cópia antiga concluída.",
+  "version": "1.0.603",
+  "title": "Correção de sincronização de OPs da Produção",
+  "message": "Dados das OPs sincronizam mesmo quando a foto estiver pendente; erros de sincronização agora são exibidos.",
   "updatedAt": "2026-10-27"
 }
