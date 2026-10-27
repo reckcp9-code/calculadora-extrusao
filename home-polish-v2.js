@@ -166,6 +166,8 @@
     addStyle();
     removeHomeBeta();
     installProductionButton();
+    // A interface moderna só fica visível após a aplicação do layout final.
+    if(document.getElementById('appContent')&&document.getElementById('btPr'))document.documentElement.classList.add('df-modern-ready');
     /* Precarrega em segundo plano para o toque em PRODUÇÃO ser imediato. */
     setTimeout(ensureProductionFrame,120);
   }
