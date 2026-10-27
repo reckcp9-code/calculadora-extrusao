@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v595-machine-products';
+const DF_CACHE='df-extrusor-shell-v596-performance';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -31,7 +31,15 @@ async function subscriptionHash(){try{const sub=await self.registration.pushMana
 async function pendingPushMessage(){try{const hash=await subscriptionHash();if(!hash)return null;const u=new URL(API+'/push/message');u.searchParams.set('s',hash);u.searchParams.set('t',Date.now());const r=await fetch(u.toString(),{cache:'no-store'});if(!r.ok)return null;const j=await r.json();return j&&j.ok&&j.message?j.message:null}catch(e){return null}}
 async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — Nova atualização';const kind=String(data.kind||'update');const tag=kind==='access-paused'?'df-extrusor-access-paused':kind==='user-online'?'df-extrusor-user-online':'df-extrusor-update';return self.registration.showNotification(title,{body:data.message||data.body||'Uma nova atualização está disponível.',icon:new URL('logo.svg',self.registration.scope).href,badge:new URL('logo.svg',self.registration.scope).href,tag,renotify:true,data:{url:data.url||self.registration.scope,version:data.version||'',kind}})}
 
-async function precache(){const cache=await caches.open(DF_CACHE);await Promise.allSettled(CORE.map(async url=>{try{const req=new Request(url,{cache:'reload'});const res=await fetch(req,{cache:'no-store'});if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone())}catch(e){}}))}
+// Install only the entry shell. Large modules are cached as users open them;
+// precaching every module simultaneously caused unnecessary network/CPU pressure.
+const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./manifest.webmanifest','./app-version.json'];
+async function precache(){
+ const cache=await caches.open(DF_CACHE);
+ for(const url of BOOT_CACHE){
+  try{const req=new Request(url,{cache:'reload'});const res=await fetch(req,{cache:'no-store'});if(res&&res.ok)await cache.put(req,res.clone())}catch(e){}
+ }
+}
 async function cached(req){const cache=await caches.open(DF_CACHE);return cache.match(req,{ignoreSearch:true})}
 async function fetchWithTimeout(req,timeout=3500){let controller=null,timer=null;try{if('AbortController'in self){controller=new AbortController();timer=setTimeout(()=>controller.abort(),timeout)}let netReq=req;try{netReq=new Request(req,{cache:'no-store',signal:controller?controller.signal:undefined})}catch(e){}return await fetch(netReq,{cache:'no-store',signal:controller?controller.signal:undefined})}finally{if(timer)clearTimeout(timer)}}
 async function updateCached(req){try{const cache=await caches.open(DF_CACHE);const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone());return res}catch(e){return null}}
