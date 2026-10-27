@@ -1,6 +1,6 @@
 {
-  "version": "1.0.550",
-  "title": "DF EXTRUSOR PRO — OPs salvas em equipe",
-  "message": "Sincronização autenticada das OPs salvas no D1, preservando cópias locais e exclusões por equipe.",
+  "version": "1.0.551",
+  "title": "DF EXTRUSOR PRO — Diagnóstico de OPs salvas",
+  "message": "Mostra na tela de Produção o estado real do envio de OPs para a equipe e erros de autenticação.",
   "updatedAt": "2026-10-27"
 }
