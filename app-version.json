@@ -1,6 +1,6 @@
 {
-  "version": "1.0.604",
-  "title": "Saída segura da Equipe de Produção",
-  "message": "Ao sair, sincroniza antes e limpa dados locais de Produção; impede perda de OPs não sincronizadas.",
+  "version": "1.0.605",
+  "title": "Saída definitiva da Equipe de Produção",
+  "message": "Saída confirmada apaga dados locais da Produção sem depender da sincronização; servidor preservado.",
   "updatedAt": "2026-10-27"
 }
