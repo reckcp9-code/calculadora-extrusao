@@ -1,6 +1,6 @@
 {
-  "version": "1.0.557",
-  "title": "DF EXTRUSOR PRO — Exclusão sem piscar",
-  "message": "Evita conflito entre exclusão local e sincronização em andamento, impedindo OP excluída de reaparecer temporariamente.",
+  "version": "1.0.558",
+  "title": "DF EXTRUSOR PRO — Proteção do histórico de OPs",
+  "message": "Preserva registros encerrados locais e impede que estado aberto antigo do servidor reative uma OP encerrada no aparelho.",
   "updatedAt": "2026-10-27"
 }
