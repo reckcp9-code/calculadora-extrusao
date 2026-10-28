@@ -209,7 +209,7 @@ async function saveCurrent(){
     const savedOp=ops().find(o=>normId(o?.id)===opId);
     if(!saved||!savedOp||!['closed','pending'].includes(savedOp.status))throw new Error('A conferência da baixa falhou.');
 
-    try{window.dispatchEvent(new CustomEvent('df-producao-auto-saved',{detail:{opId,createdAt,photoId}}))}catch(e){}
+    // Confirmar baixa e foto no D1/R2 antes de disparar a sincronização geral.
     let cloudConfirmed=false,cloudError='';
     try{
       const fn=isOperator?window.DFProducaoEquipeOnline?.pushOne:window.DFProducaoEquipeOnline?.pushOneReady;
@@ -221,7 +221,8 @@ async function saveCurrent(){
       cloudError=String(e?.message||e);
       console.warn('Baixa preservada neste aparelho, aguardando nuvem:',opId,cloudError);
     }
-    if(cloudConfirmed){try{window.DFProducaoEquipeOnline?.push?.()}catch(e){}}
+    // Atualização/retry único após a tentativa de confirmação oficial, evitando concorrência.
+    try{window.dispatchEvent(new CustomEvent('df-producao-auto-saved',{detail:{opId,createdAt,photoId,cloudConfirmed}}))}catch(e){}
     setStatus(cloudConfirmed?(isOperator?
      '✅ <b>OP e foto sincronizadas na nuvem. Aguardando aprovação do dono em PENDENTES.</b>':
      '✅ <b>OP e foto confirmadas no servidor e disponíveis em PRONTAS para a equipe.</b><br>Produção: '+fmt(production)+' kg • Apara: '+fmt(scrap)+' kg'):
