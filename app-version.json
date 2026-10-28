@@ -1,6 +1,6 @@
 {
-  "version": "1.0.636",
-  "title": "Validação de imagem no envio de fotos",
-  "message": "Valida o arquivo real antes do envio e identifica a OP com foto inválida sem apagar a imagem local.",
+  "version": "1.0.637",
+  "title": "Envio alternativo de fotos para nuvem",
+  "message": "Quando o servidor não reconhece a foto enviada por fetch, tenta novamente via envio multipart direto; preserva original no celular.",
   "updatedAt": "2026-10-28"
 }
