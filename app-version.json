@@ -1,6 +1,6 @@
 {
-  "version": "1.0.628",
+  "version": "1.0.629",
   "title": "Aprovação de OP com foto de formulação",
-  "message": "O operador envia a baixa vinculada ao OPID e à formulação; o dono abre a foto e confirma a OP.",
+  "message": "Envio de foto de baixa ao bloco da formulação, com ID da fórmula e OPID; o dono confirma antes de somar a produção.",
   "updatedAt": "2026-10-28"
 }
