@@ -48,7 +48,7 @@ jobs:
           if (!version || !/^\d+\.\d+\.\d+$/.test(version)) throw Error('Invalid app version');
           if (!html.includes('app-bundle.js?v=')) throw Error('Main app script reference missing');
           if (!html.includes('app-shell.html')) throw Error('App shell reference missing');
-          if (!html.includes('Carregando calculadora')) throw Error('Expected startup fallback missing');
+          if (!html.includes('Carregando DF Extrusor Pro')) throw Error('Expected startup fallback missing');
           if (!html.includes('op-name-at-creation-v1.js')) throw Error('OP name sync script missing');
           if (!html.includes('op-prontas-manual-product-v2.js')) throw Error('OP completed name module missing');
           if (!html.includes('performance-guard-v3.js')) throw Error('Performance guard missing');
