@@ -1,6 +1,6 @@
 {
-  "version": "1.0.659",
-  "title": "Sincronização mais rápida das OPs salvas",
-  "message": "Consultas D1 e histórico mensal executadas em paralelo para reduzir espera ao abrir OPs salvas, sem alterar registros ou aprovações.",
+  "version": "1.0.660",
+  "title": "OPs salvas com sincronização rápida",
+  "message": "Consulta automática das OPs salvas a cada 7 segundos com envio imediato de novas OPs. Sem alterar fluxo de baixas.",
   "updatedAt": "2026-10-28"
 }
