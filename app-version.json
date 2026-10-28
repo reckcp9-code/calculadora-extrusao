@@ -1,6 +1,6 @@
 {
   "version": "1.0.631",
-  "title": "Reenvio de foto de OP para Formulação",
-  "message": "Corrigido o reenvio de fotos pendentes: a foto volta para Formulação vinculada ao OPID e ao ID da fórmula, com fallback de seleção para OPs antigas.",
+  "title": "Corrigido envio de fotos de OP pendente",
+  "message": "OP com ID DFOP sem fórmula vinculada envia imagem como foto de produção; pendências e aprovação preservadas.",
   "updatedAt": "2026-10-28"
 }
