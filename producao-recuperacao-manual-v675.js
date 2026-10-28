@@ -69,7 +69,10 @@ async function check(){
  try{
   const h=await post('/op/record/history',{opCode:id}),r=h.record;
   if(r&&['ready','pending'].includes(r.state)){
-   msg('⛔ OP JÁ EXISTE no servidor em '+(r.state==='ready'?'PRONTAS':'PENDENTES')+' — '+Number(r.production||0).toLocaleString('pt-BR')+' kg. Não é permitido lançar novamente. Confira o mês e a equipe.','warn');return;
+   // Se já está pronta mas não aparece na tela, faça um pull sem recontabilizar a OP.
+   let refreshed=false;
+   try{refreshed=await window.DFProducaoEquipeOnline?.pull?.()===true}catch(e){}
+   msg('⛔ OP JÁ ESTÁ '+(r.state==='ready'?'EM PRONTAS':'EM PENDENTES')+' no D1: '+Number(r.production||0).toLocaleString('pt-BR')+' kg · Máquina: '+String(r.machine||'não informada')+' · Mês: '+String(r.localDate||'').slice(0,7)+'. '+(refreshed?'Atualização de Produção solicitada. ':'')+'Não será duplicada.','warn');return;
   }
   if(!r&&Array.isArray(h.events)&&h.events.length){
    msg('⛔ Há eventos de baixa desta OP, mas o registro atual não está disponível. Não recupere sem conferência.','warn');return;
