@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v642-team-join-clean';
+const DF_CACHE='df-extrusor-shell-v643-producao-isolada';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
