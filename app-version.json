@@ -1,6 +1,6 @@
 {
-  "version": "1.0.638",
-  "title": "Envio binário direto de fotos no Cloudflare",
-  "message": "Nova rota do Worker aceita imagem binária com vínculo à OP; envio antigo permanece como primeira opção, com confirmação no R2.",
+  "version": "1.0.639",
+  "title": "Foto binária direta para R2 sem formulário",
+  "message": "Corrigida a rota binária do Worker para gravar a imagem diretamente no R2 e registrar vínculo D1 sem repetir validação de formulário.",
   "updatedAt": "2026-10-28"
 }
