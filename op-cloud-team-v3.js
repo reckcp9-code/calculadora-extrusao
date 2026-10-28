@@ -139,24 +139,30 @@ async function uploadPending(){if(!team||uploading||navigator.onLine===false||do
 function scheduleUpload(ms){clearTimeout(uploadTimer);uploadTimer=setTimeout(uploadPending,ms||250)}
 function scheduleRemote(ms,force){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncRemote(!!force),ms||400)}
 function resolveFormulationId(id,rec,photo,promptIfAmbiguous=true){
+ // O QR é a identidade fixa da OP; jamais pedir para o operador escolher outra
+ // formulação de uma lista, pois ela pode ter sido excluída ou substituída.
+ const code=String(id||rec?.qr||rec?.id||'').trim().toUpperCase();
  const registry=load('df_op_qr_registry_v1',{});
- const expected=registry?.[id]?.expected||{};
- let formulaId=String(rec?.formulaId||rec?.expected?.formulaId||photo?.formulaId||expected?.formulaId||expected?.__dfFormulaId||'').trim();
- if(formulaId)return formulaId;
- let formulas=load('df_formulacoes_v2',[]);
- if(!Array.isArray(formulas))formulas=[];
+ const entry=registry?.[code]||{};
+ const expected=entry.expected||{};
+ const explicit=[
+   rec?.formulaId,rec?.formula_id,rec?.expected?.formulaId,
+   photo?.formulaId,photo?.formula_id,expected?.formulaId,expected?.__dfFormulaId,
+   entry?.formulaId
+ ].map(v=>String(v||'').trim()).find(Boolean);
+ if(explicit)return explicit;
+ // Recupera por NOME EXATO somente quando existe um único correspondente;
+ // nunca usa automaticamente a última formulação, que pode ser de outra OP.
+ const forms=load('df_formulacoes_v2',[]);
  const normName=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'');
- const target=normName(expected.title||expected.produto||rec?.produto||rec?.product||rec?.serverProductName||'');
- const matches=target?formulas.filter(f=>normName(f?.nome||f?.name||f?.produto)===target):[];
- if(matches.length===1)return String(matches[0].id||'').trim();
- const options=formulas.filter(f=>f&&f.id!=null);
- if(!promptIfAmbiguous)return '';
- if(!options.length)throw Error('Não encontrei o ID da formulação deste OP neste aparelho.');
- const list=options.map((f,i)=>(i+1)+'. '+String(f.nome||f.name||'Formulação')+' — ID '+String(f.id)).join('\n');
- const answer=String(prompt('Esta OP é antiga e o QR não traz o ID da formulação. Digite o número da formulação correspondente:\n\n'+list)||'').trim();
- const index=Number(answer),chosen=Number.isInteger(index)&&index>=1&&index<=options.length?options[index-1]:options.find(f=>String(f.id)===answer);
- if(!chosen?.id)throw Error('Não foi selecionado um ID de formulação válido.');
- return String(chosen.id).trim();
+ const names=[expected?.title,expected?.produto,rec?.produto,rec?.product,rec?.serverProductName,photo?.produto]
+   .map(normName).filter(Boolean);
+ const matches=Array.isArray(forms)?forms.filter(f=>names.includes(normName(f?.nome||f?.name||f?.produto))):[];
+ if(matches.length===1&&matches[0]?.id!=null)return String(matches[0].id).trim();
+ // OP antiga sem formulação recuperável: vínculo virtual estável e ÚNICO
+ // pelo QR, sem inventar que ela pertence a outra fórmula atual da equipe.
+ if(/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/.test(code))return 'LEGACY-'+code;
+ return '';
 }
 async function recoverLocalPhoto(id){
  id=String(id||'').trim().toUpperCase();
