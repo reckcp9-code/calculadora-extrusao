@@ -1,6 +1,6 @@
 {
-  "version": "1.0.632",
-  "title": "Correção da exclusão e recuperação USN",
-  "message": "Exclusão confirmada pelo D1 sem foto fictícia; botão de recuperação visível e apara da USN validada.",
+  "version": "1.0.622",
+  "title": "Recuperação segura da OP USN 266 kg",
+  "message": "Reenvio condicionado ao registro local exato e ausência no D1; sem duplicação ou exclusão.",
   "updatedAt": "2026-10-27"
 }
