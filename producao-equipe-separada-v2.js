@@ -160,7 +160,7 @@ async function migrateHistoricalProductionData(){
   const candidates=autos().filter(historicEligible);
   const unique=new Map();
   for(const row of candidates){const id=norm(row.opId||row.id);if(!unique.has(id))unique.set(id,row)}
-  if(!unique.size){const all=autos();const ready=all.filter(x=>x?.status==='ok');setStatus('⚠️ Nenhuma OP histórica elegível para enviar: '+all.length+' baixas locais, '+ready.length+' concluídas, 0 elegíveis antes de 28/10/2026. Nenhum dado foi apagado.','warn');return false;}
+  if(!unique.size){const all=autos(),ready=all.filter(x=>x?.status==='ok');const validId=ready.filter(x=>/^DFOP-\\d{8}-/.test(norm(x.opId||x.id)));const validKg=validId.filter(x=>num(x.production)>0&&num(x.scrap)>=0&&num(x.scrap)<=num(x.production));const old=validKg.filter(x=>Number.isFinite(historicalTime(x))&&historicalTime(x)<HISTORIC_CUTOFF);setStatus('⚠️ Nenhuma OP histórica elegível: '+all.length+' baixas, '+ready.length+' concluídas, '+validId.length+' com ID DFOP, '+validKg.length+' com pesos válidos, '+old.length+' com data anterior ao limite. Nenhum dado apagado.','warn');return false;}
   const r=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:true});
   if(!Array.isArray(r.records))throw Error('Servidor não forneceu a lista oficial.');
   const official=new Map(r.records.map(x=>[norm(x.opCode),x]));
