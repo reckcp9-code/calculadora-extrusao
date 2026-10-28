@@ -28,7 +28,19 @@
       };
     }catch(e){return{}}
   }
-  function register(id,expected){const r=loadReg();r[id]={id,createdAt:new Date().toISOString(),expected:expected||{}};const keys=Object.keys(r).sort((a,b)=>String(r[b]?.createdAt||'').localeCompare(String(r[a]?.createdAt||'')));keys.slice(500).forEach(k=>delete r[k]);saveReg(r);try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:r[id]}))}catch(e){}}
+  function register(id,expected){
+    const source=expected&&typeof expected==='object'?expected:{};
+    let selectedId='',linked=null,forms=[];
+    try{selectedId=String(document.getElementById('foSavedSelect')?.value||'').trim()}catch(e){}
+    try{const parsed=JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]');if(Array.isArray(parsed))forms=parsed}catch(e){}
+    linked=forms.find(f=>String(f?.id)===selectedId)||null;
+    const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,'');
+    const title=norm(source.title),name=norm(linked?.nome||linked?.name);
+    // O SELECT somente é confiável quando o título da OP impressa coincide com a formulação.
+    const precise=linked&&title&&name&&title===name;
+    const formulaId=String(source.formulaId||source.__dfFormulaId||(precise?selectedId:'')||'LEGACY-'+id).trim();
+    const snapshot={...source,formulaId,opId:id};
+    const r=loadReg();r[id]={id,createdAt:new Date().toISOString(),expected:snapshot};const keys=Object.keys(r).sort((a,b)=>String(r[b]?.createdAt||'').localeCompare(String(r[a]?.createdAt||'')));keys.slice(500).forEach(k=>delete r[k]);saveReg(r);try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:r[id]}))}catch(e){}}
 
   function inject(html){
     if(typeof html!=='string'||!/ORDEM\s+DE\s+PRODU(?:Ç|C)[AÃ]O/i.test(html))return html;
