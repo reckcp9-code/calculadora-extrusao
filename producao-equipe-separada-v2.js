@@ -60,7 +60,7 @@ function dec(s){try{s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.
 function deviceId(){try{const x=String(window.DFDeviceIdentity?.get?.()||'').trim();if(x)return x}catch(e){}try{return String(localStorage.getItem(DEVICE_KEY)||'').trim()}catch(e){return''}}
 function tokenPayload(token){try{let s=String(token||'').split('.')[0]||'';s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(Array.from(atob(s)).map(c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')))}catch(e){return null}}
 async function renewSession(force){let token='';try{token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim()}catch(e){}const p=tokenPayload(token);if(token&&!force&&p&&p.owner)return token;const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();if(!credential||!dev)throw Error('acesso automático indisponível');const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw Error(j.error||'sessão indisponível');token=String(j.token||'').trim();if(!token)throw Error('sessão vazia');try{sessionStorage.setItem(TOKEN_KEY,token)}catch(e){}return token}
-async function apiPost(path,body,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body||{}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiPost(path,body,false)}if(!r.ok||j.ok===false){const er=Error(j.error||('HTTP '+r.status));er.status=r.status;throw er}return j}
+async function apiPost(path,body,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify({...body,area:AREA,scope:AREA}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiPost(path,body,false)}if(!r.ok||j.ok===false){const er=Error(j.error||('HTTP '+r.status));er.status=r.status;throw er}return j}
 async function apiBinaryPhoto(form,retry=true){
  const blob=form.get('photo');if(!(blob instanceof Blob)||!blob.size||blob.size>4000000)throw Error('Arquivo da foto inválido ou maior que 4 MB.');
  const fields=['teamId','photoType','formulaId','sourceId','qr','production','scrap','materials','createdAt','area'],meta={};
@@ -242,9 +242,8 @@ async function wipeProductionLocal(){
  // Preservar somente credencial, licença e dados da equipe independente de Extrusão.
  const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,CODE_BACKUP_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY,
  'df_producao_ops_favoritas_v1','df_producao_saved_d1_shadow_v550',
- 'df_formula_ops_auto_v2','df_manual_op_product_v1','df_now_bridge_uploaded_v169',
- 'df_op_registry_cloud_sent_test_v174','df_deleted_ops_v1']);
- const prefixes=['df_producao_','df_prod_team_','df_production_team_','df_production_now','df_ops_','df_op_','df_test_photo_names_confirmed_'];
+ 'df_deleted_ops_v1']);
+ const prefixes=['df_producao_','df_prod_team_','df_production_team_','df_production_now'];
  const shouldClear=k=>exact.has(k)||prefixes.some(p=>k.startsWith(p));
  for(const area of [localStorage,sessionStorage]){
   const keys=[];try{for(let i=0;i<area.length;i++){const k=area.key(i);if(k&&shouldClear(k))keys.push(k)}}catch(e){}
@@ -252,7 +251,7 @@ async function wipeProductionLocal(){
  }
  // Ambos os bancos armazenam fotos da Produção, inclusive fotos antigas da aba Mês.
  if(typeof indexedDB!=='undefined'){
-  for(const dbName of [DB_NAME,'df_ops_fotos_v2']){
+  for(const dbName of [DB_NAME]){
    await new Promise((resolve,reject)=>{
     let request;try{request=indexedDB.open(dbName)}catch(e){reject(e);return}
     request.onerror=()=>reject(new Error('Não foi possível abrir o banco '+dbName+' para limpeza.'));
