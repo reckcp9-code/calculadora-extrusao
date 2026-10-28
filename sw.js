@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v652-prod-owner-upload';
+const DF_CACHE='df-extrusor-shell-v667-fast-offline';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -33,7 +33,7 @@ async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — N
 
 // Install only the entry shell. Large modules are cached as users open them;
 // precaching every module simultaneously caused unnecessary network/CPU pressure.
-const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./manifest.webmanifest','./app-version.json'];
+const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./manifest.webmanifest','./app-version.json','./logo.svg','./device-identity.js','./auto-access.js','./performance-guard-v3.js','./app-bundle.js','./op-producao.html','./producao-stable-flow-v3.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js'];
 async function precache(){
  const cache=await caches.open(DF_CACHE);
  for(const url of BOOT_CACHE){
@@ -68,6 +68,9 @@ self.addEventListener('fetch',event=>{
     event.respondWith(networkFirst(req));return
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
+  // Static app shell/modules: serve cached bytes immediately and refresh in background.
+  // API/D1 requests are cross-origin and never pass through this branch.
+  if(/\.(?:js|css|svg|png|jpe?g|webp|woff2?)$/i.test(p)){event.respondWith(staleWhileRevalidate(req));return}
   if(p.endsWith('/cost-simple-v154.js')||p.endsWith('/cost-fabril-v1.js')||p.endsWith('/cost-back-v155.js')||p.endsWith('/formula-saved-search-v1.js')||p.endsWith('/formula-save-first-op-v1.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/producao-machine-produtos-v1.js')||p.endsWith('/producao-produtos-fullscreen-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
