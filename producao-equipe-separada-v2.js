@@ -152,7 +152,7 @@ function historicEligible(row){
 }
 async function migrateHistoricalProductionData(){
  const t=team();
- if(historyBusy||!t?.teamId||t.role!=='owner'||navigator.onLine===false)return false;
+ if(historyBusy){setStatus('⏳ Já existe uma recuperação histórica em andamento. Aguarde a conclusão antes de enviar novamente.','warn');return false}if(!t?.teamId){setStatus('⚠️ Equipe de Produção não conectada.','warn');return false}if(t.role!=='owner'){setStatus('⚠️ Somente o dono pode recuperar a produção histórica.','warn');return false}if(navigator.onLine===false){setStatus('⚠️ Sem internet para enviar o histórico.','warn');return false}
  historyBusy=true;
  let restored=0,already=0,errors=[],total=0,existingCount=0;
  try{
@@ -160,7 +160,7 @@ async function migrateHistoricalProductionData(){
   const candidates=autos().filter(historicEligible);
   const unique=new Map();
   for(const row of candidates){const id=norm(row.opId||row.id);if(!unique.has(id))unique.set(id,row)}
-  if(!unique.size)return false;
+  if(!unique.size){const all=autos();const ready=all.filter(x=>x?.status==='ok');setStatus('⚠️ Nenhuma OP histórica elegível para enviar: '+all.length+' baixas locais, '+ready.length+' concluídas, 0 elegíveis antes de 28/10/2026. Nenhum dado foi apagado.','warn');return false;}
   const r=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:true});
   if(!Array.isArray(r.records))throw Error('Servidor não forneceu a lista oficial.');
   const official=new Map(r.records.map(x=>[norm(x.opCode),x]));
