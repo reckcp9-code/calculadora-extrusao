@@ -1,6 +1,6 @@
 {
-  "version": "1.0.656",
-  "title": "Correção de identificação das OPs históricas",
-  "message": "Corrigido regex de IDs DFOP que rejeitava registros históricos concluídos. Envio preserva dados locais e evita duplicidade.",
+  "version": "1.0.657",
+  "title": "AGORA sem tremidas durante sincronização",
+  "message": "Evita clique automático na aba ativa e redesenho repetitivo das máquinas sem mudança de produção.",
   "updatedAt": "2026-10-28"
 }
