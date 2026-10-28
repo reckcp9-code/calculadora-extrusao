@@ -1,6 +1,6 @@
 {
-  "version": "1.0.650",
-  "title": "Botão de envio carregado diretamente na Produção",
-  "message": "Carregamento imediato do botão de envio histórico da Equipe de Produção, independente de abertura da aba OP.",
+  "version": "1.0.651",
+  "title": "Botão integrado à Equipe de Produção",
+  "message": "Botão de envio histórico integrado diretamente à renderização da Equipe de Produção, exclusivo do dono.",
   "updatedAt": "2026-10-28"
 }
