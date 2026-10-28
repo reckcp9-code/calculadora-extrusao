@@ -1,6 +1,6 @@
 {
-  "version": "1.0.634",
-  "title": "Bloqueio de baixa duplicada por QR Code",
-  "message": "Ao ler uma OP já baixada, o aplicativo avisa e bloqueia uma nova baixa com o mesmo QR Code.",
+  "version": "1.0.635",
+  "title": "Fotos de OP enviadas e verificadas na nuvem",
+  "message": "Envio automático ou por ID funciona sem formulação vinculada; só confirma após verificar arquivo no servidor.",
   "updatedAt": "2026-10-28"
 }
