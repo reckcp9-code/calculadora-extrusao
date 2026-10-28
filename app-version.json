@@ -1,6 +1,6 @@
 {
-  "version": "1.0.674",
-  "title": "Última formulação visível para toda a equipe",
-  "message": "Formulações Salvas mostra e seleciona apenas a mais recente, criada em qualquer celular. Todas as anteriores permanecem guardadas no D1 e disponíveis para vínculos com OPs.",
+  "version": "1.0.675",
+  "title": "Recuperação manual de OPs antigas sem duplicar produção",
+  "message": "Novo botão exclusivo do dono na Equipe de Produção: verificar QR no D1, recuperar OP excluída/ausente para Prontas com máquina, produção, apara e data. OP já baixada bloqueada; sincronização automática preservada.",
   "updatedAt": "2026-10-28"
 }
