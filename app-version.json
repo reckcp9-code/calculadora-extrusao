@@ -1,6 +1,6 @@
 {
-  "version": "1.0.639",
-  "title": "Foto binária direta para R2 sem formulário",
-  "message": "Corrigida a rota binária do Worker para gravar a imagem diretamente no R2 e registrar vínculo D1 sem repetir validação de formulário.",
+  "version": "1.0.640",
+  "title": "Abrir fotos compartilhadas pelo ID da OP",
+  "message": "A aba Fotos agora abre imagem compartilhada do R2 por ID, inclusive fotos de formulação em outro celular.",
   "updatedAt": "2026-10-28"
 }
