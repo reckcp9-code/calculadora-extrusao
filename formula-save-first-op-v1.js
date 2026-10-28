@@ -5,7 +5,10 @@ const KEY='df_formulacoes_v2';
 const q=id=>document.getElementById(id);
 const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');else if(s.includes(','))s=s.replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');const n=Number(s);return Number.isFinite(n)&&n>0?n:0};
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){try{return Array.isArray(window.loadForms?.())?window.loadForms():[]}catch(_){return[]}}};
-const time=f=>{const a=Date.parse(String(f?.updatedAt||f?.criado||''));if(Number.isFinite(a))return a;const id=Number(f?.id);return Number.isFinite(id)?id:0};
+const time=f=>{const raw=String(f?.id??'').trim(),id=Number(raw);
+  if(/^\d{13}$/.test(raw)&&Number.isFinite(id)&&id>=1577836800000&&id<4102444800000)return id;
+  const a=Date.parse(String(f?.criado||f?.createdAt||''));if(Number.isFinite(a))return a;
+  const b=Date.parse(String(f?.updatedAt||''));return Number.isFinite(b)?b:0;};
 const newest=a=>a.slice().sort((x,y)=>time(y)-time(x)||Number(y?.id||0)-Number(x?.id||0));
 function material(id){try{return window.materialById?window.materialById(id):null}catch(e){return null}}
 function write(a){try{localStorage.setItem(KEY,JSON.stringify(newest(a)));return true}catch(e){return false}}
@@ -13,8 +16,11 @@ function selectNewest(id){
   const sel=q('foSavedSelect');if(!sel)return false;
   const forms=newest(load()),rank=new Map(forms.map((f,i)=>[String(f.id),i]));
   const opts=Array.from(sel.options||[]).sort((a,b)=>(rank.get(String(a.value))??999999)-(rank.get(String(b.value))??999999));
-  opts.forEach(o=>sel.appendChild(o));
-  if(id!=null&&Array.from(sel.options).some(o=>String(o.value)===String(id))){sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))}
+  // Evita movimentar o mesmo SELECT continuamente (MutationObserver + render).
+  if(opts.some((o,i)=>o!==sel.options[i]))opts.forEach(o=>sel.appendChild(o));
+  if(id!=null&&Array.from(sel.options).some(o=>String(o.value)===String(id))&&String(sel.value)!==String(id)){
+    sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))
+  }
   return true;
 }
 function refresh(id){
@@ -73,7 +79,7 @@ window.addEventListener('click',function(ev){
   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
   saveAndOpen();
 },true);
-function normalizeUi(){selectNewest(q('foSavedSelect')?.value||null)}
+function normalizeUi(){const latest=newest(load())[0];selectNewest(latest?.id??null)}
 function observe(){const b=q('foSaved');if(!b)return false;const o=new MutationObserver(()=>setTimeout(normalizeUi,0));o.observe(b,{childList:true,subtree:true});normalizeUi();return true}
 function start(){let n=0,t=setInterval(()=>{if(observe()||++n>30)clearInterval(t)},150)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
