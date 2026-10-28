@@ -168,7 +168,7 @@ async function migrateHistoricalProductionData(){
   const ids=mark?.teamId===t.teamId?{...(mark.ids||{})}:{};
   const local=ops();
   for(const [id,row] of unique){
-   if(official.has(id)){already++;continue} // Inclui deleted e pending: nunca ressuscitar nem duplicar.
+   if(official.has(id)){already++;if(official.get(id)?.state==='ready'){ids[id]=true;write(HISTORY_MARK,{teamId:t.teamId,ids})}continue} // Inclui deleted e pending: nunca ressuscitar nem duplicar.
    const op=local.find(x=>norm(x.id)===id)||{};
    const complete=String(row.completedAt||row.createdAt||'');
    const payload={teamId:t.teamId,opCode:id,production:num(row.production),scrap:num(row.scrap),
@@ -209,6 +209,24 @@ async function syncOnePending(rawId){
  setStatus('✅ Baixa e foto da OP '+id+' confirmadas no D1.','ok');
  return official;
 }
+async function syncOneReady(rawId){
+ const id=norm(rawId),t=team();
+ if(!t?.teamId||t.role!=='owner')throw Error('Apenas o dono pode registrar a baixa direta em PRONTAS.');
+ if(navigator.onLine===false)throw Error('Sem internet para enviar a foto e a baixa ao servidor.');
+ const rec=autos().find(x=>norm(x?.opId||x?.id)===id&&x.status==='ok');
+ if(!rec)throw Error('Baixa local não encontrada.');
+ if(!rec.photoId||String(rec.photoId).startsWith('CLOUDPROD:'))throw Error('Foto original não encontrada neste aparelho.');
+ const ph=await photoGet(rec.photoId);
+ if(!ph?.blob)throw Error('Foto da OP não encontrada. A baixa permanece neste celular.');
+ const photoId=await uploadReadyPhoto(t,id,rec);
+ if(!photoId)throw Error('Foto não confirmada na nuvem.');
+ const original=ops().find(x=>norm(x.id)===id)||{id,sector:rec.sector,machine:rec.machine,product:rec.product,operator:rec.operator,createdAt:rec.createdAt,status:'closed'};
+ const official=await publishOfficialPending(t,id,normalizedState(original,rec),photoId);
+ if(official?.state!=='ready')throw Error('D1 não confirmou a baixa em PRONTAS.');
+ // Os metadados do cadastro podem continuar sendo sincronizados em separado.
+ setStatus('✅ Baixa e foto da OP '+id+' confirmadas no D1/R2 para toda a equipe.','ok');
+ return official
+}
 async function syncLocal(force){if(leavingProductionTeam||historyBusy)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||uploadBusy)return false;uploadBusy=true;try{const cfg=config(),cfgHash=hash(cfg),cfgSnap=read(CFG_SNAP_KEY,null);const hasCatalog=Object.values(cfg).some(v=>v&&typeof v==='object'&&((['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)||Object.keys(v.deletedMachines||{}).length>0)));if(hasCatalog&&(force||!cfgSnap||cfgSnap.teamId!==t.teamId||cfgSnap.hash!==cfgHash)){const sent=await publishConfig(t,cfg);write(CFG_SNAP_KEY,{teamId:t.teamId,hash:cfgHash,ts:sent.ts,updatedAt:sent.updatedAt})}const states=currentStates(),snap=read(SNAP_KEY,{}),pending=read(DELETE_PENDING_KEY,{});for(const id of Object.keys(pending)){if(!id.startsWith('DFOP-'))continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);delete pending[id];write(DELETE_PENDING_KEY,pending)}let sentCount=0,failed=[],skipped=0;
  const entries=[...states].sort((a,b)=>Number(!!b[1]?.auto?.production)-Number(!!a[1]?.auto?.production));
  for(const [id,state] of entries){
@@ -247,7 +265,7 @@ function applyRemoteConfig(remote,t){if(!remote?.config)return false;const remot
 if(snap&&snap.teamId===t.teamId&&snap.hash!==localHash){schedulePush(100,false);return false}if(snap&&snap.teamId===t.teamId&&remoteTs<=Number(snap.ts||0))return false;const remoteHash=hash(remote.config),merged=JSON.parse(JSON.stringify(remote.config));for(const sec of ['Picote','Sacoleira','Blocadora']){const localMarks=local[sec]?.deletedMachines||{},remoteMarks=merged[sec]?.deletedMachines||{};if(!merged[sec])merged[sec]={machines:[],operators:[],products:[],productMeasures:{},machineProducts:{}};merged[sec].deletedMachines={...remoteMarks};for(const [name,ts] of Object.entries(localMarks)){if(Number(ts)>Number(merged[sec].deletedMachines[name]||0))merged[sec].deletedMachines[name]=ts}}applyMachineDeletions(merged);write(CAD_KEY,merged);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados',{detail:{teamId:t.teamId}}))}catch(e){}write(CFG_SNAP_KEY,{teamId:t.teamId,hash:remoteHash,ts:remoteTs,updatedAt:remote.updatedAt});if(hash(merged)!==remoteHash)schedulePush(300,false);return true}
 async function listMonth(t,m){const j=await apiPost('/op/photo/list',{teamId:t.teamId,month:m,area:AREA,scope:AREA});if(!Array.isArray(j.photos))throw new Error('Resposta inválida ao consultar OPs da equipe.');return j.photos}
 async function findRemoteOpById(rawId){const t=team(),id=norm(rawId);if(!t?.teamId)return{found:false,reason:'no-team'};if(!/^DFOP-\d{8}-[A-Z0-9-]+$/.test(id))return{found:false,reason:'invalid-id'};if(navigator.onLine===false)return{found:false,reason:'offline'};const month=id.slice(5,9)+'-'+id.slice(9,11);try{const months=[month,monthOffset(0),monthOffset(-1),monthOffset(-2),monthOffset(-3)].filter((v,i,a)=>a.indexOf(v)===i);let sawResponse=false;for(const m of months){let all;try{all=await listMonth(t,m);sawResponse=true}catch(e){if(!sawResponse)return{found:false,reason:'network-error'};continue}const parsed=parseRemote(all,t),state=parsed.states.get(id);if(!state||state.deleted||!state.state?.op)continue;const pm=mergePhotoMap(parsed.photos);applyRemoteStates(new Map([[id,state]]),pm,t);refreshUi();return{found:!!ops().some(o=>norm(o.id)===id),reason:'found'}}return{found:false,reason:'not-synced'}}catch(e){return{found:false,reason:'network-error'}}}
-async function syncRemote(includePrevious){if(leavingProductionTeam)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||pullBusy)return false;pullBusy=true;try{const official=await pullOfficialRecords(t);let all=[];try{all=await listMonth(t,monthOffset(0));if(includePrevious||Date.now()-lastPrevPull>60000){for(let i=1;i<=2;i++)all=all.concat(await listMonth(t,monthOffset(-i)));lastPrevPull=Date.now()}}catch(legacyError){console.warn('Sincronização legada indisponível; pendências oficiais D1 continuam disponíveis:',String(legacyError))}const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverCatalogFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);setStatus('✅ EQUIPE DE PRODUÇÃO online • dados atualizados.','ok');return true}catch(e){setStatus('⚠️ Equipe de Produção aguardando sincronização: '+String(e?.message||e),'warn');return false}finally{pullBusy=false}}
+async function syncRemote(includePrevious){if(leavingProductionTeam||historyBusy)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||pullBusy)return false;pullBusy=true;try{const official=await pullOfficialRecords(t);let all=[];try{all=await listMonth(t,monthOffset(0));if(includePrevious||Date.now()-lastPrevPull>60000){for(let i=1;i<=2;i++)all=all.concat(await listMonth(t,monthOffset(-i)));lastPrevPull=Date.now()}}catch(legacyError){console.warn('Sincronização legada indisponível; pendências oficiais D1 continuam disponíveis:',String(legacyError))}const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverCatalogFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);setStatus('✅ EQUIPE DE PRODUÇÃO online • dados atualizados.','ok');return true}catch(e){setStatus('⚠️ Equipe de Produção aguardando sincronização: '+String(e?.message||e),'warn');return false}finally{pullBusy=false}}
 function schedulePull(ms,prev){clearTimeout(pullTimer);pullTimer=setTimeout(()=>syncRemote(!!prev),ms==null?500:ms)}
 
 let viewerUrl='';function closeViewer(){const m=$('dfProdTeamV2Viewer');if(m)m.classList.remove('on');if(viewerUrl){try{URL.revokeObjectURL(viewerUrl)}catch(e){}viewerUrl=''}}
@@ -428,5 +446,5 @@ async function checkAlreadyCompleted(rawId){
  const record=data.records.find(x=>norm(x.opCode)===id&&['pending','ready'].includes(String(x.state||'')));
  return record?{state:String(record.state),opCode:id,production:record.production,scrap:record.scrap}:null;
 }
-window.DFProducaoEquipeOnline={migrateHistoricalProductionData,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+window.DFProducaoEquipeOnline={migrateHistoricalProductionData,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
