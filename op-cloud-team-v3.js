@@ -19,7 +19,31 @@ function deviceId(){try{const x=String(window.DFDeviceIdentity?.get?.()||'').tri
 function tokenPayload(token){try{let s=String(token||'').split('.')[0]||'';s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(Array.from(atob(s)).map(c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')))}catch(e){return null}}
 async function renewSession(force){let token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim(),p=tokenPayload(token);if(token&&!force&&p?.owner)return token;const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();if(!credential||!dev)throw Error('acesso automático indisponível');const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw Error(j.error||'sessão indisponível');token=String(j.token||'').trim();if(!token)throw Error('sessão vazia');sessionStorage.setItem(TOKEN_KEY,token);return token}
 async function apiPost(path,body,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body||{}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiPost(path,body,false)}if(!r.ok||j.ok===false){const er=Error(j.error||('HTTP '+r.status));er.status=r.status;throw er}return j}
-async function apiForm(path,form,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Authorization':'Bearer '+token,'X-DF-Device':dev},body:form,cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiForm(path,form,false)}if(!r.ok||j.ok===false)throw Error(j.error||('HTTP '+r.status));return j}
+function uploadFormViaXHR(path,form,token,dev){
+ return new Promise((resolve,reject)=>{
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST',API+path,true);
+  xhr.setRequestHeader('Authorization','Bearer '+token);
+  xhr.setRequestHeader('X-DF-Device',dev);
+  xhr.timeout=30000;
+  xhr.onload=()=>{let j={};try{j=JSON.parse(xhr.responseText||'{}')}catch(e){}
+   if(xhr.status>=200&&xhr.status<300&&j.ok!==false)resolve(j);
+   else reject(Error(j.error||('HTTP '+xhr.status)))};
+  xhr.onerror=()=>reject(Error('Falha na conexão durante envio alternativo da foto.'));
+  xhr.ontimeout=()=>reject(Error('O envio alternativo ultrapassou o tempo limite.'));
+  xhr.send(form);
+ })
+}
+async function apiForm(path,form,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Authorization':'Bearer '+token,'X-DF-Device':dev},body:form,cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiForm(path,form,false)}if(!r.ok||j.ok===false){
+ const reason=String(j.error||('HTTP '+r.status));
+ if(path==='/op/photo/upload'&&/Foto obrigat[oó]ria/i.test(reason)){
+  const photo=form.get('photo');
+  if(!(photo instanceof Blob)||photo.size<1)throw Error('Imagem ausente no formulário antes do envio; a foto local permanece salva.');
+  try{return await uploadFormViaXHR(path,form,await renewSession(false),dev)}
+  catch(e){throw Error('Envio via fetch: '+reason+'; envio alternativo: '+String(e?.message||e))}
+ }
+ throw Error(reason)
+}return j}
 async function apiBlobGet(id,download){let token=await renewSession(false),dev=deviceId(),u=API+'/op/photo/get?id='+encodeURIComponent(id)+(download?'&download=1':'');let r=await fetch(u,{headers:{'Authorization':'Bearer '+token,'X-DF-Device':dev},cache:'no-store'});if(r.status===401){token=await renewSession(true);r=await fetch(u,{headers:{'Authorization':'Bearer '+token,'X-DF-Device':dev},cache:'no-store'})}if(!r.ok)throw Error('Não consegui abrir a foto da nuvem.');return r.blob()}
 function dbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 async function photoGet(id){try{const d=await dbOpen();return await new Promise((res,rej)=>{const r=d.transaction('photos').objectStore('photos').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}catch(e){return null}}
