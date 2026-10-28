@@ -1,6 +1,6 @@
 {
-  "version": "1.0.654",
-  "title": "Diagnóstico detalhado e desempenho da Produção",
-  "message": "Remove envio histórico automático no carregamento e exibe erro detalhado no alerta ao enviar manualmente.",
+  "version": "1.0.655",
+  "title": "Diagnóstico de elegibilidade das OPs históricas",
+  "message": "Identifica separadamente OPs concluídas, IDs DFOP, pesos válidos e datas anteriores ao limite, sem enviar registros inseguros.",
   "updatedAt": "2026-10-28"
 }
