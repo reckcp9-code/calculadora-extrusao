@@ -324,5 +324,14 @@ async function approveCompletion(rawId){
  const snap=read(SNAP_KEY,{});snap[id]={hash:hash(normalizedState(updated,ready)),teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);
  refreshUi();return true;
 }
-window.DFProducaoEquipeOnline={deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+async function checkAlreadyCompleted(rawId){
+ const id=norm(rawId),t=team();
+ if(!t?.teamId)throw Error('Conecte a equipe de Produção antes de dar baixa.');
+ if(navigator.onLine===false)throw Error('Sem internet para verificar se esta OP já foi baixada. Conecte e tente novamente.');
+ const data=await apiPost('/op/record/list',{teamId:t.teamId,area:AREA,scope:AREA,includeDeleted:true});
+ if(!Array.isArray(data.records))throw Error('Não foi possível consultar a situação oficial da OP.');
+ const record=data.records.find(x=>norm(x.opCode)===id&&['pending','ready'].includes(String(x.state||'')));
+ return record?{state:String(record.state),opCode:id,production:record.production,scrap:record.scrap}:null;
+}
+window.DFProducaoEquipeOnline={checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
