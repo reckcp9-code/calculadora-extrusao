@@ -1,6 +1,6 @@
 {
-  "version": "1.0.622",
-  "title": "Desempenho da Produção Online",
-  "message": "Reduz sincronização pesada, remove reabertura automática de telas e mantém atualização por evento.",
+  "version": "1.0.623",
+  "title": "Correção do fechamento mensal incompleto",
+  "message": "Restaura o cálculo mensal pelas OPs completas sincronizadas enquanto registros antigos ainda não foram migrados ao D1.",
   "updatedAt": "2026-10-27"
 }
