@@ -1,6 +1,6 @@
 {
-  "version": "1.0.655",
-  "title": "Diagnóstico de elegibilidade das OPs históricas",
-  "message": "Identifica separadamente OPs concluídas, IDs DFOP, pesos válidos e datas anteriores ao limite, sem enviar registros inseguros.",
+  "version": "1.0.656",
+  "title": "Correção de identificação das OPs históricas",
+  "message": "Corrigido regex de IDs DFOP que rejeitava registros históricos concluídos. Envio preserva dados locais e evita duplicidade.",
   "updatedAt": "2026-10-28"
 }
