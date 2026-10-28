@@ -1,6 +1,6 @@
 {
-  "version": "1.0.646",
-  "title": "Recuperação segura do histórico da Produção",
-  "message": "Sincroniza OPs individualmente sem interromper tudo quando uma foto falha; preserva históricos locais e mostra IDs ainda pendentes de envio.",
+  "version": "1.0.647",
+  "title": "Recuperação de produção histórica sem foto",
+  "message": "Reenvia baixas antigas do dono para D1 só com dados e ID, preserva fotos locais; nas novas baixas, operador vai a Pendentes e dono a Prontas somente após foto R2 e registro D1.",
   "updatedAt": "2026-10-28"
 }
