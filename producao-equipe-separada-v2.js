@@ -220,8 +220,9 @@ async function saveName(){const t=team(),name=clean($('dfProdTeamV2MyName')?.val
 let leavingProductionTeam=false;
 async function clearProductionTeam(){
  const t=team();if(!t||leavingProductionTeam)return;
- if(!confirm('SAIR DA EQUIPE DE PRODUÇÃO? Isto APAGARÁ deste aparelho as OPs, baixas, fotos e cadastros locais da Produção, INCLUSIVE registros ainda não sincronizados. Você confirmou que pode escanear novamente as OPs em papel. Continuar?'))return;
+ if(!confirm('SAIR DA EQUIPE DE PRODUÇÃO E APAGAR TODOS OS DADOS LOCAIS DE PRODUÇÃO DESTE APARELHO?\n\nSerão apagados deste celular: fotos locais, OPs, PENDENTES, PRONTAS, baixas, pesos, máquinas, operadores, produtos e configurações da equipe de Produção.\n\nNADA será excluído do servidor (D1/R2), dos outros celulares ou da equipe de Formulação.\n\nAo entrar novamente em outra equipe, o celular sincronizará os dados dela. Informações de Produção ainda não enviadas à nuvem serão perdidas.\n\nA licença e o acesso do aplicativo serão preservados.'))return;
  leavingProductionTeam=true;
+ let serverLeft=false;
  try{
    clearTimeout(pushTimer);clearTimeout(pullTimer);
    // Mesmo fluxo da Formulação: primeiro desvincular o membro no servidor.
@@ -229,12 +230,14 @@ async function clearProductionTeam(){
    // Marcar saída ANTES da chamada remota para impedir recovery concorrente.
    localStorage.setItem(EXIT_MARK,'1');
    await apiPost('/op/team/leave',{teamId:t.teamId,area:AREA,scope:AREA});
+   serverLeft=true;
    await wipeProductionLocal();
    setTeam(null);
    renderTeam();refreshUi();
-   alert('Saída concluída. Dados locais da Equipe de Produção apagados neste aparelho. O servidor não foi alterado.');
+   alert('Saída concluída. Este aparelho está limpo dos dados da equipe de Produção e pode entrar em outra equipe. Nada foi excluído do servidor.');
    location.reload();
  }catch(e){
+   if(!serverLeft)try{localStorage.removeItem(EXIT_MARK)}catch(_){}
    alert('Não foi possível concluir a saída: '+String(e?.message||e)+'. Os dados locais não serão considerados limpos até a conclusão.');
  }finally{leavingProductionTeam=false}
 }
@@ -243,8 +246,9 @@ async function wipeProductionLocal(){
  // Preservar somente credencial, licença e dados da equipe independente de Extrusão.
  const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,CODE_BACKUP_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY,
  'df_producao_ops_favoritas_v1','df_producao_saved_d1_shadow_v550',
+ 'df_op_qr_registry_test_setores_v3',
 ]);
- const prefixes=['df_producao_','df_prod_team_','df_production_team_','df_production_now'];
+ const prefixes=['df_producao_','df_prod_team_','df_production_team_','df_production_now','df_prod_now_','df_prod_ops_'];
  const shouldClear=k=>exact.has(k)||prefixes.some(p=>k.startsWith(p));
  for(const area of [localStorage,sessionStorage]){
   const keys=[];try{for(let i=0;i<area.length;i++){const k=area.key(i);if(k&&shouldClear(k))keys.push(k)}}catch(e){}
