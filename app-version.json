@@ -1,6 +1,6 @@
 {
-  "version": "1.0.620",
-  "title": "Baixa de operador enviada diretamente ao D1",
-  "message": "Confirma foto e OP no servidor antes de mostrar enviada; erro de envio fica visível. Preserva saída de equipe v618.",
+  "version": "1.0.620.1",
+  "title": "Correção de OPs Automáticas na base 1.0.620",
+  "message": "Restaurado o módulo de peso e baixa automática; mantidas as demais rotinas da versão 1.0.620.",
   "updatedAt": "2026-10-27"
 }
