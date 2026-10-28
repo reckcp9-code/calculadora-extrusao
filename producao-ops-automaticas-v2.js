@@ -134,8 +134,28 @@ function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||
 function renderAll(){if(!window.DFProducaoEquipeOnline?.team?.()){for(const id of ['dfPAOkList','dfPAPendingList','dfPANowList','dfPAMonthList','dfPAArchiveList']){const el=$(id);if(el)el.innerHTML='<div class="dfPATiny">Entre na Equipe de Produção para visualizar os dados.</div>'}return}repairRecords();renderOk();renderPending();renderNow();renderMonth();renderArchive()}
 function renderOk(){const b=$('dfPAOkList');if(!b)return;const a=autos().filter(x=>x.status==='ok').sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));b.innerHTML=a.length?a.map(x=>card(x,false)).join(''):'<div class="dfPATiny">Nenhuma OP pronta ainda.</div>'}
 function renderPending(){const b=$('dfPAPendingList');if(!b)return;const a=autos().filter(x=>x.status!=='ok').sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));b.innerHTML=a.length?a.map(x=>card(x,true)).join(''):'<div class="dfPATiny">Nenhuma pendência.</div>'}
-function renderNow(){const b=$('dfPANowList');if(!b)return;const all=autos(),a=ops().filter(x=>x.status==='open').sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));b.innerHTML=a.length?a.map(o=>{const r=all.find(x=>x.status==='ok'&&normId(x.opId)===normId(o.id));return '<div class="dfPAList"><strong>'+esc(o.machine)+' — '+esc(o.measure)+'</strong><div class="dfPATiny">'+esc(o.product)+'<br>'+esc(o.operator)+' • Turno '+esc(normShift(o.shift))+'<br>'+esc(o.id)+'</div>'+(r?'<div class="dfPAKpis"><div class="dfPAKpi"><span>PRODUÇÃO</span><b>'+fmt(r.production)+' kg</b></div><div class="dfPAKpi"><span>APARA</span><b>'+fmt(r.scrap)+' kg</b></div><div class="dfPAKpi"><span>LÍQUIDA</span><b>'+fmt(r.net)+' kg</b></div></div>':'<div class="dfPAStatus warn">Aguardando leitura automática da OP.</div>')+'</div>'}).join(''):'<div class="dfPATiny">Nenhuma OP aberta agora.</div>'}
-function renderMonth(){const b=$('dfPAMonthReport');if(!b)return;const m=$('dfPAMonth')?.value||monthNow(),a=autos().filter(x=>x.status==='ok'&&String(x.date||x.createdAt||'').slice(0,7)===m),p=a.reduce((s,x)=>s+num(x.production),0),s=a.reduce((v,x)=>v+num(x.scrap),0),n=Math.max(0,p-s),scrapPercent=p>0?s/p*100:0;b.innerHTML='<div class="dfPAKpis"><div class="dfPAKpi"><span>PRODUÇÃO</span><b>'+fmt(p)+' kg</b></div><div class="dfPAKpi"><span>APARA</span><b>'+fmt(s)+' kg</b></div><div class="dfPAKpi"><span>LÍQUIDA</span><b>'+fmt(n)+' kg</b></div><div class="dfPAKpi"><span>APARA (%)</span><b>'+scrapPercent.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%</b></div></div>'+(a.length?a.map(x=>'<div class="dfPAList"><strong>'+esc(x.machine||x.opId)+'</strong><div class="dfPATiny">'+esc(x.product||'')+' • '+fmt(x.production)+' kg</div></div>').join(''):'<div class="dfPATiny">Nenhuma OP processada neste mês.</div>')}
+function officialReady(){
+ const t=window.DFProducaoEquipeOnline?.team?.();
+ if(!t?.teamId)return null;
+ const snapshot=window.DFProductionOfficialSnapshot;
+ if(!snapshot||String(snapshot.teamId)!==String(t.teamId)||!Array.isArray(snapshot.records))return [];
+ return snapshot.records.filter(r=>r&&r.state==='ready');
+}
+function renderNow(){
+ const b=$('dfPANowList');if(!b)return;
+ const official=officialReady();if(official===null){b.innerHTML='<div class="dfPATiny">Conecte à equipe para consultar a produção oficial.</div>';return}
+ const a=official.reduce((m,r)=>{const key=String(r.machine||'SEM MÁQUINA').trim().toUpperCase();if(!m.has(key))m.set(key,{production:0,scrap:0});const v=m.get(key);v.production+=num(r.production);v.scrap+=num(r.scrap);return m},new Map());
+ b.innerHTML=a.size?[...a].map(([machine,v])=>'<div class="dfPAList"><strong>'+esc(machine)+'</strong><div class="dfPAKpis"><div class="dfPAKpi"><span>PRODUÇÃO</span><b>'+fmt(v.production)+' kg</b></div><div class="dfPAKpi"><span>APARA</span><b>'+fmt(v.scrap)+' kg</b></div><div class="dfPAKpi"><span>LÍQUIDA</span><b>'+fmt(v.production-v.scrap)+' kg</b></div></div></div>').join(''):'<div class="dfPATiny">Aguardando registros oficiais do D1. Toque em SINCRONIZAR PRODUÇÃO.</div>';
+}
+function renderMonth(){
+ const b=$('dfPAMonthReport');if(!b)return;
+ const m=$('dfPAMonth')?.value||monthNow(),official=officialReady();
+ if(official===null){b.innerHTML='<div class="dfPATiny">Entre na equipe para consultar o fechamento oficial.</div>';return}
+ const a=official.filter(x=>String(x.date||x.completedAt||'').slice(0,7)===m),p=a.reduce((v,x)=>v+num(x.production),0),s=a.reduce((v,x)=>v+num(x.scrap),0),n=p-s,percent=p>0?s/p*100:0;
+ const snapshot=window.DFProductionOfficialSnapshot;
+ if(!snapshot||!snapshot.fetchedAt){b.innerHTML='<div class="dfPAStatus warn">Aguardando sincronização com o D1. Nenhum total local será apresentado como oficial.</div>';return}
+ b.innerHTML='<div class="dfPAKpis"><div class="dfPAKpi"><span>PRODUÇÃO</span><b>'+fmt(p)+' kg</b></div><div class="dfPAKpi"><span>APARA</span><b>'+fmt(s)+' kg</b></div><div class="dfPAKpi"><span>LÍQUIDA</span><b>'+fmt(n)+' kg</b></div><div class="dfPAKpi"><span>APARA (%)</span><b>'+percent.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%</b></div></div><div class="dfPATiny">Fonte: D1 • '+a.length+' OP(s) aprovadas</div>';
+}
 function renderArchive(){const b=$('dfPAArchiveList');if(!b)return;const a=autos().filter(x=>x.photoId).sort((x,y)=>String(y.createdAt||'').localeCompare(String(x.createdAt||'')));b.innerHTML=a.length?a.map(x=>'<div class="dfPAList"><strong>'+esc(x.opId||x.id)+'</strong><div class="dfPATiny">'+esc(String(x.createdAt||'').replace('T',' ').slice(0,16))+'</div><button class="dfPABtn gray" data-pa-view="'+esc(x.photoId)+'">ABRIR FOTO</button></div>').join(''):'<div class="dfPATiny">Nenhuma foto arquivada ainda.</div>'}
 
 function setStatus(text,type=''){const st=$('dfPAStatus');if(st){st.className='dfPAStatus'+(type?' '+type:'');st.innerHTML=text}}
@@ -262,6 +282,7 @@ function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel
 window.addEventListener('df-producao-team-changed',()=>setTimeout(renderAll,0));
 window.addEventListener('df-producao-team-cleared',()=>setTimeout(renderAll,0));
 window.addEventListener('df-producao-team-synced',()=>setTimeout(renderAll,0));
+window.addEventListener('df-producao-official-snapshot',()=>setTimeout(renderAll,0));
 function start(){mount()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 window.addEventListener('pageshow',()=>{repairRecords();recoverOrphanPhotos();if(window.__DF_PROD_AUTO_ACTIVE)show()},true);
