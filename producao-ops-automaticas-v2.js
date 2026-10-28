@@ -147,6 +147,16 @@ function showConfirm(op){currentOp=op;const info=$('dfPAOpInfo');if(info)info.in
 function pendingRecord(reason,prefill=''){/* Falha de leitura não é pendência de produção: manter a foto temporária sem criar PEND. */currentPendingId='';showManual(prefill);setStatus('⚠️ QR não identificado automaticamente. A foto está nesta tela, mas <b>nenhuma pendência foi criada</b>. Digite o ID ou tire outra foto.','warn')}
 async function handleFile(file){if(!file||working)return;working=true;resetCurrent();currentFile=file;currentPhotoId='PHOTO-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase();const img=$('dfPAPreview');if(img){img.src=URL.createObjectURL(file);img.style.display='block'}setStatus('🔎 Procurando o QR da OP...','');try{await photoPut(currentPhotoId,file,{createdAt:new Date().toISOString()});const raw=await decodeQREveryWay(file),id=extractId(raw);if(id){let op=findOp(id);if(!op){setStatus('🔄 QR lido. Buscando OP na equipe...','warn');await requestTeamOpSync(id);op=findOp(id)}if(op){await photoPut(currentPhotoId,file,{opId:op.id,createdAt:new Date().toISOString()});showConfirm(op)}else pendingRecord('QR identificado, mas a OP não foi encontrada.',id)}else pendingRecord('QR da OP não foi identificado.')}catch(e){pendingRecord('Não foi possível concluir a leitura automática.')}finally{working=false}}
 async function identifyManual(){const id=normId($('dfPAManualId')?.value);if(!/^DFOP-\d{8}-\d{6}-[A-Z0-9]{4,8}$/.test(id))return setStatus('⚠️ Digite o ID completo da OP, como na folha.','warn');if(working)return;working=true;try{let op=findOp(id);if(!op){setStatus('🔄 Consultando a OP na equipe...','warn');await requestTeamOpSync(id);op=findOp(id)}if(!op){const prior=autos().find(r=>normId(r?.opId||r?.id)===id&&r.status==='ok');if(prior)return setStatus('⚠️ Esta OP já possui baixa em PRONTAS. Confira antes de lançar novamente.','warn');const machine=prompt('OP '+id+' não localizada na equipe. Informe o NOME EXATO da máquina impresso na folha para criar o cadastro de recuperação e abrir a baixa. Cancelar não cria nada.','');if(machine===null)return setStatus('Nenhum cadastro criado. Foto preservada.','warn');const clean=machine.trim();if(!clean)return setStatus('⚠️ Informe a máquina para não registrar a baixa no equipamento errado.','warn');if(!confirm('Confirma a OP '+id+' na máquina '+clean+'? Confira com a folha antes de continuar.'))return;op={id,sector:'Picote',machine:clean,product:'',measure:'',operator:'',shift:'',createdAt:new Date().toISOString(),status:'open',recoveredFromPrintedOp:true,needsCatalogReview:true,productionTeamId:window.DFProducaoEquipeOnline?.team?.()?.teamId||''};const list=ops();if(!list.some(x=>normId(x?.id)===id)){list.unshift(op);if(!write(OPS_KEY,list))return setStatus('❌ Não foi possível salvar a OP recuperada.','bad')}else op=findOp(id)||op;try{window.dispatchEvent(new CustomEvent('df-producao-op-updated',{detail:{opId:id}}))}catch(e){}try{await window.DFProducaoEquipeOnline?.push?.()}catch(e){}}if(currentPhotoId)photoGet(currentPhotoId).then(r=>{if(r?.blob)photoPut(currentPhotoId,r.blob,{opId:op.id,createdAt:r.savedAt||new Date().toISOString()})}).catch(()=>{});showConfirm(op)}finally{working=false}}
+function alreadyCompletedLocally(id){
+ const completed=autos().find(x=>normId(x?.opId||x?.id)===id&&['pending','ok'].includes(String(x?.status||'')));
+ if(completed)return completed.status==='pending'?'pending':'ready';
+ const op=ops().find(x=>normId(x?.id)===id);
+ return op?.status==='closed'?'ready':op?.status==='pending'&&Number(op?.autoProduction)>0?'pending':null;
+}
+function alertDuplicateCompletion(id,state){
+ const label=state==='pending'?'EM PENDENTES, AGUARDANDO A CONFIRMAÇÃO DO DONO':'EM PRONTAS, COM BAIXA JÁ REGISTRADA';
+ alert('⚠️ ESTA OP JÁ FOI BAIXADA.\\n\\nCódigo: '+id+'\\nSituação: '+label+'\\n\\nPara evitar produção duplicada, a segunda baixa foi bloqueada. Consulte a OP existente antes de tentar outra baixa.');
+}
 async function saveCurrent(){
   if(!currentOp||working)return;
   const production=num($('dfPAProduction')?.value),scrap=num($('dfPAScrap')?.value);
@@ -157,6 +167,14 @@ async function saveCurrent(){
   if(btn){btn.disabled=true;btn.textContent='SALVANDO...'}
   try{
     const opId=normId(currentOp.id),photoId=currentPhotoId||('PHOTO-'+Date.now()),pendingId=currentPendingId,photoAt=new Date().toISOString();
+    // Bloqueia antes de salvar foto, peso ou mudar a OP. Confere o celular E o servidor.
+    const localState=alreadyCompletedLocally(opId);
+    if(localState){alertDuplicateCompletion(opId,localState);return}
+    const check=window.DFProducaoEquipeOnline?.checkAlreadyCompleted;
+    if(typeof check!=='function')throw Error('Verificação de duplicidade indisponível. Atualize o aplicativo para salvar com segurança.');
+    const official=await check(opId);
+    if(official){alertDuplicateCompletion(opId,official.state);return}
+
 
     /* Garante a foto antes de confirmar a baixa. */
     if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt:photoAt});
