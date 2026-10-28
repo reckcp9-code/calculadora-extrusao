@@ -1,6 +1,6 @@
 {
-  "version": "1.0.670",
-  "title": "Recuperação segura de formulações",
-  "message": "Restaurado comportamento anterior: múltiplas formulações salvas; recuperação dos registros históricos no D1 sem apagar Produção.",
+  "version": "1.0.671",
+  "title": "Recuperação de formulações e baixa segura",
+  "message": "39 formulações históricas recuperadas. Na baixa, confirmar foto e OP no D1 antes de disparar sincronização da equipe, evitando chamadas concorrentes.",
   "updatedAt": "2026-10-28"
 }
