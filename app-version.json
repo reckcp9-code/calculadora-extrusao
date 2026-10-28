@@ -1,6 +1,6 @@
 {
-  "version": "1.0.623",
-  "title": "Correção do fechamento mensal incompleto",
-  "message": "Restaura o cálculo mensal pelas OPs completas sincronizadas enquanto registros antigos ainda não foram migrados ao D1.",
+  "version": "1.0.620.1",
+  "title": "Correção de OPs Automáticas na base 1.0.620",
+  "message": "Restaurado o módulo de peso e baixa automática; mantidas as demais rotinas da versão 1.0.620.",
   "updatedAt": "2026-10-27"
 }
