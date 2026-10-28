@@ -1,6 +1,6 @@
 {
-  "version": "1.0.643",
-  "title": "Produção com fotos R2 separadas e aprovação do dono",
-  "message": "Produção usa área producao e fotos production_op; operador envia baixa para pendentes, dono confere imagem e confirma para prontas; Formulação preservada.",
+  "version": "1.0.644",
+  "title": "Bloqueio de baixa duplicada na Produção",
+  "message": "Produção impede segunda baixa pelo mesmo ID da OP, consultando o aparelho e o D1 nas situações PENDENTES ou PRONTAS, sem modificar Formulação.",
   "updatedAt": "2026-10-28"
 }
