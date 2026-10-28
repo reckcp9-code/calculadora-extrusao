@@ -69,7 +69,7 @@ async function photoForOp(id,photoType){
  const map=load(MAP_KEY,{}),key=photoMapKey(photoType,id);
  let photoId=String((map[key]||(photoType==='production_op'?map[id]:null))?.photoId||'');
  if(photoId){try{await apiBlobGet(photoId,false);return photoId}catch(e){photoId=''}}
- const match=id.match(/^DFOP-(\\d{4})(\\d{2})/);
+ const match=id.match(/^DFOP-(\d{4})(\d{2})/);
  const months=[selectedMonth(),match?match[1]+'-'+match[2]:''].filter((v,i,a)=>v&&a.indexOf(v)===i);
  for(const month of months){const result=await apiPost('/op/photo/list',{teamId:team.teamId,month,photoType});const p=(result.photos||[]).find(x=>remoteCode(x)===id);if(p?.id){photoId=String(p.id);map[key]={...(map[key]||{}),photoId,photoType};if(photoType==='production_op')map[id]=map[key];save(MAP_KEY,map);return photoId}}
  throw Error('A foto ainda não foi enviada para a nuvem pelo operador.');
