@@ -1,6 +1,6 @@
 {
-  "version": "1.0.624",
-  "title": "Correção da tela preta no carregamento",
-  "message": "Corrigido erro de sintaxe na inicialização; preservadas OPs, fotos e sincronização.",
+  "version": "1.0.625",
+  "title": "Correção da foto da OP pendente na equipe",
+  "message": "Envio da foto do operador com reenvio, erro detalhado e vínculo pelo ID oficial da OP.",
   "updatedAt": "2026-10-27"
 }
