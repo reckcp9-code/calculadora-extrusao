@@ -1,6 +1,6 @@
 {
-  "version": "1.0.644",
-  "title": "Bloqueio de baixa duplicada na Produção",
-  "message": "Produção impede segunda baixa pelo mesmo ID da OP, consultando o aparelho e o D1 nas situações PENDENTES ou PRONTAS, sem modificar Formulação.",
+  "version": "1.0.645",
+  "title": "Saída da equipe de Produção com limpeza local",
+  "message": "Operador sai da equipe e apaga fotos, baixas, OPs, pesos, cadastros e QR locais de Produção; preserva servidor D1/R2, licença e Formulação.",
   "updatedAt": "2026-10-28"
 }
