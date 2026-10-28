@@ -1,6 +1,6 @@
 {
-  "version": "1.0.664",
-  "title": "Produção sincroniza automaticamente",
-  "message": "Aparelhos da equipe recebem atualizações da Produção automaticamente pelo D1, sem precisar tocar em Sincronizar Produção.",
+  "version": "1.0.665",
+  "title": "Sincronização automática reforçada",
+  "message": "OPs Salvas atualizam automaticamente e agora têm botão Sincronizar Produção para forçar D1 e Produção da equipe imediatamente.",
   "updatedAt": "2026-10-28"
 }
