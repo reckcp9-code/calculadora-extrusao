@@ -1,6 +1,6 @@
 {
-  "version": "1.0.666",
-  "title": "Botão de sincronização no padrão do app",
-  "message": "Sincronizar Produção em OPs Salvas agora usa visual cinza discreto, mantendo a sincronização automática e manual.",
+  "version": "1.0.667",
+  "title": "DF Extrusor mais rápido e leve",
+  "message": "Melhoria geral de desempenho e carregamento offline, sem alterar fluxos do aplicativo.",
   "updatedAt": "2026-10-28"
 }
