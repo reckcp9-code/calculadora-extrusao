@@ -197,15 +197,16 @@ async function joinTeam(){
  try{
    // A equipe é validada pelo servidor; não se publica nenhuma OP local no novo time.
    // A limpeza acontece antes de gravar o novo vínculo no dispositivo.
-   if(!confirm('ENTRAR EM OUTRA EQUIPE DE PRODUÇÃO? É OBRIGATÓRIO APAGAR todas as OPs, baixas, fotos e cadastros locais anteriores deste aparelho. Dados já salvos no servidor de outra empresa permanecem lá. Deseja limpar e entrar?'))return;
-   localStorage.setItem(EXIT_MARK,'1');
-   clearTimeout(pushTimer);clearTimeout(pullTimer);
-   await wipeProductionLocal();
-   // wipeProductionLocal apaga marcadores de saída; mantê-lo até gravar o novo time.
-   localStorage.setItem(EXIT_MARK,'1');
-   if(b)b.textContent='ENTRANDO...';
+   if(!confirm('ENTRAR NA EQUIPE DE PRODUÇÃO E APAGAR OS DADOS LOCAIS DE PRODUÇÃO DESTE CELULAR?\n\nSerão apagados somente deste aparelho: fotos de Produção, OPs, baixas, máquinas, produtos e pesos locais.\n\nOs dados do D1/R2 e dos outros aparelhos permanecem salvos. A Formulação não será alterada. Dados de Produção ainda não enviados à nuvem poderão ser perdidos.'))return;
+   if(b)b.textContent='VALIDANDO EQUIPE...';
    const j=await apiPost('/op/team/join',{code,displayName:name,area:AREA,scope:AREA});
    if(!j.team?.teamId)throw Error('Equipe não encontrada.');
+   // Equipe validada antes de qualquer limpeza local.
+   localStorage.setItem(EXIT_MARK,'1');
+   clearTimeout(pushTimer);clearTimeout(pullTimer);
+   if(b)b.textContent='LIMPANDO APENAS PRODUÇÃO...';
+   await wipeProductionLocal();
+   localStorage.setItem(EXIT_MARK,'1');
    rememberCode(code,j.team);
    setDisplayName(name);write(SNAP_KEY,{});remove(CFG_SNAP_KEY);write(PHOTO_MAP_KEY,{});
    setTeam({...j.team,area:AREA,displayName:j.team.displayName||name});
@@ -242,7 +243,7 @@ async function wipeProductionLocal(){
  // Preservar somente credencial, licença e dados da equipe independente de Extrusão.
  const exact=new Set([TEAM_KEY,TEAM_CODE_KEY,CODE_BACKUP_KEY,NAME_KEY,OPS_KEY,QR_KEY,AUTO_KEY,CAD_KEY,SNAP_KEY,CFG_SNAP_KEY,PHOTO_MAP_KEY,DELETE_PENDING_KEY,
  'df_producao_ops_favoritas_v1','df_producao_saved_d1_shadow_v550',
- 'df_deleted_ops_v1']);
+]);
  const prefixes=['df_producao_','df_prod_team_','df_production_team_','df_production_now'];
  const shouldClear=k=>exact.has(k)||prefixes.some(p=>k.startsWith(p));
  for(const area of [localStorage,sessionStorage]){
