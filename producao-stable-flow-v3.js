@@ -36,7 +36,9 @@ function savedRowsHtml(shown,fs){
 function ensureSavedShell(box){
   if(box.dataset.dfSavedShell==='1'&&box.querySelector('#dfOpShiftSelect'))return;
   box.dataset.dfSavedShell='1';
-  box.innerHTML='<h2>OPs salvas</h2><div class="dfOpSearch"><input id="dfOpSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar OP..."></div><select id="dfOpShiftSelect" class="dfOpShiftSelect" aria-label="Filtrar OPs por turno"><option value="all">Todas</option><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select><div class="dfOpFilters"><button type="button" class="dfOpFilter" data-op-filter="fav">★ Favoritas</button></div><div class="dfOpList"></div>';
+  box.innerHTML='<h2>OPs salvas</h2><button id="dfSavedForceSync" type="button" style="width:100%;min-height:48px;margin:0 0 12px;border:1.5px solid #38bdf8;border-radius:13px;background:#123253;color:#fff;font:900 13px system-ui">🔄 SINCRONIZAR PRODUÇÃO</button><div class="dfOpSearch"><input id="dfOpSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar OP..."></div><select id="dfOpShiftSelect" class="dfOpShiftSelect" aria-label="Filtrar OPs por turno"><option value="all">Todas</option><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select><div class="dfOpFilters"><button type="button" class="dfOpFilter" data-op-filter="fav">★ Favoritas</button></div><div class="dfOpList"></div>';
+  const forceSync=box.querySelector('#dfSavedForceSync');
+  if(forceSync)forceSync.addEventListener('click',async()=>{if(forceSync.disabled)return;forceSync.disabled=true;forceSync.textContent='⏳ SINCRONIZANDO...';try{await window.DFProductionSavedD1?.sync?.();await window.DFProducaoEquipeOnline?.pull?.();renderSaved();forceSync.textContent='✅ PRODUÇÃO SINCRONIZADA'}catch(e){forceSync.textContent='⚠️ TENTAR NOVAMENTE'}finally{setTimeout(()=>{forceSync.disabled=false;forceSync.textContent='🔄 SINCRONIZAR PRODUÇÃO'},1200)}});
   const shiftSelect=box.querySelector('#dfOpShiftSelect');
   if(shiftSelect)shiftSelect.addEventListener('change',e=>{shiftFilter=e.target.value;selectedId='';renderSaved()});
   const input=box.querySelector('#dfOpSearchInput');
@@ -221,7 +223,8 @@ window.addEventListener('focus',schedule);
 window.addEventListener('pageshow',schedule);
 // Poll aberto a cada 7 s; o evento local continua enviando imediatamente.
 // Recepção dos demais aparelhos: leitura curta do D1. Envio local é direto por evento.
-setInterval(sync,5000);setTimeout(sync,350);
+setInterval(sync,2500);setTimeout(sync,250);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(sync,120)});
 window.DFProductionSavedD1Deleted=function(code){
  const t=read(T,null);if(!t?.teamId){status('⚠️ Exclusão local: conecte a equipe para excluir no servidor.',false);return Promise.resolve(false)}
  const tid=String(t.teamId),s=shadow(tid),key=String(code).trim().toUpperCase();if(!key)return Promise.resolve(false);
