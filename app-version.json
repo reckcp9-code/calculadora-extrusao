@@ -1,6 +1,6 @@
 {
-  "version": "1.0.653",
-  "title": "Diagnóstico do envio de produção histórica",
-  "message": "Exibe motivo específico quando a migração não consegue confirmar o histórico, sem apagar dados locais.",
+  "version": "1.0.654",
+  "title": "Diagnóstico detalhado e desempenho da Produção",
+  "message": "Remove envio histórico automático no carregamento e exibe erro detalhado no alerta ao enviar manualmente.",
   "updatedAt": "2026-10-28"
 }
