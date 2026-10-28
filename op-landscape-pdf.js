@@ -57,6 +57,7 @@
         id,
         createdAt:new Date().toISOString(),
         expected:{
+          formulaId:clean(data.formulaId||data.__dfFormulaId||''),
           title:clean(data.name||data.cliente||data.clientName||''),
           cliente:clean(data.cliente||data.clientName||data.name||''),
           produto:clean(data.product||data.produto||data.name||''),
