@@ -1,6 +1,6 @@
 {
-  "version": "1.0.648",
-  "title": "Envio manual de produção histórica para nuvem",
-  "message": "Botão exclusivo do dono para enviar OPs concluídas do celular ao D1, sem fotos antigas, conferindo IDs e confirmação do servidor antes de sincronizar.",
+  "version": "1.0.649",
+  "title": "Botão de envio na Equipe de Produção",
+  "message": "Exibe Enviar toda minha produção para a nuvem no painel correto da Equipe de Produção; migração histórica sem fotos com conferência D1.",
   "updatedAt": "2026-10-28"
 }
