@@ -210,11 +210,22 @@ async function saveCurrent(){
     if(!saved||!savedOp||!['closed','pending'].includes(savedOp.status))throw new Error('A conferência da baixa falhou.');
 
     try{window.dispatchEvent(new CustomEvent('df-producao-auto-saved',{detail:{opId,createdAt,photoId}}))}catch(e){}
-    let cloudConfirmed=!isOperator,cloudError='';
-    if(isOperator){try{const result=await window.DFProducaoEquipeOnline?.pushOne?.(opId);if(!result)throw Error('Sincronizador D1 indisponível.');cloudConfirmed=true}catch(e){cloudError=String(e?.message||e);console.warn('Baixa salva localmente, ainda não enviada ao D1:',cloudError)}}
-    else try{window.DFProducaoEquipeOnline?.push?.()}catch(e){}
-
-    setStatus(isOperator?(cloudConfirmed?'✅ <b>OP e foto recebidas pelo servidor D1. Aguardando aprovação do dono.</b>':'⚠️ <b>OP salva neste celular, MAS NÃO ENVIADA AO SERVIDOR.</b> Erro: '+esc(cloudError)+'. Use SINCRONIZAR PRODUÇÃO para tentar novamente.'):'✅ <b>OP salva e movida para PRONTAS.</b><br>Produção: '+fmt(production)+' kg • Apara: '+fmt(scrap)+' kg • Líquida: '+fmt(rec.net)+' kg','ok');
+    let cloudConfirmed=false,cloudError='';
+    try{
+      const fn=isOperator?window.DFProducaoEquipeOnline?.pushOne:window.DFProducaoEquipeOnline?.pushOneReady;
+      if(typeof fn!=='function')throw Error('Sincronizador D1 da Produção indisponível.');
+      const result=await fn(opId);
+      if(!result)throw Error('Servidor não confirmou a baixa e a foto.');
+      cloudConfirmed=true;
+    }catch(e){
+      cloudError=String(e?.message||e);
+      console.warn('Baixa preservada neste aparelho, aguardando nuvem:',opId,cloudError);
+    }
+    if(cloudConfirmed){try{window.DFProducaoEquipeOnline?.push?.()}catch(e){}}
+    setStatus(cloudConfirmed?(isOperator?
+     '✅ <b>OP e foto sincronizadas na nuvem. Aguardando aprovação do dono em PENDENTES.</b>':
+     '✅ <b>OP e foto confirmadas no servidor e disponíveis em PRONTAS para a equipe.</b><br>Produção: '+fmt(production)+' kg • Apara: '+fmt(scrap)+' kg'):
+     '⚠️ <b>Baixa salva somente neste aparelho, ainda NÃO confirmada no servidor.</b> '+esc(cloudError)+'. Não exclua a OP; use SINCRONIZAR PRODUÇÃO para reenviar a foto.',''+(cloudConfirmed?'ok':'warn'));
     currentOp=null;currentPendingId='';
     $('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');
     renderAll();
