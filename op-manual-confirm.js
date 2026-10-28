@@ -102,7 +102,12 @@
     const oldId=currentId;
     if(!currentQr){const typed=normalizeQr($('dfManualQrCode')?.value);if(!validQr(typed)){alert('Digite o código DFOP impresso abaixo do QR antes de salvar.');$('dfManualQrCode')?.focus();return}currentQr=typed;currentId=typed;ensureRegistered(typed)}
     const exp=expectedFor(currentQr),old=load().find(x=>x.id===currentId)||{},now=new Date().toISOString();
-    let formulaId='';try{formulaId=String(exp?.formulaId||old.formulaId||window.DFOpCloud?.resolveFormulationId?.(currentQr,{...old,produto:exp?.title||old.produto})||'').trim()}catch(e){alert('Não consegui identificar a formulação desta OP. '+String(e?.message||e));return}if(!formulaId){alert('Esta OP precisa ser vinculada a uma formulação antes de enviar a foto.');return}
+    let formulaId=String(exp?.formulaId||exp?.__dfFormulaId||old.formulaId||'').trim();
+    if(!formulaId){try{formulaId=String(window.DFOpCloud?.resolveFormulationId?.(currentQr,{...old,produto:exp?.title||old.produto})||'').trim()}catch(e){console.warn('[DF OP] Vínculo antigo da formulação:',e)}}
+    // Uma OP antiga mantém seu QR único mesmo que a formulação original tenha sido excluída.
+    // Nunca exigir que o operador escolha uma fórmula diferente em uma lista numerada.
+    if(!formulaId&&validQr(currentQr))formulaId='LEGACY-'+currentQr;
+    if(!formulaId){status('⚠️ Não foi possível identificar o QR da OP. Digite o código impresso e tente novamente.','warn');return}
     const rec={...old,id:currentId,qr:currentQr,formulaId,photoType:'formulation',createdAt:old.createdAt||now,updatedAt:now,data:localYmd(),numero:old.numero||'',operador:old.operador||'',maquina:old.maquina||'',produto:exp?.title||old.produto||'',largura:+exp?.largura||old.largura||0,micra:+exp?.micra||old.micra||0,gm:+exp?.gm||old.gm||0,produzido:prod,apara:ap,bobinas:old.bobinas||0,materials:buildMaterials(exp,prod),expectedTotal:+exp?.totalKg||old.expectedTotal||0,ocrConfidence:100,status:(window.DFOpCloud?.team?.()?.role==='operator'?'pending':'ok'),reasons:[],manualConfirmed:window.DFOpCloud?.team?.()?.role!=='operator',manualConfirmedAt:now,source:'foto+confirmacao-manual'};
     const btn=$('dfManualSave');if(btn){btn.disabled=true;btn.textContent='⏳ SALVANDO...'}
     try{if(!currentFile)throw new Error('Nenhuma foto foi selecionada.');await photoPut(currentId,currentFile,{qr:currentQr,month:localYmd().slice(0,7),manualPending:false,produzido:prod,apara:ap});}catch(e){if(btn){btn.disabled=false;btn.textContent='SALVAR OP'}status('❌ <b>Foto não foi salva.</b> '+esc(String(e?.message||e))+'<br>Tente novamente sem sair desta tela.','bad');return}
@@ -111,7 +116,7 @@
     try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:rec,manual:true}}))}catch(e){}
     try{window.dispatchEvent(new CustomEvent('df-op-save-ui-refresh',{detail:{record:rec}}))}catch(e){}
     status('✅ <b>OP SALVA NESTE CELULAR. FOTO ENVIANDO PARA A NUVEM...</b><br>Produção total: <b>'+prod.toLocaleString('pt-BR')+' kg</b><br>Apara total: <b>'+ap.toLocaleString('pt-BR')+' kg</b>','ok');
-    removeForm();const host=$('dfOpStatus')?.parentNode;if(host){const d=document.createElement('div');d.className='dfManualBadge';d.innerHTML='✅ Foto + produção + apara vinculados à formulação '+esc(formulaId)+' e ao OPID '+esc(currentQr);host.insertBefore(d,host.querySelector('.dfQrDemo')||null)}
+    removeForm();const host=$('dfOpStatus')?.parentNode;if(host){const d=document.createElement('div');d.className='dfManualBadge';d.innerHTML=String(formulaId).startsWith('LEGACY-')?'✅ Foto + produção + apara vinculados automaticamente à OP '+esc(currentQr)+'. A formulação histórica não estava disponível.':'✅ Foto + produção + apara vinculados à formulação '+esc(formulaId)+' e à OP '+esc(currentQr);host.insertBefore(d,host.querySelector('.dfQrDemo')||null)}
     const input=$('dfOpPhoto');if(input){try{input.value=''}catch(e){}}
     currentFile=null;currentQr='';currentId='';
     }catch(e){status('⚠️ '+esc(e.message||e),'warn')}finally{busy=false}
