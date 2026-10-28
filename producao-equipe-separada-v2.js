@@ -311,6 +311,9 @@ async function approveCompletion(rawId){
  const id=norm(rawId),t=team();if(t?.role!=='owner')throw Error('Apenas o dono confirma OPs.');
  const r=autos().find(x=>norm(x?.opId||x?.id)===id&&x.status==='pending');if(!r)throw Error('Baixa pendente não encontrada.');
  const op=ops().find(x=>norm(x?.id)===id);if(!op)throw Error('OP não encontrada.');
+ const photoId=String(read(PHOTO_MAP_KEY,{})[id]?.cloudId||'');
+ if(!photoId)throw Error('A foto ainda não está disponível na nuvem. Atualize a equipe antes de confirmar a OP.');
+ const photo=await apiBlob(photoId);if(!photo?.size)throw Error('Não foi possível conferir a foto da OP no servidor.');
  const approved=await apiPost('/op/record/approve',{teamId:t.teamId,opCode:id});if(approved.record?.state!=='ready')throw Error('O servidor não confirmou a aprovação.');
  const ready={...r,status:'ok',approvedAt:nowIso()};
  const updated={...op,status:'closed',closedAt:ready.approvedAt,autoProduction:num(r.production),autoScrap:num(r.scrap),autoNet:num(r.production)-num(r.scrap),autoUpdatedAt:ready.approvedAt};
