@@ -47,7 +47,7 @@ function applyServer(rows,preserve){const server=serverForms(rows),all=server.sl
 
 /* v669 — Uma única formulação atual por equipe; escrita nova substitui a anterior. */
 const PENDING_KEY='df_team_latest_formula_pending_v669';
-let publishingLatest=false,cleanupLatest=false;
+let publishingLatest=false,cleanupLatest=false,retryLatestMs=1500;
 function savedAt(f){
   const stamp=Date.parse(String(f?.criado||f?.createdAt||f?.updatedAt||''));
   if(Number.isFinite(stamp)&&stamp>0)return stamp;
@@ -115,6 +115,7 @@ async function publishLatest(){
     const final=await trimOlderOnServer(teamId,list);
     if(final.length>1)throw Error('Limpeza das formulações anteriores não confirmada.');
     clearPending(saved.id);
+    retryLatestMs=1500;
     // Uma criação ainda mais recente pode ter acontecido durante as requisições.
     if(!pendingLatest()){applyServer(final.slice(0,1));lastPull=Date.now();status('✅ Última formulação disponível para toda a equipe.','ok')}
     return true;
@@ -123,7 +124,11 @@ async function publishLatest(){
     return false;
   }finally{
     publishingLatest=false;
-    if(pendingLatest())setTimeout(schedulePush,900);
+    if(pendingLatest()&&navigator.onLine!==false){
+      const delay=retryLatestMs;
+      retryLatestMs=Math.min(30000,Math.ceil(retryLatestMs*1.8));
+      setTimeout(schedulePush,delay);
+    }
   }
 }
 async function pushForms(fillOnly){
@@ -197,24 +202,42 @@ try{
     return out;
   };
 }catch(e){}
-async function deleteTeamFormula(f){if(!f)return false;const t=team();if(!confirm('Excluir esta formulação "'+String(f.nome||'Formulação')+'" para toda a equipe?'))return false;if(!t?.teamId){window.DFFormulaTombstones?.markDeleted?.(String(f.id));writeForms(localForms().filter(x=>identity(x)!==identity(f)));return true}try{const j=await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:String(f.id||'')});window.DFFormulaTombstones?.markDeleted?.(String(f.id));applyServer(j.formulas||[]);status('✅ Formulação excluída para a equipe.','ok');return true}catch(e){status('⚠️ Exclusão não confirmada pelo servidor. Nenhum dado foi apagado neste aparelho: '+String(e?.message||e),'warn');return false}}
+async function deleteTeamFormula(f){if(!f)return false;const t=team();if(!confirm('Excluir esta formulação "'+String(f.nome||'Formulação')+'" para toda a equipe?'))return false;if(!t?.teamId){clearPending(f.id);window.DFFormulaTombstones?.markDeleted?.(String(f.id));writeForms(localForms().filter(x=>identity(x)!==identity(f)));return true}try{const j=await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:String(f.id||'')});clearPending(f.id);window.DFFormulaTombstones?.markDeleted?.(String(f.id));applyServer(j.formulas||[]);status('✅ Formulação excluída para a equipe.','ok');return true}catch(e){status('⚠️ Exclusão não confirmada pelo servidor. Nenhum dado foi apagado neste aparelho: '+String(e?.message||e),'warn');return false}}
 function selectedFormula(){const id=$('foSavedSelect')?.value;return localForms().find(f=>String(f?.id)===String(id))}
 
-function boot(){addStyle();lastHash=hashForms(localForms());setTimeout(()=>{ensureStatus();ensureSuggest()},700);setTimeout(()=>sync(true),1800);document.addEventListener('input',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('focusin',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('click',e=>{const b=e.target?.closest?.('[data-dfformula]');if(b){e.preventDefault();e.stopPropagation();const f=localForms().find(x=>String(x?.id)===String(b.dataset.dfformula));applyFormula(f);return}if(!e.target?.closest?.('#foNome,#dfFormulaSuggest'))$('dfFormulaSuggest')?.classList.remove('on');if(e.target?.closest?.('#btFo,#dfFormTabCore,#dfCloudRefresh,#foSaved'))setTimeout(()=>sync(true),250)},true);window.addEventListener('click',e=>{const b=e.target?.closest?.('[data-fosafe="del"]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();deleteTeamFormula(selectedFormula())},true);['df-team-joined','df-team-changed','df-team-materials-updated','online','pageshow','focus'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>sync(true),320)));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>sync(false),350)});setInterval(()=>{if(!document.hidden&&team()?.teamId&&Date.now()-lastPull>55000)sync(false)},60000)}
+function boot(){addStyle();lastHash=hashForms(localForms());setTimeout(()=>{ensureStatus();ensureSuggest()},700);setTimeout(()=>sync(true),1800);document.addEventListener('input',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('focusin',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('click',e=>{const b=e.target?.closest?.('[data-dfformula]');if(b){e.preventDefault();e.stopPropagation();const f=localForms().find(x=>String(x?.id)===String(b.dataset.dfformula));applyFormula(f);return}if(!e.target?.closest?.('#foNome,#dfFormulaSuggest'))$('dfFormulaSuggest')?.classList.remove('on');if(e.target?.closest?.('#btFo,#dfFormTabCore,#dfCloudRefresh,#foSaved'))setTimeout(()=>sync(true),250)},true);window.addEventListener('click',e=>{const b=e.target?.closest?.('[data-fosafe="del"]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();deleteTeamFormula(selectedFormula())},true);['df-team-joined','df-team-changed','df-team-materials-updated','online','pageshow','focus'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>sync(true),320)));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>sync(false),350)});setInterval(()=>{if(!document.hidden&&team()?.teamId&&Date.now()-lastPull>6500)sync(false)},8000)}
 async function deleteAllTeamFormulas(){
- const forms=uniqueForms(localForms()),t=team();if(!forms.length){status('Nenhuma formulação salva para excluir.','ok');return true}
+ const t=team();
+ let forms=uniqueForms(localForms());
+ try{
+   if(t?.teamId&&navigator.onLine!==false){
+     const j=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});
+     if(Array.isArray(j.formulas))forms=uniqueForms(j.formulas);
+   }
+ }catch(e){status('⚠️ Não foi possível conferir as formulações da equipe. Nenhuma exclusão foi iniciada.','warn');return false}
+ if(!forms.length){status('Nenhuma formulação salva para excluir.','ok');return true}
  if(!confirm('Excluir TODAS as '+forms.length+' formulações salvas'+(t?.teamId?' para toda a equipe':' deste aparelho')+'? Esta ação não pode ser desfeita.'))return false;
+ localStorage.removeItem(PENDING_KEY);
  if(!t?.teamId){for(const f of forms)window.DFFormulaTombstones?.markDeleted?.(String(f.id));writeForms([]);status('✅ Todas as formulações foram excluídas.','ok');return true}
+ if(navigator.onLine===false){status('⚠️ Conecte à internet para confirmar a exclusão para toda a equipe.','warn');return false}
  let deleted=0;
  try{
-  for(const f of forms){
-   const j=await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:String(f.id||'')});
-   window.DFFormulaTombstones?.markDeleted?.(String(f.id));deleted++;
-   if(Array.isArray(j.formulas)&&j.formulas.length===0)break;
-  }
-  const j=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});
-  applyServer(j.formulas||[]);status('✅ Todas as formulações salvas foram excluídas para a equipe.','ok');return true
- }catch(e){await sync(true);status('⚠️ Foram excluídas '+deleted+' de '+forms.length+'. Toque novamente em Excluir todas para concluir: '+String(e?.message||e),'warn');return false}
+   for(const f of forms){
+     try{
+       await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:String(f.id||'')});
+     }catch(e){if(e?.status!==404)throw e}
+     window.DFFormulaTombstones?.markDeleted?.(String(f.id));deleted++;
+   }
+   const j=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});
+   if(!Array.isArray(j.formulas)||j.formulas.length)throw Error('Ainda existem formulações no D1.');
+   applyServer([]);
+   status('✅ Todas as formulações salvas foram excluídas para a equipe.','ok');
+   return true;
+ }catch(e){
+   await sync(true);
+   status('⚠️ Excluídas '+deleted+' de '+forms.length+'. Sincronize e tente novamente: '+String(e?.message||e),'warn');
+   return false;
+ }
 }
 window.DFTeamFormulasShared={sync:()=>sync(true),deleteFormula:deleteTeamFormula,deleteAll:deleteAllTeamFormulas,select:applyFormula,initialized:()=>initialized,allowSameName:true};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
