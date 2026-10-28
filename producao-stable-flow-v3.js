@@ -190,7 +190,28 @@ async function sync(){
  }catch(e){status('⚠️ OPs não enviadas: '+String(e.message||e),false);console.warn('[DF Produção D1] Sincronização pendente:',e.message)}
  finally{busy=false;if(queued){queued=false;setTimeout(sync,250)}}
 }
-let pendingTimer=null;function schedule(){if(busy){queued=true;return}if(pendingTimer)clearTimeout(pendingTimer);pendingTimer=setTimeout(()=>{pendingTimer=null;sync()},350)}
+async function pushNewestDirect(){
+ if(localStorage.getItem('df_prod_team_explicit_exit_v1')==='1'||navigator.onLine===false)return false;
+ const team=read(T,null);if(!team?.teamId)return false;
+ const tid=String(team.teamId),state=shadow(tid),ops=local().filter(o=>id(o)&&o.status==='open');
+ if(!ops.length)return false;
+ const op=ops.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))[0],code=id(op),sig=fingerprint(op);
+ if(!code||state.known[code]===sig||state.known[code]==='__DELETED__'||state.deleted[code])return false;
+ try{
+  await call('/production/saved/upsert',{teamId:tid,opCode:code,payload:op,createdAt:op.createdAt});
+  const live=shadow(tid);live.known[code]=sig;put(D,live);
+  status('✅ OP enviada direto para a nuvem.',true);
+  return true;
+ }catch(e){
+  if(e.status===409){const live=shadow(tid);live.known[code]='__DELETED__';put(D,live);return false}
+  status('⚠️ Envio direto pendente: '+String(e.message||e),false);return false;
+ }
+}
+let pendingTimer=null;function schedule(ev){
+ if(pendingTimer)clearTimeout(pendingTimer);
+ const direct=ev?.type==='df-op-saved'||ev?.type==='df-producao-auto-saved';
+ pendingTimer=setTimeout(async()=>{pendingTimer=null;if(direct)await pushNewestDirect();if(busy){queued=true;return}sync()},direct?40:250)
+}
 window.DFProductionSavedD1={sync,ready:()=>ready};
 window.addEventListener('df-op-saved',schedule);
 window.addEventListener('df-producao-auto-saved',schedule);
@@ -199,7 +220,8 @@ window.addEventListener('online',schedule);
 window.addEventListener('focus',schedule);
 window.addEventListener('pageshow',schedule);
 // Poll aberto a cada 7 s; o evento local continua enviando imediatamente.
-setInterval(sync,7000);setTimeout(sync,450);
+// Recepção dos demais aparelhos: leitura curta do D1. Envio local é direto por evento.
+setInterval(sync,5000);setTimeout(sync,350);
 window.DFProductionSavedD1Deleted=function(code){
  const t=read(T,null);if(!t?.teamId){status('⚠️ Exclusão local: conecte a equipe para excluir no servidor.',false);return Promise.resolve(false)}
  const tid=String(t.teamId),s=shadow(tid),key=String(code).trim().toUpperCase();if(!key)return Promise.resolve(false);
