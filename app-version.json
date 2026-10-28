@@ -1,6 +1,6 @@
 {
   "version": "1.0.628",
-  "title": "Restauradas conexões Cloudflare D1 e R2",
-  "message": "Servidor voltou a usar a implantação com banco D1, fotos R2 e configurações de autenticação; sem excluir dados.",
-  "updatedAt": "2026-10-27"
+  "title": "Aprovação de OP com foto de formulação",
+  "message": "O operador envia a baixa vinculada ao OPID e à formulação; o dono abre a foto e confirma a OP.",
+  "updatedAt": "2026-10-28"
 }
