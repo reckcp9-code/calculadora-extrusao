@@ -86,8 +86,9 @@
     const exp=expectedFor(currentQr),old=load().find(x=>x.id===currentId)||{},now=new Date().toISOString();
     const rec={...old,id:currentId,qr:currentQr,createdAt:old.createdAt||now,updatedAt:now,data:localYmd(),numero:old.numero||'',operador:old.operador||'',maquina:old.maquina||'',produto:exp?.title||old.produto||'',largura:+exp?.largura||old.largura||0,micra:+exp?.micra||old.micra||0,gm:+exp?.gm||old.gm||0,produzido:prod,apara:ap,bobinas:old.bobinas||0,materials:buildMaterials(exp,prod),expectedTotal:+exp?.totalKg||old.expectedTotal||0,ocrConfidence:100,status:(window.DFOpCloud?.team?.()?.role==='operator'?'pending':'ok'),reasons:[],manualConfirmed:window.DFOpCloud?.team?.()?.role!=='operator',manualConfirmedAt:now,source:'foto+confirmacao-manual'};
     const btn=$('dfManualSave');if(btn){btn.disabled=true;btn.textContent='⏳ SALVANDO...'}
+    try{if(!currentFile)throw new Error('Nenhuma foto foi selecionada.');await photoPut(currentId,currentFile,{qr:currentQr,month:localYmd().slice(0,7),manualPending:false,produzido:prod,apara:ap});}catch(e){if(btn){btn.disabled=false;btn.textContent='SALVAR OP'}status('❌ <b>Foto não foi salva.</b> '+esc(String(e?.message||e))+'<br>Tente novamente sem sair desta tela.','bad');return}
     upsert(rec);
-    try{await photoPut(currentId,currentFile,{qr:currentQr,month:localYmd().slice(0,7),manualPending:false,produzido:prod,apara:ap});if(oldId&&oldId!==currentId)await photoDelete(oldId)}catch(e){}
+    if(oldId&&oldId!==currentId)try{await photoDelete(oldId)}catch(e){}
     try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:rec,manual:true}}))}catch(e){}
     try{window.dispatchEvent(new CustomEvent('df-op-save-ui-refresh',{detail:{record:rec}}))}catch(e){}
     status('✅ <b>OP SALVA E ENVIADA PARA SINCRONIZAÇÃO.</b><br>Produção total: <b>'+prod.toLocaleString('pt-BR')+' kg</b><br>Apara total: <b>'+ap.toLocaleString('pt-BR')+' kg</b>','ok');
