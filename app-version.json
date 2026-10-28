@@ -1,6 +1,6 @@
 {
-  "version": "1.0.645",
-  "title": "Saída da equipe de Produção com limpeza local",
-  "message": "Operador sai da equipe e apaga fotos, baixas, OPs, pesos, cadastros e QR locais de Produção; preserva servidor D1/R2, licença e Formulação.",
+  "version": "1.0.646",
+  "title": "Recuperação segura do histórico da Produção",
+  "message": "Sincroniza OPs individualmente sem interromper tudo quando uma foto falha; preserva históricos locais e mostra IDs ainda pendentes de envio.",
   "updatedAt": "2026-10-28"
 }
