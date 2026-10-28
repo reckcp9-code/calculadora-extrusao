@@ -3315,6 +3315,7 @@
 
     if(window.DFOPLandscapePdf&&typeof window.DFOPLandscapePdf.open==='function'){
       window.DFOPLandscapePdf.open({
+        formulaId:String(f.id||''),
         name:nome,
         date:hoje,
         size:tamanho,
