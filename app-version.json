@@ -1,6 +1,6 @@
 {
-  "version": "1.0.637",
-  "title": "Envio alternativo de fotos para nuvem",
-  "message": "Quando o servidor não reconhece a foto enviada por fetch, tenta novamente via envio multipart direto; preserva original no celular.",
+  "version": "1.0.638",
+  "title": "Envio binário direto de fotos no Cloudflare",
+  "message": "Nova rota do Worker aceita imagem binária com vínculo à OP; envio antigo permanece como primeira opção, com confirmação no R2.",
   "updatedAt": "2026-10-28"
 }
