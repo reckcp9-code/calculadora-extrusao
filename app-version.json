@@ -1,6 +1,6 @@
 {
-  "version": "1.0.629",
-  "title": "Aprovação de OP com foto de formulação",
-  "message": "Envio de foto de baixa ao bloco da formulação, com ID da fórmula e OPID; o dono confirma antes de somar a produção.",
+  "version": "1.0.630",
+  "title": "Baixa de OP de Formulação com aprovação do dono",
+  "message": "Foto da OP vinculada automaticamente ao ID da formulação e OPID; fica pendente para conferência do dono e só depois entra nas prontas e no total mensal.",
   "updatedAt": "2026-10-28"
 }
