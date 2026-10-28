@@ -346,8 +346,28 @@ async function clearProductionTeam(){
    alert('Saída concluída. Este aparelho está limpo dos dados da equipe de Produção e pode entrar em outra equipe. Nada foi excluído do servidor.');
    location.reload();
  }catch(e){
+   const message=String(e?.message||e);
+   // Quando o servidor já removeu/revogou o membro, não há vínculo remoto
+   // a encerrar. Permitir saída local explícita, sem tentar acessar outra equipe.
+   const revoked=/não faz parte desta equipe|nao faz parte desta equipe|equipe não autorizada|equipe nao autorizada|not a member|not authorized|membership revoked/i.test(message);
+   if(!serverLeft&&revoked){
+     if(confirm('O servidor informa que este aparelho NÃO pertence mais à equipe de Produção. Deseja concluir a saída LOCAL e apagar os dados de Produção deste celular?\\n\\nNada será apagado da nuvem, dos outros celulares, da Formulação ou da licença. Dados locais ainda não enviados serão perdidos.')){
+       try{
+         localStorage.setItem(EXIT_MARK,'1');
+         await wipeProductionLocal();
+         setTeam(null);
+         renderTeam();refreshUi();
+         alert('Saída local concluída. Os dados de Produção deste aparelho foram limpos; os dados da nuvem foram preservados.');
+         location.reload();
+         return;
+       }catch(cleanError){
+         alert('Falha ao limpar os dados locais: '+String(cleanError?.message||cleanError)+'. Não entre em outra equipe até concluir a limpeza.');
+         return;
+       }
+     }
+   }
    if(!serverLeft)try{localStorage.removeItem(EXIT_MARK)}catch(_){}
-   alert('Não foi possível concluir a saída: '+String(e?.message||e)+'. Os dados locais não serão considerados limpos até a conclusão.');
+   alert('Não foi possível concluir a saída: '+message+'. Os dados locais não serão considerados limpos até a conclusão.');
  }finally{leavingProductionTeam=false}
 }
 async function wipeProductionLocal(){
