@@ -1,6 +1,6 @@
 {
   "version": "1.0.627",
-  "title": "Recuperação de foto original por ID",
-  "message": "Permite reenviar foto local do operador pelo ID da OP e confirma o arquivo na nuvem antes de concluir.",
+  "title": "Fotos de formulação vinculadas ao ID",
+  "message": "Fotos de produção vinculadas ao OPID e fotos de formulação ligadas ao ID da fórmula.",
   "updatedAt": "2026-10-28"
 }
