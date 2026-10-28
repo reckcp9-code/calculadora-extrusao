@@ -68,15 +68,33 @@
   function scanCanvas(c){try{const x=c.getContext('2d',{willReadFrequently:true}),d=x.getImageData(0,0,c.width,c.height),r=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});return r?.data||''}catch(e){return''}}
   async function decodeQR(file){await loadQR();const base=await imageCanvas(file,2400);for(const deg of [0,90,180,270]){const c=rot(base,deg),tries=[c,crop(c,0,0,c.width,c.height*.58,2),crop(c,c.width*.15,0,c.width*.70,c.height*.62,2.4),crop(c,0,0,c.width*.70,c.height*.72,2),crop(c,c.width*.30,0,c.width*.70,c.height*.72,2)];for(const t of tries){const q=scanCanvas(t);if(q&&/^DFOP-/i.test(q))return normalizeQr(q)}}return''}
 
+  async function allowDischarge(id){
+    const existing=load().some(o=>normalizeQr(o.id||o.qr)===normalizeQr(id)&&!o.deletedAt&&!o.deleted_at&&['ok','pending'].includes(o.status));
+    const authority=window.DFOpServerAuthority;
+    if(!existing&&!authority?.checkNewDischarge)throw Error('A conferência de OPs ainda está carregando. Tente novamente.');
+    if(existing||!(await authority.checkNewDischarge(id))){
+      removeForm();currentFile=null;currentQr='';currentId='';
+      document.querySelectorAll('.dfManualBadge').forEach(e=>e.remove());
+      status('⚠️ <b>Esta OP já foi dada baixa no sistema.</b><br>Não é permitido dar baixa novamente com o mesmo QR Code.','warn');
+      alert('Esta OP já foi dada baixa no sistema.');
+      return false;
+    }
+    return true;
+  }
+
   async function handlePhoto(file){
     if(!file||busy)return;busy=true;currentFile=file;removeForm();
     const preview=$('dfOpPreview');if(preview){preview.src=URL.createObjectURL(file);preview.style.display='block'}
     status('📷 Foto recebida. Identificando o QR da OP...','warn');
-    try{currentQr=await decodeQR(file);currentId=currentQr||('SEMQR-'+Date.now());await photoPut(currentId,file,{qr:currentQr||'',month:localYmd().slice(0,7),manualPending:true});const exp=currentQr?expectedFor(currentQr):null;if(currentQr){ensureRegistered(currentQr);status('✅ <b>OP identificada.</b> Foto arquivada.<br>Digite a produção total e a apara total abaixo.','ok')}else status('⚠️ Foto arquivada, mas o QR não foi identificado. Digite o código da OP impresso abaixo do QR.','warn');showForm(currentQr,exp)}catch(err){status('❌ Não consegui preparar a OP: '+esc(err.message||err),'bad')}finally{busy=false}
+    try{currentQr=await decodeQR(file);currentId=currentQr||('SEMQR-'+Date.now());if(currentQr&&!(await allowDischarge(currentQr)))return;await photoPut(currentId,file,{qr:currentQr||'',month:localYmd().slice(0,7),manualPending:true});const exp=currentQr?expectedFor(currentQr):null;if(currentQr){ensureRegistered(currentQr);status('✅ <b>OP identificada.</b> Foto arquivada.<br>Digite a produção total e a apara total abaixo.','ok')}else status('⚠️ Foto arquivada, mas o QR não foi identificado. Digite o código da OP impresso abaixo do QR.','warn');showForm(currentQr,exp)}catch(err){status('❌ Não consegui preparar a OP: '+esc(err.message||err),'bad')}finally{busy=false}
   }
 
   function upsert(rec){const a=load(),i=a.findIndex(x=>x.id===rec.id);if(i>=0)a[i]=rec;else a.unshift(rec);save(a)}
   async function saveManual(){
+    if(busy)return;busy=true;
+    try{
+    const code=currentQr||normalizeQr($('dfManualQrCode')?.value);
+    if(validQr(code)&&!(await allowDischarge(code)))return;
     const prod=num($('dfManualProd')?.value),ap=num($('dfManualApara')?.value);
     if(!(prod>0)){alert('Digite a PRODUÇÃO TOTAL em kg.');$('dfManualProd')?.focus();return}
     if(!Number.isFinite(ap)||ap<0){alert('Digite a APARA TOTAL em kg. Pode ser 0.');$('dfManualApara')?.focus();return}
@@ -96,6 +114,7 @@
     removeForm();const host=$('dfOpStatus')?.parentNode;if(host){const d=document.createElement('div');d.className='dfManualBadge';d.innerHTML='✅ Foto + produção + apara vinculados à formulação '+esc(formulaId)+' e ao OPID '+esc(currentQr);host.insertBefore(d,host.querySelector('.dfQrDemo')||null)}
     const input=$('dfOpPhoto');if(input){try{input.value=''}catch(e){}}
     currentFile=null;currentQr='';currentId='';
+    }catch(e){status('⚠️ '+esc(e.message||e),'warn')}finally{busy=false}
   }
 
   function install(){
