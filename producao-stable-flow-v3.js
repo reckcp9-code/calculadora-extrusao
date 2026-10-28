@@ -186,7 +186,8 @@ window.addEventListener('df-producao-team-changed',schedule);
 window.addEventListener('online',schedule);
 window.addEventListener('focus',schedule);
 window.addEventListener('pageshow',schedule);
-setInterval(sync,30000);setTimeout(sync,1800);
+// Poll aberto a cada 7 s; o evento local continua enviando imediatamente.
+setInterval(sync,7000);setTimeout(sync,450);
 window.DFProductionSavedD1Deleted=function(code){
  const t=read(T,null);if(!t?.teamId){status('⚠️ Exclusão local: conecte a equipe para excluir no servidor.',false);return Promise.resolve(false)}
  const tid=String(t.teamId),s=shadow(tid),key=String(code).trim().toUpperCase();if(!key)return Promise.resolve(false);
