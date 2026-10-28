@@ -12,13 +12,9 @@ async function renew(force){var t='';try{t=String(sessionStorage.getItem(TOKEN)|
 async function post(path,body,retry){var t=await renew(false),d=deviceId(),r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t,'X-DF-Device':d},body:JSON.stringify(body||{}),cache:'no-store'}),j={};try{j=await r.json()}catch(e){}if((!r.ok||j.ok===false)&&r.status===401&&retry!==false){await renew(true);return post(path,body,false)}if(!r.ok||j.ok===false)throw new Error(j.error||('HTTP '+r.status));return j}
 
 function shouldRemoveKey(k){
-  if(!k)return false;
-  if(k==='df_formula_ops_auto_v2'||k==='df_manual_op_product_v1'||k==='df_now_bridge_uploaded_v169'||k==='df_op_registry_cloud_sent_test_v174')return true;
-  if(/^df_op_/i.test(k))return true;
-  if(/^df_production_now/i.test(k))return true;
-  if(/^df_test_photo_names_confirmed_/i.test(k))return true;
-  if(/^df_ops_/i.test(k))return true;
-  return false;
+ if(!k)return false;
+ // Remove apenas dados locais operacionais; preserva licença, device ID, login e configurações gerais.
+ return /^(df_op_|df_ops_|df_formula_|df_formulac|df_formulas|df_favoritos|df_resinas|df_materiais|df_material_|df_team_formula|df_team_material|df_production_|df_producao_|df_now_|df_test_photo_names_confirmed_|df_extrusao_medidas|df_manual_op_product_v1|df_cloud_pending)/i.test(k);
 }
 function clearStorageArea(area){try{var keys=[];for(var i=0;i<area.length;i++)keys.push(area.key(i));keys.forEach(function(k){if(shouldRemoveKey(k))try{area.removeItem(k)}catch(e){}})}catch(e){}}
 function clearPhotoDb(){return new Promise(function(resolve){
@@ -39,12 +35,12 @@ async function clearLocalTeamData(){
 async function leave(team,btn){
   if(leaving)return;
   var teamId=String(team&&team.teamId||'').trim();if(!teamId)return;
-  if(!confirm('Sair desta equipe?\n\nAo sair, este celular será limpo: fotos, PRONTAS, PENDENTES, produção do mês, status de AGORA e dados locais das OPs serão apagados deste aparelho.\n\nA licença e as configurações gerais do app serão mantidas.'))return;
+  if(!confirm('SAIR DA EQUIPE E APAGAR TODOS OS DADOS LOCAIS DESTE APARELHO?\n\nSerão apagados somente neste celular: fotos locais, formulações, materiais, pesos, OPs, PRONTAS, PENDENTES e dados de produção.\n\nNADA será excluído do servidor (D1/R2), da equipe ou dos outros aparelhos.\n\nAo entrar novamente, os dados já sincronizados na nuvem serão recuperados. Dados que ainda não foram enviados ao servidor não poderão ser recuperados.\n\nA licença e o login deste aplicativo serão preservados.'))return;
   leaving=true;if(btn){btn.disabled=true;btn.textContent='LIMPANDO E SAINDO...'}
   try{
     var j=await post('/op/team/leave',{teamId:teamId});
     await clearLocalTeamData();
-    alert((j&&j.message?j.message+'\n\n':'')+'Dados deste celular apagados. O app ficou limpo para entrar em outra equipe.');
+    alert((j&&j.message?j.message+'\n\n':'')+'Dados locais deste aparelho limpos. Os dados do servidor foram preservados. Entre novamente na equipe para sincronizar.');
     location.reload();
   }catch(e){leaving=false;if(btn){btn.disabled=false;btn.textContent='🚪 SAIR DA EQUIPE'}alert('Não foi possível sair: '+(e&&e.message||e))}
 }
