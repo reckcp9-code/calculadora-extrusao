@@ -1,6 +1,6 @@
 {
-  "version": "1.0.652",
-  "title": "Envio histórico disponível na página OP Produção",
-  "message": "Corrigida a rota real op-producao.html e o carregador de scripts da Equipe de Produção para exibir o botão do dono.",
+  "version": "1.0.653",
+  "title": "Diagnóstico do envio de produção histórica",
+  "message": "Exibe motivo específico quando a migração não consegue confirmar o histórico, sem apagar dados locais.",
   "updatedAt": "2026-10-28"
 }
