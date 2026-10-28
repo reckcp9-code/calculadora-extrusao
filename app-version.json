@@ -1,6 +1,6 @@
 {
-  "version": "1.0.633",
-  "title": "Reenvio automático de fotos locais pendentes",
-  "message": "Fotos locais pendentes recuperam o ID de formulação conhecido e são enviadas automaticamente ao abrir o app.",
+  "version": "1.0.634",
+  "title": "Bloqueio de baixa duplicada por QR Code",
+  "message": "Ao ler uma OP já baixada, o aplicativo avisa e bloqueia uma nova baixa com o mesmo QR Code.",
   "updatedAt": "2026-10-28"
 }
