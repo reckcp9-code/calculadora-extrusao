@@ -239,7 +239,7 @@ async function syncLocal(force){if(leavingProductionTeam||historyBusy)return fal
    let officialPhoto='';
    if(ready?.photoId){if(String(ready.photoId).startsWith('CLOUDPROD:'))officialPhoto=String(read(PHOTO_MAP_KEY,{})[id]?.cloudId||'');else officialPhoto=await uploadReadyPhoto(t,id,ready)}
    if(state.auto&&num(state.auto.production)>0&&!(t.role==='owner'&&state.auto.status==='pending')){
-    if(state.auto.hasPhoto&&!officialPhoto)throw Error('Foto da OP ainda não chegou ao servidor.');
+    if(!officialPhoto)throw Error('Foto obrigatória para nova baixa da OP '+id+'. Aguarde o envio para o R2.');
     await publishOfficialPending(t,id,state,officialPhoto)
    }
    const sent=await publishState(t,id,state,false);
