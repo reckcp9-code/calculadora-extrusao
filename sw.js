@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v631-usn-retry';
+const DF_CACHE='df-extrusor-shell-v632-delete-fix';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
