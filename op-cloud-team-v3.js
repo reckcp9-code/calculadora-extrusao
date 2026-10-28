@@ -145,12 +145,13 @@ function resolveFormulationId(id,rec,photo,promptIfAmbiguous=true){
  const registry=load('df_op_qr_registry_v1',{});
  const entry=registry?.[code]||{};
  const expected=entry.expected||{};
- const explicit=[
-   rec?.formulaId,rec?.formula_id,rec?.expected?.formulaId,
-   photo?.formulaId,photo?.formula_id,expected?.formulaId,expected?.__dfFormulaId,
-   entry?.formulaId
- ].map(v=>String(v||'').trim()).find(Boolean);
- if(explicit)return explicit;
+ const ids=[
+   expected?.formulaId,expected?.__dfFormulaId,entry?.formulaId,
+   rec?.expected?.formulaId,photo?.formulaId,photo?.formula_id,rec?.formulaId,rec?.formula_id
+ ].map(v=>String(v||'').trim()).filter(Boolean);
+ const verified=ids.find(v=>!v.startsWith('LEGACY-'));
+ if(verified)return verified;
+ if(ids.length)return ids[0];
  // Recupera por NOME EXATO somente quando existe um único correspondente;
  // nunca usa automaticamente a última formulação, que pode ser de outra OP.
  const forms=load('df_formulacoes_v2',[]);
