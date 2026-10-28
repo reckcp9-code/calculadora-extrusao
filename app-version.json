@@ -1,6 +1,6 @@
 {
-  "version": "1.0.651",
-  "title": "Botão integrado à Equipe de Produção",
-  "message": "Botão de envio histórico integrado diretamente à renderização da Equipe de Produção, exclusivo do dono.",
+  "version": "1.0.652",
+  "title": "Envio histórico disponível na página OP Produção",
+  "message": "Corrigida a rota real op-producao.html e o carregador de scripts da Equipe de Produção para exibir o botão do dono.",
   "updatedAt": "2026-10-28"
 }
