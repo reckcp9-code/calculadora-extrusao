@@ -1,6 +1,6 @@
 {
-  "version": "1.0.657",
-  "title": "AGORA sem tremidas durante sincronização",
-  "message": "Evita clique automático na aba ativa e redesenho repetitivo das máquinas sem mudança de produção.",
+  "version": "1.0.658",
+  "title": "Saída da equipe mesmo após revogação",
+  "message": "Operador removido da equipe pode confirmar limpeza local da Produção sem afetar D1, R2, demais aparelhos ou Formulação.",
   "updatedAt": "2026-10-28"
 }
