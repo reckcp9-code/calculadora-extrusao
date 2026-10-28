@@ -1,6 +1,6 @@
 {
-  "version": "1.0.621",
-  "title": "Foto da OP compartilhada por ID",
-  "message": "Abrir foto pelo ID único da OP em qualquer celular conectado à equipe.",
+  "version": "1.0.622",
+  "title": "Foto da OP pendente por ID",
+  "message": "Busca e download da foto da OP pendente no celular do dono.",
   "updatedAt": "2026-10-27"
 }
