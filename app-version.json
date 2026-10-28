@@ -1,6 +1,6 @@
 {
-  "version": "1.0.668",
-  "title": "Excluir todas as formulações salvas",
-  "message": "Novo botão ao lado de Favoritas permite excluir todas as formulações salvas da equipe com confirmação.",
+  "version": "1.0.669",
+  "title": "Última formulação compartilhada",
+  "message": "Somente a formulação mais recente fica salva na equipe. A nova substitui as anteriores no D1 e nos celulares, com proteção de envio offline.",
   "updatedAt": "2026-10-28"
 }
