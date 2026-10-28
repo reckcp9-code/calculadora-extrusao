@@ -1,6 +1,6 @@
 {
-  "version": "1.0.632",
-  "title": "Sincronização de fotos de baixa de Formulação",
-  "message": "A baixa manual resolve o ID da formulação antes do envio; o aviso separa salvamento local do envio real para a nuvem.",
+  "version": "1.0.633",
+  "title": "Reenvio automático de fotos locais pendentes",
+  "message": "Fotos locais pendentes recuperam o ID de formulação conhecido e são enviadas automaticamente ao abrir o app.",
   "updatedAt": "2026-10-28"
 }
