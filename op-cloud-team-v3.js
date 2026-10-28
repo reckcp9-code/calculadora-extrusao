@@ -62,25 +62,25 @@ async function syncRemote(forceRender,monthOverride){if(!team||syncing||navigato
 async function openCloud(id,download){try{const blob=await apiBlobGet(id,download);if(download){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='OP-'+id+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);return}clearViewerUrl();viewerUrl=URL.createObjectURL(blob);$('dfCloudViewerBody').innerHTML='<img src="'+viewerUrl+'"><button id="dfCloudDownloadCurrent" class="dfCloudPhotoBtn" style="width:100%;margin-top:9px">⬇️ BAIXAR FOTO</button>';$('dfCloudViewer').classList.add('on');$('dfCloudDownloadCurrent').onclick=()=>openCloud(id,true)}catch(e){alert(e.message||e)}}
 function localOps(){const a=load(OPS_KEY,[]);return Array.isArray(a)?a:[]}
 async function nextUpload(){
- const map=load(MAP_KEY,{}),photoType='formulation',ops=localOps();
+ const map=load(MAP_KEY,{}),ops=localOps();
  for(let i=0;i<ops.length;i++){
   const rec=ops[i],id=String(rec?.id||rec?.qr||'').trim().toUpperCase();
   if(!validQr(id)||!['ok','pending'].includes(String(rec?.status||'')))continue;
   const ph=await photoGet(id);if(!ph?.blob)continue;
   let formulaId=String(rec?.formulaId||'').trim();
   if(!formulaId){try{formulaId=String(resolveFormulationId(id,rec,ph,false)||'').trim()}catch(e){}}
-  if(!formulaId)continue;
-  if(String(rec?.formulaId||'').trim()!==formulaId||rec?.photoType!=='formulation'){
+  const photoType=formulaId?'formulation':'production_op';
+  if(formulaId&&(String(rec?.formulaId||'').trim()!==formulaId||rec?.photoType!=='formulation')){
    ops[i]={...rec,id,qr:id,formulaId,photoType:'formulation'};
    save(OPS_KEY,ops);
   }
-  const savedAt=String(ph.savedAt||''),m=map[photoMapKey(photoType,id)];
+  const savedAt=String(ph.savedAt||''),m=map[photoMapKey(photoType,id)]||(photoType==='production_op'?map[id]:null);
   if(m&&String(m.localSavedAt||'')===savedAt&&m.photoId)continue;
-  return{rec:{...rec,id,qr:id,formulaId,photoType:'formulation'},ph,map,photoType,formulaId}
+  return{rec:{...rec,id,qr:id,formulaId,photoType},ph,map,photoType,formulaId}
  }
  return null
 }
-async function uploadPending(){if(!team||uploading||navigator.onLine===false||document.hidden)return false;const item=await nextUpload();if(!item)return false;uploading=true;runtimeMsg('⏳ Enviando foto para a nuvem...','');try{const {rec,ph,map,photoType,formulaId}=item,small=await compressBlob(ph.blob),form=new FormData();form.append('teamId',team.teamId);form.append('photoType',photoType);if(photoType==='formulation')form.append('formulaId',formulaId);form.append('sourceId',rec.id);form.append('qr',rec.qr||rec.id);form.append('production',String(+rec.produzido||0));form.append('scrap',String(+rec.apara||0));form.append('materials',JSON.stringify((rec.materials||[]).map(m=>({name:m.name,pct:+m.pct||0}))));form.append('createdAt',rec.manualConfirmedAt||rec.updatedAt||rec.createdAt||new Date().toISOString());form.append('photo',small,'op.jpg');const j=await apiForm('/op/photo/upload',form),photoId=String(j.photo?.id||''),now=new Date().toISOString();const entry={photoId,localSavedAt:String(ph.savedAt||''),uploadedAt:now,photoType,formulaId:formulaId||rec.formulaId||''};map[photoMapKey(photoType,rec.id)]=entry;if(photoType==='production_op')map[rec.id]=entry;save(MAP_KEY,map);runtimeMsg('✅ Foto salva na nuvem.','ok');const decorated={...rec,cloudPhotoId:photoId,cloudTeamId:team.teamId,cloudSyncedAt:now};try{window.dispatchEvent(new CustomEvent('df-op-cloud-synced',{detail:{id:rec.id,photoId}}))}catch(e){}try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:decorated,photoSync:true}}))}catch(e){}scheduleRemote(250,false);scheduleUpload(500);return true}catch(e){const reason=String(e?.message||e||'Falha desconhecida');runtimeMsg('⚠️ Foto não enviada: '+reason+'. Toque em ATUALIZAR FOTOS para tentar novamente.','warn');console.warn('Falha no upload da foto da OP:',item?.rec?.id,reason);setTimeout(()=>{if(navigator.onLine!==false&&!document.hidden&&team)scheduleUpload(200)},30000);return false}finally{uploading=false}}
+async function uploadPending(){if(!team||uploading||navigator.onLine===false||document.hidden)return false;const item=await nextUpload();if(!item)return false;uploading=true;runtimeMsg('⏳ Enviando foto para a nuvem...','');try{const {rec,ph,map,photoType,formulaId}=item,small=await compressBlob(ph.blob),form=new FormData();form.append('teamId',team.teamId);form.append('photoType',photoType);if(photoType==='formulation')form.append('formulaId',formulaId);form.append('sourceId',rec.id);form.append('qr',rec.qr||rec.id);form.append('production',String(+rec.produzido||0));form.append('scrap',String(+rec.apara||0));form.append('materials',JSON.stringify((rec.materials||[]).map(m=>({name:m.name,pct:+m.pct||0}))));form.append('createdAt',rec.manualConfirmedAt||rec.updatedAt||rec.createdAt||new Date().toISOString());form.append('photo',small,'op.jpg');const j=await apiForm('/op/photo/upload',form),photoId=String(j.photo?.id||'');if(!photoId)throw Error('Servidor não confirmou a foto.');const verified=await apiBlobGet(photoId,false);if(!verified?.size)throw Error('Arquivo não está disponível no servidor.');const now=new Date().toISOString();const entry={photoId,localSavedAt:String(ph.savedAt||''),uploadedAt:now,photoType,formulaId:formulaId||rec.formulaId||''};map[photoMapKey(photoType,rec.id)]=entry;if(photoType==='production_op')map[rec.id]=entry;save(MAP_KEY,map);runtimeMsg('✅ Foto salva na nuvem.','ok');const decorated={...rec,cloudPhotoId:photoId,cloudTeamId:team.teamId,cloudSyncedAt:now};try{window.dispatchEvent(new CustomEvent('df-op-cloud-synced',{detail:{id:rec.id,photoId}}))}catch(e){}try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:decorated,photoSync:true}}))}catch(e){}scheduleRemote(250,false);scheduleUpload(500);return true}catch(e){const reason=String(e?.message||e||'Falha desconhecida');runtimeMsg('⚠️ Foto não enviada: '+reason+'. Toque em ATUALIZAR FOTOS para tentar novamente.','warn');console.warn('Falha no upload da foto da OP:',item?.rec?.id,reason);setTimeout(()=>{if(navigator.onLine!==false&&!document.hidden&&team)scheduleUpload(200)},30000);return false}finally{uploading=false}}
 function scheduleUpload(ms){clearTimeout(uploadTimer);uploadTimer=setTimeout(uploadPending,ms||250)}
 function scheduleRemote(ms,force){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncRemote(!!force),ms||400)}
 function resolveFormulationId(id,rec,photo,promptIfAmbiguous=true){
@@ -111,9 +111,9 @@ async function recoverLocalPhoto(id){
  if(!ph?.blob){const d=await dbOpen();ph=await new Promise((resolve,reject)=>{const tx=d.transaction('photos','readonly'),req=tx.objectStore('photos').openCursor();req.onsuccess=()=>{const cursor=req.result;if(!cursor){resolve(null);return}const v=cursor.value;if(String(v?.qr||v?.opId||'').trim().toUpperCase()===id&&v?.blob){resolve(v);return}cursor.continue()};req.onerror=()=>reject(req.error)})}
  if(!ph?.blob)throw Error('Foto original não está armazenada neste aparelho. Use o celular que tirou a foto.');
  const rec=localOps().find(o=>String(o?.id||o?.qr||'').trim().toUpperCase()===id)||{};
- const formulaId=resolveFormulationId(id,rec,ph),type='formulation';
+ const formulaId=String(resolveFormulationId(id,rec,ph,false)||'').trim(),type=formulaId?'formulation':'production_op';
  const form=new FormData(),blob=await compressBlob(ph.blob);
- form.append('teamId',team.teamId);form.append('photoType',type);form.append('formulaId',formulaId);form.append('sourceId',id);form.append('qr',id);
+ form.append('teamId',team.teamId);form.append('photoType',type);if(formulaId)form.append('formulaId',formulaId);form.append('sourceId',id);form.append('qr',id);
  form.append('production',String(Number(rec.produzido??ph.produzido??0)||0));
  form.append('scrap',String(Number(rec.apara??ph.apara??0)||0));
  form.append('materials',JSON.stringify((rec.materials||ph.materials||[]).map(m=>({name:String(m?.name||''),pct:Number(m?.pct||0)}))));
@@ -125,7 +125,7 @@ async function recoverLocalPhoto(id){
  const confirmed=await apiBlobGet(photoId,false);
  if(!confirmed?.size)throw Error('A foto foi enviada, mas a leitura no servidor falhou.');
  const map=load(MAP_KEY,{}),entry={photoId,photoType:type,formulaId,localSavedAt:String(ph.savedAt||''),uploadedAt:new Date().toISOString()};
- map[photoMapKey(type,id)]=entry;save(MAP_KEY,map);
+ map[photoMapKey(type,id)]=entry;if(type==='production_op')map[id]=entry;save(MAP_KEY,map);
  try{window.dispatchEvent(new CustomEvent('df-op-saved',{detail:{record:{...rec,id,qr:id,photoType:type,formulaId,cloudPhotoId:photoId},photoSync:true}}))}catch(e){}
  scheduleRemote(200,true);
  return photoId;
