@@ -1,6 +1,6 @@
 {
-  "version": "1.0.642",
-  "title": "Entrada na equipe com limpeza local",
-  "message": "Antes de entrar, confirma e limpa dados operacionais somente do aparelho. Preserva a nuvem, a licença e sincroniza a equipe após reiniciar.",
+  "version": "1.0.643",
+  "title": "Produção com fotos R2 separadas e aprovação do dono",
+  "message": "Produção usa área producao e fotos production_op; operador envia baixa para pendentes, dono confere imagem e confirma para prontas; Formulação preservada.",
   "updatedAt": "2026-10-28"
 }
