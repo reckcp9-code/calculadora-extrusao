@@ -1,6 +1,6 @@
 {
-  "version": "1.0.649",
-  "title": "Botão de envio na Equipe de Produção",
-  "message": "Exibe Enviar toda minha produção para a nuvem no painel correto da Equipe de Produção; migração histórica sem fotos com conferência D1.",
+  "version": "1.0.650",
+  "title": "Botão de envio carregado diretamente na Produção",
+  "message": "Carregamento imediato do botão de envio histórico da Equipe de Produção, independente de abertura da aba OP.",
   "updatedAt": "2026-10-28"
 }
