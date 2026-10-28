@@ -1,6 +1,6 @@
 {
-  "version": "1.0.663",
-  "title": "OP da Produção direto para o D1",
-  "message": "Nova OP é enviada imediatamente pelo Worker ao D1; leitura da equipe ocorre separadamente a cada 5 segundos.",
+  "version": "1.0.664",
+  "title": "Produção sincroniza automaticamente",
+  "message": "Aparelhos da equipe recebem atualizações da Produção automaticamente pelo D1, sem precisar tocar em Sincronizar Produção.",
   "updatedAt": "2026-10-28"
 }
