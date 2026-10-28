@@ -130,6 +130,70 @@ async function pullOfficialRecords(t){
  }
  return {states,photos};
 }
+
+// Recuperação excepcional, limitada às baixas antigas do DONO. Novas OPs continuam exigindo foto.
+// O D1 é consultado antes de cada envio: nunca substitui OP oficial nem ressuscita uma exclusão.
+const HISTORIC_CUTOFF=Date.parse('2026-10-28T12:00:00Z');
+const HISTORY_MARK='df_producao_historico_sem_foto_v647';
+let historyBusy=false;
+function historyMarks(t){const m=read(HISTORY_MARK,{});return m&&m.teamId===t?.teamId?m.ids||{}:{}}
+function historicalTime(row){
+ const raw=String(row?.completedAt||row?.createdAt||row?.approvedAt||'');
+ const ts=Date.parse(raw);
+ if(Number.isFinite(ts)&&ts>0)return ts;
+ const code=norm(row?.opId||row?.id),match=code.match(/^DFOP-(\\d{4})(\\d{2})(\\d{2})-/);
+ return match?Date.parse(match[1]+'-'+match[2]+'-'+match[3]+'T00:00:00Z'):NaN;
+}
+function historicEligible(row){
+ const id=norm(row?.opId||row?.id);
+ return /^DFOP-\\d{8}-/.test(id)&&row?.status==='ok'&&num(row.production)>0&&
+ num(row.scrap)>=0&&num(row.scrap)<=num(row.production)&&
+ Number.isFinite(historicalTime(row))&&historicalTime(row)<HISTORIC_CUTOFF;
+}
+async function migrateHistoricalProductionData(){
+ const t=team();
+ if(historyBusy||!t?.teamId||t.role!=='owner'||navigator.onLine===false)return false;
+ historyBusy=true;
+ let restored=0,already=0,errors=[],total=0,existingCount=0;
+ try{
+  // Ler o histórico LOCAL antes de qualquer pull, sem apagar ou alterar os pesos armazenados.
+  const candidates=autos().filter(historicEligible);
+  const unique=new Map();
+  for(const row of candidates){const id=norm(row.opId||row.id);if(!unique.has(id))unique.set(id,row)}
+  if(!unique.size)return false;
+  const r=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:true});
+  if(!Array.isArray(r.records))throw Error('Servidor não forneceu a lista oficial.');
+  const official=new Map(r.records.map(x=>[norm(x.opCode),x]));
+  const mark=read(HISTORY_MARK,{});
+  const ids=mark?.teamId===t.teamId?{...(mark.ids||{})}:{};
+  const local=ops();
+  for(const [id,row] of unique){
+   if(official.has(id)){already++;continue} // Inclui deleted e pending: nunca ressuscitar nem duplicar.
+   const op=local.find(x=>norm(x.id)===id)||{};
+   const complete=String(row.completedAt||row.createdAt||'');
+   const payload={teamId:t.teamId,opCode:id,production:num(row.production),scrap:num(row.scrap),
+    productName:String(row.product||op.product||''),operatorName:String(row.operator||op.operator||''),
+    machine:String(row.machine||op.machine||''),completedAt:complete,
+    localDate:String(row.date||row.productionDay||localYmd(complete)),
+    photoId:'',requestKey:'dfprod-legacy-dataonly-v647-'+id};
+   try{
+    const saved=await apiPost('/op/record/upsert',payload);
+    if(!saved.record||norm(saved.record.opCode)!==id||saved.record.state!=='ready')
+     throw Error('Servidor não confirmou PRONTAS para '+id);
+    official.set(id,saved.record);ids[id]=true;restored++;
+    write(HISTORY_MARK,{teamId:t.teamId,ids}); // Recuperação idempotente após interrupção.
+   }catch(e){errors.push(id+': '+String(e?.message||e));if(errors.length>4)break}
+  }
+  const verify=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:true});
+  const ready=(verify.records||[]).filter(x=>x.state==='ready');
+  total=ready.reduce((n,x)=>n+num(x.production),0);existingCount=ready.length;
+  setStatus('📦 HISTÓRICO D1: '+restored+' OPs antigas recuperadas, '+already+
+   ' já existentes, '+existingCount+' OPs prontas, '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+
+   ' kg no servidor.'+(errors.length?' ⚠️ Falhas: '+errors.slice(0,3).join(' | '):' Sem apagar fotos ou dados locais.'),errors.length?'warn':'ok');
+  return !errors.length;
+ }catch(e){setStatus('⚠️ Recuperação do histórico interrompida sem apagar dados: '+String(e?.message||e),'warn');return false}
+ finally{historyBusy=false}
+}
 async function syncOnePending(rawId){
  const id=norm(rawId),t=team();if(!t?.teamId||leavingProductionTeam)throw Error('Equipe de Produção não conectada.');
  const rec=autos().find(x=>norm(x?.opId||x?.id)===id&&x.status==='pending');
@@ -145,9 +209,11 @@ async function syncOnePending(rawId){
  setStatus('✅ Baixa e foto da OP '+id+' confirmadas no D1.','ok');
  return official;
 }
-async function syncLocal(force){if(leavingProductionTeam)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||uploadBusy)return false;uploadBusy=true;try{const cfg=config(),cfgHash=hash(cfg),cfgSnap=read(CFG_SNAP_KEY,null);const hasCatalog=Object.values(cfg).some(v=>v&&typeof v==='object'&&((['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)||Object.keys(v.deletedMachines||{}).length>0)));if(hasCatalog&&(force||!cfgSnap||cfgSnap.teamId!==t.teamId||cfgSnap.hash!==cfgHash)){const sent=await publishConfig(t,cfg);write(CFG_SNAP_KEY,{teamId:t.teamId,hash:cfgHash,ts:sent.ts,updatedAt:sent.updatedAt})}const states=currentStates(),snap=read(SNAP_KEY,{}),pending=read(DELETE_PENDING_KEY,{});for(const id of Object.keys(pending)){if(!id.startsWith('DFOP-'))continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);delete pending[id];write(DELETE_PENDING_KEY,pending)}let sentCount=0,failed=[],skipped=0;
+async function syncLocal(force){if(leavingProductionTeam||historyBusy)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||uploadBusy)return false;uploadBusy=true;try{const cfg=config(),cfgHash=hash(cfg),cfgSnap=read(CFG_SNAP_KEY,null);const hasCatalog=Object.values(cfg).some(v=>v&&typeof v==='object'&&((['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)||Object.keys(v.deletedMachines||{}).length>0)));if(hasCatalog&&(force||!cfgSnap||cfgSnap.teamId!==t.teamId||cfgSnap.hash!==cfgHash)){const sent=await publishConfig(t,cfg);write(CFG_SNAP_KEY,{teamId:t.teamId,hash:cfgHash,ts:sent.ts,updatedAt:sent.updatedAt})}const states=currentStates(),snap=read(SNAP_KEY,{}),pending=read(DELETE_PENDING_KEY,{});for(const id of Object.keys(pending)){if(!id.startsWith('DFOP-'))continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);delete pending[id];write(DELETE_PENDING_KEY,pending)}let sentCount=0,failed=[],skipped=0;
  const entries=[...states].sort((a,b)=>Number(!!b[1]?.auto?.production)-Number(!!a[1]?.auto?.production));
  for(const [id,state] of entries){
+  // OPs históricas já migradas por D1 não exigem upload da fotografia antiga.
+  if(historyMarks(t)[id]){skipped++;continue}
   const h=hash(state),old=snap[id];
   if(!force&&old?.hash===h&&old?.teamId===t.teamId){skipped++;continue}
   try{
@@ -319,11 +385,11 @@ async function copyCode(){const code=String(localStorage.getItem(TEAM_CODE_KEY)|
 
 function addStyle(){if($('dfProdTeamV2Style'))return;const s=document.createElement('style');s.id='dfProdTeamV2Style';s.textContent=`#dfProdTeamV2{margin-top:14px;border:1.5px solid #2563eb;background:linear-gradient(180deg,#0b1730,#0a1222);border-radius:18px;padding:13px;color:#e2e8f0;box-shadow:0 0 18px rgba(37,99,235,.12)}#dfProdTeamV2 .head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#93c5fd;font-size:15px;font-weight:950}#dfProdTeamV2 .tiny,#dfProdTeamV2Viewer .tiny{font-size:11px;color:#94a3b8;line-height:1.45;margin-top:6px}#dfProdTeamV2 .isolated{margin-top:8px;border:1px solid #166534;background:#092317;color:#86efac;border-radius:10px;padding:9px;font-size:11px;font-weight:900}#dfProdTeamV2 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}#dfProdTeamV2 input{width:100%;min-height:44px;border:1px solid #334155;background:#080f1d;color:#fff;border-radius:10px;padding:10px;font-size:14px;text-transform:none}#dfProdTeamV2 button{width:100%;min-height:42px;border:1px solid #2563eb;background:#10234a;color:#bfdbfe;border-radius:10px;padding:9px;font-size:11px;font-weight:950}#dfProdTeamV2 .create{border-color:#16a34a;background:#0c2b19;color:#86efac}#dfProdTeamV2 .danger{border-color:#7f1d1d;background:#260b0b;color:#fca5a5}#dfProdTeamV2 .code{margin-top:9px;border:1px dashed #22c55e;background:#0b2417;color:#86efac;border-radius:11px;padding:10px;font-size:13px;font-weight:950;word-break:break-all}.dfProdTeamV2Status{margin-top:9px;border:1px solid #334155;background:#0f172a;color:#94a3b8;border-radius:10px;padding:9px;font-size:11px;font-weight:850}.dfProdTeamV2Status.ok{border-color:#166534;color:#86efac}.dfProdTeamV2Status.warn{border-color:#a16207;color:#fde68a}#dfProdTeamV2Members{margin-top:9px;border:1px solid #334155;background:#0b1220;border-radius:12px;padding:10px;font-size:11px}#dfProdTeamV2Members>b{display:block;margin-bottom:5px}.member{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #1f2937}.member span{font-weight:900;color:#bfdbfe}.member small{color:#86efac;font-weight:850}#dfProdTeamV2Viewer{position:fixed;inset:0;z-index:2147483000;background:#020617f2;display:none;overflow:auto;padding:18px}#dfProdTeamV2Viewer.on{display:block}#dfProdTeamV2Viewer .box{max-width:760px;margin:20px auto;background:#111827;border:1px solid #334155;border-radius:18px;padding:12px}#dfProdTeamV2Viewer button{width:100%;border:1px solid #475569;background:#0f172a;color:#fff;border-radius:12px;padding:12px;font-weight:900;margin-bottom:9px}#dfProdTeamV2Viewer img{display:block;width:100%;max-height:76vh;object-fit:contain;border-radius:12px;background:#000}@media(max-width:520px){#dfProdTeamV2 .grid{grid-template-columns:1fr}}`;document.head.appendChild(s)}
 function ensureHost(){addStyle();const hero=document.querySelector('#dfProdAuto .dfPAHero');if(!hero)return false;let box=$('dfProdTeamV2');if(!box){box=document.createElement('div');box.id='dfProdTeamV2';hero.appendChild(box)}renderTeam();return true}
-function renderTeam(){const box=$('dfProdTeamV2');if(!box)return;const t=team(),code=rememberedCode(t),name=clean(t?.displayName||displayName());if(!t){box.innerHTML='<div class="head"><span>☁️ EQUIPE DE PRODUÇÃO</span><span>SEPARADA</span></div><div class="tiny">A Produção tem código, membros, OPs e fotos próprios. Nada desta área usa a equipe da Extrusão.</div><div class="isolated">✅ EXTRUSÃO E PRODUÇÃO EM ÁREAS INDEPENDENTES</div><div class="grid"><div><input id="dfProdTeamV2OwnerName" maxlength="60" autocomplete="name" placeholder="SEU NOME (DONO)"><button id="dfProdTeamV2Create" class="create" type="button" style="margin-top:7px">👑 CRIAR EQUIPE DE PRODUÇÃO</button></div><div><input id="dfProdTeamV2JoinName" maxlength="60" autocomplete="name" placeholder="NOME DO OPERADOR"><input id="dfProdTeamV2Code" inputmode="numeric" maxlength="8" placeholder="CÓDIGO DA PRODUÇÃO" style="margin-top:7px"><button id="dfProdTeamV2Join" type="button" style="margin-top:7px">🔗 ENTRAR NA EQUIPE DE PRODUÇÃO</button></div></div><div id="dfProdTeamV2Status" class="dfProdTeamV2Status">Crie uma equipe nova da Produção ou entre com o código da Produção.</div>';$('dfProdTeamV2Create').onclick=createTeam;$('dfProdTeamV2Join').onclick=joinTeam;return}box.innerHTML='<div class="head"><span>☁️ EQUIPE DE PRODUÇÃO</span><span>'+(String(t.role||'operator').toLowerCase()==='owner'?'DONO':'OPERADOR')+'</span></div><div class="isolated">✅ ÁREA DA PRODUÇÃO • equipe e fotos separadas da Extrusão</div><div class="code">Equipe: '+esc(t.name||'DF PRODUÇÃO')+' • CÓDIGO: <b>'+esc(code||'CÓDIGO INDISPONÍVEL')+'</b>'+'</div><div class="grid"><button id="dfProdTeamV2Refresh" type="button">🔄 SINCRONIZAR PRODUÇÃO</button>'+(code&&t.role==='owner'?'<button id="dfProdTeamV2Copy" type="button">📋 COPIAR CÓDIGO</button>':'')+(t.role==='owner'?'<button id="dfProdTeamV2RestoreCode" type="button">🔑 '+(code?'CORRIGIR CÓDIGO':'RECUPERAR CÓDIGO')+'</button>':'')+'</div><div class="grid"><input id="dfProdTeamV2MyName" maxlength="60" value="'+esc(name)+'" placeholder="NOME DO OPERADOR"><button id="dfProdTeamV2SaveName" type="button">👤 SALVAR MEU NOME</button></div><div id="dfProdTeamV2Status" class="dfProdTeamV2Status">Sincronização exclusiva da Produção ativa.</div><div id="dfProdTeamV2Members"></div><button id="dfProdTeamV2Delete" class="danger" type="button" hidden style="margin-top:9px">🗑️ APAGAR EQUIPE DEFINITIVAMENTE</button><button id="dfProdTeamV2Leave" class="danger" type="button" style="margin-top:9px">SAIR DA EQUIPE DE PRODUÇÃO NESTE APARELHO</button>';$('dfProdTeamV2Refresh').onclick=async()=>{setStatus('Sincronizando Produção...','');await syncRemote(true);await syncLocal(true);refreshMembers(true)};if($('dfProdTeamV2Copy'))$('dfProdTeamV2Copy').onclick=copyCode;if($('dfProdTeamV2RestoreCode'))$('dfProdTeamV2RestoreCode').onclick=restoreOwnerCode;$('dfProdTeamV2SaveName').onclick=saveName;$('dfProdTeamV2Leave').onclick=clearProductionTeam;setTimeout(()=>refreshMembers(false),80)}
+function renderTeam(){const box=$('dfProdTeamV2');if(!box)return;const t=team(),code=rememberedCode(t),name=clean(t?.displayName||displayName());if(!t){box.innerHTML='<div class="head"><span>☁️ EQUIPE DE PRODUÇÃO</span><span>SEPARADA</span></div><div class="tiny">A Produção tem código, membros, OPs e fotos próprios. Nada desta área usa a equipe da Extrusão.</div><div class="isolated">✅ EXTRUSÃO E PRODUÇÃO EM ÁREAS INDEPENDENTES</div><div class="grid"><div><input id="dfProdTeamV2OwnerName" maxlength="60" autocomplete="name" placeholder="SEU NOME (DONO)"><button id="dfProdTeamV2Create" class="create" type="button" style="margin-top:7px">👑 CRIAR EQUIPE DE PRODUÇÃO</button></div><div><input id="dfProdTeamV2JoinName" maxlength="60" autocomplete="name" placeholder="NOME DO OPERADOR"><input id="dfProdTeamV2Code" inputmode="numeric" maxlength="8" placeholder="CÓDIGO DA PRODUÇÃO" style="margin-top:7px"><button id="dfProdTeamV2Join" type="button" style="margin-top:7px">🔗 ENTRAR NA EQUIPE DE PRODUÇÃO</button></div></div><div id="dfProdTeamV2Status" class="dfProdTeamV2Status">Crie uma equipe nova da Produção ou entre com o código da Produção.</div>';$('dfProdTeamV2Create').onclick=createTeam;$('dfProdTeamV2Join').onclick=joinTeam;return}box.innerHTML='<div class="head"><span>☁️ EQUIPE DE PRODUÇÃO</span><span>'+(String(t.role||'operator').toLowerCase()==='owner'?'DONO':'OPERADOR')+'</span></div><div class="isolated">✅ ÁREA DA PRODUÇÃO • equipe e fotos separadas da Extrusão</div><div class="code">Equipe: '+esc(t.name||'DF PRODUÇÃO')+' • CÓDIGO: <b>'+esc(code||'CÓDIGO INDISPONÍVEL')+'</b>'+'</div><div class="grid"><button id="dfProdTeamV2Refresh" type="button">🔄 SINCRONIZAR PRODUÇÃO</button>'+(code&&t.role==='owner'?'<button id="dfProdTeamV2Copy" type="button">📋 COPIAR CÓDIGO</button>':'')+(t.role==='owner'?'<button id="dfProdTeamV2RestoreCode" type="button">🔑 '+(code?'CORRIGIR CÓDIGO':'RECUPERAR CÓDIGO')+'</button>':'')+'</div><div class="grid"><input id="dfProdTeamV2MyName" maxlength="60" value="'+esc(name)+'" placeholder="NOME DO OPERADOR"><button id="dfProdTeamV2SaveName" type="button">👤 SALVAR MEU NOME</button></div><div id="dfProdTeamV2Status" class="dfProdTeamV2Status">Sincronização exclusiva da Produção ativa.</div><div id="dfProdTeamV2Members"></div><button id="dfProdTeamV2Delete" class="danger" type="button" hidden style="margin-top:9px">🗑️ APAGAR EQUIPE DEFINITIVAMENTE</button><button id="dfProdTeamV2Leave" class="danger" type="button" style="margin-top:9px">SAIR DA EQUIPE DE PRODUÇÃO NESTE APARELHO</button>';$('dfProdTeamV2Refresh').onclick=async()=>{setStatus('Sincronizando Produção...','');if(team()?.role==='owner')await migrateHistoricalProductionData();await syncRemote(true);await syncLocal(true);refreshMembers(true)};if($('dfProdTeamV2Copy'))$('dfProdTeamV2Copy').onclick=copyCode;if($('dfProdTeamV2RestoreCode'))$('dfProdTeamV2RestoreCode').onclick=restoreOwnerCode;$('dfProdTeamV2SaveName').onclick=saveName;$('dfProdTeamV2Leave').onclick=clearProductionTeam;setTimeout(()=>refreshMembers(false),80)}
 
 function afterLocalAction(e){if(e.target?.closest?.('#prGenerate,[data-op-new],[data-op-del],[data-pa-del],#dfPAEditSave,#dfRegSave,[data-del]'))schedulePush(500,false)}
 function interceptCloudPhoto(e){const b=e.target?.closest?.('[data-pa-view]');if(!b)return;const v=String(b.getAttribute('data-pa-view')||'');if(!v.startsWith('CLOUDPROD:'))return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();openRemotePhoto(norm(v.slice('CLOUDPROD:'.length)))}
-async function initialSync(){if(!team())return;recoverCatalogFromOps();const t=team(),snap=read(CFG_SNAP_KEY,null),cfg=config();const changed=snap&&snap.teamId===t.teamId&&snap.hash!==hash(cfg);if(changed){await syncLocal(false)}const pulled=await syncRemote(true);if(pulled)await syncLocal(false);else schedulePush(500,false);refreshMembers(true)}
+async function initialSync(){if(!team())return;recoverCatalogFromOps();if(team()?.role==='owner')await migrateHistoricalProductionData();const t=team(),snap=read(CFG_SNAP_KEY,null),cfg=config();const changed=snap&&snap.teamId===t.teamId&&snap.hash!==hash(cfg);if(changed){await syncLocal(false)}const pulled=await syncRemote(true);if(pulled)await syncLocal(false);else schedulePush(500,false);refreshMembers(true)}
 function boot(){let n=0,t=setInterval(()=>{if(ensureHost()||++n>70){clearInterval(t);if(team())initialSync()}},120);document.addEventListener('click',afterLocalAction,true);document.addEventListener('click',interceptCloudPhoto,true);window.addEventListener('df-producao-catalog-local-changed',()=>{schedulePush(80,false);schedulePull(2200,false)});window.addEventListener('df-producao-auto-saved',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(4000,true)});window.addEventListener('df-producao-auto-deleted',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(1800,false)});window.addEventListener('online',()=>{schedulePush(250,false);schedulePull(1200,true)});window.addEventListener('offline',()=>setStatus('📴 Sem internet. As alterações ficam neste aparelho até a conexão voltar.','warn'));window.addEventListener('focus',()=>schedulePull(700,false));window.addEventListener('pageshow',()=>{ensureHost();schedulePull(900,true)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedulePull(700,false)});setInterval(async()=>{if(document.hidden||!team())return;await syncRemote(false);await syncLocal(false);refreshMembers(false)},10000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 async function deleteCompletion(rawId){
@@ -362,5 +428,5 @@ async function checkAlreadyCompleted(rawId){
  const record=data.records.find(x=>norm(x.opCode)===id&&['pending','ready'].includes(String(x.state||'')));
  return record?{state:String(record.state),opCode:id,production:record.production,scrap:record.scrap}:null;
 }
-window.DFProducaoEquipeOnline={checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+window.DFProducaoEquipeOnline={migrateHistoricalProductionData,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
