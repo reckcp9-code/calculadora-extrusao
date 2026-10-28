@@ -1,6 +1,6 @@
 {
-  "version": "1.0.622",
-  "title": "Recuperação segura da OP USN 266 kg",
-  "message": "Reenvio condicionado ao registro local exato e ausência no D1; sem duplicação ou exclusão.",
+  "version": "1.0.620",
+  "title": "Baixa de operador enviada diretamente ao D1",
+  "message": "Confirma foto e OP no servidor antes de mostrar enviada; erro de envio fica visível. Preserva saída de equipe v618.",
   "updatedAt": "2026-10-27"
 }
