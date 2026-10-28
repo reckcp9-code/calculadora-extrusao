@@ -1,6 +1,6 @@
 {
-  "version": "1.0.673",
-  "title": "Correção da entrada do aplicativo",
-  "message": "Corrigido erro de sintaxe no carregamento do QR Code que impedia abrir o DF Extrusor PRO; dados, OPs e sincronização preservados.",
+  "version": "1.0.674",
+  "title": "Última formulação visível para toda a equipe",
+  "message": "Formulações Salvas mostra e seleciona apenas a mais recente, criada em qualquer celular. Todas as anteriores permanecem guardadas no D1 e disponíveis para vínculos com OPs.",
   "updatedAt": "2026-10-28"
 }
