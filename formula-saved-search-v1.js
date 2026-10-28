@@ -31,7 +31,7 @@ function open(sel){
   const ov=document.createElement('div');
   active=ov;
   ov.className='df-formula-picker';
-  ov.innerHTML='<div class="df-fp-box"><div class="df-fp-title">Formulações salvas <button type="button" class="df-fp-x">×</button></div><div class="df-fp-search"><span>⌕</span><input type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar formulação..."></div><div class="df-fp-filter"><button type="button" data-filter="all" class="on">Todas</button><button type="button" data-filter="fav">★ Favoritas</button><button type="button" class="df-fp-delete-all">🗑 Excluir todas</button></div><div class="df-fp-list"></div></div>';
+  ov.innerHTML='<div class="df-fp-box"><div class="df-fp-title">Formulações salvas <button type="button" class="df-fp-x">×</button></div><div class="df-fp-search"><span>⌕</span><input type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar formulação..."></div><div class="df-fp-filter"><button type="button" data-filter="all" class="on">Todas</button><button type="button" data-filter="fav">★ Favoritas</button></div><div class="df-fp-list"></div></div>';
   document.body.appendChild(ov);
   const input=ov.querySelector('input'),list=ov.querySelector('.df-fp-list');
   ov.addEventListener('touchmove',e=>{if(!e.target.closest('.df-fp-list'))e.preventDefault()},{passive:false});
@@ -109,8 +109,6 @@ function open(sel){
     ov.querySelectorAll('.df-fp-filter button').forEach(x=>x.classList.toggle('on',x===b));
     render(true);
   });
-  const delAll=ov.querySelector('.df-fp-delete-all');
-  if(delAll)delAll.onclick=async()=>{if(delAll.disabled)return;delAll.disabled=true;try{await window.DFTeamFormulasShared?.deleteAll?.();const next=sortedOptions(sel);data.items=next.items;render(true)}finally{delAll.disabled=false}};
   ov.querySelector('.df-fp-x').onclick=close;
   ov.addEventListener('click',e=>{if(e.target===ov)close()});
   const coarse=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
@@ -126,7 +124,7 @@ const st=document.createElement('style');st.textContent=`
 .df-fp-search input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#f8fafc!important;padding:15px 0!important;font-size:16px!important}
 .df-fp-filter{flex:0 0 auto;display:flex;gap:8px;padding:0 0 12px}
 .df-fp-filter button{border:1px solid #334155;background:#111827;color:#94a3b8;border-radius:999px;padding:10px 15px;font-weight:800;cursor:pointer}
-.df-fp-filter button.on{border-color:#d99a20;color:#ffd36a;background:#211700}.df-fp-filter .df-fp-delete-all{margin-left:auto;border-color:#7f1d1d;color:#fca5a5;background:#1f1115}.df-fp-filter .df-fp-delete-all:disabled{opacity:.55}
+.df-fp-filter button.on{border-color:#d99a20;color:#ffd36a;background:#211700}
 .df-fp-list{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 0 20px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto}
 .df-fp-row{display:grid;grid-template-columns:minmax(0,1fr) 52px;align-items:center;border-bottom:1px solid #253149;min-height:66px}
 .df-fp-row.on{background:#13223a;border-radius:12px}
