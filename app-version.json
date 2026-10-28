@@ -1,6 +1,6 @@
 {
-  "version": "1.0.630",
-  "title": "Baixa de OP de Formulação com aprovação do dono",
-  "message": "Foto da OP vinculada automaticamente ao ID da formulação e OPID; fica pendente para conferência do dono e só depois entra nas prontas e no total mensal.",
+  "version": "1.0.631",
+  "title": "Reenvio de foto de OP para Formulação",
+  "message": "Corrigido o reenvio de fotos pendentes: a foto volta para Formulação vinculada ao OPID e ao ID da fórmula, com fallback de seleção para OPs antigas.",
   "updatedAt": "2026-10-28"
 }
