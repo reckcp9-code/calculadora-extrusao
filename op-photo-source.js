@@ -32,7 +32,8 @@
     typeWrap.textContent='TIPO DA FOTO';
     const typeSelect=document.createElement('select');
     typeSelect.id='dfOpPhotoType';
-    typeSelect.innerHTML='<option value="production_op">PRODUÇÃO DA OP</option><option value="formulation">FORMULAÇÃO</option>';
+    typeSelect.innerHTML='<option value="production_op">PRODUÇÃO DA OP • ligada ao OPID</option>';
+    typeSelect.disabled=true;
     try{const saved=localStorage.getItem('df_op_photo_type_v1');if(saved==='formulation'||saved==='production_op')typeSelect.value=saved}catch(e){}
     typeSelect.addEventListener('change',function(){try{localStorage.setItem('df_op_photo_type_v1',typeSelect.value)}catch(e){}});
     typeWrap.appendChild(typeSelect);
