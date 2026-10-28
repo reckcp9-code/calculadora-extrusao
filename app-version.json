@@ -1,6 +1,6 @@
 {
-  "version": "1.0.623",
-  "title": "Foto do operador vinculada à OP",
-  "message": "Fotos de pendentes enviadas ao servidor e abertas pelo ID em qualquer celular da equipe.",
+  "version": "1.0.624",
+  "title": "Correção da tela preta no carregamento",
+  "message": "Corrigido erro de sintaxe na inicialização; preservadas OPs, fotos e sincronização.",
   "updatedAt": "2026-10-27"
 }
