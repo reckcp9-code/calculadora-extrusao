@@ -1,6 +1,6 @@
 {
-  "version": "1.0.661",
-  "title": "Correção da sincronização de OPs salvas",
-  "message": "Reduz consultas duplicadas ao servidor e preserva envio, exclusão e sincronização das OPs por equipe.",
+  "version": "1.0.662",
+  "title": "Correção de sincronização travada",
+  "message": "Limite de 6,5 segundos por requisição de OPs salvas; falhas de rede não bloqueiam novas tentativas automáticas.",
   "updatedAt": "2026-10-28"
 }
