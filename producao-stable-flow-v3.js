@@ -103,18 +103,28 @@ const id=o=>String(o?.id||'').trim().toUpperCase();
 const fingerprint=o=>JSON.stringify(o);
 let busy=false,queued=false,ready=false;function status(msg,ok){let box=document.getElementById('dfD1SavedStatus');if(!box){const parent=document.getElementById('dfSavedOps');if(!parent)return;box=document.createElement('div');box.id='dfD1SavedStatus';box.style.cssText='margin:8px 0;padding:10px;border:1px solid #334155;border-radius:10px;color:#bfdbfe;font:700 12px system-ui';parent.insertBefore(box,parent.querySelector('.dfOpSearch'))}if(box.textContent!==msg)box.textContent=msg;box.style.color=ok?'#86efac':'#fde68a';}
 function device(){return String(window.DFDeviceIdentity?.get?.()||localStorage.getItem('df_licenseauth_device_v1')||'').trim()}
+async function requestJSON(url,options,timeoutMs=6500){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{
+  const r=await fetch(url,{...options,signal:controller.signal});
+  const j=await r.json().catch(()=>({}));
+  return {r,j};
+ }catch(e){throw Error(e?.name==='AbortError'?'Tempo limite de conexão com a nuvem (6,5 s)':String(e?.message||e))}
+ finally{clearTimeout(timer)}
+}
 async function session(force){
  let token=String(sessionStorage.getItem('df_secure_token_v2')||'').trim();
  if(token&&!force)return token;
  const credential=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim(),dev=device();
  if(!credential||!dev)throw Error('Sem sessão para sincronizar');
- const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
- const j=await r.json();if(!r.ok||!j.token)throw Error(j.error||'Sessão indisponível');
+ const {r,j}=await requestJSON(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
+ if(!r.ok||!j.token)throw Error(j.error||'Sessão indisponível');
  sessionStorage.setItem('df_secure_token_v2',j.token);return j.token;
 }
 async function call(path,body,retry=true){
- const token=await session(false),r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device()},body:JSON.stringify(body),cache:'no-store'});
- const j=await r.json().catch(()=>({}));if(r.status===401&&retry){await session(true);return call(path,body,false)}
+ const token=await session(false);
+ const {r,j}=await requestJSON(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device()},body:JSON.stringify(body),cache:'no-store'});
+ if(r.status===401&&retry){await session(true);return call(path,body,false)}
  if(!r.ok||j.ok===false){const e=Error(j.error||'HTTP '+r.status);e.status=r.status;throw e}return j;
 }
 function local(){const a=read(K,[]);return Array.isArray(a)?a:[]}
