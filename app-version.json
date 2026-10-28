@@ -1,6 +1,6 @@
 {
-  "version": "1.0.620.1",
-  "title": "Correção de OPs Automáticas na base 1.0.620",
-  "message": "Restaurado o módulo de peso e baixa automática; mantidas as demais rotinas da versão 1.0.620.",
+  "version": "1.0.621",
+  "title": "Produção oficial da equipe consultada no D1",
+  "message": "MÊS e AGORA usam registros confirmados no D1; armazenamento local não exclui registros oficiais.",
   "updatedAt": "2026-10-27"
 }
