@@ -1,6 +1,6 @@
 {
-  "version": "1.0.658",
-  "title": "Saída da equipe mesmo após revogação",
-  "message": "Operador removido da equipe pode confirmar limpeza local da Produção sem afetar D1, R2, demais aparelhos ou Formulação.",
+  "version": "1.0.659",
+  "title": "Sincronização mais rápida das OPs salvas",
+  "message": "Consultas D1 e histórico mensal executadas em paralelo para reduzir espera ao abrir OPs salvas, sem alterar registros ou aprovações.",
   "updatedAt": "2026-10-28"
 }
