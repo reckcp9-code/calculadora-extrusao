@@ -1,6 +1,6 @@
 {
-  "version": "1.0.641",
-  "title": "Saída da equipe com limpeza local completa",
-  "message": "Ao sair da equipe, apaga fotos, formulações, materiais, pesos e OPs somente do aparelho. Preserva dados do servidor e licença para resincronizar ao entrar novamente.",
+  "version": "1.0.642",
+  "title": "Entrada na equipe com limpeza local",
+  "message": "Antes de entrar, confirma e limpa dados operacionais somente do aparelho. Preserva a nuvem, a licença e sincroniza a equipe após reiniciar.",
   "updatedAt": "2026-10-28"
 }
