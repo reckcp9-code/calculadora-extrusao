@@ -1,6 +1,6 @@
 {
-  "version": "1.0.671",
-  "title": "Recuperação de formulações e baixa segura",
-  "message": "39 formulações históricas recuperadas. Na baixa, confirmar foto e OP no D1 antes de disparar sincronização da equipe, evitando chamadas concorrentes.",
+  "version": "1.0.672",
+  "title": "Baixa por QR sem digitar número da formulação",
+  "message": "QR vincula automaticamente OP, foto e formulação; OPs antigas excluídas usam vínculo próprio sem pedir número, mantendo aprovação e bloqueio de baixa duplicada.",
   "updatedAt": "2026-10-28"
 }
