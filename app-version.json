@@ -1,6 +1,6 @@
 {
-  "version": "1.0.660",
-  "title": "OPs salvas com sincronização rápida",
-  "message": "Consulta automática das OPs salvas a cada 7 segundos com envio imediato de novas OPs. Sem alterar fluxo de baixas.",
+  "version": "1.0.661",
+  "title": "Correção da sincronização de OPs salvas",
+  "message": "Reduz consultas duplicadas ao servidor e preserva envio, exclusão e sincronização das OPs por equipe.",
   "updatedAt": "2026-10-28"
 }
