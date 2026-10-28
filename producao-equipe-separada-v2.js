@@ -115,19 +115,34 @@ async function publishOfficialPending(t,id,state,photoId){
  if(!result.record||result.record.opCode!==id||!['pending','ready'].includes(result.record.state))throw Error('Servidor não confirmou a baixa da OP '+id);
  return result.record;
 }
+function inferredSector(machine,oldSector){
+ const m=norm(machine),cfg=config();
+ for(const sec of ['Picote','Sacoleira','Blocadora']){
+  const names=Array.isArray(cfg?.[sec]?.machines)?cfg[sec].machines:[];
+  if(names.some(x=>norm(x)===m))return sec;
+ }
+ if(/BLOCADORA|BLOQUEADORA|BLOCAD/.test(m))return 'Blocadora';
+ if(/SACOLEIRA|SACOLA.*FLEX/.test(m))return 'Sacoleira';
+ return oldSector||'Picote';
+}
 async function pullOfficialRecords(t){
  const j=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:true});
  if(!Array.isArray(j.records))throw Error('Servidor não retornou a lista oficial de OPs.');
  const states=new Map(),photos={};
+ // Baixas antigas recuperadas sem foto são oficiais no D1; não reenvie arquivos inexistentes.
+ const existingMark=read(HISTORY_MARK,{}),historyIds=existingMark?.teamId===t.teamId?{...(existingMark.ids||{})}:{};
+ let historyChanged=false;
  for(const r of j.records){
   const id=norm(r.opCode);if(!id.startsWith('DFOP-'))continue;
   if(r.state==='deleted'){states.set(id,{opId:id,deleted:true,updatedAt:r.updatedAt||nowIso()});continue}
   if(!['pending','ready'].includes(r.state))continue;
   const old=ops().find(o=>norm(o.id)===id)||{};
-  const state={op:{id,sector:old.sector||'Picote',machine:r.machine||old.machine||'',product:r.productName||old.product||'',measure:old.measure||'',operator:r.operatorName||old.operator||'',shift:old.shift||'',createdAt:r.createdAt||r.completedAt||'',status:r.state==='pending'?'pending':'closed'},auto:{opId:id,date:r.localDate||localYmd(r.completedAt),createdAt:r.completedAt,completedAt:r.completedAt,machine:r.machine,product:r.productName,operator:r.operatorName,production:num(r.production),scrap:num(r.scrap),status:r.state==='pending'?'pending':'ok',hasPhoto:!!r.photoId}};
+  if(r.state==='ready'&&!r.photoId&&!historyIds[id]){historyIds[id]=true;historyChanged=true}
+  const state={op:{id,sector:inferredSector(r.machine||old.machine,old.sector),machine:r.machine||old.machine||'',product:r.productName||old.product||'',measure:old.measure||'',operator:r.operatorName||old.operator||'',shift:old.shift||'',createdAt:r.createdAt||r.completedAt||'',status:r.state==='pending'?'pending':'closed'},auto:{opId:id,date:r.localDate||localYmd(r.completedAt),createdAt:r.completedAt,completedAt:r.completedAt,machine:r.machine,product:r.productName,operator:r.operatorName,production:num(r.production),scrap:num(r.scrap),status:r.state==='pending'?'pending':'ok',hasPhoto:!!r.photoId}};
   states.set(id,{opId:id,state,updatedAt:r.updatedAt||nowIso(),official:true});
   if(r.photoId)photos[id]={cloudId:String(r.photoId),teamId:t.teamId,updatedAt:r.updatedAt||nowIso(),ts:time(r.updatedAt)};
  }
+ if(historyChanged)write(HISTORY_MARK,{teamId:t.teamId,ids:historyIds});
  return {states,photos};
 }
 
