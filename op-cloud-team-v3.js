@@ -66,7 +66,7 @@ async function findPhotoByOp(opCode,month){
  const id=String(opCode||'').trim().toUpperCase();if(!validQr(id)||!team?.teamId)throw Error('Equipe ou ID da OP inválido.');
  const map=load(MAP_KEY,{});let photoId=String(map[id]?.photoId||'');
  if(photoId){try{await apiBlobGet(photoId,false);return photoId}catch(e){photoId=''}}
- const months=[month,String(id.match(/^DFOP-(\\d{4})(\\d{2})/)?.slice(1,3).join('-')||''),selectedMonth(),''].filter((v,i,a)=>a.indexOf(v)===i);
+ const months=[month,String(id.match(/^DFOP-(\d{4})(\d{2})/)?.slice(1,3).join('-')||''),selectedMonth(),''].filter((v,i,a)=>a.indexOf(v)===i);
  for(const m of months){
   const j=await apiPost('/op/photo/list',{teamId:team.teamId,...(m?{month:m}:{})});
   const p=(Array.isArray(j.photos)?j.photos:[]).find(x=>remoteCode(x)===id);
