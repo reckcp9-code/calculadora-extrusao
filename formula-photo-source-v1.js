@@ -2,7 +2,7 @@
 'use strict';
 if(window.DFFormulaPhotoSourceV1)return;
 window.DFFormulaPhotoSourceV1=true;
-const CLOUD_SRC='./op-cloud-team-v3.js?v=1.0.627';
+const CLOUD_SRC='./op-cloud-team-v3.js?v=1.0.628';
 let pendingFormulaId='';
 function addStyle(){if(document.getElementById('dfFormulaPhotoStyle'))return;const s=document.createElement('style');s.id='dfFormulaPhotoStyle';s.textContent='#dfFormulaPhotoInput{display:none!important}.dfFormulaPhotoTools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.dfFormulaPhotoTools button{border:1px solid #35506e;background:#0c1a2b;color:#dbeafe;border-radius:9px;padding:9px 7px;font-size:11px;font-weight:900}.dfFormulaPhotoStatus{grid-column:1/-1;color:#94a3b8;font-size:10px;line-height:1.4}.dfFormulaPhotoStatus.ok{color:#86efac}.dfFormulaPhotoStatus.warn{color:#fde68a}@media(max-width:420px){.dfFormulaPhotoTools button{font-size:10px;padding:8px 5px}}';document.head.appendChild(s)}
 function input(){let i=document.getElementById('dfFormulaPhotoInput');if(i)return i;i=document.createElement('input');i.id='dfFormulaPhotoInput';i.type='file';i.accept='image/*';i.setAttribute('capture','environment');document.body.appendChild(i);i.addEventListener('change',upload);return i}
