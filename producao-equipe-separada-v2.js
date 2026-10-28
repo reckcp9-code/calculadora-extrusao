@@ -141,12 +141,12 @@ function historicalTime(row){
  const raw=String(row?.completedAt||row?.createdAt||row?.approvedAt||'');
  const ts=Date.parse(raw);
  if(Number.isFinite(ts)&&ts>0)return ts;
- const code=norm(row?.opId||row?.id),match=code.match(/^DFOP-(\\d{4})(\\d{2})(\\d{2})-/);
+ const code=norm(row?.opId||row?.id),match=code.match(/^DFOP-(\d{4})(\d{2})(\d{2})-/);
  return match?Date.parse(match[1]+'-'+match[2]+'-'+match[3]+'T00:00:00Z'):NaN;
 }
 function historicEligible(row){
  const id=norm(row?.opId||row?.id);
- return /^DFOP-\\d{8}-/.test(id)&&row?.status==='ok'&&num(row.production)>0&&
+ return /^DFOP-\d{8}-/.test(id)&&row?.status==='ok'&&num(row.production)>0&&
  num(row.scrap)>=0&&num(row.scrap)<=num(row.production)&&
  Number.isFinite(historicalTime(row))&&historicalTime(row)<HISTORIC_CUTOFF;
 }
