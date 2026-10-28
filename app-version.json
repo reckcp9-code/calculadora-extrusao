@@ -1,6 +1,6 @@
 {
-  "version": "1.0.672",
-  "title": "Baixa por QR sem digitar número da formulação",
-  "message": "QR vincula automaticamente OP, foto e formulação; OPs antigas excluídas usam vínculo próprio sem pedir número, mantendo aprovação e bloqueio de baixa duplicada.",
+  "version": "1.0.673",
+  "title": "Correção da entrada do aplicativo",
+  "message": "Corrigido erro de sintaxe no carregamento do QR Code que impedia abrir o DF Extrusor PRO; dados, OPs e sincronização preservados.",
   "updatedAt": "2026-10-28"
 }
