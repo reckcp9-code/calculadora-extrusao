@@ -1,6 +1,6 @@
 {
-  "version": "1.0.662",
-  "title": "Correção de sincronização travada",
-  "message": "Limite de 6,5 segundos por requisição de OPs salvas; falhas de rede não bloqueiam novas tentativas automáticas.",
+  "version": "1.0.663",
+  "title": "OP da Produção direto para o D1",
+  "message": "Nova OP é enviada imediatamente pelo Worker ao D1; leitura da equipe ocorre separadamente a cada 5 segundos.",
   "updatedAt": "2026-10-28"
 }
