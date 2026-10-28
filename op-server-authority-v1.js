@@ -104,6 +104,23 @@ function install(){if(booted)return;booted=true;
   setTimeout(()=>{migrateOnce().then(()=>schedule(300,true))},1300);
 }
 
-window.DFOpServerAuthority={deleteOfficial,approve:approveOp,pending:()=>pendingRecords.slice(),sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
+
+async function checkNewDischarge(id){
+ id=norm(id);
+ const already=localOps().some(o=>opId(o)===id&&!o.deletedAt&&!o.deleted_at&&(o.status==='ok'||o.status==='pending'||o.d1State==='ready'||o.d1State==='pending'));
+ if(already)return false;
+ const t=team();if(!t?.teamId)return true;
+ if(navigator.onLine===false)throw Error('Conecte à internet para conferir se esta OP já foi baixada.');
+ const match=id.match(/^DFOP-(\d{4})(\d{2})/);
+ const months=[localMonth(),match?match[1]+'-'+match[2]:''].filter((v,i,a)=>v&&a.indexOf(v)===i);
+ for(const month of months){
+  const j=await apiPost('/op/record/list',{teamId:t.teamId,month,includeDeleted:true});
+  if(!Array.isArray(j.records))throw Error('Não foi possível conferir a baixa desta OP. Tente novamente.');
+  if(j.records.some(o=>norm(o.opCode)===id&&['ready','pending'].includes(o.state)))return false;
+ }
+ return true;
+}
+
+window.DFOpServerAuthority={checkNewDischarge,deleteOfficial,approve:approveOp,pending:()=>pendingRecords.slice(),sync:(force=true,month)=>pullMonth(force,month),flush:flushQueue,migrate:migrateOnce,queueCount:()=>queue().length,supported:()=>supported,summary:()=>lastSummary,health:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/system/health',{teamId:t.teamId,month:selectedMonth()})},history:async opCode=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/record/history',{teamId:t.teamId,opCode})},prunePhotos:async month=>{const t=team();if(!t?.teamId)throw Error('Equipe não conectada.');return apiPost('/op/photo/prune-to-official',{teamId:t.teamId,month:String(month||selectedMonth()).slice(0,7)})}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
