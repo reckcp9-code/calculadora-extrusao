@@ -21,7 +21,7 @@ function mount(){
  const host=pane.querySelector('#dfMonthlyPhotoRows');host.replaceChildren();
  if(!rows.length){host.textContent='Nenhuma OP baixada encontrada neste mês neste aparelho.';return}
  rows.forEach(o=>{const r=document.createElement('div');r.className='dfMonthlyRow';r.innerHTML='<strong>'+esc(name(o))+'</strong><div style="font-size:12px;color:#94a3b8;overflow-wrap:anywhere">'+esc(code(o))+'</div><div>Produção: '+esc(o.produzido||0)+' kg • Apara: '+esc(o.apara||0)+' kg</div><button type="button">📸 ABRIR FOTO E EDITAR OP</button>';
- r.querySelector('button').onclick=async()=>{await window.DFOpCloud?.syncMonth?.(m.value);if(typeof window.DFOpenStoredOpPhoto!=='function'){alert('Editor de fotos indisponível.');return}await window.DFOpenStoredOpPhoto(code(o));if(document.getElementById('dfOpModal')?.classList.contains('on'))window.DFOpReadyEditMount?.(code(o))};
+ r.querySelector('button').onclick=async()=>{const btn=r.querySelector('button'),id=code(o);btn.disabled=true;try{const cloud=window.DFOpCloud;if(cloud?.viewPhotoByOp){await cloud.viewPhotoByOp(id);return}if(typeof window.DFOpenStoredOpPhoto==='function'){await window.DFOpenStoredOpPhoto(id);if(document.getElementById('dfOpModal')?.classList.contains('on'))window.DFOpReadyEditMount?.(id);return}alert('Visualizador de fotos indisponível.')}catch(e){alert('Não consegui abrir a foto da nuvem: '+String(e?.message||e))}finally{btn.disabled=false}};
  host.appendChild(r)});
  }
  b.onclick=()=>{tabs.querySelectorAll('[data-pane]').forEach(x=>x.classList.remove('on'));b.classList.add('on');tabs.parentElement.querySelectorAll('.dfOpsPane').forEach(x=>x.classList.remove('on'));pane.classList.add('on');render();window.DFOpCloud?.syncMonth?.(m.value)};
