@@ -32,6 +32,7 @@ async function clearLocalTeamData(){
   await clearPhotoDb();
   clearStorageArea(localStorage);clearStorageArea(sessionStorage);
 }
+window.DFTeamLocalCleanup={clear:clearLocalTeamData};
 async function leave(team,btn){
   if(leaving)return;
   var teamId=String(team&&team.teamId||'').trim();if(!teamId)return;
