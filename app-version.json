@@ -1,6 +1,6 @@
 {
-  "version": "1.0.635",
-  "title": "Fotos de OP enviadas e verificadas na nuvem",
-  "message": "Envio automático ou por ID funciona sem formulação vinculada; só confirma após verificar arquivo no servidor.",
+  "version": "1.0.636",
+  "title": "Validação de imagem no envio de fotos",
+  "message": "Valida o arquivo real antes do envio e identifica a OP com foto inválida sem apagar a imagem local.",
   "updatedAt": "2026-10-28"
 }
