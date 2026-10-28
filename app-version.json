@@ -1,6 +1,6 @@
 {
-  "version": "1.0.669",
-  "title": "Última formulação compartilhada",
-  "message": "Somente a formulação mais recente fica salva na equipe. A nova substitui as anteriores no D1 e nos celulares, com proteção de envio offline.",
+  "version": "1.0.670",
+  "title": "Recuperação segura de formulações",
+  "message": "Restaurado comportamento anterior: múltiplas formulações salvas; recuperação dos registros históricos no D1 sem apagar Produção.",
   "updatedAt": "2026-10-28"
 }
