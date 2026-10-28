@@ -1,6 +1,6 @@
 {
-  "version": "1.0.626",
-  "title": "Separação de fotos por categoria",
-  "message": "Fotos de formulação e produção da OP separadas por equipe e vinculadas ao OPID.",
+  "version": "1.0.627",
+  "title": "Recuperação de foto original por ID",
+  "message": "Permite reenviar foto local do operador pelo ID da OP e confirma o arquivo na nuvem antes de concluir.",
   "updatedAt": "2026-10-28"
 }
