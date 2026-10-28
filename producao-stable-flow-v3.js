@@ -128,10 +128,10 @@ async function sync(){
  try{
   const tid=String(team.teamId),s=shadow(tid),body={teamId:tid},first=await call('/production/saved/list',body);
   const remote=new Map((first.records||[]).filter(x=>x?.opCode).map(x=>[String(x.opCode).toUpperCase(),x]));
-  const current=local();
+  const current=local();let mutated=false;
   // Explicit local deletions only; never infer deletion from an empty cache.
   for(const code of Object.keys(s.deleted||{})){
-   if(remote.get(code)?.state!=='deleted')await call('/production/saved/delete',{...body,opCode:code});
+   if(remote.get(code)?.state!=='deleted'){await call('/production/saved/delete',{...body,opCode:code});mutated=true;}
    s.known[code]='__DELETED__';delete s.deleted[code];
    // Persist each acknowledged tombstone immediately; never lose it on a later network failure.
    const live=shadow(tid);live.known[code]='__DELETED__';delete live.deleted[code];put(D,live);
@@ -147,11 +147,13 @@ async function sync(){
    const created=Date.parse(String(op.createdAt||''));
    const isNewEligible=Number.isFinite(created)&&created>=migrationCutoff;
    if(op.status==='open'&&((!rec&&!s.known[code]&&isNewEligible)||(rec&&s.known[code]&&s.known[code]!==sig))){
-    try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig}
+    try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig;mutated=true}
     catch(e){if(e.status===409){s.known[code]='__DELETED__';continue}throw e}
    }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
   }
-  const latest=await call('/production/saved/list',body);
+  // A primeira lista já é o snapshot válido quando não houve mutações remotas.
+  // Evita uma segunda consulta HTTP a cada ciclo de 7 segundos.
+  const latest=mutated?await call('/production/saved/list',body):first;
   // Deletions may arrive while requests are in flight. Always read the newest local tombstones.
   const newest=shadow(tid);for(const code of Object.keys(newest.deleted))s.deleted[code]=true;
   for(const code of Object.keys(newest.known))if(newest.known[code]==='__DELETED__')s.known[code]='__DELETED__';
