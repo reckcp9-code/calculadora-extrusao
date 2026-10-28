@@ -1,6 +1,6 @@
 {
-  "version": "1.0.667",
-  "title": "DF Extrusor mais rápido e leve",
-  "message": "Melhoria geral de desempenho e carregamento offline, sem alterar fluxos do aplicativo.",
+  "version": "1.0.668",
+  "title": "Excluir todas as formulações salvas",
+  "message": "Novo botão ao lado de Favoritas permite excluir todas as formulações salvas da equipe com confirmação.",
   "updatedAt": "2026-10-28"
 }
