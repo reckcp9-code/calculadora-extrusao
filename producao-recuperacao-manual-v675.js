@@ -101,6 +101,16 @@ async function recover(){
   if(resp.stale||resp.record?.state!=='ready'||norm(resp.record?.opCode)!==id)throw Error('D1 não confirmou a recuperação em Prontas. Confira antes de repetir.');
   const verify=await post('/op/record/history',{opCode:id});
   if(verify.record?.state!=='ready'||Number(verify.record.production)!==kg||Number(verify.record.scrap)!==scrap)throw Error('Não foi possível confirmar a soma. Consulte novamente no D1 antes de repetir.');
+  // Remova somente a exclusão local desta OP, após confirmação do D1.
+  const pending=read('df_producao_delete_pending_v1',{});
+  if(pending&&Object.prototype.hasOwnProperty.call(pending,id)){
+    delete pending[id];try{localStorage.setItem('df_producao_delete_pending_v1',JSON.stringify(pending))}catch(e){}
+  }
+  // A recuperação sem foto é histórica e não deve tentar reenviar a foto apagada.
+  const history=read('df_producao_historico_sem_foto_v647',{});
+  const historyIds=history?.teamId===t.teamId?{...(history.ids||{})}:{};
+  historyIds[id]=true;
+  try{localStorage.setItem('df_producao_historico_sem_foto_v647',JSON.stringify({teamId:t.teamId,ids:historyIds}))}catch(e){}
   checked=null;f('Agree').checked=false;
   msg('✅ RECUPERADA NO D1: '+kg.toLocaleString('pt-BR')+' kg em PRONTAS — '+machine+' — mês '+day.slice(0,7)+'.','ok');
   try{await window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
@@ -139,7 +149,13 @@ function mount(){
  host.insertAdjacentElement('afterend',el);
  f('Date').value=today();$('dfRecMachineList').innerHTML=catalog().map(x=>'<option value="'+esc(x.machine)+'">'+esc(x.sector)+'</option>').join('');
  $('dfRecOpen').onclick=()=>el.classList.toggle('open');
- $('dfRecCheck').onclick=check;$('dfRecSave').onclick=recover;f('Code').addEventListener('input',reset);
+ $('dfRecCheck').onclick=check;$('dfRecSave').onclick=recover;
+ f('Code').addEventListener('input',()=>{
+   reset();
+   // Cada novo QR começa com dados limpos; nunca herdar pesos de outra OP.
+   for(const key of ['Machine','Product','Operator','Kg'])f(key).value='';
+   f('Scrap').value='0';f('Date').value=today();
+ });
  $('dfRecScan').onclick=()=>$('dfRecFile').click();
  $('dfRecFile').onchange=async e=>{
   const file=e.target.files?.[0];if(!file)return;
@@ -150,7 +166,10 @@ function mount(){
    const d=g.getImageData(0,0,c.width,c.height),value=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'})?.data||'';
    const code=norm(value.match(/DFOP-\d{8}-\d{6}-[A-Z0-9-]+/i)?.[0]||'');
    if(!valid(code))return msg('QR não reconhecido. Digite o ID impresso.','warn');
-   f('Code').value=code;reset();await check();
+   f('Code').value=code;reset();
+   for(const key of ['Machine','Product','Operator','Kg'])f(key).value='';
+   f('Scrap').value='0';f('Date').value=today();
+   await check();
   }catch(e){msg('Não foi possível ler o QR da foto. Digite o ID impresso.','warn')}finally{e.target.value=''}
  };
  return true;
