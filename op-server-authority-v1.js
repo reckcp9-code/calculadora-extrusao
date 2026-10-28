@@ -60,7 +60,7 @@ function applyServerMonth(month,records,summary){
   try{const before=JSON.stringify(old),after=JSON.stringify(next);if(before!==after){save(OPS_KEY,next);changed=true}}catch(e){save(OPS_KEY,next);changed=true}
   save(TOMB_KEY,tombs);lastSummary=summary||lastSummary;currentMonth=month;
   if(changed){const m=$('dfOpMonth');if(m)try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){};try{window.DFOpTeamDateCanonical?.run?.()}catch(e){};try{window.dispatchEvent(new CustomEvent('df-op-d1-applied',{detail:{month,summary:lastSummary}}))}catch(e){}}
-  pendingRecords=server.filter(x=>x?.state==='pending');renderApprovalPanel();emitStatus();return changed
+  try{const formulaKey='df_formula_ops_auto_v2',formulaOps=JSON.parse(localStorage.getItem(formulaKey)||'[]'),stateById=new Map(server.map(r=>[norm(r?.opCode),String(r?.state||'ready')]));let formulaChanged=false;for(const o of formulaOps){const id=norm(o?.id||o?.qr);if(!stateById.has(id))continue;const ready=stateById.get(id)==='ready',nextStatus=ready?'ok':'pending';if(o.status!==nextStatus){o.status=nextStatus;o.reasons=ready?[]:['Aguardando conferência do dono da equipe'];formulaChanged=true}}if(formulaChanged){localStorage.setItem(formulaKey,JSON.stringify(formulaOps));try{window.dispatchEvent(new CustomEvent('df-op-formula-status',{detail:{month}}))}catch(e){}}}catch(e){}pendingRecords=server.filter(x=>x?.state==='pending');renderApprovalPanel();emitStatus();return changed
 }
 
 async function pullMonth(force,month){const t=team();if(!t?.teamId||syncing||navigator.onLine===false||document.hidden)return false;month=String(month||selectedMonth()).slice(0,7);if(!force&&month===currentMonth&&Date.now()-lastPull<20000)return true;syncing=true;try{await migrateOnce();if(supported===false)return false;await flushQueue();const j=await apiPost('/op/record/list',{teamId:t.teamId,month,includeDeleted:true});supported=true;lastPull=Date.now();applyServerMonth(month,j.records||[],j.summary||null);return true}catch(e){if(Number(e?.status)===404)supported=false;emitStatus();return false}finally{syncing=false}}
@@ -90,7 +90,7 @@ async function approveOp(opCode,button){
 document.addEventListener('click',e=>{const btn=e.target?.closest?.('[data-df-approve]');if(!btn)return;e.preventDefault();approveOp(btn.dataset.dfApprove,btn).catch(err=>alert('Não foi possível confirmar: '+String(err.message||err)))},true);
 
 function install(){if(booted)return;booted=true;
-  window.addEventListener('df-op-saved',e=>{const r=e?.detail?.record;if(r&&r.source!=='d1-authority')onSaved(r)});
+  window.addEventListener('df-op-saved',e=>{const r=e?.detail?.record;if(r&&r.source!=='d1-authority'&&!(r.photoType==='formulation'&&r.status==='pending'&&!e?.detail?.photoSync))onSaved(r)});
   window.addEventListener('df-op-record-deleted',e=>{if(!e?.detail?.serverConfirmed)onDeleted(e?.detail?.id)});
   window.addEventListener('df-team-joined',()=>{supported=null;localStorage.removeItem(MIG_PREFIX+String(team()?.teamId||''));schedule(500,true)});
   window.addEventListener('df-team-changed',()=>{supported=null;schedule(500,true)});
