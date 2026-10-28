@@ -58,7 +58,7 @@ function prefill(row,code){
  const values={Machine:old.machine||local.machine||local.maquina||'',Product:old.productName||local.product||local.produto||local.title||'',Operator:old.operatorName||local.operator||local.operador||'',Kg:old.production||local.production||'',Scrap:old.scrap??local.scrap??0,Date:old.localDate||local.date||local.productionDay||''};
  for(const [key,value] of Object.entries(values)){
   const el=f(key);
-  if(!el||el.value.trim()||(key==='Date'&&!/^\d{4}-\d{2}-\d{2}$/.test(String(value))))continue;
+  if(!el||(el.value.trim()&&!(key==='Scrap'&&el.value==='0')&&!(key==='Date'&&el.value===today()))||(key==='Date'&&!/^\d{4}-\d{2}-\d{2}$/.test(String(value))))continue;
   el.value=String(value||'');
  }
 }
