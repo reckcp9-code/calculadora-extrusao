@@ -8,25 +8,36 @@ function setFav(a){try{localStorage.setItem(FAVKEY,JSON.stringify(a))}catch(e){}
 function isFav(v){return getFav().includes(String(v))}
 function toggleFav(v){v=String(v);let a=getFav();a=a.includes(v)?a.filter(x=>x!==v):[v,...a];setFav(a)}
 let active=null;
-function isFormulaSelect(el){if(!el||el.tagName!=='SELECT')return false;const id=norm(el.id),name=norm(el.name),aria=norm(el.getAttribute('aria-label'));if(/formul/.test(id+' '+name+' '+aria))return true;const p=el.closest('.card,.savedItem,section,div');return !!(p&&/formula(c|ç)(a|ã)o|formula/.test(norm(p.textContent).slice(0,900))&&el.options&&el.options.length>2)}
-function timestamp(f){const raw=f?.updatedAt||f?.criado||f?.createdAt||'';const t=Date.parse(String(raw));if(Number.isFinite(t))return t;const id=Number(f?.id);return Number.isFinite(id)?id:0}
+function isFormulaSelect(el){if(!el||el.tagName!=='SELECT')return false;const id=norm(el.id),name=norm(el.name),aria=norm(el.getAttribute('aria-label'));if(el.id==='foSavedSelect'||/formul/.test(id+' '+name+' '+aria))return true;const p=el.closest('.card,.savedItem,section,div');return !!(p&&/formula(c|ç)(a|ã)o|formula/.test(norm(p.textContent).slice(0,900))&&el.options&&el.options.length>2)}
+function timestamp(f){
+ const rawId=String(f?.id??f?.formulaId??'').trim(),id=Number(rawId);
+ if(/^\d{13}$/.test(rawId)&&Number.isFinite(id)&&id>=1577836800000&&id<4102444800000)return id;
+ const t=Date.parse(String(f?.criado||f?.createdAt||''));
+ if(Number.isFinite(t))return t;
+ const updated=Date.parse(String(f?.updatedAt||''));
+ return Number.isFinite(updated)?updated:0;
+}
 function sortedOptions(sel){
-  const selected=sel.value;
+  const selected=String(sel?.value||'');
   let forms=[];try{const a=JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]');if(Array.isArray(a))forms=a}catch(e){}
-  const rank=new Map(forms.map((f,i)=>[String(f.id),{stamp:timestamp(f),i}]));
-  const arr=[...sel.options].map((o,i)=>({text:o.textContent,value:o.value,disabled:o.disabled,i,meta:rank.get(String(o.value))}));
-  // A ordem oficial vem dos registros sincronizados, não da posição antiga do SELECT.
-  arr.sort((a,b)=>{if(a.meta&&!b.meta)return -1;if(!a.meta&&b.meta)return 1;if(a.meta&&b.meta)return b.meta.stamp-a.meta.stamp||a.meta.i-b.meta.i;return a.i-b.i});
-  const seen=new Set(),items=[];
-  for(const x of arr){if(!x.value||seen.has(String(x.value)))continue;seen.add(String(x.value));items.push(x)}
-  return{selected,items};
+  const active=forms.filter(f=>f?.id!=null&&!window.DFFormulaTombstones?.isDeleted?.(String(f.id)));
+  const newest=active.slice().sort((a,b)=>timestamp(b)-timestamp(a)||String(b.id).localeCompare(String(a.id)))[0];
+  if(!newest)return {selected:'',items:[]};
+  // As receitas antigas permanecem no armazenamento e nas OPs; o painel
+  // de seleção mostra SOMENTE a última criada por qualquer membro da equipe.
+  const item=Array.from(sel?.options||[]).find(o=>String(o.value)===String(newest.id)&&!o.disabled);
+  return {selected:String(newest.id),items:item?[{
+    text:item.textContent,value:String(item.value),disabled:false,
+    i:0,meta:{stamp:timestamp(newest),i:0}
+  }]:[]};
 }
 let savedScroll=null;
 function close(){if(active){active.__dispose?.();active.remove();active=null}if(savedScroll){const v=savedScroll;savedScroll=null;document.body.style.position=v.position;document.body.style.top=v.top;document.body.style.left=v.left;document.body.style.right=v.right;document.body.style.width=v.width;document.documentElement.style.overflow=v.htmlOverflow;document.body.style.overflow=v.bodyOverflow;window.scrollTo(0,v.y)}}
 function lockPage(){if(savedScroll)return;const b=document.body,h=document.documentElement,y=window.scrollY;savedScroll={y,position:b.style.position,top:b.style.top,left:b.style.left,right:b.style.right,width:b.style.width,htmlOverflow:h.style.overflow,bodyOverflow:b.style.overflow};b.style.position='fixed';b.style.top=(-y)+'px';b.style.left='0';b.style.right='0';b.style.width='100%';b.style.overflow='hidden';h.style.overflow='hidden'}
 function open(sel){
   close();
-  const data=sortedOptions(sel);
+  const currentSelect=()=>document.getElementById(sel.id)||sel;
+  const data=sortedOptions(currentSelect());
   lockPage();
   const ov=document.createElement('div');
   active=ov;
@@ -59,12 +70,13 @@ function open(sel){
         // A primeira seleção deve atualizar o SELECT e os ouvintes imediatamente.
         // Evita que uma atualização assíncrona da lista substitua a escolha antes do evento.
         const selectedValue=String(x.value);
-        const option=[...sel.options].find(o=>String(o.value)===selectedValue);
+        const live=currentSelect();
+        const option=[...live.options].find(o=>String(o.value)===selectedValue);
         if(!option||option.disabled)return;
-        sel.value=selectedValue;
+        live.value=selectedValue;
         option.selected=true;
-        sel.dispatchEvent(new Event('input',{bubbles:true}));
-        sel.dispatchEvent(new Event('change',{bubbles:true}));
+        live.dispatchEvent(new Event('input',{bubbles:true}));
+        live.dispatchEvent(new Event('change',{bubbles:true}));
         close();
       };
       const star=document.createElement('button');
@@ -101,8 +113,10 @@ function open(sel){
   ov.__dispose=()=>controller.abort();
   render(true);
   // Atualiza a lista aberta quando a biblioteca oficial chega da nuvem.
-  const refresh=()=>{if(active!==ov)return;const next=sortedOptions(sel);data.items=next.items;render(false)};
+  const refresh=()=>{if(active!==ov)return;const next=sortedOptions(currentSelect());data.items=next.items;data.selected=next.selected;render(false)};
   window.addEventListener('df-team-formulas-updated',refresh,{signal:controller.signal});
+  // Abertura do painel consulta a biblioteca oficial, mesmo sem atualizar manualmente.
+  Promise.resolve().then(()=>window.DFTeamFormulasShared?.sync?.()).catch(()=>{});
   input.addEventListener('input',()=>render(true));
   ov.querySelectorAll('.df-fp-filter button').forEach(b=>b.onclick=()=>{
     filter=b.dataset.filter;
@@ -139,7 +153,7 @@ document.head.appendChild(st);if(document.readyState==='loading')document.addEve
 (function(){
   if(window.DF_FORMULA_SAVE_FIRST_OP_V1)return;
   var s=document.createElement('script');
-  s.src='./formula-save-first-op-v1.js?v=20261021-save-select-v376';
+  s.src='./formula-save-first-op-v1.js?v=1.0.674';
   s.async=false;
   document.head.appendChild(s);
 })();
