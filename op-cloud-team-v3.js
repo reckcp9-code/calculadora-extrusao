@@ -67,7 +67,28 @@ function renderTeam(){const box=$('dfOpTeamCloud');if(!box)return;const code=Str
 function mountTeam(){style();mountViewer();const hero=document.querySelector('#dfFormulaOps .dfOpsHero');if(!hero)return false;let box=$('dfOpTeamCloud');if(!box){box=document.createElement('div');box.id='dfOpTeamCloud';hero.appendChild(box)}renderTeam();return true}
 async function loadTeam(){const cached=load(TEAM_KEY,null);if(cached&&!team){team=cached;renderTeam()}try{const j=await apiPost('/op/team/status',{});setTeam(j.team||null,false);if(team){scheduleRemote(180,false);scheduleUpload(250)}}catch(e){}}
 async function createTeam(){const m=$('dfCloudMsg');if(m)m.textContent='Criando equipe...';try{const j=await apiPost('/op/team/create',{name:'DF EXTRUSOR'});if(j.joinCode)localStorage.setItem(TEAM_CODE_KEY,String(j.joinCode));setTeam(j.team,true);try{window.dispatchEvent(new CustomEvent('df-team-joined',{detail:{team:j.team,created:true}}))}catch(e){}scheduleRemote(120,true)}catch(e){if(m)m.textContent='Não foi possível criar: '+(e.message||e)}}
-async function joinTeam(){const code=String($('dfCloudCode')?.value||'').replace(/\D/g,'');const m=$('dfCloudMsg');if(code.length<6){if(m)m.textContent='Digite o código da equipe.';return}if(m)m.textContent='Conectando...';try{const j=await apiPost('/op/team/join',{code});setTeam(j.team,true);try{window.dispatchEvent(new CustomEvent('df-team-joined',{detail:{team:j.team,created:false}}))}catch(e){}scheduleRemote(120,true);scheduleUpload(250)}catch(e){if(m)m.textContent='Não foi possível conectar: '+(e.message||e)}}
+async function joinTeam(){
+ const code=String($('dfCloudCode')?.value||'').replace(/\D/g,''),m=$('dfCloudMsg'),btn=$('dfCloudJoin');
+ if(code.length<6){if(m)m.textContent='Digite o código da equipe.';return}
+ const ok=confirm('ENTRAR NA EQUIPE E APAGAR TODOS OS DADOS LOCAIS DESTE CELULAR?\n\nAo entrar, serão apagados neste aparelho: fotos, formulações, materiais, pesos, OPs, pendentes, prontas e produção local de qualquer equipe anterior.\n\nNÃO apaga nada do servidor ou dos outros celulares. Os dados já enviados à nuvem poderão ser sincronizados ao entrar. Dados que existem somente neste celular serão perdidos.\n\nA licença e o acesso ao aplicativo permanecem.');
+ if(!ok)return;
+ if(!window.DFTeamLocalCleanup?.clear){if(m)m.textContent='Rotina de limpeza indisponível. Atualize o aplicativo e tente novamente.';return}
+ if(btn){btn.disabled=true;btn.textContent='⏳ ENTRANDO E LIMPANDO...'}
+ if(m)m.textContent='Verificando equipe no servidor...';
+ try{
+  // A participação só é criada depois da confirmação; nunca apagamos o banco remoto.
+  const j=await apiPost('/op/team/join',{code});
+  if(!j?.team?.teamId)throw Error('Servidor não confirmou a entrada na equipe.');
+  if(m)m.textContent='Limpando somente este celular...';
+  await window.DFTeamLocalCleanup.clear();
+  setTeam(j.team,true);
+  if(m)m.textContent='✅ Aparelho limpo. Carregando dados da nova equipe...';
+  location.reload();
+ }catch(e){
+  if(m)m.textContent='Não foi possível concluir a entrada: '+String(e?.message||e);
+  if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}
+ }
+}
 function selectedMonth(){return String($('dfOpMonth')?.value||monthNow()).slice(0,7)}
 function selectedPhotoType(){try{return localStorage.getItem('df_op_photo_type_v1')==='formulation'?'formulation':'production_op'}catch(e){return 'production_op'}}
 function selectedFormulaId(){try{return String(localStorage.getItem('df_op_photo_formula_id_v1')||'').trim()}catch(e){return ''}}
