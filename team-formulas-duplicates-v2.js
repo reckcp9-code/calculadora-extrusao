@@ -217,9 +217,9 @@ async function deleteAllTeamFormulas(){
  }catch(e){status('⚠️ Não foi possível conferir as formulações da equipe. Nenhuma exclusão foi iniciada.','warn');return false}
  if(!forms.length){status('Nenhuma formulação salva para excluir.','ok');return true}
  if(!confirm('Excluir TODAS as '+forms.length+' formulações salvas'+(t?.teamId?' para toda a equipe':' deste aparelho')+'? Esta ação não pode ser desfeita.'))return false;
- localStorage.removeItem(PENDING_KEY);
- if(!t?.teamId){for(const f of forms)window.DFFormulaTombstones?.markDeleted?.(String(f.id));writeForms([]);status('✅ Todas as formulações foram excluídas.','ok');return true}
+ if(!t?.teamId){localStorage.removeItem(PENDING_KEY);for(const f of forms)window.DFFormulaTombstones?.markDeleted?.(String(f.id));writeForms([]);status('✅ Todas as formulações foram excluídas.','ok');return true}
  if(navigator.onLine===false){status('⚠️ Conecte à internet para confirmar a exclusão para toda a equipe.','warn');return false}
+ localStorage.removeItem(PENDING_KEY);
  let deleted=0;
  try{
    for(const f of forms){
