@@ -1,6 +1,6 @@
 {
-  "version": "1.0.640",
-  "title": "Abrir fotos compartilhadas pelo ID da OP",
-  "message": "A aba Fotos agora abre imagem compartilhada do R2 por ID, inclusive fotos de formulação em outro celular.",
+  "version": "1.0.641",
+  "title": "Saída da equipe com limpeza local completa",
+  "message": "Ao sair da equipe, apaga fotos, formulações, materiais, pesos e OPs somente do aparelho. Preserva dados do servidor e licença para resincronizar ao entrar novamente.",
   "updatedAt": "2026-10-28"
 }
