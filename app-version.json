@@ -1,6 +1,6 @@
 {
-  "version": "1.0.633",
-  "title": "Reenvio automático de fotos locais pendentes",
-  "message": "Fotos locais pendentes recuperam o ID de formulação conhecido e são enviadas automaticamente ao abrir o app.",
+  "version": "1.0.631",
+  "title": "Corrigido envio de fotos de OP pendente",
+  "message": "OP com ID DFOP sem fórmula vinculada envia imagem como foto de produção; pendências e aprovação preservadas.",
   "updatedAt": "2026-10-28"
 }
