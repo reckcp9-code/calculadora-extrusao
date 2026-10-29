@@ -49,9 +49,131 @@ function localOp(id){
  const registry=read('df_op_qr_registry_test_setores_v3',{});
  return registry?.[id]?.expected||{};
 }
+
+let recoveryPhoto=null,recoveryPhotoUrl='';
+function clearRecoveryPhoto(){
+ recoveryPhoto=null;
+ if(recoveryPhotoUrl){try{URL.revokeObjectURL(recoveryPhotoUrl)}catch(e){}recoveryPhotoUrl=''}
+ const box=$('dfRecPhotoPreviewBox');if(box)box.hidden=true;
+ const img=$('dfRecPhotoPreview');if(img)img.removeAttribute('src');
+ const state=$('dfRecPhotoStatus');if(state)state.textContent='';
+}
+function setRecoveryPhoto(file){
+ if(!file||(!String(file.type||'').startsWith('image/')&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name||''))||file.size>30000000||file.size===0){
+  msg('Escolha uma foto válida da OP (até 30 MB antes da compressão).','warn');return false;
+ }
+ clearRecoveryPhoto();recoveryPhoto=file;
+ recoveryPhotoUrl=URL.createObjectURL(file);
+ const image=$('dfRecPhotoPreview'),box=$('dfRecPhotoPreviewBox'),label=$('dfRecPhotoStatus');
+ if(image)image.src=recoveryPhotoUrl;
+ if(box)box.hidden=false;
+ if(label)label.textContent='📷 Foto selecionada: '+String(file.name||'imagem')+' — será enviada ao R2 ao confirmar.';
+ return true;
+}
+async function convertRecoveryPhoto(file){
+ if(!file)throw Error('Tire ou escolha a FOTO DA OP antes de confirmar.');
+ const inputUrl=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((resolve,reject)=>{
+   const im=new Image();
+   im.onload=()=>resolve(im);im.onerror=()=>reject(Error('Esta imagem não pôde ser aberta. Tire outra foto da OP.'));
+   im.src=inputUrl;
+  });
+  const ratio=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));
+  const c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(img.naturalWidth*ratio));
+  c.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+  const ctx=c.getContext('2d');if(!ctx)throw Error('Não foi possível preparar a foto.');
+  ctx.drawImage(img,0,0,c.width,c.height);
+  let result=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.78));
+  if(!result||result.size===0)throw Error('Não foi possível converter a foto para JPEG.');
+  if(result.size>3900000){result=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.58));}
+  if(!result||result.size>3900000)throw Error('Foto acima de 4 MB. Tire outra mais próxima da OP.');
+  return new File([result],'op-recuperada.jpg',{type:'image/jpeg'});
+ }finally{URL.revokeObjectURL(inputUrl)}
+}
+async function verifyUploadedPhoto(id,retry=true){
+ const tok=await session(false),url=API+'/op/photo/get?id='+encodeURIComponent(id);
+ const r=await fetch(url,{headers:{'Authorization':'Bearer '+tok,'X-DF-Device':device()},cache:'no-store'});
+ if(r.status===401&&retry){await session(true);return verifyUploadedPhoto(id,false)}
+ if(!r.ok)throw Error('A foto não ficou disponível no R2. Nenhuma baixa foi confirmada.');
+ const image=await r.blob();
+ if(image.size<1000||!String(image.type||'').startsWith('image/'))throw Error('O arquivo de foto do servidor está inválido.');
+ return true;
+}
+async function uploadRecoveryPhoto(id,kg,scrap,file){
+ const t=team();if(!owner()||!t?.teamId)throw Error('Equipe do dono não identificada.');
+ const jpg=await convertRecoveryPhoto(file);
+ const form=new FormData();
+ form.append('teamId',t.teamId);form.append('area','producao');form.append('scope','producao');
+ form.append('photoType','production_op');
+ // prefixo diferente de DFOP- para que o upload da foto NÃO registre uma segunda baixa.
+ form.append('sourceId','DFPRODRECOVERY-'+id);
+ form.append('qr',id);
+ form.append('production',String(kg));
+ form.append('scrap',String(scrap));
+ form.append('createdAt',new Date().toISOString());
+ form.append('photo',jpg,'op-recuperada.jpg');
+ let auth=await session(false),r=await fetch(API+'/op/photo/upload',{method:'POST',
+  headers:{'Authorization':'Bearer '+auth,'X-DF-Device':device()},body:form,cache:'no-store'});
+ if(r.status===401){auth=await session(true);r=await fetch(API+'/op/photo/upload',{method:'POST',
+  headers:{'Authorization':'Bearer '+auth,'X-DF-Device':device()},body:form,cache:'no-store'})}
+ const data=await r.json().catch(()=>({}));
+ if(!r.ok||data.ok===false||!/^opp_[a-z0-9]+$/i.test(String(data.photo?.id||'')))
+   throw Error(data.error||'O R2 não confirmou o recebimento da foto.');
+ const photoId=String(data.photo.id);
+ await verifyUploadedPhoto(photoId);
+ return photoId;
+}
+function setRecoveryMode(mode){
+ const attach=mode==='attach';
+ const fields=['Machine','Date','Product','Operator','Kg','Scrap'];
+ for(const key of fields){const el=f(key);if(el)el.readOnly=attach}
+ const agree=$('dfRecAgreeText');
+ if(agree)agree.textContent=attach?
+  'CONFIRMO QUE ESTA FOTO PERTENCE À OP JÁ CONTABILIZADA. NÃO DESEJO ALTERAR OS QUILOS.':
+  'CONFIRMO COMO DONO QUE CONFERI A OP IMPRESSA E QUE ESTA BAIXA AINDA NÃO FOI CONTABILIZADA.';
+ const btn=f('Save');if(btn)btn.textContent=attach?'📷 VINCULAR FOTO À OP PRONTA':'✅ RECUPERAR COM FOTO PARA PRONTAS';
+}
+async function refreshAfterPhoto(id){
+ // O pull oficial reconstrói o vínculo R2 em Prontas em todos os aparelhos da equipe.
+ try{await window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
+ try{window.dispatchEvent(new CustomEvent('df-producao-team-synced',{detail:{manualPhoto:true,opCode:id}}))}catch(e){}
+}
+async function attachToReady(){
+ if(busy||!checked||checked.mode!=='attach'||!owner())return;
+ const t=team(),id=norm(f('Code')?.value),file=recoveryPhoto;
+ if(id!==checked.id||String(t?.teamId)!==checked.teamId)return reset();
+ if(!file)return msg('📷 Tire ou selecione a foto da OP antes de vincular.','warn');
+ if(!f('Agree')?.checked)return msg('Confirme que a foto pertence a esta OP.','warn');
+ if(!confirm('VINCULAR FOTO A ESTA OP QUE JÁ ESTÁ EM PRONTAS?\n\n'+id+'\n\nA produção e a apara NÃO serão alteradas.'))return;
+ busy=true;const btn=f('Save');btn.disabled=true;btn.textContent='⏳ ENVIANDO FOTO AO R2...';
+ try{
+  const before=await post('/op/record/history',{opCode:id}),row=before.record;
+  if(!row||row.state!=='ready')throw Error('A OP não está mais em Prontas. Consulte novamente.');
+  if(row.photoId)throw Error('Esta OP já tem foto no D1. Atualize Prontas para visualizá-la.');
+  if(Number(row.revision)!==checked.revision)throw Error('A OP foi atualizada por outro aparelho. Consulte novamente.');
+  const photoId=await uploadRecoveryPhoto(id,Number(row.production),Number(row.scrap),file);
+  const saved=await post('/op/record/attach-photo',{opCode:id,photoId,expectedRevision:row.revision});
+  if(!saved.record||saved.record.state!=='ready'||saved.record.photoId!==photoId)
+    throw Error('O D1 não confirmou o vínculo da foto; consulte antes de repetir.');
+  const after=await post('/op/record/history',{opCode:id});
+  if(after.record?.state!=='ready'||after.record?.photoId!==photoId||
+     Number(after.record.production)!==Number(row.production)||
+     Number(after.record.scrap)!==Number(row.scrap))
+    throw Error('A confirmação final falhou. Consulte novamente antes de repetir.');
+  checked=null;f('Agree').checked=false;clearRecoveryPhoto();setRecoveryMode('recover');
+  msg('✅ FOTO VINCULADA NO R2 E EM PRONTAS! OP '+id+
+      ' continua com '+Number(row.production).toLocaleString('pt-BR')+
+      ' kg. O peso e a apara não foram alterados.','ok');
+  await refreshAfterPhoto(id);
+ }catch(e){msg('⚠️ '+String(e.message||e)+' Nenhuma baixa adicional foi criada.','warn')}
+ finally{busy=false;btn.disabled=!checked;if(checked)setRecoveryMode('attach');else setRecoveryMode('recover')}
+}
+
 let checked=null,busy=false;
 function msg(s,state=''){const el=$('dfRecMsg');if(el){el.textContent=s;el.dataset.state=state}}
-function reset(){checked=null;const b=$('dfRecSave');if(b)b.disabled=true;const c=$('dfRecAgree');if(c)c.checked=false;msg('Consulte o QR no D1 antes de recuperar.')}
+function reset(){checked=null;setRecoveryMode('recover');const b=$('dfRecSave');if(b)b.disabled=true;const c=$('dfRecAgree');if(c)c.checked=false;msg('Consulte o QR no D1 antes de recuperar.')}
 function f(k){return $('dfRec'+k)}
 function prefill(row,code){
  const local=localOp(code),old=row||{};
