@@ -1,6 +1,6 @@
 {
-  "version": "1.0.680",
-  "title": "Recuperar OP com foto no R2",
-  "message": "Ao recuperar uma OP, é obrigatória a foto: QR/foto ou imagem escolhida é verificada no R2 antes de salvar a baixa em Prontas com vínculo no D1. OP já em Prontas sem foto permite vincular somente a imagem, mantendo quilos e apara intactos; prevenção de duplicidade mantida.",
+  "version": "1.0.681",
+  "title": "Correção de foto na recuperação de OP",
+  "message": "Corrigido envio de foto no iPhone durante a recuperação manual: upload binário verificado no R2, vínculo com OP no D1 e preservação de bloqueio contra baixa duplicada.",
   "updatedAt": "2026-10-29"
 }
