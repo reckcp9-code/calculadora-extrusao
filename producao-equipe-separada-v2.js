@@ -100,7 +100,14 @@ function currentStates(){const list=ops(),ready=autos().filter(x=>x&&(x.status==
  ready.forEach(r=>{const id=norm(r?.opId||r?.id);if(!id.startsWith('DFOP-')||deleted[id]||out.has(id))return;const o={id,sector:r.sector||'Picote',machine:r.machine||'',product:r.product||'',measure:r.measure||'',operator:r.operator||'',shift:r.shift||'',createdAt:r.createdAt||nowIso(),status:r.status==='pending'?'pending':'closed'};out.set(id,normalizedState(o,r))});
  return out}
 function registerQR(o){try{const r=read(QR_KEY,{});r[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector||'Picote',expected:{machine:o.machine||'',product:o.product||'',measure:o.measure||'',operator:o.operator||'',shift:o.shift||'',start:o.start||'',end:o.end||''},test:false};write(QR_KEY,r)}catch(e){}}
-function refreshUi(){try{window.DFRenderSavedProductionOps?.()}catch(e){}try{const root=$('dfPrRoot');if(root){const c=document.createComment('df-prod-sync');root.appendChild(c);c.remove()}}catch(e){}/* Preserve current pane during background sync; do not simulate a tab click. */try{window.dispatchEvent(new CustomEvent('df-producao-team-synced'))}catch(e){}}
+function refreshUi(){
+ // Não modificar o DOM nem forçar eventos de menu durante sincronizações de fundo.
+ // A tela visível recebe apenas o evento; o painel de OP Salvas é renderizado quando aberto.
+ if(!document.body.classList.contains('dfAutoOnly')&&!document.body.classList.contains('dfRecoveryOnly')){
+   try{window.DFRenderSavedProductionOps?.()}catch(e){}
+ }
+ try{window.dispatchEvent(new CustomEvent('df-producao-team-synced'))}catch(e){}
+}
 
 let uploadBusy=false,pullBusy=false,pushTimer=0,pullTimer=0,lastPrevPull=0;
 function setStatus(text,type){const e=$('dfProdTeamV2Status');if(!e)return;e.className='dfProdTeamV2Status '+(type||'');e.textContent=text||''}
