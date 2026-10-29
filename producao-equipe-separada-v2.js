@@ -475,11 +475,16 @@ async function approveCompletion(rawId){
 async function checkAlreadyCompleted(rawId){
  const id=norm(rawId),t=team();
  if(!t?.teamId)throw Error('Conecte a equipe de Produção antes de dar baixa.');
+ if(!/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/.test(id))throw Error('Código da OP inválido. Confira o QR impresso.');
  if(navigator.onLine===false)throw Error('Sem internet para verificar se esta OP já foi baixada. Conecte e tente novamente.');
- const data=await apiPost('/op/record/list',{teamId:t.teamId,area:AREA,scope:AREA,includeDeleted:true});
- if(!Array.isArray(data.records))throw Error('Não foi possível consultar a situação oficial da OP.');
- const record=data.records.find(x=>norm(x.opCode)===id&&['pending','ready'].includes(String(x.state||'')));
- return record?{state:String(record.state),opCode:id,production:record.production,scrap:record.scrap}:null;
+ // Consulta SOMENTE o QR lido no D1; evita baixar a lista completa de produção.
+ // O Worker valida a equipe autenticada. Não confundir OP excluída com baixa ativa.
+ const data=await apiPost('/op/record/history',{teamId:t.teamId,opCode:id,area:AREA,scope:AREA});
+ if(!data||!Object.prototype.hasOwnProperty.call(data,'record'))
+   throw Error('D1 não confirmou a consulta da situação desta OP.');
+ const record=data.record;
+ return record&&['pending','ready'].includes(String(record.state||''))?
+   {state:String(record.state),opCode:id,production:record.production,scrap:record.scrap}:null;
 }
 // Arquivados: lista oficial de baixas confirmadas (Prontas), sem depender de foto local.
 // Cache isolado por equipe apenas para consulta offline; jamais é usado para somar produção.
