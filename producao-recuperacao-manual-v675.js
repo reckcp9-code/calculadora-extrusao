@@ -126,7 +126,10 @@ function mount(){
  if(nav){nav.hidden=!allowed;nav.setAttribute('aria-hidden',allowed?'false':'true')}
  if(!header||!nav||!allowed){
    if(old)old.remove();
-   if(document.body.classList.contains('dfRecoveryOnly'))document.body.classList.remove('dfRecoveryOnly');
+   if(document.body.classList.contains('dfRecoveryOnly')){
+     document.body.classList.remove('dfRecoveryOnly');
+     const next=$('prodNewTab');if(next)next.click();
+   }
    return false;
  }
  if(old&&old.parentElement===header.parentElement)return true;
