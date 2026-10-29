@@ -1,6 +1,6 @@
 {
-  "version": "1.0.675",
-  "title": "Recuperação manual de OPs antigas sem duplicar produção",
-  "message": "Novo botão exclusivo do dono na Equipe de Produção: verificar QR no D1, recuperar OP excluída/ausente para Prontas com máquina, produção, apara e data. OP já baixada bloqueada; sincronização automática preservada.",
-  "updatedAt": "2026-10-28"
+  "version": "1.0.676",
+  "title": "Recuperação de OP em aba própria",
+  "message": "Recuperar OP agora fica na barra superior ao lado de OPs Automáticas, com tela exclusiva e formulário responsivo. Nenhum fluxo de baixa foi alterado.",
+  "updatedAt": "2026-10-29"
 }
