@@ -121,23 +121,39 @@ async function recover(){
  finally{busy=false;btn.disabled=true;btn.textContent='✅ RECUPERAR PARA PRONTAS'}
 }
 function mount(){
- const host=$('dfProdTeamV2'),old=$('dfRecOwner'),t=team();
- if(!host||!t?.teamId||t.role!=='owner'){old?.remove();return false}
- if(old&&old.previousElementSibling===host)return true;
- old?.remove();
+ const header=document.querySelector('main.wrap > header'),nav=$('prodRecoverTab'),t=team(),old=$('dfRecOwner');
+ const allowed=!!(t?.teamId&&String(t.role)==='owner');
+ if(nav){nav.hidden=!allowed;nav.setAttribute('aria-hidden',allowed?'false':'true')}
+ if(!header||!nav||!allowed){
+   if(old)old.remove();
+   if(document.body.classList.contains('dfRecoveryOnly'))document.body.classList.remove('dfRecoveryOnly');
+   return false;
+ }
+ if(old&&old.previousElementSibling===header)return true;
+ if(old)old.remove();
  if(!$('dfRecStyle')){const css=document.createElement('style');css.id='dfRecStyle';css.textContent=
- '#dfRecOwner{max-width:850px;margin:10px auto;border:1px solid #475569;border-radius:13px;padding:11px;background:#111827;color:#e2e8f0;font-family:system-ui}'+
- '#dfRecOpen{width:100%;padding:12px;background:#202d3e;color:#cbd5e1;border:1px solid #64748b;border-radius:10px;font:800 12px system-ui}'+
- '#dfRecBody{display:none;margin-top:12px}#dfRecOwner.open #dfRecBody{display:block}'+
- '#dfRecBody label{display:block;font:700 12px system-ui;margin:10px 0 4px}#dfRecBody input:not([type=checkbox]){box-sizing:border-box;width:100%;padding:11px;border:1px solid #485970;border-radius:10px;background:#0b1424;color:#fff;font-size:15px}'+
- '#dfRecBody button{padding:12px;margin-top:10px;border-radius:10px;background:#243347;border:1px solid #53647a;color:#e2e8f0;font-weight:800}#dfRecBody button:disabled{opacity:.5}'+
- '#dfRecBody .dfRecGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}#dfRecBody .dfRecNote{font-size:11px;color:#94a3b8;line-height:1.4;margin:10px 0}'+
- '#dfRecBody #dfRecSave{width:100%;background:#0d3b22;color:#bbf7d0;border-color:#166534}'+
- '#dfRecMsg{padding:10px;border-radius:10px;background:#0e1a2b;border:1px solid #475569;margin:10px 0;font-size:12px;line-height:1.5;white-space:pre-wrap}#dfRecMsg[data-state=warn]{color:#fcd34d}#dfRecMsg[data-state=ok]{color:#86efac}'+
- '#dfRecBody .dfRecAgree{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.45}#dfRecAgree{width:20px;height:20px;flex-shrink:0}';
+ '#dfRecOwner{display:none!important;width:100%;min-width:0;max-width:760px;margin:0 auto 18px;padding:16px;border-radius:16px;border:1px solid #40506a;background:#111827;color:#e2e8f0;font-family:system-ui;overflow:hidden}'+
+ 'body.dfRecoveryOnly #dfRecOwner{display:block!important}'+
+ '#dfRecOwner *{box-sizing:border-box;min-width:0}'+
+ '#dfRecOwner .dfRecTitle{font-size:20px;font-weight:850;line-height:1.25;margin:0 0 10px;color:#f1f5f9}'+
+ '#dfRecBody{display:block;width:100%;max-width:100%}'+
+ '#dfRecBody label{display:block;font:750 13px system-ui;margin:12px 0 6px;line-height:1.35;color:#cbd5e1}'+
+ '#dfRecBody input:not([type=checkbox]){display:block;max-width:100%!important;min-width:0!important;width:100%!important;padding:12px;border:1px solid #485970;border-radius:10px;background:#0b1424;color:#fff;font:600 16px system-ui}'+
+ '#dfRecBody input[type=date]{appearance:none;-webkit-appearance:none;min-height:49px}'+
+ '#dfRecBody button{display:block;width:100%;min-height:45px;padding:11px;margin-top:10px;border-radius:10px;background:#243347;border:1px solid #53647a;color:#e2e8f0;font:800 12px/1.3 system-ui;white-space:normal}'+
+ '#dfRecBody button:disabled{opacity:.5}'+
+ '#dfRecBody .dfRecGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%}'+
+ '#dfRecBody .dfRecGrid>div{min-width:0;width:100%}'+
+ '#dfRecBody .dfRecNote{font-size:12px;color:#94a3b8;line-height:1.5;margin:10px 0 14px}'+
+ '#dfRecBody #dfRecSave{background:#0d3b22;color:#bbf7d0;border-color:#166534;min-height:52px}'+
+ '#dfRecMsg{padding:12px;border-radius:10px;background:#0e1a2b;border:1px solid #475569;margin:12px 0;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}'+
+ '#dfRecMsg[data-state=warn]{color:#fcd34d}#dfRecMsg[data-state=ok]{color:#86efac}'+
+ '#dfRecBody .dfRecAgree{display:flex;gap:12px;align-items:flex-start;font-size:12px;line-height:1.45}'+
+ '#dfRecBody #dfRecAgree{width:20px!important;min-width:20px!important;height:20px!important;flex:0 0 20px;margin:0}'+
+ '@media(max-width:560px){#dfRecBody .dfRecGrid{grid-template-columns:minmax(0,1fr)}#dfRecOwner{padding:13px}}';
  document.head.appendChild(css)}
  const el=document.createElement('section');el.id='dfRecOwner';
- el.innerHTML='<button type="button" id="dfRecOpen">↩ RECUPERAR BAIXA DE OP ANTIGA — DONO</button><div id="dfRecBody">'+
+ el.innerHTML='<h2 class="dfRecTitle">↩ Recuperar baixa de OP antiga</h2><div id="dfRecBody">'+
  '<div class="dfRecNote">Somente OPs impressas que foram apagadas ou não entraram no D1. Sem foto nova, sem duplicar baixa e sem mexer no histórico existente.</div>'+
  '<label>Código da OP / QR</label><input id="dfRecCode" autocomplete="off" autocapitalize="characters" placeholder="DFOP-20261019-123456-ABCD">'+
  '<button type="button" id="dfRecScan">📷 LER QR DA OP</button><input id="dfRecFile" type="file" accept="image/*" capture="environment" hidden>'+
@@ -149,9 +165,9 @@ function mount(){
  '<label class="dfRecAgree"><input type="checkbox" id="dfRecAgree"><span>CONFIRMO COMO DONO QUE CONFERI A OP IMPRESSA E QUE ESTA BAIXA AINDA NÃO FOI CONTABILIZADA.</span></label>'+
  '<div id="dfRecMsg" role="status">Consulte o QR no D1 antes de recuperar.</div>'+
  '<button id="dfRecSave" type="button" disabled>✅ RECUPERAR PARA PRONTAS</button></div>';
- host.insertAdjacentElement('afterend',el);
+ header.insertAdjacentElement('afterend',el);
  f('Date').value=today();$('dfRecMachineList').innerHTML=catalog().map(x=>'<option value="'+esc(x.machine)+'">'+esc(x.sector)+'</option>').join('');
- $('dfRecOpen').onclick=()=>el.classList.toggle('open');
+
  $('dfRecCheck').onclick=check;$('dfRecSave').onclick=recover;
  f('Code').addEventListener('input',()=>{
    reset();
@@ -177,6 +193,11 @@ function mount(){
  };
  return true;
 }
-function boot(){let n=0;const timer=setInterval(()=>{mount();if(++n>120)clearInterval(timer)},350);window.addEventListener('df-producao-team-changed',()=>setTimeout(mount,150));window.addEventListener('pageshow',()=>setTimeout(mount,100))}
+function boot(){
+ let n=0;const timer=setInterval(()=>{mount();if(++n>120)clearInterval(timer)},350);
+ window.addEventListener('df-producao-team-changed',()=>setTimeout(mount,150));
+ window.addEventListener('pageshow',()=>setTimeout(mount,100));
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(mount,100)});
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
