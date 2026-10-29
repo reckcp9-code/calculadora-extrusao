@@ -518,5 +518,52 @@ async function archivedReadyOps(){
   throw e;
  }
 }
-window.DFProducaoEquipeOnline={migrateHistoricalProductionData,archivedReadyOps,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+// Edição explícita de uma OP já aprovada: não cria uma segunda baixa e não altera fotos.
+async function editReadyCompletion(rawId,fields){
+ const id=norm(rawId),t=team();
+ if(!t?.teamId||t.role!=='owner')throw Error('Somente o dono pode editar o peso de OPs prontas.');
+ if(navigator.onLine===false)throw Error('É necessário internet para confirmar a edição com a equipe.');
+ const production=num(fields?.production),scrap=num(fields?.scrap);
+ const machine=String(fields?.machine||'').trim().slice(0,120);
+ if(!/^DFOP-\\d{8}-\\d{6}-[A-Z0-9-]+$/.test(id))throw Error('ID da OP inválido.');
+ if(!(production>0)||!Number.isFinite(scrap)||scrap<0||scrap>production||!machine)
+  throw Error('Confira máquina, produção e apara.');
+ const history=await apiPost('/op/record/history',{teamId:t.teamId,opCode:id});
+ const previous=history?.record;
+ if(!previous||previous.state!=='ready')throw Error('OP não está confirmada em PRONTAS no D1.');
+ const response=await apiPost('/op/record/edit-ready',{
+  teamId:t.teamId,opCode:id,production,scrap,machine,expectedRevision:previous.revision
+ });
+ const official=response?.record;
+ if(!official||official.state!=='ready'||norm(official.opCode)!==id||
+    num(official.production)!==production||num(official.scrap)!==scrap||
+    norm(official.machine)!==norm(machine))
+  throw Error('O servidor não confirmou os novos valores. Nenhum número local foi alterado.');
+ // Atualizar somente o registro existente, sem inserir baixa, foto ou somar novamente.
+ let records=autos(),record=records.find(x=>norm(x?.opId||x?.id)===id&&x.status==='ok')||null;
+ if(record){
+  records=records.map(x=>x===record?{...x,machine:official.machine,production:num(official.production),
+   scrap:num(official.scrap),net:Math.max(0,num(official.production)-num(official.scrap)),
+   updatedAt:official.updatedAt,productionTeamId:t.teamId}:x);
+  write(AUTO_KEY,records);
+ }
+ let list=ops(),i=list.findIndex(x=>norm(x?.id)===id);
+ if(i>=0){
+  const old=list[i];list[i]={...old,machine:official.machine,
+   sector:inferredSector(official.machine,old.sector),autoProduction:num(official.production),
+   autoScrap:num(official.scrap),autoNet:Math.max(0,num(official.production)-num(official.scrap)),
+   autoUpdatedAt:official.updatedAt,status:'closed'};
+  write(OPS_KEY,list);
+ }
+ // O D1 continua sendo a origem; o snapshot evita o upload de estado/foto antigo ao editar.
+ const op=list.find(x=>norm(x?.id)===id);
+ const ready=records.find(x=>norm(x?.opId||x?.id)===id&&x.status==='ok');
+ if(op&&ready){const state=normalizedState(op,ready),snap=read(SNAP_KEY,{});
+  snap[id]={hash:hash(state),teamId:t.teamId,ts:time(official.updatedAt),
+   updatedAt:official.updatedAt};write(SNAP_KEY,snap)}
+ refreshUi();
+ setStatus('✅ Edição da OP '+id+' confirmada. Máquina e totais atualizados pelo D1.','ok');
+ return official;
+}
+window.DFProducaoEquipeOnline={migrateHistoricalProductionData,archivedReadyOps,editReadyCompletion,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
