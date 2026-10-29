@@ -1,6 +1,6 @@
 {
-  "version": "1.0.679",
-  "title": "Produção sem travamentos visuais e edição corrigida",
-  "message": "A tela de Prontas para de reconstruir listas sem mudanças, fica estável ao rolar e editar. O dono edita produção, apara e máquina da mesma OP já pronta; a edição é confirmada no D1 e atualiza Agora, Mês e demais celulares sem nova baixa ou foto.",
+  "version": "1.0.680",
+  "title": "Recuperar OP com foto no R2",
+  "message": "Ao recuperar uma OP, é obrigatória a foto: QR/foto ou imagem escolhida é verificada no R2 antes de salvar a baixa em Prontas com vínculo no D1. OP já em Prontas sem foto permite vincular somente a imagem, mantendo quilos e apara intactos; prevenção de duplicidade mantida.",
   "updatedAt": "2026-10-29"
 }
