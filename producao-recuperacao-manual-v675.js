@@ -70,6 +70,22 @@ function setRecoveryPhoto(file){
  if(label)label.textContent='📷 Foto selecionada: '+String(file.name||'imagem')+' — será enviada ao R2 ao confirmar.';
  return true;
 }
+async function ensureRecoveryQR(){
+ if(window.jsQR)return true;
+ const path='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+ const old=[...document.querySelectorAll('script')].find(x=>x.src===path);
+ if(old&&window.jsQR)return true;
+ await new Promise((resolve,reject)=>{
+  const script=old||document.createElement('script');
+  if(!old){script.src=path;script.async=true}
+  script.addEventListener('load',resolve,{once:true});
+  script.addEventListener('error',()=>reject(Error('Biblioteca QR indisponível.')),{once:true});
+  if(!old)document.head.appendChild(script);
+  // Evita permanecer indefinidamente na etapa de QR em conexão ruim.
+  setTimeout(()=>reject(Error('Leitura QR não disponível.')),7000);
+ });
+ return !!window.jsQR;
+}
 async function convertRecoveryPhoto(file){
  if(!file)throw Error('Tire ou escolha a FOTO DA OP antes de confirmar.');
  const inputUrl=URL.createObjectURL(file);
@@ -231,7 +247,7 @@ async function recover(){
  if(known.length&&!known.some(x=>norm(x.machine)===norm(machine)))return msg('Selecione uma MÁQUINA CADASTRADA para a produção somar no setor correto.','warn');
  if(!file)return msg('📷 Foto obrigatória. Tire ou escolha a foto da OP antes da recuperação.','warn');
  if(!f('Agree').checked)return msg('Confirme que a OP impressa não foi contabilizada.','warn');
- if(!confirm('RECUPERAR OP MANUALMENTE?\n\n'+id+'\nMáquina: '+machine+'\nProduto: '+product+'\nProdução: '+kg+' kg\nApara: '+scrap+' kg\nDia: '+day+'\n\nEu confirmo que esta baixa NÃO está contabilizada na equipe.'))return;
+ if(!confirm('RECUPERAR OP MANUALMENTE?\n\n'+id+'\nMáquina: '+machine+'\nProduto: '+product+'\nProdução: '+kg+' kg\nApara: '+scrap+' kg\nDia: '+day+'\n\nA FOTO será enviada ao R2 e ficará em PRONTAS.\nEu confirmo que esta baixa NÃO está contabilizada na equipe.'))return;
  busy=true;const btn=f('Save');btn.disabled=true;btn.textContent='⏳ RECUPERANDO...';
  try{
   // Reconsulta no momento da confirmação: nunca substitui Prontas nem Pendentes.
@@ -339,7 +355,7 @@ function mount(){
   // A mesma fotografia que contém o QR será enviada ao R2 após conferir a baixa.
   if(!setRecoveryPhoto(file)){e.target.value='';return}
   try{
-   if(!window.jsQR)return msg('Foto selecionada. Digite o ID impresso no papel para conferir a OP.','warn');
+   if(!await ensureRecoveryQR())return msg('Foto selecionada. Digite o ID impresso no papel para conferir a OP.','warn');
    const img=await createImageBitmap(file),c=document.createElement('canvas'),scale=Math.min(1,1800/Math.max(img.width,img.height));c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
    const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,c.width,c.height);
    const d=g.getImageData(0,0,c.width,c.height),value=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'})?.data||'';
