@@ -1,6 +1,6 @@
 {
-  "version": "1.0.678",
-  "title": "Aviso imediato de OP já baixada",
-  "message": "Ao ler QR da foto ou identificar ID manual, Produção confere imediatamente no D1 se a OP já está em Prontas ou Pendentes e bloqueia antes de abrir pesos e salvar foto. A proteção no Salvar OP permanece.",
+  "version": "1.0.679",
+  "title": "Produção sem travamentos visuais e edição corrigida",
+  "message": "A tela de Prontas para de reconstruir listas sem mudanças, fica estável ao rolar e editar. O dono edita produção, apara e máquina da mesma OP já pronta; a edição é confirmada no D1 e atualiza Agora, Mês e demais celulares sem nova baixa ou foto.",
   "updatedAt": "2026-10-29"
 }
