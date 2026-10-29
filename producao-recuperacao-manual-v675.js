@@ -138,9 +138,15 @@ async function uploadRecoveryPhoto(id,kg,scrap,file){
  let auth=await session(false),r=await send(auth);
  if(r.status===401){auth=await session(true);r=await send(auth)}
  const data=await r.json().catch(()=>({}));
- if(!r.ok||data.ok===false||!/^opp_[a-z0-9]+$/i.test(String(data.photo?.id||'')))
-  throw Error(data.error||('R2 não confirmou a foto (HTTP '+r.status+').'));
- const photoId=String(data.photo.id);
+ // O Worker usa hash base64url: IDs válidos incluem hífen e sublinhado.
+ // Ex.: opp_x-wL8Y4OieMmqLZQq10lXpPGJij-9HeB (gravado no D1/R2).
+ const photoRef=String(data.photo?.id||'').trim();
+ if(!r.ok||data.ok===false)
+  throw Error(data.error||('O servidor rejeitou a foto (HTTP '+r.status+').'));
+ if(!/^opp_[A-Za-z0-9_-]{16,80}$/.test(photoRef))
+  throw Error('O servidor respondeu HTTP '+r.status+' sem um ID de foto válido. Nenhuma baixa foi enviada ao D1.');
+
+ const photoId=photoRef;
  await verifyUploadedPhoto(photoId);
  return photoId;
 }
