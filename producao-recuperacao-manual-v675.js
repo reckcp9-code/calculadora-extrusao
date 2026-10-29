@@ -129,7 +129,7 @@ function mount(){
    if(document.body.classList.contains('dfRecoveryOnly'))document.body.classList.remove('dfRecoveryOnly');
    return false;
  }
- if(old&&old.previousElementSibling===header)return true;
+ if(old&&old.parentElement===header.parentElement)return true;
  if(old)old.remove();
  if(!$('dfRecStyle')){const css=document.createElement('style');css.id='dfRecStyle';css.textContent=
  '#dfRecOwner{display:none!important;width:100%;min-width:0;max-width:760px;margin:0 auto 18px;padding:16px;border-radius:16px;border:1px solid #40506a;background:#111827;color:#e2e8f0;font-family:system-ui;overflow:hidden}'+
