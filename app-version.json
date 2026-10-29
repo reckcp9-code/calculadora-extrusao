@@ -1,6 +1,6 @@
 {
-  "version": "1.0.676",
-  "title": "Recuperação de OP em aba própria",
-  "message": "Recuperar OP agora fica na barra superior ao lado de OPs Automáticas, com tela exclusiva e formulário responsivo. Nenhum fluxo de baixa foi alterado.",
+  "version": "1.0.677",
+  "title": "OPs Arquivadas com busca por ID",
+  "message": "Aba Fotos virou Arquivadas. Agora mostra apenas o ID de OPs com baixa confirmada em Prontas no D1, em ordem, com pesquisa por ID e cópia offline por equipe.",
   "updatedAt": "2026-10-29"
 }
