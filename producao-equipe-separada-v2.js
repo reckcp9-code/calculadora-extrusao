@@ -481,5 +481,37 @@ async function checkAlreadyCompleted(rawId){
  const record=data.records.find(x=>norm(x.opCode)===id&&['pending','ready'].includes(String(x.state||'')));
  return record?{state:String(record.state),opCode:id,production:record.production,scrap:record.scrap}:null;
 }
-window.DFProducaoEquipeOnline={migrateHistoricalProductionData,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+// Arquivados: lista oficial de baixas confirmadas (Prontas), sem depender de foto local.
+// Cache isolado por equipe apenas para consulta offline; jamais é usado para somar produção.
+async function archivedReadyOps(){
+ const t=team();
+ if(!t?.teamId)throw Error('Conecte a EQUIPE DE PRODUÇÃO.');
+ const cacheKey='df_producao_arquivadas_d1_v677_'+String(t.teamId);
+ const normalizeRows=rows=>{
+  const map=new Map();
+  for(const r of Array.isArray(rows)?rows:[]){
+   const id=norm(r?.opCode||r?.id||r?.qr);
+   if(!/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/.test(id)||r?.state!=='ready')continue;
+   const item={opCode:id,completedAt:String(r.completedAt||''),localDate:String(r.localDate||'')};
+   if(!map.has(id))map.set(id,item);
+  }
+  return Array.from(map.values()).sort((a,b)=>
+   String(b.completedAt||b.localDate||'').localeCompare(String(a.completedAt||a.localDate||''))||
+   b.opCode.localeCompare(a.opCode));
+ };
+ if(navigator.onLine===false)return {records:normalizeRows(read(cacheKey,[])),offline:true};
+ try{
+  const result=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:false});
+  if(!Array.isArray(result?.records))throw Error('O D1 não retornou as OPs arquivadas.');
+  const records=normalizeRows(result.records);
+  write(cacheKey,records.map(r=>({...r,state:'ready'})));
+  return {records,offline:false};
+ }catch(e){
+  // Erro não autoriza inventar baixa; sinalizar que a lista pode estar desatualizada.
+  const cached=normalizeRows(read(cacheKey,[]));
+  if(cached.length)return {records:cached,offline:true,error:String(e.message||e)};
+  throw e;
+ }
+}
+window.DFProducaoEquipeOnline={migrateHistoricalProductionData,archivedReadyOps,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
