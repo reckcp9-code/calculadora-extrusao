@@ -290,7 +290,9 @@ function mount(){
  '#dfRecOwner .dfRecTitle{font-size:20px;font-weight:850;line-height:1.25;margin:0 0 10px;color:#f1f5f9}'+
  '#dfRecBody{display:block;width:100%;max-width:100%}'+
  '#dfRecBody label{display:block;font:750 13px system-ui;margin:12px 0 6px;line-height:1.35;color:#cbd5e1}'+
- '#dfRecBody input:not([type=checkbox]){display:block;max-width:100%!important;min-width:0!important;width:100%!important;padding:12px;border:1px solid #485970;border-radius:10px;background:#0b1424;color:#fff;font:600 16px system-ui}'+
+ '#dfRecBody input:not([type=checkbox]):not([type=file]){display:block;max-width:100%!important;min-width:0!important;width:100%!important;padding:12px;border:1px solid #485970;border-radius:10px;background:#0b1424;color:#fff;font:600 16px system-ui}'+
+ '#dfRecBody #dfRecFile,#dfRecBody #dfRecPhotoFile{display:none!important}'+
+ '#dfRecPhotoPreviewBox[hidden]{display:none!important}#dfRecPhotoPreviewBox{margin:10px 0 16px;border:1px solid #475569;border-radius:12px;padding:10px;background:#0b1625}#dfRecPhotoPreview{display:block;width:100%;max-height:280px;object-fit:contain;border-radius:8px}#dfRecPhotoStatus{font:700 12px/1.5 system-ui;color:#86efac;margin-top:8px}'+
  '#dfRecBody input[type=date]{appearance:none;-webkit-appearance:none;min-height:49px}'+
  '#dfRecBody button{display:block;width:100%;min-height:45px;padding:11px;margin-top:10px;border-radius:10px;background:#243347;border:1px solid #53647a;color:#e2e8f0;font:800 12px/1.3 system-ui;white-space:normal}'+
  '#dfRecBody button:disabled{opacity:.5}'+
@@ -306,42 +308,48 @@ function mount(){
  document.head.appendChild(css)}
  const el=document.createElement('section');el.id='dfRecOwner';
  el.innerHTML='<h2 class="dfRecTitle">↩ Recuperar baixa de OP antiga</h2><div id="dfRecBody">'+
- '<div class="dfRecNote">Somente OPs impressas que foram apagadas ou não entraram no D1. Sem foto nova, sem duplicar baixa e sem mexer no histórico existente.</div>'+
+ '<div class="dfRecNote">OP antiga impressa: confira o QR, informe os quilos e envie a foto ao R2. Se a OP já estiver em Prontas sem foto, você poderá vincular apenas a imagem, sem somar produção novamente.</div>'+
  '<label>Código da OP / QR</label><input id="dfRecCode" autocomplete="off" autocapitalize="characters" placeholder="DFOP-20261019-123456-ABCD">'+
- '<button type="button" id="dfRecScan">📷 LER QR DA OP</button><input id="dfRecFile" type="file" accept="image/*" capture="environment" hidden>'+
+ '<button type="button" id="dfRecScan">📷 LER QR E GUARDAR FOTO DA OP</button><input id="dfRecFile" type="file" accept="image/*" capture="environment" hidden>'+
+ '<button type="button" id="dfRecPhotoPick">📸 TIRAR OU ESCOLHER FOTO DA OP</button><input id="dfRecPhotoFile" type="file" accept="image/*" hidden>'+
+ '<div id="dfRecPhotoPreviewBox" hidden><img id="dfRecPhotoPreview" alt="Prévia da OP que será arquivada na nuvem"><div id="dfRecPhotoStatus"></div></div>'+
  '<button type="button" id="dfRecCheck">🔎 CONFERIR OP NO D1</button>'+
  '<div class="dfRecGrid"><div><label>Máquina</label><input id="dfRecMachine" list="dfRecMachineList" placeholder="MÁQUINA CADASTRADA"><datalist id="dfRecMachineList"></datalist></div><div><label>Dia da produção</label><input id="dfRecDate" type="date"></div></div>'+
  '<label>Produto / cliente</label><input id="dfRecProduct" placeholder="PRODUTO">'+
  '<label>Operador (opcional)</label><input id="dfRecOperator" placeholder="OPERADOR">'+
  '<div class="dfRecGrid"><div><label>Produção (kg)</label><input id="dfRecKg" inputmode="decimal" placeholder="EX.: 250"></div><div><label>Apara (kg)</label><input id="dfRecScrap" inputmode="decimal" value="0"></div></div>'+
- '<label class="dfRecAgree"><input type="checkbox" id="dfRecAgree"><span>CONFIRMO COMO DONO QUE CONFERI A OP IMPRESSA E QUE ESTA BAIXA AINDA NÃO FOI CONTABILIZADA.</span></label>'+
+ '<label class="dfRecAgree"><input type="checkbox" id="dfRecAgree"><span id="dfRecAgreeText">CONFIRMO COMO DONO QUE CONFERI A OP IMPRESSA E QUE ESTA BAIXA AINDA NÃO FOI CONTABILIZADA.</span></label>'+
  '<div id="dfRecMsg" role="status">Consulte o QR no D1 antes de recuperar.</div>'+
- '<button id="dfRecSave" type="button" disabled>✅ RECUPERAR PARA PRONTAS</button></div>';
+ '<button id="dfRecSave" type="button" disabled>✅ RECUPERAR COM FOTO PARA PRONTAS</button></div>';
  header.insertAdjacentElement('afterend',el);
  f('Date').value=today();$('dfRecMachineList').innerHTML=catalog().map(x=>'<option value="'+esc(x.machine)+'">'+esc(x.sector)+'</option>').join('');
 
  $('dfRecCheck').onclick=check;$('dfRecSave').onclick=recover;
  f('Code').addEventListener('input',()=>{
-   reset();
+   reset();clearRecoveryPhoto();
    // Cada novo QR começa com dados limpos; nunca herdar pesos de outra OP.
    for(const key of ['Machine','Product','Operator','Kg'])f(key).value='';
    f('Scrap').value='0';f('Date').value=today();
  });
  $('dfRecScan').onclick=()=>$('dfRecFile').click();
+ $('dfRecPhotoPick').onclick=()=>$('dfRecPhotoFile').click();
+ $('dfRecPhotoFile').onchange=e=>{const file=e.target.files?.[0];if(file)setRecoveryPhoto(file);e.target.value=''};
  $('dfRecFile').onchange=async e=>{
   const file=e.target.files?.[0];if(!file)return;
+  // A mesma fotografia que contém o QR será enviada ao R2 após conferir a baixa.
+  if(!setRecoveryPhoto(file)){e.target.value='';return}
   try{
-   if(!window.jsQR)return msg('Leitor QR ainda não carregado. Digite o ID impresso.','warn');
+   if(!window.jsQR)return msg('Foto selecionada. Digite o ID impresso no papel para conferir a OP.','warn');
    const img=await createImageBitmap(file),c=document.createElement('canvas'),scale=Math.min(1,1800/Math.max(img.width,img.height));c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
    const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,c.width,c.height);
    const d=g.getImageData(0,0,c.width,c.height),value=window.jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'})?.data||'';
    const code=norm(value.match(/DFOP-\d{8}-\d{6}-[A-Z0-9-]+/i)?.[0]||'');
-   if(!valid(code))return msg('QR não reconhecido. Digite o ID impresso.','warn');
+   if(!valid(code))return msg('QR não reconhecido. A foto foi selecionada; digite o ID impresso e confira no D1.','warn');
    f('Code').value=code;reset();
    for(const key of ['Machine','Product','Operator','Kg'])f(key).value='';
    f('Scrap').value='0';f('Date').value=today();
    await check();
-  }catch(e){msg('Não foi possível ler o QR da foto. Digite o ID impresso.','warn')}finally{e.target.value=''}
+  }catch(e){msg('Não foi possível ler o QR. A foto continua selecionada; digite o ID impresso.','warn')}finally{e.target.value=''}
  };
  return true;
 }
