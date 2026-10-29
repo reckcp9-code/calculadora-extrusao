@@ -191,30 +191,45 @@ async function check(){
  try{
   const h=await post('/op/record/history',{opCode:id}),r=h.record;
   if(r&&['ready','pending'].includes(r.state)){
-   // Se já está pronta mas não aparece na tela, faça um pull sem recontabilizar a OP.
+   if(r.state==='ready'&&!String(r.photoId||'').trim()){
+    // Já contabilizada, mas sem foto (inclusive recuperações anteriores): permitir anexar
+    // sem alterar a produção, a apara ou o estado PRONTAS.
+    prefill(r,id);
+    checked={teamId:String(team().teamId),id,mode:'attach',revision:Number(r.revision||0)};
+    setRecoveryMode('attach');f('Save').disabled=false;
+    msg('📷 ESTA OP JÁ ESTÁ EM PRONTAS COM '+Number(r.production||0).toLocaleString('pt-BR')+
+      ' KG, MAS SEM FOTO. Tire ou escolha a foto e toque em VINCULAR FOTO. Nenhum quilo será somado novamente.','ok');
+    return;
+   }
+   // Se já possui foto ou está pendente, proíbe qualquer nova baixa.
    let refreshed=false;
    try{refreshed=await window.DFProducaoEquipeOnline?.pull?.()===true}catch(e){}
-   msg('⛔ OP JÁ ESTÁ '+(r.state==='ready'?'EM PRONTAS':'EM PENDENTES')+' no D1: '+Number(r.production||0).toLocaleString('pt-BR')+' kg · Máquina: '+String(r.machine||'não informada')+' · Mês: '+String(r.localDate||'').slice(0,7)+'. '+(refreshed?'Atualização de Produção solicitada. ':'')+'Não será duplicada.','warn');return;
+   msg('⛔ OP JÁ ESTÁ '+(r.state==='ready'?'EM PRONTAS':'EM PENDENTES')+' no D1: '+Number(r.production||0).toLocaleString('pt-BR')+
+     ' kg · Máquina: '+String(r.machine||'não informada')+' · Mês: '+String(r.localDate||'').slice(0,7)+
+     '. '+(r.photoId?'📷 FOTO JÁ VINCULADA. ':'')+(refreshed?'Tela atualizada. ':'')+
+     'Não será duplicada.','warn');return;
   }
   if(!r&&Array.isArray(h.events)&&h.events.length){
    msg('⛔ Há eventos de baixa desta OP, mas o registro atual não está disponível. Não recupere sem conferência.','warn');return;
   }
   prefill(r,id);
-  checked={teamId:String(team().teamId),id};
-  f('Save').disabled=false;
+  checked={teamId:String(team().teamId),id,mode:'recover'};
+  setRecoveryMode('recover');f('Save').disabled=false;
   msg(r?.state==='deleted'?'✅ OP EXCLUÍDA no D1. Revise os dados para restaurar.':'✅ Não existe baixa desta OP nesta EQUIPE DE PRODUÇÃO. Revise a OP impressa antes de registrar.','ok');
  }catch(e){msg('⚠️ Consulta ao D1 falhou: '+e.message+'. Nenhuma baixa enviada.','warn')}
  finally{busy=false;btn.disabled=false;btn.textContent='🔎 CONFERIR OP NO D1'}
 }
 async function recover(){
  if(busy||!checked||!owner())return;
- const t=team(),id=norm(f('Code')?.value);
+ if(checked.mode==='attach')return attachToReady();
+ const t=team(),id=norm(f('Code')?.value),file=recoveryPhoto;
  if(id!==checked.id||String(t?.teamId)!==checked.teamId)return reset();
  const machine=String(f('Machine')?.value||'').trim(),product=String(f('Product')?.value||'').trim(),operator=String(f('Operator')?.value||'').trim();
  const kg=amount(f('Kg')?.value),scrap=amount(f('Scrap')?.value),day=f('Date')?.value||'';
  if(!valid(id)||!machine||!product||!(kg>0)||!Number.isFinite(scrap)||scrap<0||scrap>kg||! /^\d{4}-\d{2}-\d{2}$/.test(day)||day>today())return msg('Informe QR, máquina, produto, dia, produção e apara válidos.','warn');
  const known=catalog();
  if(known.length&&!known.some(x=>norm(x.machine)===norm(machine)))return msg('Selecione uma MÁQUINA CADASTRADA para a produção somar no setor correto.','warn');
+ if(!file)return msg('📷 Foto obrigatória. Tire ou escolha a foto da OP antes da recuperação.','warn');
  if(!f('Agree').checked)return msg('Confirme que a OP impressa não foi contabilizada.','warn');
  if(!confirm('RECUPERAR OP MANUALMENTE?\n\n'+id+'\nMáquina: '+machine+'\nProduto: '+product+'\nProdução: '+kg+' kg\nApara: '+scrap+' kg\nDia: '+day+'\n\nEu confirmo que esta baixa NÃO está contabilizada na equipe.'))return;
  busy=true;const btn=f('Save');btn.disabled=true;btn.textContent='⏳ RECUPERANDO...';
@@ -222,25 +237,37 @@ async function recover(){
   // Reconsulta no momento da confirmação: nunca substitui Prontas nem Pendentes.
   const hist=await post('/op/record/history',{opCode:id});
   if(hist.record&&['ready','pending'].includes(hist.record.state))throw Error('OP já foi baixada no D1. Sem duplicação.');
-  const resp=await post('/op/record/upsert',{opCode:id,production:kg,scrap,productName:product,operatorName:operator,machine,localDate:day,completedAt:new Date().toISOString(),photoId:String(hist.record?.photoId||''),requestKey:'dfprod-owner-recovery-v675-'+id+'-'+Date.now()});
-  if(resp.stale||resp.record?.state!=='ready'||norm(resp.record?.opCode)!==id)throw Error('D1 não confirmou a recuperação em Prontas. Confira antes de repetir.');
+  // Primeiro gravar e verificar foto R2; só depois lançar uma nova baixa.
+  btn.textContent='⏳ ENVIANDO FOTO AO R2...';
+  const photoId=await uploadRecoveryPhoto(id,kg,scrap,file);
+  btn.textContent='⏳ CONFIRMANDO PRONTAS NO D1...';
+  const resp=await post('/op/record/upsert',{opCode:id,production:kg,scrap,
+   productName:product,operatorName:operator,machine,localDate:day,
+   completedAt:new Date().toISOString(),photoId,
+   requestKey:'dfprod-owner-recovery-photo-v680-'+id+'-'+Date.now()});
+  if(resp.stale||resp.record?.state!=='ready'||norm(resp.record?.opCode)!==id||
+     resp.record?.photoId!==photoId)
+    throw Error('D1 não confirmou a recuperação COM FOTO em Prontas. Consulte a OP antes de repetir.');
   const verify=await post('/op/record/history',{opCode:id});
-  if(verify.record?.state!=='ready'||Number(verify.record.production)!==kg||Number(verify.record.scrap)!==scrap)throw Error('Não foi possível confirmar a soma. Consulte novamente no D1 antes de repetir.');
+  if(verify.record?.state!=='ready'||Number(verify.record.production)!==kg||
+     Number(verify.record.scrap)!==scrap||verify.record.photoId!==photoId)
+    throw Error('A confirmação final do D1/foto falhou. Confira a OP antes de repetir.');
   // Remova somente a exclusão local desta OP, após confirmação do D1.
   const pending=read('df_producao_delete_pending_v1',{});
   if(pending&&Object.prototype.hasOwnProperty.call(pending,id)){
     delete pending[id];try{localStorage.setItem('df_producao_delete_pending_v1',JSON.stringify(pending))}catch(e){}
   }
-  // A recuperação sem foto é histórica e não deve tentar reenviar a foto apagada.
+  // Marcar como histórico já sincronizado: a foto nova pertence ao R2, sem reenvio local duplicado.
   const history=read('df_producao_historico_sem_foto_v647',{});
   const historyIds=history?.teamId===t.teamId?{...(history.ids||{})}:{};
   historyIds[id]=true;
   try{localStorage.setItem('df_producao_historico_sem_foto_v647',JSON.stringify({teamId:t.teamId,ids:historyIds}))}catch(e){}
-  checked=null;f('Agree').checked=false;
-  msg('✅ RECUPERADA NO D1: '+kg.toLocaleString('pt-BR')+' kg em PRONTAS — '+machine+' — mês '+day.slice(0,7)+'.','ok');
-  try{await window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
+  checked=null;f('Agree').checked=false;clearRecoveryPhoto();setRecoveryMode('recover');
+  msg('✅ OP RECUPERADA COM FOTO NO R2 E VINCULADA AO D1: '+kg.toLocaleString('pt-BR')+
+      ' kg em PRONTAS — '+machine+' — mês '+day.slice(0,7)+'. Foto disponível em Prontas para toda a equipe.','ok');
+  await refreshAfterPhoto(id);
  }catch(e){msg('⚠️ '+e.message+' Nenhuma segunda tentativa automática será feita. Consulte o QR no D1.','warn')}
- finally{busy=false;btn.disabled=true;btn.textContent='✅ RECUPERAR PARA PRONTAS'}
+ finally{busy=false;btn.disabled=true;btn.textContent='✅ RECUPERAR COM FOTO PARA PRONTAS'}
 }
 function mount(){
  const header=document.querySelector('main.wrap > header'),nav=$('prodRecoverTab'),t=team(),old=$('dfRecOwner');
