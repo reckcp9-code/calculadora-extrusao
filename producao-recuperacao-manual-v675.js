@@ -118,25 +118,28 @@ async function verifyUploadedPhoto(id,retry=true){
  return true;
 }
 async function uploadRecoveryPhoto(id,kg,scrap,file){
- const t=team();if(!owner()||!t?.teamId)throw Error('Equipe do dono não identificada.');
+ const t=team();
+ if(!owner()||!t?.teamId)throw Error('Equipe do dono não identificada.');
  const jpg=await convertRecoveryPhoto(file);
- const form=new FormData();
- form.append('teamId',t.teamId);form.append('area','producao');form.append('scope','producao');
- form.append('photoType','production_op');
- // prefixo diferente de DFOP- para que o upload da foto NÃO registre uma segunda baixa.
- form.append('sourceId','DFPRODRECOVERY-'+id);
- form.append('qr',id);
- form.append('production',String(kg));
- form.append('scrap',String(scrap));
- form.append('createdAt',new Date().toISOString());
- form.append('photo',jpg,'op-recuperada.jpg');
- let auth=await session(false),r=await fetch(API+'/op/photo/upload',{method:'POST',
-  headers:{'Authorization':'Bearer '+auth,'X-DF-Device':device()},body:form,cache:'no-store'});
- if(r.status===401){auth=await session(true);r=await fetch(API+'/op/photo/upload',{method:'POST',
-  headers:{'Authorization':'Bearer '+auth,'X-DF-Device':device()},body:form,cache:'no-store'})}
+ if(!(jpg instanceof Blob)||!jpg.size||jpg.size>4000000)
+  throw Error('Foto inválida ou maior que 4 MB após conversão.');
+ // No iPhone a requisição multipart pode perder a parte "photo".
+ // Usar o mesmo upload binário já utilizado pela Produção; R2 e D1 intactos.
+ const meta={
+  teamId:String(t.teamId),area:'producao',scope:'producao',photoType:'production_op',
+  // sourceId não começa por DFOP: o upload NÃO cria uma segunda baixa.
+  sourceId:'DFPRODRECOVERY-'+id,qr:id,production:Number(kg),scrap:Number(scrap),
+  createdAt:new Date().toISOString()
+ };
+ const url=API+'/op/photo/upload-binary?meta='+encodeURIComponent(JSON.stringify(meta));
+ const send=async auth=>fetch(url,{method:'POST',headers:{
+  'Authorization':'Bearer '+auth,'X-DF-Device':device(),'Content-Type':'image/jpeg'
+ },body:jpg,cache:'no-store'});
+ let auth=await session(false),r=await send(auth);
+ if(r.status===401){auth=await session(true);r=await send(auth)}
  const data=await r.json().catch(()=>({}));
  if(!r.ok||data.ok===false||!/^opp_[a-z0-9]+$/i.test(String(data.photo?.id||'')))
-   throw Error(data.error||'O R2 não confirmou o recebimento da foto.');
+  throw Error(data.error||('R2 não confirmou a foto (HTTP '+r.status+').'));
  const photoId=String(data.photo.id);
  await verifyUploadedPhoto(photoId);
  return photoId;
