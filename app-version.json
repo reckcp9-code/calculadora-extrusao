@@ -1,6 +1,6 @@
 {
-  "version": "1.0.681",
-  "title": "Correção de foto na recuperação de OP",
-  "message": "Corrigido envio de foto no iPhone durante a recuperação manual: upload binário verificado no R2, vínculo com OP no D1 e preservação de bloqueio contra baixa duplicada.",
+  "version": "1.0.682",
+  "title": "Recuperação de OP com foto corrigida",
+  "message": "Corrigida falsa falha HTTP 200: o aplicativo aceita IDs de fotos com hífen e sublinhado gerados pelo Worker/R2. Foto confirmada antes de registrar a OP em Prontas; baixa duplicada continua bloqueada.",
   "updatedAt": "2026-10-29"
 }
