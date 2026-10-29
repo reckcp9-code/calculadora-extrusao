@@ -525,7 +525,7 @@ async function editReadyCompletion(rawId,fields){
  if(navigator.onLine===false)throw Error('É necessário internet para confirmar a edição com a equipe.');
  const production=num(fields?.production),scrap=num(fields?.scrap);
  const machine=String(fields?.machine||'').trim().slice(0,120);
- if(!/^DFOP-\\d{8}-\\d{6}-[A-Z0-9-]+$/.test(id))throw Error('ID da OP inválido.');
+ if(!/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/.test(id))throw Error('ID da OP inválido.');
  if(!(production>0)||!Number.isFinite(scrap)||scrap<0||scrap>production||!machine)
   throw Error('Confira máquina, produção e apara.');
  const history=await apiPost('/op/record/history',{teamId:t.teamId,opCode:id});
