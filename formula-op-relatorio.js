@@ -166,13 +166,13 @@
   const totalProd=a.prod,totalScrap=a.ap,totalNet=a.liquid,scrapPct=totalProd>0?totalScrap/totalProd*100:0;
   const pct=v=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
   const monthLabel=value=>{
-    const match=String(value||'').match(/^(\\d{4})-(\\d{2})$/);
+    const match=String(value||'').match(/^(\d{4})-(\d{2})$/);
     if(!match)return String(value||'');
     const names=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const month=Number(match[2]);
     return month>=1&&month<=12?names[month-1]+' De '+match[1]:String(value);
   };
-  const canonical=name=>String(name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().replace(/\\s+/g,' ').toLocaleUpperCase('pt-BR');
+  const canonical=name=>String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLocaleUpperCase('pt-BR');
   const summary=(nameFor)=>{
     const map=new Map();
     for(const o of a.ok){
