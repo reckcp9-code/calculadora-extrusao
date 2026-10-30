@@ -1,6 +1,6 @@
 {
-  "version": "1.0.682",
-  "title": "Recuperação de OP com foto corrigida",
-  "message": "Corrigida falsa falha HTTP 200: o aplicativo aceita IDs de fotos com hífen e sublinhado gerados pelo Worker/R2. Foto confirmada antes de registrar a OP em Prontas; baixa duplicada continua bloqueada.",
+  "version": "1.0.683",
+  "title": "Relatório da Extrusão com visual da Produção",
+  "message": "Relatório da Formulação/Extrusão agora segue o modelo gerencial da Produção: cabeçalho, quatro KPIs, máquinas, produtos, apara e PDF. Mantidos OPs concluídas, operadores e dados originais; sem alterar fluxo, D1 ou R2.",
   "updatedAt": "2026-10-29"
 }
