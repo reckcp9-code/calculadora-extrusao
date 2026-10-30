@@ -1,6 +1,6 @@
 {
-  "version": "1.0.683",
-  "title": "Relatório da Extrusão com visual da Produção",
-  "message": "Relatório da Formulação/Extrusão agora segue o modelo gerencial da Produção: cabeçalho, quatro KPIs, máquinas, produtos, apara e PDF. Mantidos OPs concluídas, operadores e dados originais; sem alterar fluxo, D1 ou R2.",
+  "version": "1.0.684",
+  "title": "Faixas alinhadas no PDF da Extrusão",
+  "message": "Relatório de Formulação/Extrusão com faixas brancas e azul-claro contínuas em toda a largura das tabelas; correção de quebras na numeração, IDs das OPs e impressão entre páginas. Nenhum dado ou fluxo foi alterado.",
   "updatedAt": "2026-10-29"
 }
