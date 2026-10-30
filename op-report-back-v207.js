@@ -13,7 +13,7 @@ function prepare(e){
     try{
       var add=function(){
         try{
-          var d=child.document;if(!d||!d.body||d.getElementById('dfVoltarFormula209'))return;
+          var d=child.document;if(!d||!d.body||d.getElementById('dfVoltarFormula209')||d.querySelector('.actions button'))return;
           var bt=d.createElement('button');bt.id='dfVoltarFormula209';bt.type='button';bt.textContent='← VOLTAR PARA FORMULAÇÃO';
           bt.style.cssText='display:inline-flex;align-items:center;margin:0 0 14px;padding:10px 14px;border:1px solid #bbb;border-radius:9px;background:#fff;color:#111;font:700 14px Arial,sans-serif;cursor:pointer';
           bt.onclick=function(){try{if(child.opener&&!child.opener.closed)child.opener.focus()}catch(x){}try{child.close()}catch(x){try{child.history.back()}catch(y){}}};
