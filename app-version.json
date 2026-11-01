@@ -1,6 +1,6 @@
 {
-  "version": "1.0.686",
-  "title": "DF EXTRUSOR PRO — Histórico mensal de Produção",
-  "message": "Prontas e fotos filtradas pelo mês selecionado, com reinício visual automático a cada mês e histórico preservado.",
+  "version": "1.0.687",
+  "title": "DF EXTRUSOR PRO — Novo mês sem OPs antigas",
+  "message": "Prontas mostra apenas OPs do mês escolhido, com tela vazia no novo mês e histórico preservado.",
   "updatedAt": "2026-11-01"
 }
