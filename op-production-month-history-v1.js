@@ -31,7 +31,28 @@ for(const row of Array.from(list.children)){
 let empty=$('dfProductionMonthEmpty');if(!empty){empty=document.createElement('div');empty.id='dfProductionMonthEmpty';empty.style.cssText='padding:24px 12px;text-align:center;color:#a7b7cf;font-weight:700';list.insertAdjacentElement('afterend',empty)}
 empty.textContent=shown?'':'Nenhuma OP pronta neste mês. Selecione um mês anterior para consultar o histórico.';
 empty.style.display=shown?'none':'block';
-}catch(e){console.warn('[DF mês Produção]',e)}finally{running=false}}
+}catch(e){console.warn('[DF mês Produção]',e)}finally{running=false}try{applyArchive()}catch(e){console.warn('[DF arquivo mensal]',e)}}
+
+// Archived OPs share the same monthly view as ready OPs. Do not modify records.
+function applyArchive(){
+ const title=Array.from(document.querySelectorAll('h1,h2,h3,h4')).find(e=>/^OPs arquivadas$/i.test((e.textContent||'').trim()));
+ if(!title)return;
+ const area=title.parentElement;if(!area)return;
+ const chosen=selected(),items=records().filter(r=>r&&r.status==='ok'&&month(r)===chosen);
+ // The archive's original all-time counter is not a monthly count.
+ const counters=Array.from(area.querySelectorAll('div,span,p,small')).filter(e=>e.children.length===0&&/^\s*\d+\s+OPs? com baixa confirmada\s*$/i.test(e.textContent||''));
+ for(const el of counters)el.textContent=items.length+' OPs com baixa confirmada neste mês';
+ const input=area.querySelector('input[placeholder*="OP"],input[placeholder*="op"]');
+ if(input){input.dataset.dfMonth=chosen;}
+ // Existing archive search results must not leak records from other months.
+ for(const node of Array.from(area.querySelectorAll('[data-view],[data-op-id]'))){
+   const code=String(node.getAttribute('data-view')||node.getAttribute('data-op-id')||'').toUpperCase();
+   const rec=records().find(r=>id(r)===code);
+   const m=rec?month(rec):((code.match(/^DFOP-(\d{4})(\d{2})/)||[]).slice(1).join('-'));
+   const row=node.closest('[data-op-row]')||node.parentElement;
+   if(row&&row!==area)row.style.setProperty('display',m===chosen?'':'none',m===chosen?'':'important');
+ }
+}
 function schedule(){clearTimeout(timer);timer=setTimeout(apply,120)}
 function observe(){const b=panel();if(!b||b===boxRef)return;boxObserver?.disconnect();boxRef=b;boxObserver=new MutationObserver(schedule);boxObserver.observe(b,{childList:true,subtree:true});schedule()}
 function boot(){observe();schedule();new MutationObserver(()=>{if(!panel()||panel()!==boxRef)observe()}).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('click',e=>{if(e.target?.closest?.('[data-pane="ok"],[data-pane="archive"]'))schedule()},true);window.addEventListener('df-op-save-ui-refresh',schedule);window.addEventListener('df-op-remote-merged',schedule);window.addEventListener('df-op-d1-applied',schedule);window.addEventListener('focus',schedule);setInterval(schedule,60000)}
