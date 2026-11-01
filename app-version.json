@@ -1,6 +1,6 @@
 {
-  "version": "1.0.685",
-  "title": "DF EXTRUSOR PRO — Fotos das OPs",
-  "message": "Restaura fotos da nuvem na aba FOTOS, consulta por QR/ID e acesso às imagens enviadas pela câmera ou galeria.",
-  "updatedAt": "2026-10-31"
+  "version": "1.0.686",
+  "title": "DF EXTRUSOR PRO — Histórico mensal de Produção",
+  "message": "Prontas e fotos filtradas pelo mês selecionado, com reinício visual automático a cada mês e histórico preservado.",
+  "updatedAt": "2026-11-01"
 }
