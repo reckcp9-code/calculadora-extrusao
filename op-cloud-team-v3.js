@@ -89,7 +89,7 @@ async function joinTeam(){
   if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}
  }
 }
-function selectedMonth(){return String($('dfOpMonth')?.value||monthNow()).slice(0,7)}
+function selectedMonth(){const v=String(localStorage.getItem('df_production_history_month_v1')||'');return /^\d{4}-(0[1-9]|1[0-2])$/.test(v)?v:String($('dfOpMonth')?.value||monthNow()).slice(0,7)}
 function selectedPhotoType(){try{return localStorage.getItem('df_op_photo_type_v1')==='formulation'?'formulation':'production_op'}catch(e){return 'production_op'}}
 function selectedFormulaId(){try{return String(localStorage.getItem('df_op_photo_formula_id_v1')||'').trim()}catch(e){return ''}}
 function photoMapKey(type,id){return String(type||'production_op')+':'+String(id||'').trim().toUpperCase()}
