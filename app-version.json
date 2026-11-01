@@ -1,6 +1,6 @@
 {
-  "version": "1.0.687",
-  "title": "DF EXTRUSOR PRO — Novo mês sem OPs antigas",
-  "message": "Prontas mostra apenas OPs do mês escolhido, com tela vazia no novo mês e histórico preservado.",
+  "version": "1.0.688",
+  "title": "DF EXTRUSOR PRO — Arquivadas por mês",
+  "message": "Contador de OPs arquivadas e visualização de Prontas por mês, sem excluir histórico.",
   "updatedAt": "2026-11-01"
 }
