@@ -12,6 +12,7 @@
     const s=document.createElement('style');
     s.id='dfFormulaTabsCleanV1Style';
     s.textContent=[
+      '#pgFo #dfFormTabCore{display:none!important}',
       '#pgFo:not(.dfCleanWhatsOnly) #dfVendedorCard{display:none!important}',
       '#pgFo:not(.dfCleanBackupOnly) #dfCloudBackupCard{display:none!important}',
       '#pgFo.dfCleanWhatsOnly > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}',
@@ -70,6 +71,17 @@
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
     if(whats){whats.dataset.dfNavWhats='1';whats.style.setProperty('display','none','important')}
+    removeDuplicateFormulaTab();
+  }
+    function removeDuplicateFormulaTab(){
+    const p=page(),top=nav();if(!p||!top)return;
+    // O botão superior permanece. Somente a duplicata da segunda linha é removida.
+    const lower=p.querySelector('#dfFormTabCore');
+    if(lower&&lower.parentElement!==top){
+      lower.style.setProperty('display','none','important');
+      lower.setAttribute('aria-hidden','true');
+      lower.tabIndex=-1;
+    }
   }
     function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
   function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
