@@ -1,6 +1,6 @@
 {
-  "version": "1.0.714",
-  "title": "DF EXTRUSOR PRO — Pesquisa em todos os meses",
-  "message": "Caixa TODAS em Formulação > Prontas: pesquisar todas as OPs prontas ou apenas o mês selecionado.",
+  "version": "1.0.715",
+  "title": "DF EXTRUSOR PRO — Correção de abertura",
+  "message": "Corrigido erro de sintaxe que impedia a inicialização e deixava a tela preta.",
   "updatedAt": "2026-11-02"
 }
