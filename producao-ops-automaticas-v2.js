@@ -204,8 +204,8 @@ function renderArchive(){
  );
  const found=ready.filter(r=>!query||normId(r.opCode).includes(query));
  const summary=archivedLoading&&!archivedLastPull?'Consultando OPs com baixa no D1...':
-   ready.length+' OPs com baixa confirmada'+
-   (query?' • '+found.length+' encontradas':'')+
+   ready.length+(ready.length===1?' OP com baixa confirmada':' OPs com baixa confirmada')+
+   (query?' • '+found.length+(found.length===1?' encontrada':' encontradas'):'')+
    (archivedOffline?' • cópia offline':'');
  if(count&&count.textContent!==summary)count.textContent=summary;
  let notice='';
