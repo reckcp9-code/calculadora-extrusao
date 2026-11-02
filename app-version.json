@@ -1,6 +1,6 @@
 {
-  "version": "1.0.713",
-  "title": "DF EXTRUSOR PRO — Botão superior independente",
-  "message": "OPs Automáticas criado diretamente no menu superior, mantendo a lógica de Formulação intacta e ocultando a navegação antiga.",
+  "version": "1.0.714",
+  "title": "DF EXTRUSOR PRO — Pesquisa em todos os meses",
+  "message": "Caixa TODAS em Formulação > Prontas: pesquisar todas as OPs prontas ou apenas o mês selecionado.",
   "updatedAt": "2026-11-02"
 }
