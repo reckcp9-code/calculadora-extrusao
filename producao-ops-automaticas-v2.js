@@ -109,7 +109,10 @@ function addStyle(){if($('dfProdAutoCssV2'))return;const s=document.createElemen
 /* Isola a aba ARQUIVADAS de repinturas/visibilidade de outros painéis durante sync. */
 #dfProdAuto[data-df-active-pane="archive"]>.dfPAPane{display:none!important}
 #dfProdAuto[data-df-active-pane="archive"]>#dfPAPaneArchive{display:block!important}
-#dfProdAuto[data-df-active-pane="archive"] #dfPAArchiveList{display:block!important;visibility:visible!important;opacity:1!important;content-visibility:visible!important}.dfPACard h3{margin:0 0 11px;font-size:18px}.dfPAChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfPABtn{width:100%;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:13px;padding:13px 9px;margin-top:9px;font:950 13px/1.15 system-ui}.dfPABtn.alt{border-color:#f5a000;background:#241600;color:#ffd36a}.dfPABtn.gray{border-color:#475569;background:#0f172a;color:#e2e8f0}.dfPABtn.danger{border-color:#7f1d1d;background:#230b0b;color:#fca5a5}.dfPAStatus{border:1px solid #334155;background:#0f172a;border-radius:13px;padding:12px;margin-top:10px;font-size:12px;font-weight:800;line-height:1.45}.dfPAStatus.ok{border-color:#166534;color:#86efac}.dfPAStatus.warn{border-color:#a16207;color:#fde68a}.dfPAStatus.bad{border-color:#7f1d1d;color:#fca5a5}.dfPATiny{color:#94a3b8;font-size:11px;line-height:1.45}.dfPAConfirm{display:none;margin-top:12px;border:1px solid #f5a000;background:#15110a;border-radius:14px;padding:13px}.dfPAConfirm.on{display:block}.dfPAOpTitle{font-weight:950;color:#ffd36a;font-size:15px}.dfPAGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfPAGrid label{display:block;color:#cbd5e1;font-size:11px;margin:8px 0 4px}.dfPAGrid input,#dfPAMonth,#dfPAReadyMonth,#dfPAArchiveMonth,#dfPAManualId{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:11px;padding:11px;font-size:16px}.dfPAManual{display:none;margin-top:10px;border:1px solid #f5a000;background:#18120a;border-radius:13px;padding:12px}.dfPAManual.on{display:block}.dfPAManual b{display:block;color:#ffd36a;margin-bottom:5px}.dfPAList{border:1px solid #263244;background:#0f172a;border-radius:14px;padding:12px;margin-top:8px}.dfPAList strong{color:#e8edf5}.dfPABadge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:950;margin-left:5px}.dfPABadge.ok{background:#0c321c;color:#86efac}.dfPABadge.warn{background:#3a2605;color:#fde68a}.dfPAKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}.dfPAKpi{border:1px solid #263244;background:#0f172a;border-radius:13px;padding:11px}.dfPAKpi span{display:block;color:#94a3b8;font-size:10px}.dfPAKpi b{display:block;font-size:18px;margin-top:4px}.dfPAPreview{display:none;width:100%;max-height:380px;object-fit:contain;border:1px solid #334155;border-radius:14px;background:#080b13;margin-top:10px}.dfPAModal{position:fixed;inset:0;z-index:999999;background:#020617ee;display:none;padding:18px;overflow:auto}.dfPAModal.on{display:block}.dfPAModalBox{max-width:720px;margin:20px auto;background:#111827;border:1px solid #334155;border-radius:18px;padding:14px}.dfPAModal img{width:100%;max-height:70vh;object-fit:contain;border-radius:12px;background:#000}@media(max-width:640px){.dfPATabs{grid-template-columns:repeat(3,1fr)}.dfPAChoice,.dfPAGrid{grid-template-columns:1fr 1fr}.dfPAKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}#dfPAArchiveSearch{display:block!important;width:100%!important;max-width:100%!important;min-height:48px;margin:0 0 12px;border:1px solid #475569;border-radius:12px;background:#0f172a;color:#f8fafc;padding:12px 13px;font:600 15px system-ui;box-sizing:border-box;outline:none}#dfPAArchiveSearch:focus{border-color:#64748b}#dfPAArchiveCount{margin:6px 0 12px}#dfPAArchiveList{overflow-wrap:anywhere}#dfPAArchiveList .dfPAArchivedId{padding:12px 10px;border-bottom:1px solid #263244;color:#dce6f3;font:700 13px/1.5 system-ui;word-break:break-word;user-select:text}#dfPAArchiveList .dfPAArchivedId:last-child{border-bottom:0}`;document.head.appendChild(s)}
+#dfProdAuto[data-df-active-pane="archive"] #dfPAArchiveList{display:block!important;visibility:visible!important;opacity:1!important;content-visibility:visible!important}.dfPACard h3{margin:0 0 11px;font-size:18px}.dfPAChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfPABtn{width:100%;border:1px solid #16a34a;background:#0c321c;color:#86efac;border-radius:13px;padding:13px 9px;margin-top:9px;font:950 13px/1.15 system-ui}.dfPABtn.alt{border-color:#f5a000;background:#241600;color:#ffd36a}.dfPABtn.gray{border-color:#475569;background:#0f172a;color:#e2e8f0}.dfPABtn.danger{border-color:#7f1d1d;background:#230b0b;color:#fca5a5}.dfPAStatus{border:1px solid #334155;background:#0f172a;border-radius:13px;padding:12px;margin-top:10px;font-size:12px;font-weight:800;line-height:1.45}.dfPAStatus.ok{border-color:#166534;color:#86efac}.dfPAStatus.warn{border-color:#a16207;color:#fde68a}.dfPAStatus.bad{border-color:#7f1d1d;color:#fca5a5}.dfPATiny{color:#94a3b8;font-size:11px;line-height:1.45}.dfPAConfirm{display:none;margin-top:12px;border:1px solid #f5a000;background:#15110a;border-radius:14px;padding:13px}.dfPAConfirm.on{display:block}.dfPAOpTitle{font-weight:950;color:#ffd36a;font-size:15px}.dfPAGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfPAGrid label{display:block;color:#cbd5e1;font-size:11px;margin:8px 0 4px}.dfPAGrid input,#dfPAMonth,#dfPAReadyMonth,#dfPAArchiveMonth,#dfPAManualId{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:11px;padding:11px;font-size:16px}.dfPAManual{display:none;margin-top:10px;border:1px solid #f5a000;background:#18120a;border-radius:13px;padding:12px}.dfPAManual.on{display:block}.dfPAManual b{display:block;color:#ffd36a;margin-bottom:5px}.dfPAList{border:1px solid #263244;background:#0f172a;border-radius:14px;padding:12px;margin-top:8px}.dfPAList strong{color:#e8edf5}.dfPABadge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:950;margin-left:5px}.dfPABadge.ok{background:#0c321c;color:#86efac}.dfPABadge.warn{background:#3a2605;color:#fde68a}.dfPAKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}.dfPAKpi{border:1px solid #263244;background:#0f172a;border-radius:13px;padding:11px}.dfPAKpi span{display:block;color:#94a3b8;font-size:10px}.dfPAKpi b{display:block;font-size:18px;margin-top:4px}.dfPAPreview{display:none;width:100%;max-height:380px;object-fit:contain;border:1px solid #334155;border-radius:14px;background:#080b13;margin-top:10px}.dfPAModal{position:fixed;inset:0;z-index:999999;background:#020617ee;display:none;padding:18px;overflow:auto}.dfPAModal.on{display:block}.dfPAModalBox{max-width:720px;margin:20px auto;background:#111827;border:1px solid #334155;border-radius:18px;padding:14px}.dfPAModal img{width:100%;max-height:70vh;object-fit:contain;border-radius:12px;background:#000}@media(max-width:640px){.dfPATabs{grid-template-columns:repeat(3,1fr)}.dfPAChoice,.dfPAGrid{grid-template-columns:1fr 1fr}.dfPAKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}#dfPAArchiveSearch{display:block!important;width:100%!important;max-width:100%!important;min-height:48px;margin:0 0 12px;border:1px solid #475569;border-radius:12px;background:#0f172a;color:#f8fafc;padding:12px 13px;font:600 15px system-ui;box-sizing:border-box;outline:none}#dfPAArchiveSearch:focus{border-color:#64748b}#dfPAArchiveCount{margin:6px 0 12px}#dfPAArchiveList{overflow-wrap:anywhere}#dfPAArchiveList .dfPAArchivedId{padding:12px 10px;border-bottom:1px solid #263244;color:#dce6f3;font:700 13px/1.5 system-ui;word-break:break-word;user-select:text}#dfPAArchiveList .dfPAArchivedId:last-child{border-bottom:0}
+#dfPAPaneArchive,#dfPAPaneArchive .dfPACard{max-width:100%;min-width:0;overflow-x:clip}
+#dfPAArchiveList{display:block!important;visibility:visible!important;opacity:1!important;width:100%;max-width:100%;min-height:24px}
+#dfPAArchiveList>.dfPAArchivedId,#dfPAArchiveList>.dfPATiny{display:block!important;visibility:visible!important;opacity:1!important;max-width:100%;overflow-wrap:anywhere;position:relative}`;document.head.appendChild(s)}
 
 function dbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 async function photoPut(id,blob,meta){const d=await dbOpen();return new Promise((res,rej)=>{const tx=d.transaction('photos','readwrite');tx.objectStore('photos').put({id,blob,mime:blob.type||'image/jpeg',savedAt:new Date().toISOString(),...(meta||{})});tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
@@ -190,23 +193,46 @@ function renderMonth(){if(!$('dfPAPaneMonth')?.classList.contains('on'))return;c
 let archivedRows=[],archivedTeam='',archivedLastPull=0,archivedLoading=false,archivedOffline=false,archivedError='';
 function archiveOpen(){return !!$('dfPAPaneArchive')?.classList.contains('on')}
 function renderArchive(){
- if(!$('dfPAPaneArchive')?.classList.contains('on'))return;
+ const pane=$('dfPAPaneArchive');
+ if(!pane?.classList.contains('on'))return;
  const box=$('dfPAArchiveList'),count=$('dfPAArchiveCount');if(!box)return;
  const teamId=String(window.DFProducaoEquipeOnline?.team?.()?.teamId||'');
- const selected=synchronizeMonthInputs(),ready=(teamId&&archivedTeam===teamId?archivedRows:[]).filter(r=>completionMonth({date:r.localDate,completedAt:r.completedAt})===selected),q=normId($('dfPAArchiveSearch')?.value||'');
- const found=ready.filter(r=>!q||String(r.opCode).includes(q));
- // Atualizações de sincronização podem ocorrer a cada poucos segundos.
- // Evite destruir e recriar as mesmas linhas: no iPhone isso provoca piscadas.
- const counter=archivedLoading&&!archivedLastPull?'Consultando OPs com baixa no D1...':(ready.length+' OPs com baixa confirmada'+(archivedOffline?' • cópia offline':''));
- if(count&&count.textContent!==counter)count.textContent=counter;
- const html=!teamId?'<div class="dfPATiny">Entre na Equipe de Produção para consultar as OPs arquivadas.</div>':
-  archivedError&&!ready.length?'<div class="dfPATiny">'+esc(archivedError)+'</div>':
-  !archivedLastPull&&archivedLoading?'<div class="dfPATiny">Buscando OPs no D1...</div>':
-  found.length?found.map(r=>'<div class="dfPAArchivedId">'+esc(r.opCode)+'</div>').join(''):
-  '<div class="dfPATiny">'+(q?'Nenhuma OP com esse ID.':'Nenhuma OP com baixa confirmada neste mês.')+'</div>';
- // Somente tocar no DOM se o conteúdo visível realmente mudou.
- // Mantém busca, seleção de mês, ordem, dados e sincronização intactos.
- if(box.__dfArchivePaint!==html||!box.childElementCount){box.innerHTML=html;box.__dfArchivePaint=html;}
+ const selected=synchronizeMonthInputs();
+ const query=normId($('dfPAArchiveSearch')?.value||'');
+ const ready=(teamId&&archivedTeam===teamId?archivedRows:[]).filter(
+  r=>completionMonth({date:r.localDate,completedAt:r.completedAt})===selected
+ );
+ const found=ready.filter(r=>!query||normId(r.opCode).includes(query));
+ const summary=archivedLoading&&!archivedLastPull?'Consultando OPs com baixa no D1...':
+   ready.length+' OPs com baixa confirmada'+
+   (query?' • '+found.length+' encontradas':'')+
+   (archivedOffline?' • cópia offline':'');
+ if(count&&count.textContent!==summary)count.textContent=summary;
+ let notice='';
+ if(!teamId)notice='Entre na Equipe de Produção para consultar as OPs arquivadas.';
+ else if(archivedError&&!ready.length)notice=archivedError;
+ else if(!archivedLastPull&&archivedLoading)notice='Buscando OPs no D1...';
+ else if(!found.length)notice=query?'Nenhuma OP com esse ID neste mês.':'Nenhuma OP com baixa confirmada neste mês.';
+ const ids=notice?[]:found.map(r=>normId(r.opCode));
+ const signature=JSON.stringify([teamId,selected,query,notice,ids]);
+ const expected=notice?1:ids.length;
+ const first=box.firstElementChild;
+ const mismatch=box.childElementCount!==expected||
+  (notice?first?.textContent!==notice:first?.textContent!==ids[0]);
+ if(box.dataset.dfArchiveSignature===signature&&!mismatch)return;
+ const frag=document.createDocumentFragment();
+ if(notice){
+  const row=document.createElement('div');row.className='dfPATiny';
+  row.textContent=notice;frag.appendChild(row);
+ }else{
+  for(const id of ids){
+   const row=document.createElement('div');
+   row.className='dfPAArchivedId';row.dataset.opId=id;row.textContent=id;
+   frag.appendChild(row);
+  }
+ }
+ box.replaceChildren(frag);
+ box.dataset.dfArchiveSignature=signature;
 }
 async function loadArchive(force=false){
  const api=window.DFProducaoEquipeOnline,t=api?.team?.();
