@@ -58,7 +58,7 @@
     repairing=true;
     try{
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
-    const ops=$('dfFormTabOps');if(ops){if(ops.parentElement!==n)n.appendChild(ops);ops.dataset.dfNavOps='1';ops.classList.add('dfAutoTopic');ops.hidden=false;ops.style.removeProperty('display')}
+    let ops=$('dfFormTabOps');if(!ops){ops=document.createElement('button');ops.id='dfFormTabOps';ops.type='button';ops.textContent='🤖 OPS AUTOMÁTICAS';n.appendChild(ops)}if(ops){if(ops.parentElement!==n)n.appendChild(ops);ops.dataset.dfNavOps='1';ops.classList.add('dfAutoTopic');ops.hidden=false;ops.style.removeProperty('display')}
     if(menu)menu.dataset.dfNavMenu='1';
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
