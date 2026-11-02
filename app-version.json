@@ -1,6 +1,6 @@
 {
-  "version": "1.0.712",
-  "title": "DF EXTRUSOR PRO — Recuperação de estabilidade",
-  "message": "Revertida alteração estrutural que causou travamentos na Formulação; fluxo anterior restaurado.",
+  "version": "1.0.713",
+  "title": "DF EXTRUSOR PRO — Botão superior independente",
+  "message": "OPs Automáticas criado diretamente no menu superior, mantendo a lógica de Formulação intacta e ocultando a navegação antiga.",
   "updatedAt": "2026-11-02"
 }
