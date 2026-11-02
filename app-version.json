@@ -1,6 +1,6 @@
 {
-  "version": "1.0.721",
-  "title": "DF EXTRUSOR PRO — Tela principal corrigida",
-  "message": "Corrigido aviso de OPs pendentes que aparecia indevidamente na tela principal. Sem alteração no fluxo de produção ou formulação.",
+  "version": "1.0.722",
+  "title": "DF EXTRUSOR PRO — Menu Produção padronizado",
+  "message": "Título e barra horizontal da Produção no mesmo padrão visual da Formulação, sem quebra de texto nos botões.",
   "updatedAt": "2026-11-02"
 }
