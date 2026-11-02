@@ -5,7 +5,7 @@
 
   const $=id=>document.getElementById(id);
   const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
-  let navObserver=null,pageObserver=null,fixTimer=0,cleaning=false;
+  let navObserver=null,pageObserver=null,fixTimer=0,cleaning=false,repairing=false;
 
   function ensureStyle(){
     if($('dfFormulaTabsCleanV1Style'))return;
@@ -54,7 +54,9 @@
   }
 
   function tagNav(){
-    const n=nav();if(!n)return;
+    const n=nav();if(!n||repairing)return;
+    repairing=true;
+    try{
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
     // A aba original de OPs fica na segunda linha: movemos o MESMO botão.
     const ops=$('dfFormTabOps')||findOps();
@@ -73,6 +75,7 @@
     if(backup)backup.dataset.dfNavBackup='1';
     if(whats){whats.dataset.dfNavWhats='1';whats.style.setProperty('display','none','important')}
     removeDuplicateFormulaTab();
+    }finally{repairing=false}
   }
     function removeDuplicateFormulaTab(){
     const p=page(),top=nav();if(!p||!top)return;
@@ -89,10 +92,12 @@
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
   function showFormula(btn){clearMode();cleanLiteralNewline();const form=$('dfFormTabCore');if(form)form.click();setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
   function bindFormula(formula){if(!formula||formula.dataset.dfCleanTabsBound)return;formula.dataset.dfCleanTabsBound='1';formula.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showFormula(formula)},true)}
-  function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();ensureFormulaButton();tagNav();bind()},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
-  function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(cleanLiteralNewline,40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
+  function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{if(!repairing){cleanLiteralNewline();ensureFormulaButton();tagNav()}},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
+  function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();if(!repairing)tagNav()},40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
 
   function bind(){ensureStyle();const p=page(),n=nav();if(!p||!n)return false;cleanLiteralNewline();const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();tagNav();bindFormula(formula);if(whats&&!whats.dataset.dfCleanTabsBound){whats.dataset.dfCleanTabsBound='1';whats.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showWhats(whats)},true)}if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}const form=$('dfFormTabCore'),ops=$('dfFormTabOps');[form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();tagNav();if(btn===form)markActive(f);else if(btn===ops)markActive(findOps())},0)},true)}});const topOps=findOps();if(topOps&&!topOps.dataset.dfCleanTabsClear){topOps.dataset.dfCleanTabsClear='1';topOps.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{tagNav();const current=findOps();if(current)markActive(current)},0)},true)}attachNavObserver();attachPageObserver();return true}
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)bind()});
+  window.addEventListener('pageshow',()=>bind());
   function retry(attempt){attempt=Number(attempt)||0;cleanLiteralNewline();if(bind()||attempt>=12)return;setTimeout(()=>retry(attempt+1),300)}
   function start(){retry(0)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
