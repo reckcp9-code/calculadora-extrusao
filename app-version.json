@@ -1,6 +1,6 @@
 {
-  "version": "1.0.692",
-  "title": "DF EXTRUSOR PRO — Prontas e Arquivadas por mês",
-  "message": "Prontas e Arquivadas mostram apenas as baixas do mês selecionado. Histórico dos meses anteriores preservado.",
+  "version": "1.0.693",
+  "title": "DF EXTRUSOR PRO — Arquivadas sem piscadas",
+  "message": "Estabilizada a lista de Arquivadas durante a sincronização. Nenhuma alteração nas baixas, fotos ou dados.",
   "updatedAt": "2026-11-02"
 }
