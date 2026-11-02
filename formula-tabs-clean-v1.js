@@ -51,7 +51,7 @@
     cleaning=false;
   }
 
-  function tagNav(){const menu=findMenu(),formula=findFormula(),ops=findOps(),whats=findWhats(),backup=findBackup();if(menu)menu.dataset.dfNavMenu='1';if(formula)formula.dataset.dfFormulaTop='1';if(ops){ops.dataset.dfNavOps='1';ops.style.removeProperty('display')}if(whats)whats.dataset.dfNavWhats='1';if(backup)backup.dataset.dfNavBackup='1'}
+  function tagNav(){const menu=findMenu(),formula=findFormula(),ops=findOps(),whats=findWhats(),backup=findBackup();if(ops){const top=nav();if(top&&ops.parentElement!==top)top.appendChild(ops);ops.dataset.dfNavOps='1';}if(whats)whats.style.setProperty('display','none','important');if(menu)menu.dataset.dfNavMenu='1';if(formula)formula.dataset.dfFormulaTop='1';if(ops){ops.dataset.dfNavOps='1';ops.style.removeProperty('display')}if(whats)whats.dataset.dfNavWhats='1';if(backup)backup.dataset.dfNavBackup='1'}
   function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
   function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
