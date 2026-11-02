@@ -77,7 +77,7 @@
         nav.querySelectorAll('.dfAutoTopic').forEach(b=>b.classList.toggle('on',b===opsTop));
         page.querySelectorAll(':scope > .card').forEach(card=>card.classList.remove('dfTopicVisible'));
         page.classList.remove('dfStableVendorOnly','dfStableBackupOnly');
-        ops.click();window.scrollTo(0,0);
+        if(opsTop!==ops)ops.click();window.scrollTo(0,0);
       },true);
     }
     if(backupTop&&!backupTop.dataset.dfStableBound){
