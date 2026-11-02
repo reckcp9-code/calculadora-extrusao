@@ -1,6 +1,6 @@
 {
-  "version": "1.0.722",
-  "title": "DF EXTRUSOR PRO — Menu Produção padronizado",
-  "message": "Título e barra horizontal da Produção no mesmo padrão visual da Formulação, sem quebra de texto nos botões.",
+  "version": "1.0.723",
+  "title": "DF EXTRUSOR PRO — Barra da Produção padronizada",
+  "message": "Botões superiores da Produção com altura de 44px e rolagem horizontal, iguais aos da Formulação.",
   "updatedAt": "2026-11-02"
 }
