@@ -1,6 +1,6 @@
 {
-  "version": "1.0.725",
-  "title": "DF EXTRUSOR PRO — Seletor de Produção",
-  "message": "Ajuste visual da caixa TODAS em Prontas da Produção.",
+  "version": "1.0.726",
+  "title": "DF EXTRUSOR PRO — Estabilidade dos menus",
+  "message": "Correção de regras conflitantes na barra da Produção e de reconstrução repetida do menu da Formulação.",
   "updatedAt": "2026-11-02"
 }
