@@ -14,8 +14,17 @@ function mount(){
  const pane=document.createElement('section');pane.id='dfMonthlyPhotoPane';pane.className='dfOpsPane';pane.innerHTML='<div class="dfOpsCard"><h3>📸 FOTOS • OPs BAIXADAS</h3><label>MÊS</label><input type="month" id="dfMonthlyPhotoMonth" style="width:100%;min-height:46px"><input id="dfMonthlyPhotoSearch" placeholder="PESQUISAR PRODUTO OU ID DA OP" style="width:100%;min-height:46px;margin-top:10px"><button id="dfMonthlyPhotoRefresh" class="dfOpsBtn alt" style="margin-top:10px">🔄 ATUALIZAR</button><div id="dfMonthlyPhotoRows" style="margin-top:12px"></div></div>';
  tabs.parentElement.appendChild(pane);
  const css=document.createElement('style');css.textContent='#dfMonthlyPhotoPane{display:none}#dfMonthlyPhotoPane.on{display:block}#dfMonthlyPhotoPane .dfMonthlyRow{padding:12px;border:1px solid #334155;border-radius:12px;margin:8px 0;background:#101a2d}#dfMonthlyPhotoPane .dfMonthlyRow button{margin-top:9px;width:100%;min-height:42px;border:1px solid #f5a000;background:#231900;color:#ffd36a;border-radius:10px;font-weight:800}#dfMonthlyPhotoPane input{background:#0b1220;border:1px solid #334155;border-radius:10px;padding:12px;color:#fff;font-size:16px}';document.head.appendChild(css);
- const m=pane.querySelector('#dfMonthlyPhotoMonth');m.value=document.getElementById('dfOpMonth')?.value||localStorage.getItem('df_production_history_month_v1')||new Date().toLocaleDateString('en-CA').slice(0,7);m.style.setProperty('display','none','important');const monthLabel=m.previousElementSibling;if(monthLabel&&monthLabel.tagName==='LABEL')monthLabel.style.setProperty('display','none','important');const search=pane.querySelector('#dfMonthlyPhotoSearch');
+ const m=pane.querySelector('#dfMonthlyPhotoMonth');
+ // O campo de mês em Fotos é interno: o usuário escolhe apenas na aba Mês.
+ const hidePhotoMonth=()=>{
+   const input=pane.querySelector('#dfMonthlyPhotoMonth');if(!input)return;
+   input.style.setProperty('display','none','important');input.hidden=true;
+   const label=input.previousElementSibling;
+   if(label&&label.tagName==='LABEL'){label.style.setProperty('display','none','important');label.hidden=true;}
+ };
+ hidePhotoMonth();m.value=document.getElementById('dfOpMonth')?.value||localStorage.getItem('df_production_history_month_v1')||new Date().toLocaleDateString('en-CA').slice(0,7);m.style.setProperty('display','none','important');const monthLabel=m.previousElementSibling;if(monthLabel&&monthLabel.tagName==='LABEL')monthLabel.style.setProperty('display','none','important');const search=pane.querySelector('#dfMonthlyPhotoSearch');
  function render(){
+ hidePhotoMonth();
  const shared=document.getElementById('dfOpMonth')?.value||localStorage.getItem('df_production_history_month_v1');if(/^\d{4}-\d{2}$/.test(shared||''))m.value=shared;
  const q=search.value.trim().toUpperCase(),selected=m.value;
  const rows=read().filter(o=>o?.status==='ok'&&code(o)&&month(o)===selected&&(!q||code(o).includes(q)||name(o).toUpperCase().includes(q))).sort((a,b)=>String(b.manualConfirmedAt||b.updatedAt||b.createdAt||'').localeCompare(String(a.manualConfirmedAt||a.updatedAt||a.createdAt||'')));
