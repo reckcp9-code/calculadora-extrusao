@@ -191,12 +191,18 @@ function renderArchive(){
  const teamId=String(window.DFProducaoEquipeOnline?.team?.()?.teamId||'');
  const selected=synchronizeMonthInputs(),ready=(teamId&&archivedTeam===teamId?archivedRows:[]).filter(r=>completionMonth({date:r.localDate,completedAt:r.completedAt})===selected),q=normId($('dfPAArchiveSearch')?.value||'');
  const found=ready.filter(r=>!q||String(r.opCode).includes(q));
- if(count)count.textContent=archivedLoading&&!archivedLastPull?'Consultando OPs com baixa no D1...':(ready.length+' OPs com baixa confirmada'+(archivedOffline?' • cópia offline':''));
- box.innerHTML=!teamId?'<div class="dfPATiny">Entre na Equipe de Produção para consultar as OPs arquivadas.</div>':
+ // Atualizações de sincronização podem ocorrer a cada poucos segundos.
+ // Evite destruir e recriar as mesmas linhas: no iPhone isso provoca piscadas.
+ const counter=archivedLoading&&!archivedLastPull?'Consultando OPs com baixa no D1...':(ready.length+' OPs com baixa confirmada'+(archivedOffline?' • cópia offline':''));
+ if(count&&count.textContent!==counter)count.textContent=counter;
+ const html=!teamId?'<div class="dfPATiny">Entre na Equipe de Produção para consultar as OPs arquivadas.</div>':
   archivedError&&!ready.length?'<div class="dfPATiny">'+esc(archivedError)+'</div>':
   !archivedLastPull&&archivedLoading?'<div class="dfPATiny">Buscando OPs no D1...</div>':
   found.length?found.map(r=>'<div class="dfPAArchivedId">'+esc(r.opCode)+'</div>').join(''):
   '<div class="dfPATiny">'+(q?'Nenhuma OP com esse ID.':'Nenhuma OP com baixa confirmada neste mês.')+'</div>';
+ // Somente tocar no DOM se o conteúdo visível realmente mudou.
+ // Mantém busca, seleção de mês, ordem, dados e sincronização intactos.
+ if(box.innerHTML!==html)box.innerHTML=html;
 }
 async function loadArchive(force=false){
  const api=window.DFProducaoEquipeOnline,t=api?.team?.();
