@@ -55,7 +55,7 @@ function applyArchive(){
 }
 
 function applyActualReady(){
- const heading=Array.from(document.querySelectorAll('h1,h2,h3,h4')).find(el=>/^OPs prontas$/i.test((el.textContent||'').trim()));
+ const heading=Array.from(document.querySelectorAll('h1,h2,h3,h4,div,span,strong')).find(el=>el.children.length===0&&/^OPs prontas$/i.test((el.textContent||'').trim()));
  if(!heading)return;
  const area=heading.parentElement;
  if(!area)return;
