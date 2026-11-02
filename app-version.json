@@ -1,6 +1,6 @@
 {
-  "version": "1.0.726",
-  "title": "DF EXTRUSOR PRO — Estabilidade dos menus",
-  "message": "Correção de regras conflitantes na barra da Produção e de reconstrução repetida do menu da Formulação.",
+  "version": "1.0.727",
+  "title": "DF EXTRUSOR PRO — Prontas em tela exclusiva",
+  "message": "Produção: PRONTAS abre tela própria com VOLTAR, pesquisa e seleção de todos os meses.",
   "updatedAt": "2026-11-02"
 }
