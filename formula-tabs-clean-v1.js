@@ -22,7 +22,7 @@
       '#pgFo > .dfAutoTopics .dfAutoTopic{width:100%!important;min-width:0!important;white-space:normal!important;line-height:1.15!important}',
       '#pgFo > .dfAutoTopics [data-df-nav-menu="1"]{order:1}',
       '#pgFo > .dfAutoTopics [data-df-formula-top="1"]{order:2}',
-      '#pgFo > .dfAutoTopics [data-df-nav-ops="1"]{order:3;display:block!important}',
+      '#pgFo > .dfAutoTopics [data-df-nav-ops="1"]{order:3;display:block!important;flex:0 0 auto!important;min-width:145px!important}',
       '#pgFo > .dfAutoTopics [data-df-nav-whats="1"]{display:none!important}',
       '#pgFo > .dfAutoTopics [data-df-nav-backup="1"]{order:5}',
       '@media(max-width:560px){#pgFo > .dfAutoTopics{display:flex!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;grid-template-columns:none!important;padding-bottom:2px!important}#pgFo > .dfAutoTopics::-webkit-scrollbar{display:none!important}#pgFo > .dfAutoTopics .dfAutoTopic{flex:0 0 auto!important;width:auto!important;min-width:145px!important;white-space:nowrap!important;font-size:10px!important;min-height:44px!important;padding-left:12px!important;padding-right:12px!important}#pgFo > .dfAutoTopics [data-df-nav-menu="1"]{min-width:110px!important;order:1!important}#pgFo > .dfAutoTopics [data-df-formula-top="1"]{order:2!important}#pgFo > .dfAutoTopics [data-df-nav-whats="1"]{display:none!important}#pgFo > .dfAutoTopics [data-df-nav-backup="1"]{order:4!important}#pgFo > .dfAutoTopics [data-df-nav-ops="1"]{display:block!important;order:3!important}}'
@@ -51,8 +51,27 @@
     cleaning=false;
   }
 
-  function tagNav(){const menu=findMenu(),formula=findFormula(),ops=findOps(),whats=findWhats(),backup=findBackup();if(ops){const top=nav();if(top&&ops.parentElement!==top)top.appendChild(ops);ops.dataset.dfNavOps='1';}if(whats)whats.style.setProperty('display','none','important');if(menu)menu.dataset.dfNavMenu='1';if(formula)formula.dataset.dfFormulaTop='1';if(ops){ops.dataset.dfNavOps='1';ops.style.removeProperty('display')}if(whats)whats.dataset.dfNavWhats='1';if(backup)backup.dataset.dfNavBackup='1'}
-  function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
+  function tagNav(){
+    const n=nav();if(!n)return;
+    const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
+    // A aba original de OPs fica na segunda linha: movemos o MESMO botão.
+    const ops=$('dfFormTabOps')||findOps();
+    if(ops){
+      if(ops.parentElement!==n)n.appendChild(ops);
+      ops.classList.add('dfAutoTopic');
+      ops.dataset.dfNavOps='1';
+      ops.style.removeProperty('display');
+      ops.style.removeProperty('width');
+      ops.style.removeProperty('flex');
+      ops.style.removeProperty('grid-column');
+      ops.hidden=false;
+    }
+    if(menu)menu.dataset.dfNavMenu='1';
+    if(formula)formula.dataset.dfFormulaTop='1';
+    if(backup)backup.dataset.dfNavBackup='1';
+    if(whats){whats.dataset.dfNavWhats='1';whats.style.setProperty('display','none','important')}
+  }
+    function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
   function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
   function showFormula(btn){clearMode();cleanLiteralNewline();const form=$('dfFormTabCore');if(form)form.click();setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
