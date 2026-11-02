@@ -1,6 +1,6 @@
 {
-  "version": "1.0.704",
-  "title": "DF EXTRUSOR PRO — Mês único",
-  "message": "Seleção do mês centralizada na aba Mês; Prontas, Arquivadas e Fotos acompanham o período selecionado.",
+  "version": "1.0.705",
+  "title": "DF EXTRUSOR PRO — Mês único em Fotos",
+  "message": "Campo de mês oculto em Fotos; período definido somente na aba Mês.",
   "updatedAt": "2026-11-02"
 }
