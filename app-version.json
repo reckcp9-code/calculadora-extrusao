@@ -1,6 +1,6 @@
 {
-  "version": "1.0.708",
-  "title": "DF EXTRUSOR PRO — Menu superior consolidado",
-  "message": "Botão legado WhatsApp removido da navegação em execução e OPs Automáticas fixadas no menu superior.",
+  "version": "1.0.709",
+  "title": "DF EXTRUSOR PRO — Limpeza do menu legado",
+  "message": "Removidos arquivos antigos não utilizados de navegação WhatsApp/Formulação; menu superior mantido.",
   "updatedAt": "2026-11-02"
 }
