@@ -1,6 +1,6 @@
 {
-  "version": "1.0.694",
-  "title": "DF EXTRUSOR PRO — Arquivadas estável",
-  "message": "Corrigida a piscada visual da aba Arquivadas sem alterar OPs, fotos, baixas ou sincronização.",
+  "version": "1.0.695",
+  "title": "DF EXTRUSOR PRO — Tela fixa e busca de OPs",
+  "message": "Tela da Produção sem deslizamento lateral e pesquisa de OPs Arquivadas por ID e mês, preservando o histórico.",
   "updatedAt": "2026-11-02"
 }
