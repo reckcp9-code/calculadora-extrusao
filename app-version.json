@@ -1,6 +1,6 @@
 {
-  "version": "1.0.697",
-  "title": "DF EXTRUSOR PRO — OPs automáticas no menu superior",
-  "message": "OPs automáticas agora ocupam o lugar do botão WhatsApp/PDF no topo de Formulação. Operações e dados preservados.",
+  "version": "1.0.698",
+  "title": "DF EXTRUSOR PRO — OPs na barra superior",
+  "message": "Botão OPs Automáticas movido para a barra superior entre Formulação e Backup, sem duplicar botão.",
   "updatedAt": "2026-11-02"
 }
