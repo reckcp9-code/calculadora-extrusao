@@ -61,14 +61,14 @@ function applyActualReady(){
  if(!area)return;
  const selectedMonth=selected();
  let picker=document.getElementById('dfReadyActualMonth');
- if(!picker){picker=document.createElement('input');picker.id='dfReadyActualMonth';picker.type='month';picker.setAttribute('aria-label','Mês das OPs prontas');picker.style.cssText='display:block;width:100%;margin:12px 0;padding:12px;border-radius:10px;background:#0b1220;color:#f8fafc;border:1px solid #405476;font-size:16px';picker.addEventListener('change',()=>{if(!/^\\d{4}-\\d{2}$/.test(picker.value))return;localStorage.setItem(KEY,picker.value);window.dispatchEvent(new CustomEvent('df-production-month-changed',{detail:{month:picker.value}}));schedule()});heading.insertAdjacentElement('afterend',picker)}
+ if(!picker){picker=document.createElement('input');picker.id='dfReadyActualMonth';picker.type='month';picker.setAttribute('aria-label','Mês das OPs prontas');picker.style.cssText='display:block;width:100%;margin:12px 0;padding:12px;border-radius:10px;background:#0b1220;color:#f8fafc;border:1px solid #405476;font-size:16px';picker.addEventListener('change',()=>{if(!/^\d{4}-\d{2}$/.test(picker.value))return;localStorage.setItem(KEY,picker.value);window.dispatchEvent(new CustomEvent('df-production-month-changed',{detail:{month:picker.value}}));schedule()});heading.insertAdjacentElement('afterend',picker)}
  if(picker.value!==selectedMonth)picker.value=selectedMonth;
  const sourceKeys=['df_producao_ops_auto_v1','df_formula_ops_auto_v2'];
  const source=[];
  for(const key of sourceKeys){try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))source.push(...data)}catch(e){}}
  const completed=source.filter(r=>r&&(r.status==='ok'||r.status==='ready'||r.status==='completed'));
  const dates=completed.map(r=>({r,m:month(r),machine:String(r.machine||r.maquina||'').trim().toUpperCase()}));
- const cards=Array.from(area.children).filter(el=>el!==heading&&el.querySelector?.('button')&&/ABRIR FOTO/i.test(el.textContent||''));
+ const cards=Array.from(area.children).filter(el=>el!==heading&&el.id!=='dfReadyActualMonth'&&el.id!=='dfMonthlyReadyNotice'&&/ABRIR FOTO/i.test(el.textContent||''));
  for(const card of cards){
    const raw=card.textContent||'';
    const idMatch=raw.match(/DFOP-\d{8}-\d{6}-[A-Z0-9]+/i);
