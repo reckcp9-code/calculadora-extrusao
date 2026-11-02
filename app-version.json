@@ -1,6 +1,6 @@
 {
-  "version": "1.0.688",
-  "title": "DF EXTRUSOR PRO — Arquivadas por mês",
-  "message": "Contador de OPs arquivadas e visualização de Prontas por mês, sem excluir histórico.",
+  "version": "1.0.689",
+  "title": "DF EXTRUSOR PRO — Máquinas zeradas e histórico por mês",
+  "message": "Mantém máquinas cadastradas visíveis com 0 kg no mês novo e permite recuperar seus totais ao selecionar mês anterior.",
   "updatedAt": "2026-11-01"
 }
