@@ -1,6 +1,6 @@
 {
-  "version": "1.0.690",
-  "title": "DF EXTRUSOR PRO — Prontas por mês",
-  "message": "Corrige filtro de OPs prontas na interface real e mantém histórico preservado.",
+  "version": "1.0.691",
+  "title": "DF EXTRUSOR PRO — Correção da lista Prontas",
+  "message": "Corrigido reconhecimento do painel e filtro mensal de OPs prontas.",
   "updatedAt": "2026-11-01"
 }
