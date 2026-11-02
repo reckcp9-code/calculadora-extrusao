@@ -1,6 +1,6 @@
 {
-  "version": "1.0.693",
-  "title": "DF EXTRUSOR PRO — Arquivadas sem piscadas",
-  "message": "Estabilizada a lista de Arquivadas durante a sincronização. Nenhuma alteração nas baixas, fotos ou dados.",
+  "version": "1.0.694",
+  "title": "DF EXTRUSOR PRO — Arquivadas estável",
+  "message": "Corrigida a piscada visual da aba Arquivadas sem alterar OPs, fotos, baixas ou sincronização.",
   "updatedAt": "2026-11-02"
 }
