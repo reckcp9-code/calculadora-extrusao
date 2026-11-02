@@ -1,6 +1,6 @@
 {
-  "version": "1.0.719",
-  "title": "DF EXTRUSOR PRO — Navegação sem barra antiga",
-  "message": "Removida na origem a criação da barra inferior de OPs; botão OPS AUTOMÁTICAS criado diretamente no menu superior.",
+  "version": "1.0.720",
+  "title": "DF EXTRUSOR PRO — Produção no visual da Formulação",
+  "message": "Produção com título centralizado e menu superior horizontal no mesmo estilo da Formulação, mantendo os botões e fluxos de Produção.",
   "updatedAt": "2026-11-02"
 }
