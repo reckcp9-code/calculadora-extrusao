@@ -1,6 +1,6 @@
 {
-  "version": "1.0.691",
-  "title": "DF EXTRUSOR PRO — Correção da lista Prontas",
-  "message": "Corrigido reconhecimento do painel e filtro mensal de OPs prontas.",
-  "updatedAt": "2026-11-01"
+  "version": "1.0.692",
+  "title": "DF EXTRUSOR PRO — Prontas e Arquivadas por mês",
+  "message": "Prontas e Arquivadas mostram apenas as baixas do mês selecionado. Histórico dos meses anteriores preservado.",
+  "updatedAt": "2026-11-02"
 }
