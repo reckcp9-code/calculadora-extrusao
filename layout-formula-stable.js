@@ -70,7 +70,7 @@
 
     // O botão original de OPs agora é o botão superior: não ocultá-lo.
     ops.style.removeProperty('display');
-    if(!opsTop.dataset.dfStableBound){
+    if(!opsTop.dataset.dfNavOps&&!opsTop.dataset.dfStableBound){
       opsTop.dataset.dfStableBound='1';
       opsTop.addEventListener('click',function(e){
         e.preventDefault();e.stopImmediatePropagation();
