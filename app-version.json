@@ -1,6 +1,6 @@
 {
-  "version": "1.0.711",
-  "title": "DF EXTRUSOR PRO — Navegação corrigida na origem",
-  "message": "OPs Automáticas criado diretamente na barra superior, sem botão inferior nem reposicionamento posterior.",
+  "version": "1.0.712",
+  "title": "DF EXTRUSOR PRO — Recuperação de estabilidade",
+  "message": "Revertida alteração estrutural que causou travamentos na Formulação; fluxo anterior restaurado.",
   "updatedAt": "2026-11-02"
 }
