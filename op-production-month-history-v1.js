@@ -60,6 +60,9 @@ function applyActualReady(){
  const area=heading.parentElement;
  if(!area)return;
  const selectedMonth=selected();
+ let picker=document.getElementById('dfReadyActualMonth');
+ if(!picker){picker=document.createElement('input');picker.id='dfReadyActualMonth';picker.type='month';picker.setAttribute('aria-label','Mês das OPs prontas');picker.style.cssText='display:block;width:100%;margin:12px 0;padding:12px;border-radius:10px;background:#0b1220;color:#f8fafc;border:1px solid #405476;font-size:16px';picker.addEventListener('change',()=>{if(!/^\\d{4}-\\d{2}$/.test(picker.value))return;localStorage.setItem(KEY,picker.value);window.dispatchEvent(new CustomEvent('df-production-month-changed',{detail:{month:picker.value}}));schedule()});heading.insertAdjacentElement('afterend',picker)}
+ if(picker.value!==selectedMonth)picker.value=selectedMonth;
  const sourceKeys=['df_producao_ops_auto_v1','df_formula_ops_auto_v2'];
  const source=[];
  for(const key of sourceKeys){try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))source.push(...data)}catch(e){}}
