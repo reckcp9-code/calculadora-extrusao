@@ -12,7 +12,7 @@
     const s=document.createElement('style');
     s.id='dfFormulaTabsCleanV1Style';
     s.textContent=[
-      '#pgFo #dfFormTabCore{display:none!important}',
+      '#pgFo #dfFormTabCore,#pgFo #dfFormulaSubnav{display:none!important}',
       '#pgFo:not(.dfCleanWhatsOnly) #dfVendedorCard{display:none!important}',
       '#pgFo:not(.dfCleanBackupOnly) #dfCloudBackupCard{display:none!important}',
       '#pgFo.dfCleanWhatsOnly > *:not(.dfAutoTopics):not(#dfVendedorCard){display:none!important}',
@@ -58,18 +58,9 @@
     repairing=true;
     try{
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
-    // A aba original de OPs fica na segunda linha: movemos o MESMO botão.
-    const ops=$('dfFormTabOps')||findOps();
-    if(ops){
-      if(ops.parentElement!==n)n.appendChild(ops);
-      ops.classList.add('dfAutoTopic');
-      ops.dataset.dfNavOps='1';
-      ops.style.removeProperty('display');
-      ops.style.removeProperty('width');
-      ops.style.removeProperty('flex');
-      ops.style.removeProperty('grid-column');
-      ops.hidden=false;
-    }
+    // Botão visual independente: nasce diretamente no menu superior.
+    let ops=$('dfTopOpsPermanent');
+    if(!ops){ops=document.createElement('button');ops.id='dfTopOpsPermanent';ops.type='button';ops.className='dfAutoTopic';ops.textContent='🤖 OPS AUTOMÁTICAS';ops.dataset.dfNavOps='1';ops.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();clearMode();const original=$('dfFormTabOps');if(original)original.click();markActive(ops);window.scrollTo(0,0)},true);n.appendChild(ops)}
     if(menu)menu.dataset.dfNavMenu='1';
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
