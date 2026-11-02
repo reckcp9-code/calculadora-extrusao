@@ -1,6 +1,6 @@
 {
-  "version": "1.0.715",
-  "title": "DF EXTRUSOR PRO — Correção de abertura",
-  "message": "Corrigido erro de sintaxe que impedia a inicialização e deixava a tela preta.",
+  "version": "1.0.717",
+  "title": "DF EXTRUSOR PRO — Produção no padrão Formulação",
+  "message": "Padronizado o visual de Produção: título, seis botões em duas linhas e cartões no mesmo tamanho da Formulação.",
   "updatedAt": "2026-11-02"
 }
