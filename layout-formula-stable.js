@@ -56,18 +56,17 @@
     const vendor=buttons.find(b=>norm(b.textContent).includes('WHATSAPP / PDF'));
     if(vendor)vendor.dataset.dfVendorTopic='1';
 
+    // Manter os botões existentes e apenas mover OPS para a barra superior.
     let opsTop=nav.querySelector('[data-df-open-ops="1"]');
     if(!opsTop){
-      opsTop=buttons.find(b=>norm(b.textContent).includes('BACKUP NA NUVEM')&&!b.dataset.dfBackupTop);
+      opsTop=buttons.find(b=>norm(b.textContent).includes('OPS AUTOMATICAS'));
       if(!opsTop)return false;
-      opsTop.textContent='🤖 OPS AUTOMÁTICAS';opsTop.dataset.dfOpenOps='1';
+      opsTop.dataset.dfOpenOps='1';
     }
-
-    let backupTop=nav.querySelector('[data-df-backup-top="1"]');
-    if(!backupTop){
-      backupTop=document.createElement('button');backupTop.type='button';backupTop.className='dfAutoTopic';backupTop.dataset.dfBackupTop='1';backupTop.textContent='☁ BACKUP NA NUVEM';
-      if(vendor&&vendor.nextSibling)nav.insertBefore(backupTop,vendor.nextSibling);else nav.appendChild(backupTop);
-    }
+    const backupTop=nav.querySelector('[data-df-backup-top="1"]')||buttons.find(b=>norm(b.textContent).includes('BACKUP NA NUVEM'));
+    if(backupTop)backupTop.dataset.dfBackupTop='1';
+    const vendorButton=buttons.find(b=>norm(b.textContent).includes('WHATSAPP / PDF'));
+    if(vendorButton)vendorButton.style.display='none';
 
     ops.style.display='none';
     if(!opsTop.dataset.dfStableBound){
