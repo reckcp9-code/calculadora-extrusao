@@ -58,7 +58,7 @@
     repairing=true;
     try{
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
-    const ops=$('dfFormTabOps');if(ops&&ops.parentElement===n){ops.dataset.dfNavOps='1';ops.classList.add('dfAutoTopic')}
+    const ops=$('dfFormTabOps');if(ops){if(ops.parentElement!==n)n.appendChild(ops);ops.dataset.dfNavOps='1';ops.classList.add('dfAutoTopic');ops.hidden=false;ops.style.removeProperty('display')}
     if(menu)menu.dataset.dfNavMenu='1';
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
@@ -92,9 +92,9 @@
     rootObserver=new MutationObserver(()=>{
       const n=nav();
       if(!n)return;
-      if(!n.querySelector('#dfFormTabOps')||!n.querySelector('[data-df-formula-top="1"]')){
+      if(!n.querySelector('[data-df-formula-top="1"]')){
         clearTimeout(fixTimer);
-        fixTimer=setTimeout(()=>{bind();},0);
+        fixTimer=setTimeout(()=>{ensureFormulaButton();tagNav()},80);
       }
     });
     rootObserver.observe(document.body,{childList:true,subtree:true});
