@@ -1,6 +1,6 @@
 {
-  "version": "1.0.696",
-  "title": "DF EXTRUSOR PRO — Tela responsiva sem zoom",
-  "message": "Interface adaptada automaticamente a iPhone, Android, tablet e computador, sem zoom por gestos. Rolagem vertical e módulos preservados.",
+  "version": "1.0.697",
+  "title": "DF EXTRUSOR PRO — OPs automáticas no menu superior",
+  "message": "OPs automáticas agora ocupam o lugar do botão WhatsApp/PDF no topo de Formulação. Operações e dados preservados.",
   "updatedAt": "2026-11-02"
 }
