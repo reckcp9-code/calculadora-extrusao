@@ -1,6 +1,6 @@
 {
-  "version": "1.0.710",
-  "title": "DF EXTRUSOR PRO — Sem salto no menu",
-  "message": "Impede que OPs Automáticas apareça na linha inferior durante o carregamento da Formulação.",
+  "version": "1.0.711",
+  "title": "DF EXTRUSOR PRO — Navegação corrigida na origem",
+  "message": "OPs Automáticas criado diretamente na barra superior, sem botão inferior nem reposicionamento posterior.",
   "updatedAt": "2026-11-02"
 }
