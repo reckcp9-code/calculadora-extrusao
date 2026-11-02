@@ -40,10 +40,12 @@ function openExisting(id){
   if(btn){try{btn.click();return true}catch(e){}}
   alert('A foto desta OP não está disponível neste aparelho agora.');return false;
 }
+function selectedMonth(){try{return String(localStorage.getItem('df_production_history_month_v1')||document.getElementById('dfOpMonth')?.value||new Date().toISOString().slice(0,7)).slice(0,7)}catch(e){return new Date().toISOString().slice(0,7)}}
+function opMonth(r){var o=r&&r.op||{};return String(o.data||o.createdAt||r.createdAt||'').slice(0,7)}
 function render(){
   var input=$('dfProductHistorySearch'),out=$('dfProductHistoryResults');if(!input||!out)return;
   var q=normText(input.value);if(!q){out.innerHTML='<div class="dfPhHint">Digite o nome do produto ou o ID da OP. Ex.: <b>Coque</b> ou <b>DFOP-</b>.</div>';return}
-  var idQuery=normId(input.value);var list=buildIndex().filter(function(r){return r.op&&statusFor(r).key==='ok'&&((r.name&&normText(r.name).indexOf(q)>=0)||(idQuery&&[r.id].concat(ids(r.op)).some(function(code){return normId(code).indexOf(idQuery)>=0})))});
+  var idQuery=normId(input.value),all=!!$('dfProductHistoryAll')?.checked,month=selectedMonth();var list=buildIndex().filter(function(r){return r.op&&statusFor(r).key==='ok'&&(all||opMonth(r)===month)&&((r.name&&normText(r.name).indexOf(q)>=0)||(idQuery&&[r.id].concat(ids(r.op)).some(function(code){return normId(code).indexOf(idQuery)>=0})))});
   list.sort(function(a,b){return String(b.op&&b.op.data||b.createdAt||'').localeCompare(String(a.op&&a.op.data||a.createdAt||''))});
   var produced=0,ready=0;
   list.forEach(function(r){var s=statusFor(r);if(s.key==='ok')ready++;if(r.op)produced+=Number(r.op.produzido||0)});
@@ -54,7 +56,7 @@ function render(){
   out.querySelectorAll('[data-ph-open]').forEach(function(b){b.onclick=function(){openExisting(b.getAttribute('data-ph-open'))}});
 }
 function style(){if($('dfProductHistoryStyle'))return;var s=document.createElement('style');s.id='dfProductHistoryStyle';s.textContent='\
-#dfProductHistoryBox{margin:0 0 15px;padding:13px;border:1px solid #334155;background:#0b1324;border-radius:14px}\
+#dfProductHistoryBox .dfPhAllLabel{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:#f8fafc;font-weight:800;font-size:14px;cursor:pointer}#dfProductHistoryAll{width:20px;height:20px;accent-color:#f5a000}#dfProductHistoryBox{margin:0 0 15px;padding:13px;border:1px solid #334155;background:#0b1324;border-radius:14px}\
 #dfProductHistoryBox h4{margin:0 0 5px;font-size:17px;color:#f8fafc}\
 #dfProductHistoryBox .dfPhSub{font-size:12px;line-height:1.45;color:#94a3b8;margin-bottom:9px}\
 .dfPhSearchLine{display:grid;grid-template-columns:1fr auto;gap:8px}\
@@ -66,11 +68,12 @@ function style(){if($('dfProductHistoryStyle'))return;var s=document.createEleme
 @media(max-width:430px){.dfPhSearchLine{grid-template-columns:1fr}.dfPhSummary{grid-template-columns:1fr 1fr}}';document.head.appendChild(s)}
 function mount(){
   style();var list=$('dfOkList');if(!list||$('dfProductHistoryBox'))return !!list;
-  var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto ou pelo ID da OP para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="NOME DO PRODUTO OU ID DA OP" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite o nome do produto ou o ID da OP.</div></div>';
+  var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<label class="dfPhAllLabel"><input type="checkbox" id="dfProductHistoryAll"> TODAS — TODOS OS MESES</label><h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto ou pelo ID da OP para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="NOME DO PRODUTO OU ID DA OP" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite o nome do produto ou o ID da OP.</div></div>';
   list.parentNode.insertBefore(box,list);
+  $('dfProductHistoryAll').addEventListener('change',render);
   $('dfProductHistoryBtn').onclick=render;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(render,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render()}});
   return true;
 }
-function boot(){if(mount())return;var obs=new MutationObserver(function(){if(mount())obs.disconnect()});obs.observe(document.documentElement,{childList:true,subtree:true});setTimeout(mount,800);setTimeout(mount,1800);window.addEventListener('df-prontas-products-synced',function(){if($('dfProductHistorySearch')&&$('dfProductHistorySearch').value.trim())render()});}
+function boot(){if(mount())return;var obs=new MutationObserver(function(){if(mount())obs.disconnect()});obs.observe(document.documentElement,{childList:true,subtree:true});setTimeout(mount,800);setTimeout(mount,1800);window.addEventListener('storage',function(e){if(e.key==='df_production_history_month_v1')render()});document.addEventListener('change',function(e){if(e.target&&e.target.id==='dfOpMonth')render()});window.addEventListener('df-prontas-products-synced',function(){if($('dfProductHistorySearch')&&$('dfProductHistorySearch').value.trim())render()});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
