@@ -58,10 +58,7 @@
     repairing=true;
     try{
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
-    // Botão visual independente: nasce diretamente no menu superior.
-    let ops=$('dfTopOpsPermanent');
-    if(!ops){ops=document.createElement('button');ops.id='dfTopOpsPermanent';ops.type='button';ops.className='dfAutoTopic';ops.textContent='🤖 OPS AUTOMÁTICAS';ops.dataset.dfNavOps='1';ops.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();clearMode();const original=$('dfFormTabOps');if(original)original.click();markActive(ops);window.scrollTo(0,0)},true)}
-    if(ops.parentElement!==n)n.appendChild(ops);
+    const ops=$('dfFormTabOps');if(ops&&ops.parentElement===n){ops.dataset.dfNavOps='1';ops.classList.add('dfAutoTopic')}
     if(menu)menu.dataset.dfNavMenu='1';
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
@@ -95,7 +92,7 @@
     rootObserver=new MutationObserver(()=>{
       const n=nav();
       if(!n)return;
-      if(!n.querySelector('#dfTopOpsPermanent')||!n.querySelector('[data-df-formula-top="1"]')){
+      if(!n.querySelector('#dfFormTabOps')||!n.querySelector('[data-df-formula-top="1"]')){
         clearTimeout(fixTimer);
         fixTimer=setTimeout(()=>{bind();},0);
       }
