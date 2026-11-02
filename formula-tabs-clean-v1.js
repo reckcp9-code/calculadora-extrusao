@@ -58,18 +58,9 @@
     repairing=true;
     try{
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
-    // A aba original de OPs fica na segunda linha: movemos o MESMO botão.
-    const ops=$('dfFormTabOps')||findOps();
-    if(ops){
-      if(ops.parentElement!==n)n.appendChild(ops);
-      ops.classList.add('dfAutoTopic');
-      ops.dataset.dfNavOps='1';
-      ops.style.removeProperty('display');
-      ops.style.removeProperty('width');
-      ops.style.removeProperty('flex');
-      ops.style.removeProperty('grid-column');
-      ops.hidden=false;
-    }
+    // O botão OPs é criado diretamente na barra superior por formula-op-relatorio.js.
+    const ops=$('dfFormTabOps');
+    if(ops&&ops.parentElement===n){ops.classList.add('dfAutoTopic');ops.dataset.dfNavOps='1';}
     if(menu)menu.dataset.dfNavMenu='1';
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
@@ -90,7 +81,7 @@
     function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
   function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
-  function showFormula(btn){clearMode();cleanLiteralNewline();const form=$('dfFormTabCore');if(form)form.click();setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
+  function showFormula(btn){clearMode();cleanLiteralNewline();if(typeof window.DFFormulaSwitchMain==='function')window.DFFormulaSwitchMain(false);setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
   function bindFormula(formula){if(!formula||formula.dataset.dfCleanTabsBound)return;formula.dataset.dfCleanTabsBound='1';formula.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showFormula(formula)},true)}
   function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{if(!repairing){cleanLiteralNewline();ensureFormulaButton();tagNav()}},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
   function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();if(!repairing){ensureFormulaButton();tagNav()}},40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
