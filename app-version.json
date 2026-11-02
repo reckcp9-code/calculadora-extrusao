@@ -1,6 +1,6 @@
 {
-  "version": "1.0.695",
-  "title": "DF EXTRUSOR PRO — Tela fixa e busca de OPs",
-  "message": "Tela da Produção sem deslizamento lateral e pesquisa de OPs Arquivadas por ID e mês, preservando o histórico.",
+  "version": "1.0.696",
+  "title": "DF EXTRUSOR PRO — Tela responsiva sem zoom",
+  "message": "Interface adaptada automaticamente a iPhone, Android, tablet e computador, sem zoom por gestos. Rolagem vertical e módulos preservados.",
   "updatedAt": "2026-11-02"
 }
