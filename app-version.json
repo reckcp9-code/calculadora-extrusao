@@ -1,6 +1,6 @@
 {
-  "version": "1.0.699",
-  "title": "DF EXTRUSOR PRO — Botão OPs no topo",
-  "message": "Botão original de OPs Automáticas movido da segunda linha para a barra superior, entre Formulação e Backup.",
+  "version": "1.0.700",
+  "title": "DF EXTRUSOR PRO — Menu Formulação simplificado",
+  "message": "Removida a duplicata visual de Formulação na segunda linha; mantido o botão superior e as funções.",
   "updatedAt": "2026-11-02"
 }
