@@ -1,6 +1,6 @@
 {
-  "version": "1.0.707",
-  "title": "DF EXTRUSOR PRO — Barra superior estável",
-  "message": "Reposicionamento automático de OPs na barra superior após atualizações de interface, retorno ao app e reconstruções do menu.",
+  "version": "1.0.708",
+  "title": "DF EXTRUSOR PRO — Menu superior consolidado",
+  "message": "Botão legado WhatsApp removido da navegação em execução e OPs Automáticas fixadas no menu superior.",
   "updatedAt": "2026-11-02"
 }
