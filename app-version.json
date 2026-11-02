@@ -1,6 +1,6 @@
 {
-  "version": "1.0.700",
-  "title": "DF EXTRUSOR PRO — Menu Formulação simplificado",
-  "message": "Removida a duplicata visual de Formulação na segunda linha; mantido o botão superior e as funções.",
+  "version": "1.0.701",
+  "title": "DF EXTRUSOR PRO — Botões maiores",
+  "message": "Barra superior de Formulação com botões maiores e melhor aproveitamento da largura em celulares.",
   "updatedAt": "2026-11-02"
 }
