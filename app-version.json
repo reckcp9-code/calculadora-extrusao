@@ -1,6 +1,6 @@
 {
-  "version": "1.0.720",
-  "title": "DF EXTRUSOR PRO — Produção no visual da Formulação",
-  "message": "Produção com título centralizado e menu superior horizontal no mesmo estilo da Formulação, mantendo os botões e fluxos de Produção.",
+  "version": "1.0.721",
+  "title": "DF EXTRUSOR PRO — Tela principal corrigida",
+  "message": "Corrigido aviso de OPs pendentes que aparecia indevidamente na tela principal. Sem alteração no fluxo de produção ou formulação.",
   "updatedAt": "2026-11-02"
 }
