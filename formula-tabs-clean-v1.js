@@ -5,7 +5,7 @@
 
   const $=id=>document.getElementById(id);
   const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
-  let navObserver=null,pageObserver=null,fixTimer=0,cleaning=false,repairing=false;
+  let navObserver=null,pageObserver=null,rootObserver=null,fixTimer=0,cleaning=false,repairing=false;
 
   function ensureStyle(){
     if($('dfFormulaTabsCleanV1Style'))return;
@@ -60,7 +60,8 @@
     const menu=findMenu(),formula=findFormula(),backup=findBackup(),whats=findWhats();
     // Botão visual independente: nasce diretamente no menu superior.
     let ops=$('dfTopOpsPermanent');
-    if(!ops){ops=document.createElement('button');ops.id='dfTopOpsPermanent';ops.type='button';ops.className='dfAutoTopic';ops.textContent='🤖 OPS AUTOMÁTICAS';ops.dataset.dfNavOps='1';ops.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();clearMode();const original=$('dfFormTabOps');if(original)original.click();markActive(ops);window.scrollTo(0,0)},true);n.appendChild(ops)}
+    if(!ops){ops=document.createElement('button');ops.id='dfTopOpsPermanent';ops.type='button';ops.className='dfAutoTopic';ops.textContent='🤖 OPS AUTOMÁTICAS';ops.dataset.dfNavOps='1';ops.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();clearMode();const original=$('dfFormTabOps');if(original)original.click();markActive(ops);window.scrollTo(0,0)},true)}
+    if(ops.parentElement!==n)n.appendChild(ops);
     if(menu)menu.dataset.dfNavMenu='1';
     if(formula)formula.dataset.dfFormulaTop='1';
     if(backup)backup.dataset.dfNavBackup='1';
@@ -86,7 +87,23 @@
   function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{if(!repairing){cleanLiteralNewline();ensureFormulaButton();tagNav()}},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
   function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();if(!repairing){ensureFormulaButton();tagNav()}},40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
 
-  function bind(){ensureStyle();const p=page(),n=nav();if(!p||!n)return false;cleanLiteralNewline();const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();tagNav();bindFormula(formula);if(whats&&!whats.dataset.dfCleanTabsBound){whats.dataset.dfCleanTabsBound='1';whats.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showWhats(whats)},true)}if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}const form=$('dfFormTabCore'),ops=$('dfFormTabOps');[form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();tagNav();if(btn===form)markActive(f);else if(btn===ops)markActive(findOps())},0)},true)}});const topOps=findOps();if(topOps&&!topOps.dataset.dfCleanTabsClear){topOps.dataset.dfCleanTabsClear='1';topOps.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{tagNav();const current=findOps();if(current)markActive(current)},0)},true)}attachNavObserver();attachPageObserver();return true}
+  function bind(){attachRootObserver();ensureStyle();const p=page(),n=nav();if(!p||!n)return false;cleanLiteralNewline();const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();tagNav();bindFormula(formula);if(whats&&!whats.dataset.dfCleanTabsBound){whats.dataset.dfCleanTabsBound='1';whats.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showWhats(whats)},true)}if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}const form=$('dfFormTabCore'),ops=$('dfFormTabOps');[form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();tagNav();if(btn===form)markActive(f);else if(btn===ops)markActive(findOps())},0)},true)}});const topOps=findOps();if(topOps&&!topOps.dataset.dfCleanTabsClear){topOps.dataset.dfCleanTabsClear='1';topOps.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{tagNav();const current=findOps();if(current)markActive(current)},0)},true)}attachNavObserver();attachPageObserver();return true}
+  // Observe somente a troca do contêiner de navegação. O app pode recriar
+  // #pgFo/.dfAutoTopics depois da inicialização ou ao retomar do cache iOS.
+  function attachRootObserver(){
+    if(rootObserver||!document.body)return;
+    rootObserver=new MutationObserver(()=>{
+      const n=nav();
+      if(!n)return;
+      if(!n.querySelector('#dfTopOpsPermanent')||!n.querySelector('[data-df-formula-top="1"]')){
+        clearTimeout(fixTimer);
+        fixTimer=setTimeout(()=>{bind();},0);
+      }
+    });
+    rootObserver.observe(document.body,{childList:true,subtree:true});
+  }
+  attachRootObserver();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachRootObserver,{once:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)bind()});
   window.addEventListener('pageshow',()=>bind());
   function retry(attempt){attempt=Number(attempt)||0;cleanLiteralNewline();if(bind()||attempt>=12)return;setTimeout(()=>retry(attempt+1),300)}
