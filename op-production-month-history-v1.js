@@ -35,6 +35,8 @@ empty.style.display=shown?'none':'block';
 
 // Archived OPs share the same monthly view as ready OPs. Do not modify records.
 function applyArchive(){
+ // O painel de Produção Automática filtra por mês na própria fonte dos dados.
+ if(document.getElementById('dfPAPaneArchive'))return;
  const title=Array.from(document.querySelectorAll('h1,h2,h3,h4')).find(e=>/^OPs arquivadas$/i.test((e.textContent||'').trim()));
  if(!title)return;
  const area=title.parentElement;if(!area)return;
@@ -55,6 +57,8 @@ function applyArchive(){
 }
 
 function applyActualReady(){
+ // Não aplicar filtro DOM legado sobre a lista mensal nativa de Produção.
+ if(document.getElementById('dfPAPaneOk'))return;
  const heading=Array.from(document.querySelectorAll('h1,h2,h3,h4,div,span,strong')).find(el=>el.children.length===0&&/^OPs prontas$/i.test((el.textContent||'').trim()));
  if(!heading)return;
  const area=heading.parentElement;
