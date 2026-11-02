@@ -187,8 +187,8 @@ function extractId(raw){const s=String(raw||'').trim(),direct=s.match(/DFOP-[A-Z
 #dfProdAuto .dfPAExclusiveHeader strong{font-size:19px;color:#f8fafc}
 #dfProdAuto.dfPAExclusive>.dfPAHero,#dfProdAuto.dfPAExclusive>.dfPATabs{display:none!important}
 #dfProdAuto.dfPAExclusive #dfPAPaneOk{display:block!important;max-width:760px;margin:0 auto}
-#dfProdAuto.dfPAExclusive #dfPAPaneOk>.dfPACard{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
-#dfProdAuto.dfPAExclusive #dfPAPaneOk>.dfPACard>h3{display:none!important}
+#dfProdAuto.dfPAExclusive #dfPAPaneOk>.dfPACard{background:#0b1220!important;border:1px solid #334155!important;border-radius:16px!important;box-shadow:none!important;padding:16px!important}
+#dfProdAuto.dfPAExclusive #dfPAPaneOk>.dfPACard>h3{display:none!important}#dfProdAuto.dfPAExclusive #dfPAOkList{display:block!important;visibility:visible!important;opacity:1!important}#dfProdAuto.dfPAExclusive #dfPAOkList .dfPAReadyCompact{display:block!important}
 #dfProdAuto.dfPAExclusive #dfPAPaneOk .dfPAAllMonthsLabel{margin:0 0 14px!important;font-size:14px!important}
 #dfProdAuto.dfPAExclusive #dfPAPaneOk #dfPAReadySearch{margin:10px 0 8px!important}
 #dfProdAuto.dfPAExclusive #dfPAPaneOk #dfPAReadySummary{margin-top:14px}
@@ -216,7 +216,7 @@ function renderOk(){
  const summary=$('dfPAReadySummary');
  if(summary)summary.innerHTML='<div class="dfPAReadyStats"><div>OPs baixadas<strong>'+matching.length+'</strong></div><div>Produção encontrada<strong>'+fmt(total)+' kg</strong></div></div>';
  const signature=JSON.stringify([window.DFProducaoEquipeOnline?.team?.()?.teamId,month,allMonths,query,a.map(x=>[x.id,x.opId,x.machine,x.product,x.measure,x.operator,x.production,x.scrap,x.photoId,x.status,x.date,x.productionDay,x.completedAt,x.createdAt])]);
- if(b.dataset.dfListSignature===signature&&b.childElementCount)return;
+ // Always reconcile the visible list: other refreshes can replace its contents without changing the signature.
  b.innerHTML=matching.length?matching.map(x=>readyCompactCard(x)).join(''):'<div class="dfPATiny">Nenhuma OP pronta '+(allMonths?'encontrada no histórico.':'neste mês. Selecione um mês anterior ou marque TODAS.')+'</div>';
  b.dataset.dfListSignature=signature;
 }
