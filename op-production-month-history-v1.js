@@ -31,7 +31,7 @@ for(const row of Array.from(list.children)){
 let empty=$('dfProductionMonthEmpty');if(!empty){empty=document.createElement('div');empty.id='dfProductionMonthEmpty';empty.style.cssText='padding:24px 12px;text-align:center;color:#a7b7cf;font-weight:700';list.insertAdjacentElement('afterend',empty)}
 empty.textContent=shown?'':'Nenhuma OP pronta neste mês. Selecione um mês anterior para consultar o histórico.';
 empty.style.display=shown?'none':'block';
-}catch(e){console.warn('[DF mês Produção]',e)}finally{running=false}try{applyArchive()}catch(e){console.warn('[DF arquivo mensal]',e)}}
+}catch(e){console.warn('[DF mês Produção]',e)}finally{running=false}try{applyArchive();applyActualReady()}catch(e){console.warn('[DF arquivo mensal]',e)}}
 
 // Archived OPs share the same monthly view as ready OPs. Do not modify records.
 function applyArchive(){
@@ -53,6 +53,37 @@ function applyArchive(){
    if(row&&row!==area)row.style.setProperty('display',m===chosen?'':'none',m===chosen?'':'important');
  }
 }
+
+function applyActualReady(){
+ const heading=Array.from(document.querySelectorAll('h1,h2,h3,h4')).find(el=>/^OPs prontas$/i.test((el.textContent||'').trim()));
+ if(!heading)return;
+ const area=heading.parentElement;
+ if(!area)return;
+ const selectedMonth=selected();
+ const sourceKeys=['df_producao_ops_auto_v1','df_formula_ops_auto_v2'];
+ const source=[];
+ for(const key of sourceKeys){try{const data=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(data))source.push(...data)}catch(e){}}
+ const completed=source.filter(r=>r&&(r.status==='ok'||r.status==='ready'||r.status==='completed'));
+ const dates=completed.map(r=>({r,m:month(r),machine:String(r.machine||r.maquina||'').trim().toUpperCase()}));
+ const cards=Array.from(area.children).filter(el=>el!==heading&&el.querySelector?.('button')&&/ABRIR FOTO/i.test(el.textContent||''));
+ for(const card of cards){
+   const raw=card.textContent||'';
+   const idMatch=raw.match(/DFOP-\d{8}-\d{6}-[A-Z0-9]+/i);
+   const opCode=idMatch?.[0]?.toUpperCase();
+   const match=opCode?dates.find(x=>id(x.r)===opCode||String(x.r.opId||'').toUpperCase()===opCode):dates.find(x=>x.machine&&raw.toUpperCase().includes(x.machine));
+   // With no completed OPs for the chosen month, show an empty monthly view.
+   const anyThisMonth=dates.some(x=>x.m===selectedMonth);
+   const visible=match?match.m===selectedMonth:anyThisMonth;
+   card.hidden=!visible;
+   card.style.setProperty('display',visible?'':'none',visible?'':'important');
+ }
+ let notice=document.getElementById('dfMonthlyReadyNotice');
+ if(!notice){notice=document.createElement('p');notice.id='dfMonthlyReadyNotice';notice.style.cssText='padding:12px;color:#aabbd3;text-align:center';heading.insertAdjacentElement('afterend',notice)}
+ const visibleCards=cards.filter(c=>!c.hidden);
+ notice.textContent=visibleCards.length?'':'Nenhuma OP pronta neste mês. O histórico permanece disponível nos meses anteriores.';
+ notice.style.display=visibleCards.length?'none':'block';
+}
+
 function schedule(){clearTimeout(timer);timer=setTimeout(apply,120)}
 function observe(){const b=panel();if(!b||b===boxRef)return;boxObserver?.disconnect();boxRef=b;boxObserver=new MutationObserver(schedule);boxObserver.observe(b,{childList:true,subtree:true});schedule()}
 function boot(){observe();schedule();new MutationObserver(()=>{if(!panel()||panel()!==boxRef)observe()}).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('click',e=>{if(e.target?.closest?.('[data-pane="ok"],[data-pane="archive"]'))schedule()},true);window.addEventListener('df-op-save-ui-refresh',schedule);window.addEventListener('df-op-remote-merged',schedule);window.addEventListener('df-op-d1-applied',schedule);window.addEventListener('focus',schedule);setInterval(schedule,60000)}
