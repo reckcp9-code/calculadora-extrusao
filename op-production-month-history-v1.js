@@ -13,7 +13,7 @@ function month(o){const d=[o?.manualConfirmedAt,o?.completedAt,o?.confirmedAt,o?
 function panel(){return $('dfOkList')}
 function ensurePicker(){const list=panel();if(!list)return null;let wrap=$('dfProductionMonthPicker');if(!wrap){wrap=document.createElement('div');wrap.id='dfProductionMonthPicker';wrap.style.cssText='padding:12px 14px;margin:10px 0 14px;background:#101a2d;border:1px solid #334155;border-radius:14px;color:#e2e8f0;font-weight:700';const label=document.createElement('label');label.textContent='📅 MÊS DAS OPs PRONTAS E FOTOS';label.htmlFor='dfProductionMonthInput';label.style.cssText='display:block;margin-bottom:8px';const input=document.createElement('input');input.type='month';input.id='dfProductionMonthInput';input.style.cssText='width:100%;padding:11px;border:1px solid #4b6387;border-radius:10px;background:#0b1220;color:#f8fafc;font-size:16px';input.addEventListener('change',()=>{if(!/^\d{4}-\d{2}$/.test(input.value))return;localStorage.setItem(KEY,input.value);window.dispatchEvent(new CustomEvent('df-production-month-changed',{detail:{month:input.value}}));const global=$('dfOpMonth');if(global&&global.value!==input.value){global.value=input.value;global.dispatchEvent(new Event('change',{bubbles:true}))}schedule();window.DFOpCloud?.syncMonth?.(input.value);window.DFOpServerAuthority?.sync?.(true,input.value)});wrap.append(label,input);list.parentElement.insertBefore(wrap,list)}const input=$('dfProductionMonthInput');if(input&&input.value!==selected())input.value=selected();return wrap}
 function apply(){if(running)return;running=true;try{
-const list=panel();if(!list)return;ensurePicker();const all=records(),byId=new Map();
+const list=panel();if(!list){return;}ensurePicker();const all=records(),byId=new Map();
 for(const r of all){if(id(r)&&r.status==='ok')byId.set(id(r),r)}
 const chosen=selected();let shown=0;
 for(const row of Array.from(list.children)){
@@ -84,8 +84,8 @@ function applyActualReady(){
  notice.style.display=visibleCards.length?'none':'block';
 }
 
-function schedule(){clearTimeout(timer);timer=setTimeout(apply,120)}
+function schedule(){clearTimeout(timer);timer=setTimeout(()=>{apply();applyActualReady();applyArchive()},120)}
 function observe(){const b=panel();if(!b||b===boxRef)return;boxObserver?.disconnect();boxRef=b;boxObserver=new MutationObserver(schedule);boxObserver.observe(b,{childList:true,subtree:true});schedule()}
-function boot(){observe();schedule();new MutationObserver(()=>{if(!panel()||panel()!==boxRef)observe()}).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('click',e=>{if(e.target?.closest?.('[data-pane="ok"],[data-pane="archive"]'))schedule()},true);window.addEventListener('df-op-save-ui-refresh',schedule);window.addEventListener('df-op-remote-merged',schedule);window.addEventListener('df-op-d1-applied',schedule);window.addEventListener('focus',schedule);setInterval(schedule,60000)}
+function boot(){observe();schedule();new MutationObserver(()=>{if(!panel()||panel()!==boxRef)observe()}).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('click',e=>{if(e.target?.closest?.('button,[data-pane]'))schedule()},true);window.addEventListener('df-op-save-ui-refresh',schedule);window.addEventListener('df-op-remote-merged',schedule);window.addEventListener('df-op-d1-applied',schedule);window.addEventListener('focus',schedule);setInterval(schedule,60000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
