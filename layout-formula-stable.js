@@ -68,7 +68,8 @@
     const vendorButton=buttons.find(b=>norm(b.textContent).includes('WHATSAPP / PDF'));
     if(vendorButton)vendorButton.style.display='none';
 
-    ops.style.display='none';
+    // O botão original de OPs agora é o botão superior: não ocultá-lo.
+    ops.style.removeProperty('display');
     if(!opsTop.dataset.dfStableBound){
       opsTop.dataset.dfStableBound='1';
       opsTop.addEventListener('click',function(e){
@@ -79,7 +80,7 @@
         ops.click();window.scrollTo(0,0);
       },true);
     }
-    if(!backupTop.dataset.dfStableBound){
+    if(backupTop&&!backupTop.dataset.dfStableBound){
       backupTop.dataset.dfStableBound='1';
       backupTop.addEventListener('click',function(e){
         e.preventDefault();e.stopImmediatePropagation();
