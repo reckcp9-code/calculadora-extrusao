@@ -1,6 +1,6 @@
 {
-  "version": "1.0.718",
-  "title": "DF EXTRUSOR PRO — Menu da Formulação permanente",
-  "message": "Correção do desaparecimento de OPs Automáticas após reconstrução do menu e retorno do app no iPhone.",
+  "version": "1.0.719",
+  "title": "DF EXTRUSOR PRO — Navegação sem barra antiga",
+  "message": "Removida na origem a criação da barra inferior de OPs; botão OPS AUTOMÁTICAS criado diretamente no menu superior.",
   "updatedAt": "2026-11-02"
 }
