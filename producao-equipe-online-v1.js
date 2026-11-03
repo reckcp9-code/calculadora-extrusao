@@ -8,5 +8,4 @@ document.write('<script src="./producao-equipe-separada-v2.js?v=20261102-product
 document.write('<script src="./producao-prontas-sync-v1.js?v=20261006-prontas-fix-v286"><\/script>');
 document.write('<script src="./producao-opqr-minimizar-v1.js?v=20261005-opqr-min-v254"><\/script>');
 document.write('<script src="./producao-excluir-op-sync-v1.js?v=20261005-delete-sync-v254"><\/script>');
-document.write('<script src="./producao-mes-atual-filtro-v1.js?v=20261005-mes-atual-v254"><\/script>');
 })();
