@@ -141,7 +141,7 @@ async function restore(force){
   lastError='';verifiedThisPage=true;verifiedDevice=device();verifiedCredential=credential();
   try{localStorage.setItem(FLAG,JSON.stringify({at:new Date().toISOString(),areas:lastResult.teams,verifiedBy:'cloudflare-d1-v2'}))}catch(e){}
   if(restored.length)window.dispatchEvent(new CustomEvent('df-license-teams-restored',{detail:{areas:restored}}));
-  const needsRebuild=restored.length>0||Number(json.changed||0)>0||catalogRecovered||canonicalSavedCount>0;
+  const needsRebuild=restored.length>0||Number(json.changed||0)>0||catalogRecovered;
   if(needsRebuild&&!sessionStorage.getItem(ONCE)){
    sessionStorage.setItem(ONCE,'1');
    // A transferência de propriedade ou do catálogo exige uma única reconstrução de todas as abas.
@@ -164,7 +164,15 @@ function boot(){
  window.addEventListener('online',()=>schedule(500));
  window.addEventListener('pageshow',()=>schedule(1000));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(600)});
- setInterval(()=>{if(!document.hidden&&!verifiedThisPage)restore(false)},15000);
+ // A validação de licença é distinta da sincronização de dados. Uma equipe já
+ // recuperada deve continuar consultando D1 mesmo sem o dono abrir o painel.
+ setInterval(()=>{
+  if(document.hidden||navigator.onLine===false||busy)return;
+  if(!verifiedThisPage){restore(false);return}
+  if(lastResult?.teams?.length)syncBothTeams(lastResult.teams).catch(e=>console.warn('[DF Teams] D1 retry:',e));
+ },15000);
+ // Confere novamente a identidade permanente periodicamente, sem confiar no cache.
+ setInterval(()=>{if(!document.hidden&&navigator.onLine!==false&&!busy)restore(true)},120000);
 }
 window.DFTeamLicenseRestore={restore:()=>restore(true),status:()=>({busy,attempts,lastError,lastResult})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
