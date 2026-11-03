@@ -1,6 +1,6 @@
 {
-  "version": "1.0.739",
-  "title": "DF EXTRUSOR PRO — Máquinas e produtos sincronizados",
-  "message": "Máquinas cadastradas pelo Dono aparecem no AGORA com zero até receber baixas. Novos produtos vinculados à máquina sincronizam com os operadores da mesma equipe, preservando os cadastros históricos.",
+  "version": "1.0.740",
+  "title": "DF EXTRUSOR PRO — Sincronização de cadastros mais rápida",
+  "message": "Máquinas e produtos da Equipe de Produção agora são enviados sem aguardar OPs/fotos, e atualizados no operador assim que o catálogo remoto chega.",
   "updatedAt": "2026-11-02"
 }
