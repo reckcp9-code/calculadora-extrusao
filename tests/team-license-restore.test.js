@@ -28,6 +28,8 @@ async function check(){
  const owner='A'.repeat(43),original='B'.repeat(43),identity='C'.repeat(43);
  const teams=[{team_id:'TEAM-FORM',name:'DF EXTRUSOR',area:'extrusao',owner_key:original},{team_id:'TEAM-PROD',name:'DF PRODUÇÃO',area:'producao',owner_key:original}];
  let batchCalls=0;
+ const configFixture={v:3,kind:'df-producao-config',area:'producao',teamId:'TEAM-PROD',updatedAt:'2026-11-03T02:17:20.482Z',config:{Picote:{machines:['PICOTADEIRA USN'],products:['SACOLA P'],operators:['VILSON']}}};
+ const encodedConfig=Buffer.from(JSON.stringify(configFixture)).toString('base64url');
  const DB={
   prepare(sql){
    return{bind(...args){
@@ -36,6 +38,7 @@ async function check(){
       if(sql.includes('SELECT DISTINCT k.id'))return{results:[{key_id:771,identity_hash:identity}]};
       if(sql.includes('SELECT team_id,name,area,owner_key FROM op_teams'))return{results:teams.map(t=>({...t}))};
       if(sql.includes('SELECT t.team_id,t.name,t.area,m.display_name'))return{results:teams.filter(t=>t.owner_key===owner).map(t=>({...t,display_name:'DF PRO'}))};
+      if(sql.includes("FROM op_production_photos WHERE team_id=?"))return{results:[{qr:'DFPRODCFG3.'+encodedConfig,updated_at:'2026-11-03T02:17:20.482Z'}]};
       throw Error('Unexpected query '+sql);
      },
      async first(){
@@ -62,6 +65,7 @@ async function check(){
  assert.deepEqual(json.teams.map(x=>x.area).sort(),['extrusao','producao']);
  assert.equal(batchCalls,1);
  assert.ok(json.teams.every(x=>x.role==='owner'));
+ assert.equal(json.teams.find(x=>x.area==='producao')?.catalog?.config?.Picote?.machines?.[0],'PICOTADEIRA USN','Must restore server machines independent of OP photo list pagination');
  const repeat=await worker.fetch(makeReq(),{DB,AUTH:auth});
  assert.equal(repeat.status,200);
  assert.equal((await repeat.json()).changed,0,'Recovery must be idempotent');
