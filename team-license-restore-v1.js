@@ -81,18 +81,14 @@ async function restore(force){
   lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored,catalogRecovered};
   lastError='';verifiedThisPage=true;verifiedDevice=device();verifiedCredential=credential();
   try{localStorage.setItem(FLAG,JSON.stringify({at:new Date().toISOString(),areas:lastResult.teams,verifiedBy:'cloudflare-d1-v2'}))}catch(e){}
-  if(restored.length){
-   window.dispatchEvent(new CustomEvent('df-license-teams-restored',{detail:{areas:restored}}));
-   if(!sessionStorage.getItem(ONCE)){
-    sessionStorage.setItem(ONCE,'1');
-    // One local refresh is needed only to mount the recovered team screens.
-    setTimeout(()=>location.reload(),260);
-   }else{
-    try{window.DFOpCloud?.refreshTeam?.()}catch(e){}
-    try{window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
-   }
+  if(restored.length)window.dispatchEvent(new CustomEvent('df-license-teams-restored',{detail:{areas:restored}}));
+  const needsRebuild=restored.length>0||Number(json.changed||0)>0||catalogRecovered;
+  if(needsRebuild&&!sessionStorage.getItem(ONCE)){
+   sessionStorage.setItem(ONCE,'1');
+   // A transferência de propriedade ou do catálogo exige uma única reconstrução de todas as abas.
+   setTimeout(()=>location.reload(),300);
   }else{
-   // Mesmo que o painel JÁ tenha o nome da equipe, a sessão no servidor mudou.
+   // Se os componentes já existem, reparar a sessão em tempo real sem atualização manual.
    try{await window.DFOpCloud?.refreshTeam?.()}catch(e){}
    try{await window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
    window.dispatchEvent(new CustomEvent('df-license-teams-server-verified',{detail:{areas:lastResult.teams}}));
