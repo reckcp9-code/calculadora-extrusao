@@ -3,6 +3,7 @@
   const KEY='df_formula_ops_auto_v2';
   const REG_KEY='df_op_qr_registry_v1';
   const DB='df_ops_fotos_v2';
+  if(window.DFFormulaOpsUI?.bootstrapped)return;
   let selectedFile=null,working=false,stream=null,scanTimer=null;
 
   const $=id=>document.getElementById(id);
@@ -87,7 +88,26 @@
     <div id="dfOpModal" class="dfOpModal"><div class="dfOpModalBox"><button id="dfCloseModal" class="dfOpsBtn gray" style="margin-top:0">FECHAR</button><div id="dfModalBody"></div></div></div>
     <div id="dfScanModal" class="dfOpModal"><div class="dfOpModalBox dfScanWrap"><button id="dfCloseScan" class="dfOpsBtn gray" style="margin-top:0">FECHAR CÂMERA</button><video id="dfQrVideo" playsinline muted></video><canvas id="dfQrCanvas" style="display:none"></canvas><div id="dfScanStatus" class="dfOpsStatus">Procurando QR...</div></div></div>`}
 
-  function mount(){addStyle();const area=$('foDevArea'),top=$('pgFo')?.querySelector(':scope > .dfAutoTopics');if(!area||!top||$('dfFormulaOps'))return;const core=document.createElement('div');core.id='dfFormulaCore';Array.from(area.children).forEach(ch=>core.appendChild(ch));const coreTab=document.createElement('button');coreTab.id='dfFormTabCore';coreTab.hidden=true;coreTab.style.display='none';core.appendChild(coreTab);let topOps=$('dfFormTabOps');if(!topOps){topOps=document.createElement('button');topOps.id='dfFormTabOps';topOps.type='button';topOps.className='dfAutoTopic';topOps.textContent='🤖 OPS AUTOMÁTICAS';topOps.dataset.dfNavOps='1';top.appendChild(topOps)}const ops=document.createElement('div');ops.id='dfFormulaOps';ops.innerHTML=build();area.append(core,ops);coreTab.onclick=()=>switchMain(false);topOps.onclick=()=>switchMain(true);ops.querySelectorAll('[data-pane]').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));bind();renderAll();const requested=window.__dfOpenFormulaOpsAfterLoad===true;window.__dfOpenFormulaOpsAfterLoad=false;if(requested||(new URLSearchParams(location.search).get('ops')==='1'))switchMain(true)}
+  function mount(){addStyle();const area=$('foDevArea'),top=$('pgFo')?.querySelector(':scope > .dfAutoTopics');if(!area||!top)return false;if($('dfFormulaOps'))return true;const core=document.createElement('div');core.id='dfFormulaCore';Array.from(area.children).forEach(ch=>core.appendChild(ch));const coreTab=document.createElement('button');coreTab.id='dfFormTabCore';coreTab.hidden=true;coreTab.style.display='none';core.appendChild(coreTab);let topOps=$('dfFormTabOps');if(!topOps){topOps=document.createElement('button');topOps.id='dfFormTabOps';topOps.type='button';topOps.className='dfAutoTopic';topOps.textContent='🤖 OPS AUTOMÁTICAS';topOps.dataset.dfNavOps='1';top.appendChild(topOps)}const ops=document.createElement('div');ops.id='dfFormulaOps';ops.innerHTML=build();area.append(core,ops);coreTab.onclick=()=>switchMain(false);ops.querySelectorAll('[data-pane]').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));bind();renderAll();const requested=window.__dfOpenFormulaOpsAfterLoad===true;window.__dfOpenFormulaOpsAfterLoad=false;if(requested||(new URLSearchParams(location.search).get('ops')==='1'))switchMain(true);return true}
+  function openFromNav(){
+    window.__dfOpenFormulaOpsAfterLoad=true;
+    if(!mount())return false;
+    switchMain(true);
+    window.__dfOpenFormulaOpsAfterLoad=false;
+    return true;
+  }
+  function closeFromNav(){
+    if(!$('dfFormulaOps'))return false;
+    switchMain(false);
+    return true;
+  }
+  // A tela pode ter carregado antes de o menu superior existir.
+  // Expor uma abertura que monta o painel na hora, sem atualizar o PWA.
+  window.DFFormulaOpsUI={bootstrapped:true,open:openFromNav,close:closeFromNav,ensure:mount};
+  window.addEventListener('df-formula-section-entered',()=>{
+    if(window.__dfOpenFormulaOpsAfterLoad)openFromNav();
+    else if(!$('dfFormulaOps'))mount();
+  });
   function switchMain(on){const core=$('dfFormulaCore'),ops=$('dfFormulaOps'),tab=$('dfFormTabOps');if(!core||!ops)return;core.style.display=on?'none':'block';ops.classList.toggle('on',on);$('dfFormTabCore')?.classList.toggle('on',!on);tab?.classList.toggle('on',on)}
   function switchPane(name){document.querySelectorAll('.dfOpsTabs button').forEach(b=>b.classList.toggle('on',b.dataset.pane===name));document.querySelectorAll('.dfOpsPane').forEach(p=>p.classList.remove('on'));$('dfPane'+name[0].toUpperCase()+name.slice(1))?.classList.add('on');if(name==='archive')renderArchive()}
   function bind(){$('dfOpMonth').value=monthNow();$('dfOpPhoto').onchange=photoChosen;$('dfOpMonth').onchange=renderAll;$('dfPrintReport').onclick=printReport;$('dfScanQr').onclick=startScanner;$('dfScanQrFile').onchange=scanFile;$('dfCloseScan').onclick=stopScanner;$('dfCloseModal').onclick=closeModal;$('dfZipMonth').onclick=zipMonth}
