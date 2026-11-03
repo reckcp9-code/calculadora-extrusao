@@ -69,7 +69,7 @@ async function syncBothTeams(areas){
       if(ops?.sync){
         // Primeiro carregar histórico preservado, sem alterar o mês que o usuário selecionou.
         const current=new Date(),now=current.getFullYear()+'-'+String(current.getMonth()+1).padStart(2,'0');
-        const months=[now,'2026-10','2026-09'].filter((x,i,a)=>a.indexOf(x)===i);
+        const months=[now,1,2].map((v,i)=>i===0?now:(()=>{const d=new Date(current.getFullYear(),current.getMonth()-v,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')})()).filter((x,i,a)=>a.indexOf(x)===i);
         for(const month of months)await ops.sync(true,month);
       }
       if(window.DFTeamFormulasShared?.sync)await window.DFTeamFormulasShared.sync();
