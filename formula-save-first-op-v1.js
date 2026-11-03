@@ -73,6 +73,19 @@ async function saveAndOpen(){
   refresh(rec.id);
   const select=q('foSavedSelect');if(select){select.value=String(rec.id);select.dispatchEvent(new Event('change',{bubbles:true}));}
   window.dispatchEvent(new CustomEvent('df-formula-saved',{detail:{id:rec.id,total:rec.total}}));
+  // O salvamento local não confirma que os outros operadores receberam a fórmula.
+  // Enviar imediatamente ao D1 e informar o resultado, sem alterar o ID criado.
+  const publisher=window.DFTeamFormulasShared?.publishSaved;
+  if(typeof publisher==='function'){
+    try{
+      const confirmed=await publisher();
+      if(!confirmed)throw new Error('Servidor ainda não confirmou');
+      window.dispatchEvent(new CustomEvent('df-formula-cloud-confirmed',{detail:{id:rec.id}}));
+    }catch(err){
+      console.warn('[DF Formula] aguardando confirmação D1',err);
+      window.dispatchEvent(new CustomEvent('df-formula-cloud-pending',{detail:{id:rec.id}}));
+    }
+  }
 }
 window.addEventListener('click',function(ev){
   const btn=ev.target&&ev.target.closest?ev.target.closest('#foSave'):null;if(!btn)return;
