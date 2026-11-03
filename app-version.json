@@ -1,6 +1,6 @@
 {
-  "version": "1.0.729",
-  "title": "DF EXTRUSOR PRO — Lista de Prontas",
-  "message": "Proteção contra falhas na renderização de cartões e manutenção da lista de Prontas visível.",
+  "version": "1.0.730",
+  "title": "DF EXTRUSOR PRO — Resultados de Prontas",
+  "message": "Substituição da estrutura antiga da lista de OPs prontas da Produção por renderização exclusiva e estável.",
   "updatedAt": "2026-11-02"
 }
