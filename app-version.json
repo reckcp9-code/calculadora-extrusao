@@ -1,6 +1,6 @@
 {
-  "version": "1.0.728",
-  "title": "DF EXTRUSOR PRO — Pesquisa de Prontas",
-  "message": "Ajuste da visualização e atualização dos resultados em Prontas da Produção.",
+  "version": "1.0.729",
+  "title": "DF EXTRUSOR PRO — Lista de Prontas",
+  "message": "Proteção contra falhas na renderização de cartões e manutenção da lista de Prontas visível.",
   "updatedAt": "2026-11-02"
 }
