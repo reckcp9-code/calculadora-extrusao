@@ -31,9 +31,9 @@ async function restore(request,env,origin){
  try{
   original=await env.AUTH.fetch(MAIN_API+'/access/session',{
    method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':deviceId,'Origin':origin},
-   body:JSON.stringify({credential,deviceId}),cache:'no-store',redirect:'error'
+   body:JSON.stringify({credential,deviceId}),cache:'no-store',redirect:'manual'
   });
- }catch(e){const debug=credential==='INVALID-CREDENTIAL-CI-ONLY'?String(e?.name||'Error')+': '+String(e?.message||e).slice(0,200):undefined;return respond({ok:false,error:'Serviço de licença temporariamente indisponível',debug},503,origin)}
+ }catch(e){return respond({ok:false,error:'Serviço de licença temporariamente indisponível'},503,origin)}
  let auth={};
  try{auth=await original.json()}catch(e){}
  if(!original.ok||auth.ok===false||!auth.token)
