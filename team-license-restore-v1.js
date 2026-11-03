@@ -74,8 +74,11 @@ function recoverSavedProductionOps(t){
  window.dispatchEvent(new CustomEvent('df-producao-canonical-saved-ready',{detail:{teamId:t.teamId}}));
  return missing.length;
 }
+let fullSyncBusy=false;
 async function syncBothTeams(areas){
-  if(navigator.onLine===false||document.hidden)return false;
+  if(fullSyncBusy||navigator.onLine===false||document.hidden)return false;
+  fullSyncBusy=true;
+  try{
   // A KEY foi confirmada no Worker. Renovar o token usado pelos DOIS módulos.
   try{sessionStorage.removeItem('df_secure_token_v2')}catch(e){}
   const jobs=[];
@@ -113,6 +116,7 @@ async function syncBothTeams(areas){
   window.dispatchEvent(new CustomEvent('df-license-full-team-sync',{detail:{ok,areas}}));
   if(!ok)console.warn('[DF Teams] Sincronização parcial; não apagar dados locais.');
   return ok;
+  }finally{fullSyncBusy=false}
 }
 async function restore(force){
  if(busy||navigator.onLine===false||!credential()||!device())return false;
