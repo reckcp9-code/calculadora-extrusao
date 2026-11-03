@@ -1,0 +1,19 @@
+{
+  "id": "/gerar-acesso.html",
+  "name": "DF EXTRUSOR PRO — PAINEL ADMINISTRATIVO",
+  "short_name": "DF PAINEL ADM",
+  "description": "Painel administrativo de geração e renovação de acessos DF.",
+  "start_url": "/gerar-acesso.html?origem=atalho-admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080b13",
+  "theme_color": "#080b13",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
