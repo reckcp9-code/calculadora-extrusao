@@ -34,7 +34,22 @@ function monthNow(){return today().slice(0,7)}
 function viewingMonth(){const v=String(localStorage.getItem('df_production_history_month_v1')||'');return /^\d{4}-(0[1-9]|1[0-2])$/.test(v)?v:monthNow()}
 function monthOf(r){const vals=[r?.month,r?.completedAt,r?.autoUpdatedAt,r?.closedAt,r?.date,r?.createdAt,r?.updatedAt];for(const v of vals){const s=String(v||'').trim();if(!s)continue;let m=s.match(/^(\d{4})[-\/](\d{1,2})/);if(m)return m[1]+'-'+String(m[2]).padStart(2,'0');m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);if(m)return m[3]+'-'+String(m[2]).padStart(2,'0');const d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}return''}
 function monthLabel(m){const a=String(m||monthNow()).split('-'),d=new Date(Number(a[0]),Number(a[1])-1,1);return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}
-function machines(){const out=[],seen=new Set(),cad=read(CAD_KEY,{}),removed=new Set(['Picote','Sacoleira','Blocadora'].flatMap(sec=>Object.keys(cad?.[sec]?.deletedMachines||{}).filter(k=>cad[sec].deletedMachines[k]).map(norm)));const add=name=>{const original=String(name||'').trim(),n=machineKey(original)==='blocadora-flex-900'?'BLOCADORA FLEX 900':original,k=machineKey(n);if(removed.has(norm(original))||removed.has(norm(n)))return;if(n&&k&&!seen.has(k)){seen.add(k);out.push(n)}};['Picote','Sacoleira','Blocadora'].forEach(sec=>{const list=Array.isArray(cad?.[sec]?.machines)?cad[sec].machines:[];list.forEach(add)});/* Recupera máquinas com baixas no mês quando o catálogo local ainda não sincronizou. */completedRecords().forEach(r=>{if(r.machine)add(r.machine)});return out.sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base',numeric:true}))}
+function machines(){
+ // Fonte única da tela AGORA: máquinas explicitamente cadastradas na Produção.
+ // OPs históricas NÃO podem gerar máquinas extras ou restaurar exclusões.
+ const catalog=read(CAD_KEY,{}),names=new Map();
+ for(const sector of ['Picote','Sacoleira','Blocadora']){
+  const row=catalog?.[sector];
+  if(!row||!Array.isArray(row.machines))continue;
+  const deleted=row.deletedMachines||{};
+  for(const value of row.machines){
+   const name=String(value||'').trim(),key=norm(name);
+   if(!key||deleted[key]||names.has(key))continue;
+   names.set(key,name);
+  }
+ }
+ return [...names.values()].sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base',numeric:true}));
+}
 function completedRecords(){
   const autos=read(AUTO_KEY,[]),ops=read(OPS_KEY,[]),list=Array.isArray(ops)?ops:[],opMap=new Map(list.map(o=>[normId(o?.id),o])),out=[],seen=new Set();
   for(const r of Array.isArray(autos)?autos:[]){
