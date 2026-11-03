@@ -24,8 +24,8 @@ async function testVersionFallback(){
  };
  const caches={open:async()=>cache};
  const fetchWithTimeout=async()=>{throw Error('offline / request timeout')};
- const make=new Function('caches','fetchWithTimeout','Response','URL','self',func);
- const networkFirst=make(caches,fetchWithTimeout,Response,URL,{});
+ const make=new Function('caches','fetchWithTimeout','Response','URL','self','DF_CACHE',func);
+ const networkFirst=make(caches,fetchWithTimeout,Response,URL,{},'df-saas-test');
  const versioned={url:'https://app.example.com/app-bundle.js?v=20261103-saas-stable-v753'};
  let res=await networkFirst(versioned);
  assert.equal(res.status,503,'Old precache MUST NOT satisfy a new versioned JS request');
