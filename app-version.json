@@ -1,6 +1,6 @@
 {
-  "version": "1.0.752",
+  "version": "1.0.753",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção de acesso e sincronização de equipes após troca de aparelho: Formulação e Produção, OPs e histórico dos últimos três meses. Atualização automática de sessão e proteção contra reset antigo.",
+  "message": "Correção de estabilidade SaaS: interface sem módulos antigos, service worker atualizado, sincronização de Formulação e Produção, recuperação de OPs abertas e máquinas do D1 sem duplicações.",
   "updatedAt": "2026-11-03"
 }
