@@ -1,6 +1,6 @@
 {
-  "version": "1.0.765",
+  "version": "1.0.766",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção definitiva do botão Salvar Formulação: módulo ativo, novo ID para nomes repetidos e confirmação D1.",
+  "message": "Reaproveitamento de formulação cria novo registro D1 com ID exclusivo e protege pendências entre reinícios.",
   "updatedAt": "2026-11-03"
 }
