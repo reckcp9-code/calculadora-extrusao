@@ -52,7 +52,8 @@ function printInPopup(f,w){
   if(run())return;
   let n=0,t=setInterval(()=>{if(run()||++n>80){clearInterval(t);if(n>80){closePopup(w);alert('A OP padrão ainda não terminou de carregar. Tente novamente.')}}},100);
 }
-async function saveAndOpen(){
+let saving=false;
+async function saveAndOpen(){if(saving)return;saving=true;try{
   const nome=(q('foNome')?.value||'').trim()||'Formulação',total=pn(q('foTotal')?.value);
   const rows=(typeof window.getFoRows==='function'?window.getFoRows():[]).filter(r=>r?.id&&Number(r.pct)>0);
   if(!total){alert('Digite quantos kg quer fazer.');return}
@@ -78,14 +79,16 @@ async function saveAndOpen(){
   const publisher=window.DFTeamFormulasShared?.publishSaved;
   if(typeof publisher==='function'){
     try{
-      const confirmed=await publisher();
+      const confirmed=await publisher(rec.id);
       if(!confirmed)throw new Error('Servidor ainda não confirmou');
       window.dispatchEvent(new CustomEvent('df-formula-cloud-confirmed',{detail:{id:rec.id}}));
     }catch(err){
       console.warn('[DF Formula] aguardando confirmação D1',err);
       window.dispatchEvent(new CustomEvent('df-formula-cloud-pending',{detail:{id:rec.id}}));
+      alert('Formulação salva neste aparelho, mas ainda NÃO confirmada no D1. Aguarde a sincronização antes de utilizar esta OP em outro celular.');
     }
-  }
+  }else{alert('Sincronização da equipe indisponível. Formulação ainda não confirmada no D1.');}
+}finally{saving=false}
 }
 window.addEventListener('click',function(ev){
   const btn=ev.target&&ev.target.closest?ev.target.closest('#foSave'):null;if(!btn)return;
