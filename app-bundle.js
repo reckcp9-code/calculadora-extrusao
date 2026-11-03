@@ -3896,7 +3896,7 @@
     if(ev.target?.closest?.('#foSave')){
       ev.preventDefault();ev.stopImmediatePropagation();saveFormulaSafe();return;
     }
-    const act=ev.target?.dataset?.fosafe;if(!act)return;
+    const act=ev.target?.closest?.('[data-fosafe]')?.dataset?.fosafe;if(!act)return;
     ev.preventDefault();ev.stopImmediatePropagation();
     const f=selected();if(!f){alert('Selecione uma formulação.');return;}
     if(act==='open'){if(window.abrirFormula)window.abrirFormula(f,false);return;}
