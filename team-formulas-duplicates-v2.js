@@ -51,7 +51,7 @@ function applyFormula(f){if(!f)return;try{if(typeof window.abrirFormula==='funct
 const TOKEN_KEY='df_secure_token_v2',DEVICE_KEY='df_licenseauth_device_v1',ACCESS_KEY='df_auto_access_credential_v1';
 function deviceId(){try{const x=String(window.DFDeviceIdentity?.get?.()||'').trim();if(x)return x}catch(e){}return String(localStorage.getItem(DEVICE_KEY)||'').trim()}
 function tokenPayload(token){try{let s=String(token||'').split('.')[0]||'';s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(Array.from(atob(s)).map(c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')))}catch(e){return null}}
-async function renewSession(force){let token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim(),p=tokenPayload(token);if(token&&!force&&p?.owner)return token;const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();if(!credential||!dev)throw Error('Acesso automático indisponível');const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw Error(j.error||'Sessão indisponível');token=String(j.token||'').trim();if(!token)throw Error('Sessão vazia');sessionStorage.setItem(TOKEN_KEY,token);return token}
+async function renewSession(force){let token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim(),p=tokenPayload(token);if(token&&!force)return token;const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();if(!credential||!dev)throw Error('Acesso automático indisponível');const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw Error(j.error||'Sessão indisponível');token=String(j.token||'').trim();if(!token)throw Error('Sessão vazia');sessionStorage.setItem(TOKEN_KEY,token);return token}
 async function apiPost(path,body,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body||{}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiPost(path,body,false)}if(!r.ok||j.ok===false){const er=new Error(j.error||('HTTP '+r.status));er.status=r.status;throw er}return j}
 function serverForms(rows){return uniqueForms((Array.isArray(rows)?rows:[]).filter(x=>!window.DFFormulaTombstones?.isDeleted?.(String(x?.id??x?.formulaId??''))).map(x=>({id:x?.id??x?.formulaId,nome:x?.nome??x?.name,total:x?.total,rows:x?.rows,custo:x?.custo,custoKg:x?.custoKg,op:x?.op,criado:x?.criado??x?.createdAt,updatedAt:x?.updatedAt})))}
 function createdStamp(f){
@@ -70,30 +70,14 @@ function writeForms(forms){applying=true;try{localStorage.setItem(FORM_KEY,JSON.
 function applyServer(rows,preserve){const server=serverForms(rows).filter(notDeleting),all=server.slice(),seen=new Set(server.map(identity));for(const f of uniqueForms([...(preserve||[]),...localForms().filter(f=>pendingFormulaIds.has(String(f.id)))])){const k=identity(f);if(!seen.has(k)){seen.add(k);all.push(f)}}writeForms(all);return all}
 
 async function pushForms(fillOnly){const t=team();if(!t?.teamId||!initialized)return false;const revision=localRevision;const forms=uniqueForms(localForms()).filter(notDeleting);if(!forms.length)return true;const sent=forms.filter(f=>pendingFormulaIds.has(String(f.id))&&notDeleting(f));if(!sent.length)return true;const j=await apiPost('/op/team/formulas/upsert',{teamId:String(t.teamId),fillOnly:true,formulas:sent});if(!Array.isArray(j.formulas))throw new Error('Servidor não confirmou as formulações.');const read=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if(!Array.isArray(read.formulas))throw new Error('D1 indisponível para confirmação');const missing=sent.filter(f=>!read.formulas.some(x=>String(x.id??x.formulaId)===String(f.id)));if(missing.length)throw new Error('D1 não recebeu '+missing.length+' fórmula(s)');applyServer(read.formulas,localRevision!==revision?localForms():[]);for(const f of sent)clearPending(String(f.id));lastPull=Date.now();status('☁️ Biblioteca sincronizada • nomes repetidos liberados por ID','ok');return true}
-async function sync(force){const t=team();if(!t?.teamId){initialized=false;currentTeamId='';status('Formulações salvas neste aparelho. Nomes repetidos estão liberados.','ok');return false}if(syncing){queuedSync=true;return false}if(!force&&Date.now()-lastPull<8500)return true;syncing=true;currentTeamId=String(t.teamId);const startRevision=localRevision;try{let j=await apiPost('/op/team/formulas/list',{teamId:currentTeamId});if(!j.initialized){if(isOwner()){const own=uniqueForms(localForms()).filter(notDeleting);status('☁️ Publicando biblioteca da equipe...','warn');j=await apiPost('/op/team/formulas/seed-owner',{teamId:currentTeamId,formulas:own})}else{initialized=false;status('☁️ Aguardando o DONO publicar a biblioteca de formulações.','warn');lastPull=Date.now();return false}}initialized=true;
-const migrationKey='df_team_formulas_migrated_v1_'+currentTeamId;
-const migrationDone=localStorage.getItem(migrationKey)==='1';
-if(!migrationDone){
-  const server=serverForms(j.formulas||[]),known=new Set(server.map(identity));
-  const missing=uniqueForms(localForms()).filter(f=>!known.has(identity(f))&&!deletedIds().has(String(f.id))&&!window.DFFormulaTombstones?.isDeleted?.(String(f.id)));
-  if(missing.length){
-    status('☁️ Unificando '+missing.length+' formulações deste aparelho com a equipe...','warn');
-    j=await apiPost('/op/team/formulas/upsert',{teamId:currentTeamId,fillOnly:true,formulas:missing});
-    if(!Array.isArray(j.formulas))throw new Error('Servidor não confirmou a unificação.');
-  }
-  localStorage.setItem(migrationKey,'1');
-}
+async function sync(force){const t=team();if(!t?.teamId){initialized=false;currentTeamId='';status('Formulações salvas neste aparelho. Nomes repetidos estão liberados.','ok');return false}if(syncing){queuedSync=true;return false}if(!force&&Date.now()-lastPull<8500)return true;syncing=true;currentTeamId=String(t.teamId);const startRevision=localRevision;try{let j=await apiPost('/op/team/formulas/list',{teamId:currentTeamId});if(!j.initialized){if(isOwner()){const own=uniqueForms(localForms()).filter(f=>pendingFormulaIds.has(String(f.id))&&notDeleting(f));status('☁️ Publicando biblioteca da equipe...','warn');j=await apiPost('/op/team/formulas/seed-owner',{teamId:currentTeamId,formulas:own})}else{initialized=false;status('☁️ Aguardando o DONO publicar a biblioteca de formulações.','warn');lastPull=Date.now();return false}}initialized=true;
+// D1 autoritativo: não migrar automaticamente snapshots antigos de outros aparelhos.
 // Não restaurar exclusões a partir de snapshots antigos.
 const server=newestFirst(serverForms(j.formulas||[]));
- // Recuperação de um salvamento recente que permaneceu só no aparelho:
- // jamais reenviar tombstones ou toda a biblioteca antiga.
- const knownServer=new Set(server.map(f=>String(f.id)));
- for(const f of localForms()){
-   if(!knownServer.has(String(f.id))&&!deletedIds().has(String(f.id))&&!window.DFFormulaTombstones?.isDeleted?.(String(f.id))&&createdStamp(f)>Date.now()-3*86400000)markPending(f.id);
- }
+ // Somente IDs explicitamente pendentes de criação podem ser enviados ao D1.
  if(hashForms(server)!==hashForms(localForms())){
  // Uma fórmula criada enquanto a consulta estava em voo nunca pode ser substituída por um snapshot antigo.
- const pending=localForms().filter(f=>pendingFormulaIds.has(String(f.id))||(localRevision!==startRevision&&!server.some(x=>identity(x)===identity(f))));
+ const pending=localForms().filter(f=>pendingFormulaIds.has(String(f.id)));
  applyServer(server,pending);
  if(pending.length){for(const f of pending)markPending(f.id);lastHash='';schedulePush()}
 }else selectLatestForTeam();
