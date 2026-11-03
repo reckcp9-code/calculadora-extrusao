@@ -1,6 +1,6 @@
 {
-  "version": "1.0.731",
-  "title": "DF EXTRUSOR PRO — Prontas Produção",
-  "message": "Resultados de pesquisa das OPs prontas isolados do cartão de resumo para evitar ocultação.",
+  "version": "1.0.732",
+  "title": "DF EXTRUSOR PRO — Pesquisa de PRONTAS estável",
+  "message": "Produção: pesquisa de OPs prontas com visual unificado ao da Formulação e resultados preservados durante sincronizações.",
   "updatedAt": "2026-11-02"
 }
