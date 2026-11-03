@@ -2150,7 +2150,7 @@
   async function registerSW(){
     if(!('serviceWorker' in navigator))return null;
     try{
-      reg=await navigator.serviceWorker.register(BASE+'sw.js',{scope:BASE});
+      reg=await navigator.serviceWorker.register(BASE+'sw.js',{scope:BASE,updateViaCache:'none'});
       await navigator.serviceWorker.ready;
       return reg;
     }catch(e){console.warn('DF SW:',e);return null;}
