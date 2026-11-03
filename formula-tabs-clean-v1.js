@@ -76,15 +76,48 @@
       lower.tabIndex=-1;
     }
   }
-    function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';bindFormula(formula);tagNav();return formula}
+    function ensureFormulaButton(){const n=nav();if(!n)return null;let formula=findFormula();if(!formula){formula=document.createElement('button');formula.type='button';formula.className='dfAutoTopic';formula.dataset.dfFormulaTop='1';formula.textContent='🧪 FORMULAÇÃO';n.appendChild(formula)}formula.dataset.dfFormulaTop='1';tagNav();return formula}
   function showWhats(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanBackupOnly');p.classList.add('dfCleanWhatsOnly');markActive(btn);window.scrollTo(0,0)}
   function showBackup(btn){const p=page();if(!p)return;cleanLiteralNewline();p.classList.remove('dfCleanWhatsOnly');p.classList.add('dfCleanBackupOnly');markActive(btn);window.scrollTo(0,0)}
   function showFormula(btn){clearMode();cleanLiteralNewline();const form=$('dfFormTabCore');if(form)form.click();setTimeout(()=>{cleanLiteralNewline();const fresh=ensureFormulaButton();tagNav();markActive(fresh||btn)},0);window.scrollTo(0,0)}
-  function bindFormula(formula){if(!formula||formula.dataset.dfCleanTabsBound)return;formula.dataset.dfCleanTabsBound='1';formula.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showFormula(formula)},true)}
   function attachNavObserver(){const n=nav();if(!n)return;if(navObserver&&navObserver.__nav===n)return;if(navObserver)navObserver.disconnect();navObserver=new MutationObserver(()=>{clearTimeout(fixTimer);fixTimer=setTimeout(()=>{if(!repairing){cleanLiteralNewline();ensureFormulaButton();tagNav()}},50)});navObserver.__nav=n;navObserver.observe(n,{childList:true,subtree:true,characterData:true})}
   function attachPageObserver(){const p=page();if(!p)return;if(pageObserver&&pageObserver.__page===p)return;if(pageObserver)pageObserver.disconnect();pageObserver=new MutationObserver(()=>{if(cleaning)return;clearTimeout(fixTimer);fixTimer=setTimeout(()=>{cleanLiteralNewline();if(!repairing){ensureFormulaButton();tagNav()}},40)});pageObserver.__page=p;pageObserver.observe(p,{childList:true,subtree:true,characterData:true})}
 
-  function bind(){attachRootObserver();ensureStyle();const p=page(),n=nav();if(!p||!n)return false;cleanLiteralNewline();const formula=ensureFormulaButton(),whats=findWhats(),backup=findBackup();tagNav();bindFormula(formula);if(whats&&!whats.dataset.dfCleanTabsBound){whats.dataset.dfCleanTabsBound='1';whats.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showWhats(whats)},true)}if(backup&&!backup.dataset.dfCleanTabsBound){backup.dataset.dfCleanTabsBound='1';backup.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showBackup(backup)},true)}const form=$('dfFormTabCore'),ops=$('dfFormTabOps');[form,ops].forEach(btn=>{if(btn&&!btn.dataset.dfCleanTabsClear){btn.dataset.dfCleanTabsClear='1';btn.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{cleanLiteralNewline();const f=ensureFormulaButton();tagNav();if(btn===form)markActive(f);else if(btn===ops)markActive(findOps())},0)},true)}});const topOps=findOps();if(topOps&&!topOps.dataset.dfCleanTabsClear){topOps.dataset.dfCleanTabsClear='1';topOps.addEventListener('click',function(){clearMode();cleanLiteralNewline();setTimeout(()=>{tagNav();const current=findOps();if(current)markActive(current)},0)},true)}attachNavObserver();attachPageObserver();return true}
+  function bind(){
+    attachRootObserver();ensureStyle();
+    const p=page(),n=nav();if(!p||!n)return false;
+    cleanLiteralNewline();ensureFormulaButton();tagNav();
+    // Um único handler no elemento da página, e não em cada botão.
+    // O menu reconstrói seus tópicos ao voltar de Produção: handlers
+    // individuais presos aos botões antigos deixavam BACKUP sem clique.
+    if(p.dataset.dfFormulaNavDelegated!=='1'){
+      p.dataset.dfFormulaNavDelegated='1';
+      p.addEventListener('click',function(e){
+        const btn=e.target?.closest?.('.dfAutoTopic');
+        const currentNav=nav();
+        if(!btn||!currentNav||!currentNav.contains(btn))return;
+        const label=norm(btn.textContent);
+        const isOps=btn.id==='dfFormTabOps'||btn.dataset.dfNavOps==='1';
+        const isBackup=btn.dataset.dfNavBackup==='1'||label.includes('BACKUP NA NUVEM');
+        const isFormula=btn.dataset.dfFormulaTop==='1'||label==='FORMULAÇÃO';
+        if(!isOps&&!isBackup&&!isFormula)return;
+        e.preventDefault();e.stopImmediatePropagation();
+        if(isOps){
+          clearMode();
+          window.__dfOpenFormulaOpsAfterLoad=true;
+          window.DFFormulaOpsUI?.open?.();
+          markActive(btn);
+          window.scrollTo(0,0);
+          return;
+        }
+        window.__dfOpenFormulaOpsAfterLoad=false;
+        window.DFFormulaOpsUI?.close?.();
+        if(isBackup)showBackup(btn);
+        else showFormula(btn);
+      },true);
+    }
+    attachNavObserver();attachPageObserver();return true;
+  }
   // Observe somente a troca do contêiner de navegação. O app pode recriar
   // #pgFo/.dfAutoTopics depois da inicialização ou ao retomar do cache iOS.
   function attachRootObserver(){
@@ -103,6 +136,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachRootObserver,{once:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)bind()});
   window.addEventListener('pageshow',()=>bind());
+  window.addEventListener('df-formula-section-entered',()=>bind());
   function retry(attempt){attempt=Number(attempt)||0;cleanLiteralNewline();if(bind()||attempt>=12)return;setTimeout(()=>retry(attempt+1),300)}
   function start(){retry(0)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
