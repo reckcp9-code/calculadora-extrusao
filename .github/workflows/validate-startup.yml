@@ -80,6 +80,7 @@ jobs:
           node --check .github/workers/df-team-license-restore-v1.js
           node tests/team-license-restore.test.js
           node tests/team-reconnect-client.test.js
+          node tests/team-both-sync.test.js
       - name: Conferir serviço de restauração na Cloudflare
         run: |
           set -euo pipefail
