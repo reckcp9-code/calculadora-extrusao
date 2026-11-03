@@ -73,6 +73,12 @@ jobs:
           node --check op-cloud-team-v3.js
           node --check op-team-code-pwa-v166.js
           node tests/op-ui-integrity.test.js
+      - name: Testar recuperação permanente de equipe pela licença
+        run: |
+          set -euo pipefail
+          node --check team-license-restore-v1.js
+          node --check .github/workers/df-team-license-restore-v1.js
+          node tests/team-license-restore.test.js
       - name: Validate startup references and app version
         run: |
           node <<'NODE'
