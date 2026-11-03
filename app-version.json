@@ -1,6 +1,6 @@
 {
-  "version": "1.0.770",
+  "version": "1.0.771",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção de carregamento de recursos no iPhone: cache consistente de módulos críticos e sincronização.",
+  "message": "Exclusão unificada de formulações salvas no D1, sem exclusão local antiga.",
   "updatedAt": "2026-11-03"
 }
