@@ -55,6 +55,10 @@ async function restore(force){
    console.warn('[DF Teams]',lastError);return false;
   }
   const teams=Array.isArray(json.teams)?json.teams:[],restored=[];
+  // Uma licença que não possua as equipes atuais não pode validar um cache de outro aparelho.
+  const currentForm=read(FORM),currentProd=read(PROD);
+  if(currentForm?.teamId&&!teams.some(t=>t.area==='extrusao'&&t.teamId===currentForm.teamId))throw Error('A equipe de Formulação não foi confirmada no D1.');
+  if(currentProd?.teamId&&!teams.some(t=>t.area==='producao'&&t.teamId===currentProd.teamId))throw Error('A equipe de Produção não foi confirmada no D1.');
   for(const team of teams)if(persist(team))restored.push(String(team.area));
   lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored};
   lastError='';verifiedThisPage=true;verifiedDevice=device();verifiedCredential=credential();
@@ -76,7 +80,7 @@ async function restore(force){
    window.dispatchEvent(new CustomEvent('df-license-teams-server-verified',{detail:{areas:lastResult.teams}}));
   }
   return true;
- }catch(e){lastError='Não foi possível conferir as equipes na nuvem';console.warn('[DF Teams]',lastError);return false}
+ }catch(e){lastError=String(e?.message||'Não foi possível conferir as equipes na nuvem');console.warn('[DF Teams]',lastError);return false}
  finally{busy=false}
 }
 function schedule(delay=900,force=false){setTimeout(()=>restore(force),delay)}
