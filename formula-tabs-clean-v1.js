@@ -6,6 +6,7 @@
   const $=id=>document.getElementById(id);
   const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
   let navObserver=null,pageObserver=null,rootObserver=null,fixTimer=0,cleaning=false,repairing=false;
+  const boundPages=new WeakSet(); // Novo nó recriado precisa de um novo listener; dataset é copiado em clones.
 
   function ensureStyle(){
     if($('dfFormulaTabsCleanV1Style'))return;
@@ -90,8 +91,8 @@
     // Um único handler no elemento da página, e não em cada botão.
     // O menu reconstrói seus tópicos ao voltar de Produção: handlers
     // individuais presos aos botões antigos deixavam BACKUP sem clique.
-    if(p.dataset.dfFormulaNavDelegated!=='1'){
-      p.dataset.dfFormulaNavDelegated='1';
+    if(!boundPages.has(p)){
+      boundPages.add(p);
       p.addEventListener('click',function(e){
         const btn=e.target?.closest?.('.dfAutoTopic');
         const currentNav=nav();
