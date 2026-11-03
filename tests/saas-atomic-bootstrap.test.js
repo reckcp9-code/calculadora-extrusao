@@ -26,7 +26,7 @@ async function testVersionFallback(){
  const fetchWithTimeout=async()=>{throw Error('offline / request timeout')};
  const make=new Function('caches','fetchWithTimeout','Response','URL','self','DF_CACHE',func);
  const networkFirst=make(caches,fetchWithTimeout,Response,URL,{},'df-saas-test');
- const versioned={url:'https://app.example.com/app-bundle.js?v=20261103-formula-delete-single-v767'};
+ const versioned={url:'https://app.example.com/app-bundle.js?v=20261103-formula-delete-d1-verify-v768'};
  let res=await networkFirst(versioned);
  assert.equal(res.status,503,'Old precache MUST NOT satisfy a new versioned JS request');
  assert.equal(seen.at(-1),false);
@@ -42,7 +42,7 @@ async function testVersionFallback(){
 async function testRuntime(){
  assert.match(idx,/app-shell\.html\?v='\+BUILD/,'Shell must be build-versioned');
  assert.match(idx,/sw-policy\.js.*updateViaCache:'none'/,'SW wrapper must update bypassing HTTP cache');
- assert.match(wrapper,/importScripts\('\.\/sw\.js\?v=20261103-formula-delete-single-v767'\)/,'Wrapper must import versioned SW');
+ assert.match(wrapper,/importScripts\('\.\/sw\.js\?v=20261103-formula-delete-d1-verify-v768'\)/,'Wrapper must import versioned SW');
  assert.match(app,/serviceWorker\.register\(BASE\+'sw\.js',\{scope:BASE,updateViaCache:'none'\}\)/,'Embedded PWA registration must bypass SW import cache');
  assert.match(worker,/FROM production_saved_ops/,'Recover canonical saved OPs from D1');
  assert.match(worker,/state='open'/,'Never resurrect deleted saved OPs');
