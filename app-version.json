@@ -1,6 +1,6 @@
 {
-  "version": "1.0.763",
+  "version": "1.0.764",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Publicação imediata da formulação salva no D1 para sincronizar a equipe; preservação do ID até confirmação do servidor.",
+  "message": "Formulações salvas com confirmação do ID no D1 antes de declarar sincronização; nova receita selecionada na equipe.",
   "updatedAt": "2026-11-03"
 }
