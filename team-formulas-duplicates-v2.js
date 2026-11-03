@@ -8,13 +8,13 @@ let queuedSync=false,syncing=false,applying=false,initialized=false,currentTeamI
 const $=id=>document.getElementById(id);
 function loadPendingIds(){try{return JSON.parse(localStorage.getItem('df_formula_pending_d1_v1')||'[]')}catch(e){return []}}
 function savePendingIds(){try{localStorage.setItem('df_formula_pending_d1_v1',JSON.stringify([...pendingFormulaIds]))}catch(e){}}
-function markPending(id){pendingFormulaIds.add(String(id));savePendingIds()}
+function markPending(id){id=String(id);if(deletedIds().has(id)||window.DFFormulaTombstones?.isDeleted?.(id))return;pendingFormulaIds.add(id);savePendingIds()}
 function clearPending(id){pendingFormulaIds.delete(String(id));savePendingIds()}
 const DELETE_KEY='df_formula_delete_inflight_v1';
 function deletedIds(){const v=loadJson(DELETE_KEY,{});return new Set(Object.keys(v||{}))}
 function markDeleting(id){const v=loadJson(DELETE_KEY,{});v[String(id)]=Date.now();localStorage.setItem(DELETE_KEY,JSON.stringify(v));clearPending(id)}
 function unmarkDeleting(id){const v=loadJson(DELETE_KEY,{});delete v[String(id)];localStorage.setItem(DELETE_KEY,JSON.stringify(v))}
-function notDeleting(f){return !deletedIds().has(String(f?.id??f?.formulaId))}
+function notDeleting(f){const id=String(f?.id??f?.formulaId);return !deletedIds().has(id)&&!window.DFFormulaTombstones?.isDeleted?.(id)}
 function loadJson(k,f){try{const v=JSON.parse(localStorage.getItem(k)||'');return v??f}catch(e){return f}}
 function clean(v,max){const s=String(v??'').replace(/\s+/g,' ').trim();return max?s.slice(0,max):s}
 function nameKey(v){let s=clean(v);try{s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')}catch(e){}return s.toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ')}
@@ -22,22 +22,7 @@ function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
 function team(){try{if(window.DFOpCloud&&typeof window.DFOpCloud.team==='function'){const t=window.DFOpCloud.team();if(t&&t.teamId)return t}}catch(e){}return loadJson(TEAM_KEY,null)}
 function isOwner(){return String(team()?.role||'').toLowerCase()==='owner'}
 
-// Recovery v670: these IDs were explicitly restored from the owner's encrypted Oct 26 backup.
-// Local tombstones are cleared ONLY if the official D1 list actually contains the restored ID.
-const DF_RESTORED_20261028=new Set(["1792770750930","1792702477892","1792668582615","1792668274510","1792589603137","1792498045545","1792437936659","1792264172208","1792179028278","1792178852701","1792178633396","1791461437561","1791461307470","1791459733048","1791401717846","1790957159575","1790957080478","1790957013712","1790882060228","1790869103414","1790798602554","1790798535834","1790713322203","1790592004891","1790591907399","1790591571634","1790013671103","1790013434740","1790004888305","1790004739812","1789761198552","1789598676532","1789575833975","1789481263517","1789411418564","1789218541352","1789063985509","1788891895995","1788884225216"]);
-function clearRestoredLocalTombstones(serverRows){
- const t=team(),teamId=String(t?.teamId||'');
- if(teamId!=='team_QBsSzFYgdcZ_b-cY'||!Array.isArray(serverRows))return;
- const present=serverRows.map(x=>String(x?.id??x?.formulaId??'')).filter(x=>DF_RESTORED_20261028.has(x));
- if(!present.length)return;
- const key='df_formula_deleted_tombstones_v1',all=loadJson(key,{});
- const tomb=all?.[teamId];
- if(!tomb||typeof tomb!=='object')return;
- let changed=false;
- for(const id of present){if(Object.prototype.hasOwnProperty.call(tomb,id)){delete tomb[id];changed=true}}
- if(changed)try{localStorage.setItem(key,JSON.stringify(all))}catch(e){}
-}
-
+// Tombstones confirmados nunca são apagados por snapshots restaurados.
 function localForms(){const a=loadJson(FORM_KEY,[]);const rows=Array.isArray(a)?a:[];return (window.DFFormulaTombstones?.filterDeleted?window.DFFormulaTombstones.filterDeleted(rows):rows).filter(notDeleting)}
 function localMats(){const a=loadJson(MAT_KEY,[]);return Array.isArray(a)?a:[]}
 function canonicalRows(rows){const mats=localMats(),by={};mats.forEach(m=>by[String(m?.id??'')]=m);return (Array.isArray(rows)?rows:[]).slice(0,12).map(r=>{const m=by[String(r?.id??'')]||{};return{id:String(r?.id??m?.id??''),nome:clean(r?.nome||m?.nome,100),preco:num(r?.preco??m?.preco),pct:num(r?.pct)}}).filter(r=>r.id||r.nome)}
@@ -80,13 +65,13 @@ function selectLatestForTeam(){const forms=newestFirst(localForms()),id=forms[0]
 function writeForms(forms){applying=true;try{localStorage.setItem(FORM_KEY,JSON.stringify(newestFirst(forms)));lastHash=hashForms(forms)}finally{applying=false}try{if(typeof window.renderForms==='function')window.renderForms()}catch(e){}selectLatestForTeam();setTimeout(selectLatestForTeam,100);const v=$('foNome')?.value;if(v)renderSuggest(v);try{window.dispatchEvent(new CustomEvent('df-team-formulas-updated',{detail:{count:uniqueForms(forms).length,teamId:currentTeamId}}))}catch(e){}}
 function applyServer(rows,preserve){const server=serverForms(rows).filter(notDeleting),all=server.slice(),seen=new Set(server.map(identity));for(const f of uniqueForms([...(preserve||[]),...localForms().filter(f=>pendingFormulaIds.has(String(f.id)))])){const k=identity(f);if(!seen.has(k)){seen.add(k);all.push(f)}}writeForms(all);return all}
 
-async function pushForms(fillOnly){const t=team();if(!t?.teamId||!initialized)return false;const revision=localRevision;const forms=uniqueForms(localForms()).filter(notDeleting);if(!forms.length)return true;const sent=forms.filter(f=>pendingFormulaIds.has(String(f.id)));if(!sent.length)return true;const j=await apiPost('/op/team/formulas/upsert',{teamId:String(t.teamId),fillOnly:true,formulas:sent});if(!Array.isArray(j.formulas))throw new Error('Servidor não confirmou as formulações.');const read=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if(!Array.isArray(read.formulas))throw new Error('D1 indisponível para confirmação');const missing=sent.filter(f=>!read.formulas.some(x=>String(x.id??x.formulaId)===String(f.id)));if(missing.length)throw new Error('D1 não recebeu '+missing.length+' fórmula(s)');applyServer(read.formulas,localRevision!==revision?localForms():[]);for(const f of sent)clearPending(String(f.id));lastPull=Date.now();status('☁️ Biblioteca sincronizada • nomes repetidos liberados por ID','ok');return true}
+async function pushForms(fillOnly){const t=team();if(!t?.teamId||!initialized)return false;const revision=localRevision;const forms=uniqueForms(localForms()).filter(notDeleting);if(!forms.length)return true;const sent=forms.filter(f=>pendingFormulaIds.has(String(f.id))&&notDeleting(f));if(!sent.length)return true;const j=await apiPost('/op/team/formulas/upsert',{teamId:String(t.teamId),fillOnly:true,formulas:sent});if(!Array.isArray(j.formulas))throw new Error('Servidor não confirmou as formulações.');const read=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if(!Array.isArray(read.formulas))throw new Error('D1 indisponível para confirmação');const missing=sent.filter(f=>!read.formulas.some(x=>String(x.id??x.formulaId)===String(f.id)));if(missing.length)throw new Error('D1 não recebeu '+missing.length+' fórmula(s)');applyServer(read.formulas,localRevision!==revision?localForms():[]);for(const f of sent)clearPending(String(f.id));lastPull=Date.now();status('☁️ Biblioteca sincronizada • nomes repetidos liberados por ID','ok');return true}
 async function sync(force){const t=team();if(!t?.teamId){initialized=false;currentTeamId='';status('Formulações salvas neste aparelho. Nomes repetidos estão liberados.','ok');return false}if(syncing){queuedSync=true;return false}if(!force&&Date.now()-lastPull<8500)return true;syncing=true;currentTeamId=String(t.teamId);const startRevision=localRevision;try{let j=await apiPost('/op/team/formulas/list',{teamId:currentTeamId});if(!j.initialized){if(isOwner()){const own=uniqueForms(localForms());status('☁️ Publicando biblioteca da equipe...','warn');j=await apiPost('/op/team/formulas/seed-owner',{teamId:currentTeamId,formulas:own})}else{initialized=false;status('☁️ Aguardando o DONO publicar a biblioteca de formulações.','warn');lastPull=Date.now();return false}}initialized=true;
 const migrationKey='df_team_formulas_migrated_v1_'+currentTeamId;
 const migrationDone=localStorage.getItem(migrationKey)==='1';
 if(!migrationDone){
   const server=serverForms(j.formulas||[]),known=new Set(server.map(identity));
-  const missing=uniqueForms(localForms()).filter(f=>!known.has(identity(f))&&!window.DFFormulaTombstones?.isDeleted?.(String(f.id)));
+  const missing=uniqueForms(localForms()).filter(f=>!known.has(identity(f))&&!deletedIds().has(String(f.id))&&!window.DFFormulaTombstones?.isDeleted?.(String(f.id)));
   if(missing.length){
     status('☁️ Unificando '+missing.length+' formulações deste aparelho com a equipe...','warn');
     j=await apiPost('/op/team/formulas/upsert',{teamId:currentTeamId,fillOnly:true,formulas:missing});
@@ -94,7 +79,7 @@ if(!migrationDone){
   }
   localStorage.setItem(migrationKey,'1');
 }
-clearRestoredLocalTombstones(j.formulas||[]);
+// Não restaurar exclusões a partir de snapshots antigos.
 const server=newestFirst(serverForms(j.formulas||[]));
  // Recuperação de um salvamento recente que permaneceu só no aparelho:
  // jamais reenviar tombstones ou toda a biblioteca antiga.
@@ -113,7 +98,7 @@ function schedulePush(){if(applying)return;clearTimeout(pushTimer);pushTimer=set
 try{const previousSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){const watch=this===localStorage&&String(k)===FORM_KEY,old=watch?String(this.getItem(k)||''):'';const out=previousSetItem.call(this,k,v);if(watch&&!applying&&old!==String(v||'')){localRevision++;try{const before=JSON.parse(old||'[]'),after=JSON.parse(String(v||'[]'));const known=new Set((Array.isArray(before)?before:[]).map(x=>String(x.id)));for(const x of Array.isArray(after)?after:[])if(!known.has(String(x.id)))markPending(String(x.id))}catch(e){}schedulePush()}return out}}catch(e){}
 let deletingFormula=false;
 async function deleteTeamFormula(f){if(!f||deletingFormula)return false;if(!confirm('Excluir esta formulação "'+String(f.nome||'Formulação')+'" para toda a equipe?'))return false;deletingFormula=true;try{ return await deleteTeamFormulaConfirmed(f) }finally{deletingFormula=false}}
-async function deleteTeamFormulaConfirmed(f){const t=team();const id=String(f.id||'');markDeleting(id);if(!t?.teamId){window.DFFormulaTombstones?.markDeleted?.(String(f.id));writeForms(localForms().filter(x=>identity(x)!==identity(f)));unmarkDeleting(id);return true}try{await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:id});const check=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if((check.formulas||[]).some(x=>String(x.id??x.formulaId)===id))throw new Error('D1 ainda contém o ID excluído');window.DFFormulaTombstones?.markDeleted?.(String(f.id));clearPending(id);applyServer(check.formulas||[]);unmarkDeleting(id);status('✅ Formulação excluída para a equipe.','ok');return true}catch(e){unmarkDeleting(id);status('⚠️ Exclusão não confirmada pelo servidor. Tente novamente: '+String(e?.message||e),'warn');setTimeout(()=>sync(true),350);return false}}
+async function deleteTeamFormulaConfirmed(f){const t=team();const id=String(f.id||'');markDeleting(id);if(!t?.teamId){unmarkDeleting(id);status('⚠️ Equipe não conectada. Exclusão compartilhada exige confirmação do D1.','warn');return false}try{await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:id});const check=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if((check.formulas||[]).some(x=>String(x.id??x.formulaId)===id))throw new Error('D1 ainda contém o ID excluído');window.DFFormulaTombstones?.markDeleted?.(String(f.id));clearPending(id);applyServer(check.formulas||[]);unmarkDeleting(id);status('✅ Formulação excluída para a equipe.','ok');return true}catch(e){unmarkDeleting(id);status('⚠️ Exclusão não confirmada pelo servidor. Tente novamente: '+String(e?.message||e),'warn');setTimeout(()=>sync(true),350);return false}}
 function selectedFormula(){const id=$('foSavedSelect')?.value;return localForms().find(f=>String(f?.id)===String(id))}
  // Um único controlador de exclusão, antes dos handlers antigos do app-bundle.
  // Captura tanto o botão da lista quanto o botão da ficha de fórmula.
