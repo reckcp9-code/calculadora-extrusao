@@ -1,6 +1,6 @@
 {
-  "version": "1.0.754",
+  "version": "1.0.755",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Recuperação da equipe de Dono e sincronização contínua de Produção e Formulação pelo D1, inclusive após reset do aparelho.",
+  "message": "Estabilidade de sincronização da equipe: menos consultas simultâneas, membros preservados e histórico oficial mantido no D1.",
   "updatedAt": "2026-11-03"
 }
