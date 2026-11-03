@@ -5,7 +5,7 @@ const API='https://df-team-license-restore-v1.reck-cp9.workers.dev/restore';
 const ACCESS='df_auto_access_credential_v1',DEVICE='df_licenseauth_device_v1';
 const FORM='df_op_team_v1',PROD='df_producao_team_v2',EXIT='df_prod_team_explicit_exit_v1';
 const FLAG='df_license_team_restored_v1',ONCE='df_team_license_reloaded_once_v1';
-let busy=false,lastAttempt=0,attempts=0,lastError='',lastResult=null;
+let busy=false,lastAttempt=0,attempts=0,lastError='',lastResult=null,verifiedThisPage=false,verifiedDevice='',verifiedCredential='';
 function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
 function credential(){try{return String(localStorage.getItem(ACCESS)||'').trim()}catch(e){return ''}}
 function device(){try{return String(window.DFDeviceIdentity?.get?.()||localStorage.getItem(DEVICE)||'').trim()}catch(e){return ''}}
@@ -41,9 +41,10 @@ function persist(t){
 }
 async function restore(force){
  if(busy||navigator.onLine===false||!credential()||!device())return false;
- if(!force&&!missing())return true;
+ // Ter a equipe no localStorage NAO comprova que o servidor reconheceu o novo aparelho.
+ if(!force&&verifiedThisPage&&verifiedDevice===device()&&verifiedCredential===credential())return true;
  if(!force&&Date.now()-lastAttempt<12000)return false;
- if(attempts>12&&!force)return false;
+ // Continuar recuperando com intervalo; nao desistir silenciosamente em novos iPhones.
  busy=true;attempts++;lastAttempt=Date.now();
  try{
   const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},
@@ -56,8 +57,8 @@ async function restore(force){
   const teams=Array.isArray(json.teams)?json.teams:[],restored=[];
   for(const team of teams)if(persist(team))restored.push(String(team.area));
   lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored};
-  lastError='';
-  try{localStorage.setItem(FLAG,JSON.stringify({at:new Date().toISOString(),areas:lastResult.teams}))}catch(e){}
+  lastError='';verifiedThisPage=true;verifiedDevice=device();verifiedCredential=credential();
+  try{localStorage.setItem(FLAG,JSON.stringify({at:new Date().toISOString(),areas:lastResult.teams,verifiedBy:'cloudflare-d1-v2'}))}catch(e){}
   if(restored.length){
    window.dispatchEvent(new CustomEvent('df-license-teams-restored',{detail:{areas:restored}}));
    if(!sessionStorage.getItem(ONCE)){
@@ -69,7 +70,10 @@ async function restore(force){
     try{window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
    }
   }else{
-   try{window.DFOpCloud?.refreshTeam?.()}catch(e){}
+   // Mesmo que o painel JÁ tenha o nome da equipe, a sessão no servidor mudou.
+   try{await window.DFOpCloud?.refreshTeam?.()}catch(e){}
+   try{await window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
+   window.dispatchEvent(new CustomEvent('df-license-teams-server-verified',{detail:{areas:lastResult.teams}}));
   }
   return true;
  }catch(e){lastError='Não foi possível conferir as equipes na nuvem';console.warn('[DF Teams]',lastError);return false}
@@ -77,13 +81,14 @@ async function restore(force){
 }
 function schedule(delay=900,force=false){setTimeout(()=>restore(force),delay)}
 function boot(){
- schedule(900);
+ // A recuperação roda em toda abertura, inclusive quando existem equipes no cache.
+ schedule(900,true);
  window.addEventListener('df-auth-ready',()=>schedule(600));
  window.addEventListener('df-ui-ready',()=>schedule(1400));
  window.addEventListener('online',()=>schedule(500));
  window.addEventListener('pageshow',()=>schedule(1000));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(600)});
- setInterval(()=>{if(!document.hidden&&missing())restore(false)},30000);
+ setInterval(()=>{if(!document.hidden&&!verifiedThisPage)restore(false)},15000);
 }
 window.DFTeamLicenseRestore={restore:()=>restore(true),status:()=>({busy,attempts,lastError,lastResult})};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
