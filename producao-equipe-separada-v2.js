@@ -117,6 +117,37 @@ function setStatus(text,type){const e=$('dfProdTeamV2Status');if(!e)return;e.cla
 async function uploadReadyPhoto(t,id,ready){if(!ready?.photoId||String(ready.photoId).startsWith('CLOUDPROD:'))return'';const ph=await photoGet(ready.photoId);if(!ph?.blob)return'';const map=read(PHOTO_MAP_KEY,{}),savedAt=String(ph.savedAt||ph.createdAt||ready.createdAt||''),old=map[id];if(old?.cloudId&&old?.teamId===t.teamId&&String(old.localSavedAt||'')===savedAt)return String(old.cloudId);const small=await compressBlob(ph.blob);if(!(small instanceof Blob)||!small.size)throw Error('Foto original inválida, não foi enviada.');const meta={v:3,area:AREA,teamId:t.teamId,opId:id,updatedAt:savedAt||nowIso()},form=new FormData();form.append('teamId',t.teamId);form.append('sourceId','DFPRODPHOTO3-'+id+'-'+Date.now());form.append('qr',PHOTO_PREFIX+enc(meta));form.append('production',String(num(ready.production)));form.append('scrap',String(num(ready.scrap)));form.append('createdAt',meta.updatedAt);form.append('photo',small,'producao/op-'+id+'.jpg');const j=await apiForm('/op/photo/upload',form),cloudId=String(j.photo?.id||'');if(!cloudId)throw Error('Servidor não confirmou a foto da Produção.');const verified=await apiBlob(cloudId);if(!verified?.size)throw Error('Foto da Produção não está acessível na nuvem.');if(cloudId){map[id]={cloudId,teamId:t.teamId,localSavedAt:savedAt,updatedAt:meta.updatedAt};write(PHOTO_MAP_KEY,map)}return cloudId}
 async function publishState(t,id,state,deleted){const updatedAt=nowIso(),payload={v:3,kind:'df-producao',area:AREA,teamId:t.teamId,opId:id,deleted:!!deleted,updatedAt,state:deleted?null:state},fd=new FormData();fd.append('teamId',t.teamId);fd.append('sourceId','DFPRODSTATE3-'+id+'-'+Date.now());fd.append('qr',STATE_PREFIX+enc(payload));fd.append('production',String(deleted?0:num(state?.auto?.production)));fd.append('scrap',String(deleted?0:num(state?.auto?.scrap)));fd.append('createdAt',updatedAt);fd.append('photo',tinyBlob(),'producao/state.png');await apiForm('/op/photo/upload',fd);return{updatedAt,ts:time(updatedAt)}}
 async function publishConfig(t,cfg){const updatedAt=nowIso(),payload={v:3,kind:'df-producao-config',area:AREA,teamId:t.teamId,updatedAt,config:cfg},fd=new FormData();fd.append('teamId',t.teamId);fd.append('sourceId','DFPRODCFG3-'+t.teamId+'-'+Date.now());fd.append('qr',CFG_PREFIX+enc(payload));fd.append('production','0');fd.append('scrap','0');fd.append('createdAt',updatedAt);fd.append('photo',tinyBlob(),'producao/config.png');await apiForm('/op/photo/upload',fd);return{updatedAt,ts:time(updatedAt)}}
+// O catálogo do Dono tem fila própria. Uploads de fotos/OPs não devem atrasar
+// uma máquina ou produto novo, nem provocar dois envios da mesma revisão.
+let catalogUploadBusy=false,catalogUploadAgain=false;
+async function publishCatalogNow(force=false){
+ const t=team();
+ if(!t?.teamId||String(t.role||'').toLowerCase()!=='owner'||navigator.onLine===false||document.hidden)return false;
+ if(serverValidatedForTeam!==String(t.teamId))return false;
+ if(catalogUploadBusy){catalogUploadAgain=true;return false}
+ const cfg=config(),cfgHash=hash(cfg),snap=read(CFG_SNAP_KEY,null);
+ const hasCatalog=Object.values(cfg).some(v=>v&&typeof v==='object'&&(
+  ['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)||
+  Object.keys(v.deletedMachines||{}).length>0));
+ if(!hasCatalog||(!force&&snap?.teamId===t.teamId&&snap.hash===cfgHash))return true;
+ catalogUploadBusy=true;
+ try{
+  const sent=await publishConfig(t,cfg);
+  if(team()?.teamId!==t.teamId)return false;
+  write(CFG_SNAP_KEY,{teamId:t.teamId,hash:cfgHash,ts:sent.ts,updatedAt:sent.updatedAt});
+  return true;
+ }catch(e){
+  console.warn('Catálogo da Produção: aguardando envio à nuvem:',String(e?.message||e));
+  return false;
+ }finally{
+  catalogUploadBusy=false;
+  const updated=hash(config())!==cfgHash;
+  if(catalogUploadAgain||updated){
+   catalogUploadAgain=false;
+   setTimeout(()=>publishCatalogNow(false),180);
+  }
+ }
+}
 // D1 é o registro oficial de baixas pendentes; a foto continua no R2.
 async function publishOfficialPending(t,id,state,photoId){
  const a=state?.auto;if(!a||!(num(a.production)>0))return null;
@@ -254,7 +285,7 @@ async function syncOneReady(rawId){
 }
 async function syncLocal(force){if(leavingProductionTeam||historyBusy)return false;const t=team();if(!t?.teamId||navigator.onLine===false||document.hidden||uploadBusy)return false;
  if(serverValidatedForTeam!==String(t.teamId)){schedulePull(100,true);setStatus('🔄 Conferindo a equipe no servidor antes de enviar alterações locais...','');return false;}
- uploadBusy=true;try{const cfg=config(),cfgHash=hash(cfg),cfgSnap=read(CFG_SNAP_KEY,null);const hasCatalog=Object.values(cfg).some(v=>v&&typeof v==='object'&&((['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)||Object.keys(v.deletedMachines||{}).length>0)));if(String(t.role||'').toLowerCase()==='owner'&&hasCatalog&&(force||!cfgSnap||cfgSnap.teamId!==t.teamId||cfgSnap.hash!==cfgHash)){const sent=await publishConfig(t,cfg);write(CFG_SNAP_KEY,{teamId:t.teamId,hash:cfgHash,ts:sent.ts,updatedAt:sent.updatedAt})}const states=currentStates(),snap=read(SNAP_KEY,{}),pending=read(DELETE_PENDING_KEY,{});for(const id of Object.keys(pending)){if(!id.startsWith('DFOP-'))continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);delete pending[id];write(DELETE_PENDING_KEY,pending)}let sentCount=0,failed=[],skipped=0;
+ uploadBusy=true;try{await publishCatalogNow(force);const states=currentStates(),snap=read(SNAP_KEY,{}),pending=read(DELETE_PENDING_KEY,{});for(const id of Object.keys(pending)){if(!id.startsWith('DFOP-'))continue;const sent=await publishState(t,id,null,true);snap[id]={hash:'__DELETED__',teamId:t.teamId,ts:sent.ts,updatedAt:sent.updatedAt};write(SNAP_KEY,snap);delete pending[id];write(DELETE_PENDING_KEY,pending)}let sentCount=0,failed=[],skipped=0;
  const entries=[...states].sort((a,b)=>Number(!!b[1]?.auto?.production)-Number(!!a[1]?.auto?.production));
  for(const [id,state] of entries){
   // OPs históricas já migradas por D1 não exigem upload da fotografia antiga.
@@ -524,7 +555,7 @@ async function initialSync(){if(!team())return;
  else if(team()?.teamId===t.teamId){setStatus('⚠️ Sem confirmação do D1. Os dados locais foram preservados; sincronização será repetida quando houver conexão.','warn');}
  refreshMembers(true)
 }
-function boot(){let n=0,t=setInterval(()=>{if(ensureHost()||++n>70){clearInterval(t);if(team())initialSync()}},120);document.addEventListener('click',afterLocalAction,true);document.addEventListener('click',interceptCloudPhoto,true);window.addEventListener('df-producao-catalog-local-changed',()=>{schedulePush(80,false);schedulePull(700,false)});window.addEventListener('df-producao-auto-saved',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,true)});window.addEventListener('df-producao-auto-deleted',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,false)});window.addEventListener('online',()=>{schedulePull(150,true);setTimeout(()=>{if(serverValidatedForTeam===String(team()?.teamId||''))schedulePush(300,false)},800)});window.addEventListener('offline',()=>setStatus('📴 Sem internet. As alterações ficam neste aparelho até a conexão voltar.','warn'));window.addEventListener('focus',()=>schedulePull(250,true));window.addEventListener('pageshow',()=>{ensureHost();schedulePull(900,true)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedulePull(250,true)});setInterval(async()=>{if(document.hidden||!team())return;await syncRemote(false);await syncLocal(false);refreshMembers(false)},3000)}
+function boot(){let n=0,t=setInterval(()=>{if(ensureHost()||++n>70){clearInterval(t);if(team())initialSync()}},120);document.addEventListener('click',afterLocalAction,true);document.addEventListener('click',interceptCloudPhoto,true);window.addEventListener('df-producao-catalog-local-changed',()=>{if(String(team()?.role||'').toLowerCase()==='owner'){publishCatalogNow(false)}else schedulePull(250,false);schedulePush(650,false)});window.addEventListener('df-producao-auto-saved',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,true)});window.addEventListener('df-producao-auto-deleted',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,false)});window.addEventListener('online',()=>{schedulePull(150,true);setTimeout(()=>{if(serverValidatedForTeam===String(team()?.teamId||''))schedulePush(300,false)},800)});window.addEventListener('offline',()=>setStatus('📴 Sem internet. As alterações ficam neste aparelho até a conexão voltar.','warn'));window.addEventListener('focus',()=>schedulePull(250,true));window.addEventListener('pageshow',()=>{ensureHost();schedulePull(900,true)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedulePull(250,true)});setInterval(async()=>{if(document.hidden||!team())return;await syncRemote(false);await syncLocal(false);refreshMembers(false)},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 async function deleteCompletion(rawId){
  const id=norm(rawId),t=team();if(!t?.teamId)throw Error('Equipe de Produção não conectada.');if(navigator.onLine===false)throw Error('Sem internet.');
