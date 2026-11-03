@@ -23,7 +23,7 @@ const window={
 const context={window,document:{readyState:'complete',hidden:false,addEventListener(){}},navigator:{onLine:true},localStorage,sessionStorage,CustomEvent:class{constructor(type,opts){this.type=type;this.detail=opts?.detail}},setTimeout:fn=>{timers.push(fn);return 1},setInterval(){},location:{reload(){reloadCalls++}},console,fetch:async(url,opts)=>{
  calls++;requests.push({url,opts});return{ok:true,status:200,json:async()=>({ok:true,teams:[
   {teamId:'TEAM-EXTRUSION',area:'extrusao',name:'DF EXTRUSOR',role:'owner'},
-  {teamId:'TEAM-PRODUCTION',area:'producao',name:'DF PRODUÇÃO',role:'owner',catalog:{updatedAt:'2026-11-03T02:17:20.482Z',verifiedAt:'2026-11-03T02:17:20.482Z',config:{Picote:{machines:['PICOTADEIRA USN','SACOLEIRA FLEX 900'],products:['SACOLA P'],operators:['VILSON']}}}}
+  {teamId:'TEAM-PRODUCTION',area:'producao',name:'DF PRODUÇÃO',role:'owner',catalog:{updatedAt:'2026-11-03T02:17:20.482Z',verifiedAt:'2026-11-03T02:17:20.482Z',config:{Picote:{machines:['PICOTADEIRA USN','SACOLEIRA FLEX 900'],products:['SACOLA P'],operators:['VILSON']}}},savedOps:[{op:{id:'DFOP-20261027-080420-QJIP',machine:'PICOTADEIRA USN',status:'open'},revision:13,updatedAt:'2026-11-02T21:34:50.540Z'}]}
  ],changed:2})};
 }};
 vm.runInNewContext(code,context);
@@ -39,6 +39,8 @@ async function flush(){for(let i=0;i<15;i++){const timer=timers.shift();if(!time
  assert.equal(JSON.parse(db.get('df_producao_cadastros_v1')).Picote.machines[0],'PICOTADEIRA USN','Must restore machines from D1 snapshot');
  assert.ok(events.includes('df-producao-cadastros-sincronizados'),'Must refresh production catalogue widgets');
  assert.equal(window.DFTeamLicenseRestore.status().lastResult.catalogRecovered,true,'Must report catalogue recovery');
+ assert.equal(JSON.parse(db.get('df_producao_saved_ops_canonical_queue_v1')).ops.length,1,'Must queue canonical OPs until Production module loads');
+ assert.equal(window.DFTeamLicenseRestore.status().lastResult.canonicalSavedCount,1,'Must report recovered OP count');
  assert.equal(reloadCalls,1,'Never repeatedly reload the PWA during recovery');
  const status=window.DFTeamLicenseRestore.status();
  assert.equal(status.lastError,'');
