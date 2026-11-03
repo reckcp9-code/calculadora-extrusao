@@ -1,6 +1,6 @@
 {
-  "version": "1.0.734",
-  "title": "DF EXTRUSOR PRO — Fotos da Produção padronizadas",
-  "message": "FOTOS da Produção com mesmo modelo da Formulação: cartões completos, pesquisa por produto ou ID, atualizar e histórico filtrado pelo mês da aba MÊS.",
+  "version": "1.0.735",
+  "title": "DF EXTRUSOR PRO — Mês da Produção fixo",
+  "message": "Mês selecionado permanece ao alternar MÊS, PRONTAS e FOTOS; mês sem baixa mostra zero. Removido filtro antigo que escondia OPs de meses anteriores.",
   "updatedAt": "2026-11-02"
 }
