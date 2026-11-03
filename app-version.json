@@ -1,6 +1,6 @@
 {
-  "version": "1.0.745",
+  "version": "1.0.746",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Produção Agora: removida a exibição duplicada da Sacoleira VM 900 Flex; mantida Sacoleira Flex 900 com seus totais e sem apagar OPs.",
+  "message": "Correção da origem do sumiço de fotos e OPs Prontas: aba Fotos estável, mês preservado, sincronização oficial D1/R2, proteção contra listas parciais e recuperação automática sem atualizar.",
   "updatedAt": "2026-11-03"
 }
