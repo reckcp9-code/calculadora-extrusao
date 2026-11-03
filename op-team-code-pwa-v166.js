@@ -11,7 +11,7 @@
 
   function loadStatusArtifactFilter(){
     try{
-      if(window.DFStatusArtifactFilterV170||document.getElementById('dfStatusArtifactFilterV170Loader'))return;
+      if(window.DFStatusArtifactFilterV171||window.DFStatusArtifactFilterV170||document.querySelector('script[src*="op-status-artifact-filter-v170.js"]')||document.getElementById('dfStatusArtifactFilterV170Loader'))return;
       const s=document.createElement('script');
       s.id='dfStatusArtifactFilterV170Loader';
       s.src='./op-status-artifact-filter-v170.js?v=20260914-v170';
@@ -141,7 +141,7 @@
     if(observer)observer.disconnect();
     observer=new MutationObserver(()=>{
       const p=$('dfTeamCodePwaV166');
-      if(!p||p.parentNode!==box)schedule();
+      if(!p||!box.contains(p))schedule();
     });
     observer.__box=box;observer.observe(box,{childList:true});
   }
