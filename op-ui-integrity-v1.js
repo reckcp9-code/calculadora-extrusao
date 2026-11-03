@@ -28,7 +28,11 @@ function check(){
  if(!visible())return;
  try{window.DFFormulaOpsUI?.ensure?.()}catch(e){issue('Interface de Formulação indisponível: '+String(e.message||e))}
  const root=document.getElementById('dfFormulaOps');
- if(!root||!root.classList.contains('on'))return;
+ if(!root){
+  if(document.getElementById('pgFo')?.classList.contains('on')&&document.getElementById('foDevArea')&&!MODULES[0].alive())reloadMissing(MODULES[0]);
+  return;
+ }
+ if(!root.classList.contains('on'))return;
  // A barra de equipe e o modo PRONTAS não podem depender de atualização geral do PWA.
  try{if(!document.getElementById('dfOpTeamCloud'))window.DFOpCloud?.mountTeam?.()}catch(e){}
  const teamBox=document.getElementById('dfOpTeamCloud');
