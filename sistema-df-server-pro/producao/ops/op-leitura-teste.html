@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DF EXTRUSOR PRO — Teste Leitura OP</title>
+<style>
+:root{color-scheme:dark;--bg:#070b12;--card:#101722;--line:#2a3648;--txt:#f8fafc;--muted:#94a3b8;--accent:#f5a000;--ok:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#070b12,#0b1018);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.wrap{max-width:780px;margin:auto;padding:18px 14px 40px}.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}.hero{border-color:var(--accent);background:linear-gradient(180deg,#241700,#111722)}h1{font-size:22px;margin:0 0 6px;color:#ffd36a}h2{font-size:17px;margin:0 0 12px}.muted{color:var(--muted);font-size:12px;line-height:1.45}.btn{width:100%;border:1px solid var(--accent);background:#2b1b00;color:#ffd36a;border-radius:14px;padding:13px;font-weight:900;font-size:15px;margin-top:8px}.btn.gray{border-color:#475569;background:#0f172a;color:#e2e8f0}.btn.ok{border-color:#166534;background:#0b2a18;color:#86efac}.file{display:block;width:100%;padding:13px;border:1px dashed #64748b;border-radius:14px;background:#0f172a;color:#e2e8f0}#preview{display:none;width:100%;max-height:460px;object-fit:contain;background:#000;border-radius:14px;margin-top:12px;border:1px solid var(--line)}.status{margin-top:10px;border:1px solid var(--line);background:#0f172a;border-radius:13px;padding:12px;font-size:13px;font-weight:800;line-height:1.45}.status.ok{border-color:#166534;color:#86efac}.status.warn{border-color:#a16207;color:#fde68a}.status.bad{border-color:#7f1d1d;color:#fca5a5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.field label{display:block;color:#94a3b8;font-size:10px;margin:0 0 4px}.field input{width:100%;background:#0b1220;border:1px solid #334155;color:#fff;border-radius:10px;padding:10px;font-size:15px}.row{border:1px solid var(--line);border-radius:14px;padding:11px;margin:8px 0;background:#0c131e}.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kpi{background:#0b1220;border:1px solid var(--line);border-radius:14px;padding:12px}.kpi span{display:block;color:#94a3b8;font-size:10px}.kpi b{display:block;font-size:20px;margin-top:5px;color:#fff}details{margin-top:10px}pre{white-space:pre-wrap;word-break:break-word;background:#05080d;border:1px solid #263244;border-radius:12px;padding:10px;color:#cbd5e1;font-size:11px;max-height:320px;overflow:auto}.rot{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}@media(max-width:560px){.grid4{grid-template-columns:1fr 1fr}.totals{grid-template-columns:1fr}.kpi b{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>📸 TESTE — LEITURA INTELIGENTE DE OP</h1>
+    <div class="muted">Tire a foto da folha inteira. O teste tenta corrigir a orientação, ler as linhas preenchidas à mão e separar produção, aparas e bobinas. Antes de salvar, você pode corrigir qualquer campo.</div>
+  </div>
+
+  <div class="card">
+    <h2>1. Fotografar a OP</h2>
+    <input id="photo" class="file" type="file" accept="image/*" capture="environment">
+    <img id="preview" alt="Prévia da OP">
+    <div class="rot"><button id="left" class="btn gray" type="button">↶ GIRAR ESQUERDA</button><button id="right" class="btn gray" type="button">↷ GIRAR DIREITA</button></div>
+    <button id="read" class="btn" type="button">🤖 LER OP AGORA</button>
+    <div id="status" class="status">Escolha ou tire uma foto.</div>
+  </div>
+
+  <div class="card">
+    <h2>2. Valores encontrados</h2>
+    <div id="rows"><div class="muted">A leitura aparecerá aqui.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Resultado final</h2>
+    <div class="totals">
+      <div class="kpi"><span>PRODUÇÃO TOTAL</span><b id="totProd">0 kg</b></div>
+      <div class="kpi"><span>APARAS TOTAL</span><b id="totApara">0 kg</b></div>
+      <div class="kpi"><span>BOBINAS TOTAL</span><b id="totBob">0</b></div>
+    </div>
+    <button id="confirm" class="btn ok" type="button">✅ CONFIRMAR VALORES</button>
+    <details><summary>Ver texto bruto reconhecido</summary><pre id="raw">—</pre></details>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+let file=null,rotation=0,records=[];
+const num=v=>{const n=parseFloat(String(v??'').replace(/\./g,'').replace(',','.'));return Number.isFinite(n)?n:0};
+const fmt=(v,d=0)=>Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+function setStatus(t,c=''){const el=$('status');el.className='status '+c;el.innerHTML=t}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function preview(){if(!file)return;const u=URL.createObjectURL(file);$('preview').src=u;$('preview').style.display='block';$('preview').style.transform='rotate('+rotation+'deg)';$('preview').onload=()=>URL.revokeObjectURL(u)}
+$('photo').addEventListener('change',e=>{file=e.target.files?.[0]||null;rotation=0;if(file){preview();setStatus('Foto pronta. Toque em <b>LER OP AGORA</b>.','warn')}});
+$('left').onclick=()=>{rotation=(rotation+270)%360;$('preview').style.transform='rotate('+rotation+'deg)'};
+$('right').onclick=()=>{rotation=(rotation+90)%360;$('preview').style.transform='rotate('+rotation+'deg)'};
+
+async function canvasFromFile(f){
+  const bmp=await createImageBitmap(f);let rot=rotation;
+  if(rot===0 && bmp.height>bmp.width) rot=90;
+  const swap=rot===90||rot===270;const max=2400;let w=swap?bmp.height:bmp.width,h=swap?bmp.width:bmp.height;const s=Math.min(1,max/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,w,h);x.save();
+  if(rot===90){x.translate(w,0);x.rotate(Math.PI/2);x.drawImage(bmp,0,0,bmp.width,bmp.height,0,0,h,w)}
+  else if(rot===180){x.translate(w,h);x.rotate(Math.PI);x.drawImage(bmp,0,0,bmp.width,bmp.height,0,0,w,h)}
+  else if(rot===270){x.translate(0,h);x.rotate(-Math.PI/2);x.drawImage(bmp,0,0,bmp.width,bmp.height,0,0,h,w)}
+  else{x.drawImage(bmp,0,0,bmp.width,bmp.height,0,0,w,h)}
+  x.restore();return c;
+}
+function enhance(c){
+  const out=document.createElement('canvas');out.width=c.width;out.height=c.height;const x=out.getContext('2d',{willReadFrequently:true});x.drawImage(c,0,0);const im=x.getImageData(0,0,out.width,out.height),d=im.data;
+  for(let i=0;i<d.length;i+=4){const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];let v=(g-128)*1.65+145;v=Math.max(0,Math.min(255,v));d[i]=d[i+1]=d[i+2]=v}
+  x.putImageData(im,0,0);return out;
+}
+function normalizeLine(s){return String(s||'').replace(/[|;]/g,' ').replace(/\s+/g,' ').trim()}
+function parseLine(line){
+  const clean=normalizeLine(line);const dm=clean.match(/\b(\d{1,2})[\/\.\-](\d{1,2})(?:[\/\.\-](\d{2,4}))?\b/);if(!dm)return null;
+  const after=clean.slice((dm.index||0)+dm[0].length).trim();
+  const opm=after.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s]{1,26}?)(?=\s+\d)/);const operador=opm?opm[1].trim():'';
+  let rest=opm?after.slice(opm[0].length):after;
+  rest=rest.replace(/\b\d{1,2}[:h]\d{2}\b/gi,' ');
+  const vals=(rest.match(/\b\d{1,4}(?:[\.,]\d+)?\b/g)||[]).map(num).filter(v=>Number.isFinite(v));
+  let maquina=0,apara=0,producao=0,bobinas=0;
+  if(vals.length>=4){maquina=vals[0];apara=vals[1];producao=vals[2];bobinas=vals[vals.length-1]}
+  else if(vals.length===3){apara=vals[0];producao=vals[1];bobinas=vals[2]}
+  else return null;
+  if(producao<20 || producao>5000)return null;
+  if(apara>500 || bobinas>200)return null;
+  return {data:dm[1].padStart(2,'0')+'/'+dm[2].padStart(2,'0'),operador,maquina,apara,producao,bobinas,raw:clean};
+}
+function parseText(text){
+  const lines=String(text||'').split(/\n+/).map(normalizeLine).filter(Boolean);const out=[];
+  for(let i=0;i<lines.length;i++){
+    const candidates=[lines[i],lines[i]+' '+(lines[i+1]||''),lines[i]+' '+(lines[i+1]||'')+' '+(lines[i+2]||'')];
+    let r=null;for(const c of candidates){r=parseLine(c);if(r)break}if(r&&!out.some(x=>x.raw===r.raw||x.data===r.data&&x.producao===r.producao))out.push(r);
+  }
+  return out.slice(0,20);
+}
+function render(){
+  if(!records.length){$('rows').innerHTML='<div class="muted">Nenhuma linha segura encontrada. Você pode girar a foto e tentar novamente.</div>';updateTotals();return}
+  $('rows').innerHTML=records.map((r,i)=>`<div class="row" data-i="${i}"><div class="grid4"><div class="field"><label>DATA</label><input data-k="data" value="${esc(r.data)}"></div><div class="field"><label>OPERADOR</label><input data-k="operador" value="${esc(r.operador)}"></div><div class="field"><label>MÁQUINA</label><input data-k="maquina" inputmode="decimal" value="${esc(r.maquina||'')}"></div><div class="field"><label>APARAS kg</label><input data-k="apara" inputmode="decimal" value="${esc(r.apara||'')}"></div><div class="field"><label>PRODUÇÃO kg</label><input data-k="producao" inputmode="decimal" value="${esc(r.producao||'')}"></div><div class="field"><label>BOBINAS</label><input data-k="bobinas" inputmode="numeric" value="${esc(r.bobinas||'')}"></div></div></div>`).join('');
+  $('rows').querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{const row=e.target.closest('.row'),i=+row.dataset.i,k=e.target.dataset.k;records[i][k]=['apara','producao','bobinas','maquina'].includes(k)?num(e.target.value):e.target.value;updateTotals()}));updateTotals();
+}
+function updateTotals(){const p=records.reduce((a,r)=>a+num(r.producao),0),a=records.reduce((s,r)=>s+num(r.apara),0),b=records.reduce((s,r)=>s+num(r.bobinas),0);$('totProd').textContent=fmt(p)+' kg';$('totApara').textContent=fmt(a)+' kg';$('totBob').textContent=fmt(b)}
+$('read').onclick=async()=>{
+  if(!file)return setStatus('Escolha uma foto primeiro.','bad');
+  try{
+    setStatus('Preparando e corrigindo a imagem...','warn');const c=await canvasFromFile(file),img=enhance(c);
+    setStatus('🤖 Lendo a OP... 0%','warn');
+    const res=await Tesseract.recognize(img,'por',{logger:m=>{if(m.status==='recognizing text')setStatus('🤖 Lendo a OP... <b>'+Math.round((m.progress||0)*100)+'%</b>','warn')}});
+    const text=res?.data?.text||'';$('raw').textContent=text||'—';records=parseText(text);render();
+    if(records.length)setStatus('✅ Encontrei <b>'+records.length+'</b> linha(s). Confira os campos abaixo antes de confirmar.','ok');else setStatus('⚠️ A foto foi lida, mas não achei linhas com confiança suficiente. Tente girar a imagem ou fotografar mais reto e perto.','warn');
+  }catch(e){setStatus('❌ Falha na leitura: '+esc(e.message||e),'bad')}
+};
+$('confirm').onclick=()=>{if(!records.length)return setStatus('Não há valores para confirmar.','bad');updateTotals();setStatus('✅ Valores confirmados neste teste. Produção: <b>'+$('totProd').textContent+'</b> • Aparas: <b>'+$('totApara').textContent+'</b> • Bobinas: <b>'+$('totBob').textContent+'</b>.','ok')};
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+(function(){
+'use strict';
+if(window.DF_PRODUCAO_STABLE_FLOW_V3)return;window.DF_PRODUCAO_STABLE_FLOW_V3=true;
+
+const KEY='df_producao_ops_setores_test_v3';
+const QRKEY='df_op_qr_registry_test_setores_v3';
+const FAVKEY='df_producao_ops_favoritas_v1';
+const $=id=>document.getElementById(id);
+const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}};
+const saveOps=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(e){return false}};
+// Notify the team coordinator after a local mutation. Until server migration is complete, retain the local copy.
+const notifyTeamChange=()=>{try{window.dispatchEvent(new CustomEvent('df-op-saved'))}catch(e){}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const makeId=()=>{const d=new Date(),p=x=>String(x).padStart(2,'0');return'DFOP-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase()};
+const rolls=()=>Array.from({length:56},(_,i)=>({n:i+1,peso:'',apara:''}));
+const stops=()=>Array.from({length:8},()=>({code:'',start:'',end:'',minutes:0}));
+let shiftFilter='all',mode='all',query='',selectedId='',painting=false,observer=null,observerQueued=false;
+
+function normalizeShift(v){v=String(v??'').trim();if(v==='00:00–07:00')return'1';if(v==='07:00–15:30')return'2';if(v==='15:30–00:00')return'3';return v}
+function sameMachineShift(o,sector,machine,shift){return !!o&&o.sector===sector&&String(o.machine||'').trim().toLocaleLowerCase('pt-BR')===String(machine||'').trim().toLocaleLowerCase('pt-BR')&&normalizeShift(o.shift)===normalizeShift(shift)&&o.status==='open'}
+function favs(){const a=read(FAVKEY,[]);return new Set(Array.isArray(a)?a:[])}
+function saveFavs(s){try{localStorage.setItem(FAVKEY,JSON.stringify([...s]))}catch(e){}}
+function completedIds(){const a=read('df_producao_ops_auto_v1',[]);return new Set((Array.isArray(a)?a:[]).filter(x=>x&&x.status==='ok').map(x=>String(x.opId||x.id||'').trim().toUpperCase()).filter(Boolean))}
+function allOps(){if(!localStorage.getItem('df_producao_team_v2'))return [];const done=completedIds();const a=read(KEY,[]);return (Array.isArray(a)?a:[]).filter(o=>o&&o.id&&o.status!=='closed'&&o.status!=='completed'&&o.status!=='finished'&&!done.has(String(o.id).trim().toUpperCase())).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))}
+function searchText(o){return[o.machine,o.product,o.measure,o.operator,o.shift,o.id,o.sector].join(' ').toLocaleLowerCase('pt-BR')}
+function registerQR(o){try{const r=read(QRKEY,{});r[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};localStorage.setItem(QRKEY,JSON.stringify(r))}catch(e){}}
+
+function notice(msg,type){let n=$('dfStableNotice');if(!n){n=document.createElement('div');n.id='dfStableNotice';n.style.cssText='margin-top:10px;padding:11px;border-radius:11px;font:800 12px system-ui';const b=$('prGenerate');if(b)b.insertAdjacentElement('afterend',n)}if(!n)return;n.textContent=msg;n.style.background=type==='ok'?'#0d2516':'#241600';n.style.color=type==='ok'?'#86efac':'#ffd36a';n.style.border='1px solid '+(type==='ok'?'#166534':'#a16207')}
+
+function ensureStyle(){if($('dfSavedOpsV3Css'))return;const s=document.createElement('style');s.id='dfSavedOpsV3Css';s.textContent=`#dfSavedOps{margin:18px 0 0!important;padding:18px!important;border-radius:18px!important}#dfSavedOps h2{font-size:22px!important;margin:0 0 16px!important}.dfOpSearch{position:relative;margin-bottom:12px}.dfOpSearch input{width:100%;min-height:52px;padding:12px 14px 12px 44px!important;border:1px solid #334155!important;background:#0f172a!important;color:#fff!important;border-radius:14px!important;font-size:16px!important}.dfOpSearch:before{content:'⌕';position:absolute;left:16px;top:50%;transform:translateY(-50%);font:900 22px/1 system-ui;color:#cbd5e1;z-index:1}.dfOpShiftSelect{display:block;width:100%;min-height:52px;margin:0 0 12px;padding:12px 15px;border:1.5px solid #40516d;border-radius:14px;background:#101a2d;color:#f1f5f9;font:700 16px system-ui;box-sizing:border-box}.dfOpFilters{display:flex;gap:10px;margin:4px 0 14px}.dfOpFilter{border:1.5px solid #3b4b63;background:#0f172a;color:#aebbd0;border-radius:999px;padding:9px 16px;font:900 12px system-ui}.dfOpFilter.on{border-color:#f5a000;background:#241600;color:#ffd36a}.dfOpList{border:1px solid #263244;background:#0f172a;border-radius:16px;overflow:hidden}.dfOpRow{position:relative;padding:15px 52px 14px 14px;border-bottom:1px solid #263244;cursor:pointer}.dfOpRow:last-child{border-bottom:0}.dfOpRow.sel{background:#121d31}.dfOpTitle{font-size:15px;font-weight:900;color:#e8edf5;line-height:1.25}.dfOpProduct{margin-top:4px;color:#aab6c9;font-size:13px;line-height:1.3}.dfOpMeta{margin-top:5px;color:#93a4bc;font-size:12px;line-height:1.35}.dfOpId{margin-top:4px;color:#7f91aa;font-size:10px;overflow-wrap:anywhere}.dfOpStar{position:absolute;right:9px;top:10px;width:40px;height:40px;border:0;background:transparent;color:#71829a;font:400 32px/1 system-ui;padding:0;display:flex;align-items:center;justify-content:center}.dfOpStar.on{color:#f5a000}.dfOpActions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:12px 0 0;margin-top:12px;border-top:1px solid #263244}.dfOpActions button{min-height:44px;min-width:0;padding:7px 2px;border:1px solid #334155;border-radius:11px;background:#111827;color:#eef2f7;font:900 9px/1.15 system-ui}.dfOpActions .danger{border-color:#991b1b;background:#230b0b;color:#fca5a5}.dfOpEmpty{padding:18px;color:#94a3b8;text-align:center;font-size:13px}`;document.head.appendChild(s)}
+
+function actionHtml(o){return `<div class="dfOpActions"><button type="button" data-op-open="${esc(o.id)}">ABRIR</button><button type="button" data-op-pdf="${esc(o.id)}">PDF</button><button type="button" data-op-new="${esc(o.id)}">GERAR NOVA</button><button type="button" class="danger" data-op-del="${esc(o.id)}">EXCLUIR</button></div>`}
+function savedRowsHtml(shown,fs){
+  return shown.length?shown.map(o=>`<div class="dfOpRow ${o.id===selectedId?'sel':''}" data-op-row="${esc(o.id)}"><button type="button" class="dfOpStar ${fs.has(o.id)?'on':''}" data-op-star="${esc(o.id)}" aria-label="Favoritar">${fs.has(o.id)?'★':'☆'}</button><div class="dfOpTitle">${esc(o.machine)} — ${esc(o.measure)}</div><div class="dfOpProduct">${esc(o.product)}</div><div class="dfOpMeta">${esc(o.operator)} • Turno ${esc(normalizeShift(o.shift))} • ${o.status==='open'?'OP aberta':'Encerrada'}</div><div class="dfOpId">${esc(o.id)}</div>${o.id===selectedId?actionHtml(o):''}</div>`).join(''):'<div class="dfOpEmpty">Nenhuma OP encontrada.</div>'
+}
+function ensureSavedShell(box){
+  if(box.dataset.dfSavedShell==='1'&&box.querySelector('#dfOpShiftSelect'))return;
+  box.dataset.dfSavedShell='1';
+  box.innerHTML='<h2>OPs salvas</h2><button id="dfSavedForceSync" type="button" style="width:100%;min-height:42px;margin:0 0 12px;border:1px solid #40516d;border-radius:12px;background:#182235;color:#cbd5e1;font:800 12px system-ui;letter-spacing:.2px">🔄 SINCRONIZAR PRODUÇÃO</button><div class="dfOpSearch"><input id="dfOpSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar OP..."></div><select id="dfOpShiftSelect" class="dfOpShiftSelect" aria-label="Filtrar OPs por turno"><option value="all">Todas</option><option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option></select><div class="dfOpFilters"><button type="button" class="dfOpFilter" data-op-filter="fav">★ Favoritas</button></div><div class="dfOpList"></div>';
+  const forceSync=box.querySelector('#dfSavedForceSync');
+  if(forceSync)forceSync.addEventListener('click',async()=>{if(forceSync.disabled)return;forceSync.disabled=true;forceSync.textContent='⏳ SINCRONIZANDO...';try{await window.DFProductionSavedD1?.sync?.();await window.DFProducaoEquipeOnline?.pull?.();renderSaved();forceSync.textContent='✅ PRODUÇÃO SINCRONIZADA'}catch(e){forceSync.textContent='⚠️ TENTAR NOVAMENTE'}finally{setTimeout(()=>{forceSync.disabled=false;forceSync.textContent='🔄 SINCRONIZAR PRODUÇÃO'},1200)}});
+  const shiftSelect=box.querySelector('#dfOpShiftSelect');
+  if(shiftSelect)shiftSelect.addEventListener('change',e=>{shiftFilter=e.target.value;selectedId='';renderSaved()});
+  const input=box.querySelector('#dfOpSearchInput');
+  if(input)input.addEventListener('input',e=>{query=e.target.value;renderSaved()},{passive:true});
+  box.addEventListener('click',e=>{
+    const filter=e.target.closest&&e.target.closest('[data-op-filter]');
+    if(filter){mode=mode==='fav'?'all':filter.dataset.opFilter;selectedId='';renderSaved();return}
+    const star=e.target.closest&&e.target.closest('[data-op-star]');
+    if(star){e.preventDefault();e.stopPropagation();const s=favs(),id=star.dataset.opStar;s.has(id)?s.delete(id):s.add(id);saveFavs(s);renderSaved();return}
+    if(e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]'))return;
+    const row=e.target.closest&&e.target.closest('[data-op-row]');
+    if(row){selectedId=selectedId===row.dataset.opRow?'':row.dataset.opRow;renderSaved()}
+  });
+}
+function renderSaved(){if(painting)return;const root=$('dfPrRoot')||$('pgPr');if(!root)return;painting=true;try{
+  ensureStyle();
+  let box=$('dfSavedOps');if(!box){box=document.createElement('section');box.id='dfSavedOps';box.className='dfPrCard';root.appendChild(box)}
+  ensureSavedShell(box);
+  const all=allOps(),ids=new Set(all.map(o=>o.id)),fs=favs();let favDirty=false;
+  [...fs].forEach(id=>{if(!ids.has(id)){fs.delete(id);favDirty=true}});if(favDirty)saveFavs(fs);
+  if(selectedId&&!ids.has(selectedId))selectedId='';
+  const q=query.trim().toLocaleLowerCase('pt-BR'),shown=all.filter(o=>(mode==='fav'?fs.has(o.id):true)&&(shiftFilter==='all'||normalizeShift(o.shift)===shiftFilter)&&(!q||searchText(o).includes(q)));
+  box.dataset.dfSavedV3='1';
+  const shiftEl=box.querySelector('#dfOpShiftSelect');if(shiftEl&&shiftEl.value!==shiftFilter)shiftEl.value=shiftFilter;
+  const input=box.querySelector('#dfOpSearchInput');
+  if(input&&document.activeElement!==input&&input.value!==query)input.value=query;
+  box.querySelectorAll('[data-op-filter]').forEach(b=>b.classList.toggle('on',b.dataset.opFilter===mode));
+  const list=box.querySelector('.dfOpList');if(list){const html=savedRowsHtml(shown,fs);if(list.__dfLastHtml!==html){list.innerHTML=html;list.__dfLastHtml=html}}
+}finally{painting=false}}
+window.DFRenderSavedProductionOps=renderSaved;
+window.addEventListener('df-producao-auto-saved',()=>{selectedId='';renderSaved()});
+window.addEventListener('storage',e=>{if(e.key===KEY||e.key==='df_producao_ops_auto_v1')renderSaved()});
+
+function setField(id,value){const el=$(id);if(!el)return false;const v=String(value??'');if(el.tagName==='SELECT'&&v&&!Array.from(el.options).some(o=>String(o.value)===v)){const opt=document.createElement('option');opt.value=v;opt.textContent=v;el.appendChild(opt)}el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return true}
+function applyOpenedFields(o){setField('prMachine',o.machine);setField('prProduct',o.product);setField('prMeasure',o.measure);setField('prOperator',o.operator);setField('prShift',normalizeShift(o.shift));setField('prStart',o.start);setField('prEnd',o.end)}
+function fillOpenedOP(o,attempt){attempt=attempt||0;const ids=['prMachine','prProduct','prMeasure','prOperator','prShift','prStart','prEnd'];if(!ids.every(id=>$(id))){if(attempt<24)setTimeout(()=>fillOpenedOP(o,attempt+1),100);return}applyOpenedFields(o);setTimeout(()=>applyOpenedFields(o),140);setTimeout(()=>applyOpenedFields(o),360);notice('OP aberta. Todos os campos foram preenchidos novamente.','ok');const body=$('dfPrBody');if(body)body.scrollIntoView({behavior:'smooth',block:'start'})}
+function openIntoForm(o){const S=window.__DF_PROD_V3_STATE||(window.__DF_PROD_V3_STATE={sector:o.sector||'Picote',pane:'new',editing:null});S.sector=o.sector||S.sector||'Picote';S.pane='new';S.editing=null;const top=$('prodNewTab'),pane=document.querySelector('#dfPrRoot [data-pane="new"]');if(top)top.click();else if(pane)pane.click();setTimeout(()=>fillOpenedOP(o,0),60)}
+
+function generateSafe(e){const b=e.target.closest&&e.target.closest('#prGenerate');if(!b)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(b.dataset.busy==='1')return;b.dataset.busy='1';setTimeout(()=>delete b.dataset.busy,700);const S=window.__DF_PROD_V3_STATE||{},sector=S.sector||'Picote',machine=$('prMachine')?.value.trim()||'',product=$('prProduct')?.value.trim()||'',measure=$('prMeasure')?.value.trim()||'',operator=$('prOperator')?.value.trim()||'',shift=$('prShift')?.value||'',start=$('prStart')?.value||'',end=$('prEnd')?.value||'';if(!machine||!product||!measure||!operator||!shift||!start||!end){notice('Preencha máquina, produto, medida, operador, turno e período.');return}const a=read(KEY,[]);const o={id:makeId(),sector,machine,product,measure,operator,shift,start,end,createdAt:new Date().toISOString(),status:'open',rolls:rolls(),stops:stops(),test:false};a.push(o);if(!saveOps(a)){notice('Não foi possível salvar a OP neste aparelho.');return}registerQR(o);notifyTeamChange();selectedId=o.id;mode='all';query='';notice('OP salva com sucesso. É permitido gerar várias OPs para a mesma máquina e turno.','ok');renderSaved();setTimeout(()=>{const box=$('dfSavedOps');if(box)box.scrollIntoView({behavior:'smooth',block:'start'})},60)}
+
+function createNewFrom(o){return{id:makeId(),sector:o.sector||'Picote',machine:o.machine||'',product:o.product||'',measure:o.measure||'',operator:o.operator||'',shift:o.shift||'',start:o.start||'',end:o.end||'',createdAt:new Date().toISOString(),status:'open',rolls:rolls(),stops:stops(),test:false}}
+function handleActions(e){const el=e.target.closest&&e.target.closest('[data-op-open],[data-op-pdf],[data-op-new],[data-op-del]');if(!el)return;const id=el.dataset.opOpen||el.dataset.opPdf||el.dataset.opNew||el.dataset.opDel,a=read(KEY,[]),o=a.find(x=>x&&x.id===id);if(!o)return;if(el.dataset.opDel){e.preventDefault();e.stopPropagation();if(!read('df_producao_team_v2',null)?.teamId||typeof window.DFProductionSavedD1Deleted!=='function'){notice('Conecte a Equipe de Produção para excluir também no servidor D1.');return}if(confirm('Excluir esta OP aberta também do servidor D1? OPs Prontas não serão afetadas.')){if(!saveOps(a.filter(x=>x.id!==id))){notice('Falha ao excluir OP neste aparelho. Tente novamente.');return}window.DFProductionSavedD1Deleted?.(id);notifyTeamChange();if(selectedId===id)selectedId='';renderSaved()}return}if(el.dataset.opNew){e.preventDefault();e.stopPropagation();const n=createNewFrom(o);while(a.some(x=>x&&x.id===n.id))n.id=makeId();if(!confirm('Gerar uma nova OP com os mesmos dados de '+o.machine+' e '+o.operator+'? Ela terá ID e QR Code novos, sem copiar pesos e apontamentos.'))return;a.push(n);if(!saveOps(a)){alert('Não foi possível gerar a nova OP.');return}registerQR(n);notifyTeamChange();selectedId=n.id;mode='all';query='';notice('Nova OP gerada com ID e QR Code diferentes.','ok');renderSaved();return}if(el.dataset.opPdf){e.preventDefault();e.stopPropagation();window.DF_PRODUCAO_OP_TEST?.print(o);return}if(el.dataset.opOpen){e.preventDefault();e.stopPropagation();openIntoForm(o)}}
+
+function clearLegacyGeneratedPane(){const S=window.__DF_PROD_V3_STATE||{};if(S.pane!=='list')return;const body=$('dfPrBody');if(body&&body.childNodes.length)body.innerHTML=''}
+function cleanLegacy(){clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved();document.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
+function cleanAdded(node){if(!node||node.nodeType!==1)return;if(node.matches&&node.matches('[data-op-down]'))node.remove();else if(node.querySelectorAll)node.querySelectorAll('[data-op-down]').forEach(el=>el.remove())}
+function queueObserverRefresh(){if(observerQueued||painting)return;observerQueued=true;requestAnimationFrame(()=>{observerQueued=false;if(painting)return;clearLegacyGeneratedPane();const box=$('dfSavedOps');if(box&&box.dataset.dfSavedV3!=='1')renderSaved()})}
+function installObserver(){const root=$('dfPrRoot');if(!root||observer)return;observer=new MutationObserver(list=>{for(const m of list)for(const n of m.addedNodes)cleanAdded(n);queueObserverRefresh()});observer.observe(root,{childList:true,subtree:true})}
+function boot(attempt){attempt=attempt||0;if($('dfPrRoot')){renderSaved();cleanLegacy();installObserver();return}if(attempt<40)setTimeout(()=>boot(attempt+1),150)}
+
+document.addEventListener('click',generateSafe,true);
+document.addEventListener('click',handleActions,true);
+boot(0);
+window.addEventListener('pageshow',()=>{setTimeout(()=>{renderSaved();cleanLegacy();installObserver()},80)},true);
+window.addEventListener('focus',()=>setTimeout(cleanLegacy,80),true);
+
+/* D1 saved OP sync v550: preserve local data until server acknowledges. */
+(function(){
+const K='df_producao_ops_setores_test_v3', T='df_producao_team_v2', D='df_producao_saved_d1_shadow_v550', Q='df_op_qr_registry_test_setores_v3';
+const API='https://df-extrusor-api.reck-cp9.workers.dev';
+const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??d}catch(e){return d}};
+const put=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const id=o=>String(o?.id||'').trim().toUpperCase();
+const fingerprint=o=>JSON.stringify(o);
+let busy=false,queued=false,ready=false;function status(msg,ok){let box=document.getElementById('dfD1SavedStatus');if(!box){const parent=document.getElementById('dfSavedOps');if(!parent)return;box=document.createElement('div');box.id='dfD1SavedStatus';box.style.cssText='margin:8px 0;padding:10px;border:1px solid #334155;border-radius:10px;color:#bfdbfe;font:700 12px system-ui';parent.insertBefore(box,parent.querySelector('.dfOpSearch'))}if(box.textContent!==msg)box.textContent=msg;box.style.color=ok?'#86efac':'#fde68a';}
+function device(){return String(window.DFDeviceIdentity?.get?.()||localStorage.getItem('df_licenseauth_device_v1')||'').trim()}
+async function requestJSON(url,options,timeoutMs=6500){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{
+  const r=await fetch(url,{...options,signal:controller.signal});
+  const j=await r.json().catch(()=>({}));
+  return {r,j};
+ }catch(e){throw Error(e?.name==='AbortError'?'Tempo limite de conexão com a nuvem (6,5 s)':String(e?.message||e))}
+ finally{clearTimeout(timer)}
+}
+async function session(force){
+ let token=String(sessionStorage.getItem('df_secure_token_v2')||'').trim();
+ if(token&&!force)return token;
+ const credential=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim(),dev=device();
+ if(!credential||!dev)throw Error('Sem sessão para sincronizar');
+ const {r,j}=await requestJSON(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
+ if(!r.ok||!j.token)throw Error(j.error||'Sessão indisponível');
+ sessionStorage.setItem('df_secure_token_v2',j.token);return j.token;
+}
+async function call(path,body,retry=true){
+ const token=await session(false);
+ const {r,j}=await requestJSON(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device()},body:JSON.stringify(body),cache:'no-store'});
+ if(r.status===401&&retry){await session(true);return call(path,body,false)}
+ if(!r.ok||j.ok===false){const e=Error(j.error||'HTTP '+r.status);e.status=r.status;throw e}return j;
+}
+function local(){const a=read(K,[]);return Array.isArray(a)?a:[]}
+function shadow(teamId){const s=read(D,{});return s.teamId===teamId?{teamId,known:s.known||{},deleted:s.deleted||{}}:{teamId,known:{},deleted:{}}}
+function updateUI(){try{window.DFRenderSavedProductionOps?.()}catch(e){}try{window.dispatchEvent(new CustomEvent('df-producao-team-synced'))}catch(e){}}
+async function sync(){
+ if(localStorage.getItem('df_prod_team_explicit_exit_v1')==='1')return;
+ if(busy||navigator.onLine===false||document.hidden)return;
+ const team=read(T,null);if(!team?.teamId){status('⚠️ Conecte a EQUIPE DE PRODUÇÃO para sincronizar OPs.',false);return;}
+ busy=true;if(!ready)status('🔄 Sincronizando OPs salvas com a equipe...',false);
+ try{
+  const tid=String(team.teamId),s=shadow(tid),body={teamId:tid},first=await call('/production/saved/list',body);
+  const remote=new Map((first.records||[]).filter(x=>x?.opCode).map(x=>[String(x.opCode).toUpperCase(),x]));
+  const current=local();let mutated=false;
+  // Explicit local deletions only; never infer deletion from an empty cache.
+  for(const code of Object.keys(s.deleted||{})){
+   if(remote.get(code)?.state!=='deleted'){await call('/production/saved/delete',{...body,opCode:code});mutated=true;}
+   s.known[code]='__DELETED__';delete s.deleted[code];
+   // Persist each acknowledged tombstone immediately; never lose it on a later network failure.
+   const live=shadow(tid);live.known[code]='__DELETED__';delete live.deleted[code];put(D,live);
+  }
+  for(const op of current){
+   const code=id(op);if(!code||s.known[code]==='__DELETED__'||s.deleted[code])continue;
+   const rec=remote.get(code),sig=fingerprint(op);
+   if(rec?.state==='deleted'){s.known[code]='__DELETED__';continue}
+   // Upload only new local records or local edits known to this device.
+   // Never upload an old local OP as a new server record after cleanup/reset.
+   // Only OPs created on/after the migration cutoff may be newly registered.
+   const migrationCutoff=Date.parse('2026-10-27T11:00:00Z');
+   const created=Date.parse(String(op.createdAt||''));
+   const isNewEligible=Number.isFinite(created)&&created>=migrationCutoff;
+   if(op.status==='open'&&((!rec&&!s.known[code]&&isNewEligible)||(rec&&s.known[code]&&s.known[code]!==sig))){
+    try{await call('/production/saved/upsert',{...body,opCode:code,payload:op,createdAt:op.createdAt});s.known[code]=sig;mutated=true}
+    catch(e){if(e.status===409){s.known[code]='__DELETED__';continue}throw e}
+   }else if(rec&&!s.known[code])s.known[code]=fingerprint(rec.payload);
+  }
+  // A primeira lista já é o snapshot válido quando não houve mutações remotas.
+  // Evita uma segunda consulta HTTP a cada ciclo de 7 segundos.
+  const latest=mutated?await call('/production/saved/list',body):first;
+  // Deletions may arrive while requests are in flight. Always read the newest local tombstones.
+  const newest=shadow(tid);for(const code of Object.keys(newest.deleted))s.deleted[code]=true;
+  for(const code of Object.keys(newest.known))if(newest.known[code]==='__DELETED__')s.known[code]='__DELETED__';
+  const merged=new Map(local().filter(o=>id(o)&&!s.deleted[id(o)]&&s.known[id(o)]!=='__DELETED__'&&(o.status!=='open'||!s.known[id(o)])).map(o=>[id(o),o]));
+  for(const rec of latest.records||[]){
+   const code=String(rec.opCode||'').toUpperCase();if(!code)continue;
+   if(rec.state==='deleted'){merged.delete(code);s.known[code]='__DELETED__';continue}
+   if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object'||rec.payload.status!=='open'||s.deleted[code]||s.known[code]==='__DELETED__')continue;
+   // Never revive a locally completed OP while its server close is still pending.
+   const localCopy=local().find(o=>id(o)===code);if(localCopy&&localCopy.status&&localCopy.status!=='open')continue;
+   const existing=merged.get(code);
+   // Local edits not yet uploaded must never be overwritten.
+   if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
+   merged.set(code,rec.payload);s.known[code]=fingerprint(rec.payload);
+  }
+  const liveShadow=shadow(tid);for(const code of Object.keys(liveShadow.deleted))merged.delete(code);
+  for(const code of Object.keys(liveShadow.known))if(liveShadow.known[code]==='__DELETED__')merged.delete(code);
+  const next=[...merged.values()].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))||id(b).localeCompare(id(a)));
+  if(localStorage.getItem('df_prod_team_explicit_exit_v1')==='1'||read(T,null)?.teamId!==tid)return;
+  if(fingerprint(next)!==fingerprint(local())){put(K,next);for(const o of next){const qr=read(Q,{});if(!qr[o.id]){qr[o.id]={id:o.id,createdAt:o.createdAt,sector:o.sector,expected:{machine:o.machine,product:o.product,measure:o.measure,operator:o.operator,shift:o.shift,start:o.start,end:o.end},test:false};put(Q,qr)}}updateUI()}
+  const beforeSave=shadow(tid);for(const code of Object.keys(beforeSave.deleted))s.deleted[code]=true;
+  for(const code of Object.keys(beforeSave.known))if(beforeSave.known[code]==='__DELETED__')s.known[code]='__DELETED__';
+  put(D,s);ready=true;status('✅ OPs salvas sincronizadas com a equipe • '+(latest.records||[]).filter(x=>x.state==='open'&&x.payload?.status==='open').length+' abertas no servidor.',true);
+ }catch(e){status('⚠️ OPs não enviadas: '+String(e.message||e),false);console.warn('[DF Produção D1] Sincronização pendente:',e.message)}
+ finally{busy=false;if(queued){queued=false;setTimeout(sync,250)}}
+}
+async function pushNewestDirect(){
+ if(localStorage.getItem('df_prod_team_explicit_exit_v1')==='1'||navigator.onLine===false)return false;
+ const team=read(T,null);if(!team?.teamId)return false;
+ const tid=String(team.teamId),state=shadow(tid),ops=local().filter(o=>id(o)&&o.status==='open');
+ if(!ops.length)return false;
+ const op=ops.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))[0],code=id(op),sig=fingerprint(op);
+ if(!code||state.known[code]===sig||state.known[code]==='__DELETED__'||state.deleted[code])return false;
+ try{
+  await call('/production/saved/upsert',{teamId:tid,opCode:code,payload:op,createdAt:op.createdAt});
+  const live=shadow(tid);live.known[code]=sig;put(D,live);
+  status('✅ OP enviada direto para a nuvem.',true);
+  return true;
+ }catch(e){
+  if(e.status===409){const live=shadow(tid);live.known[code]='__DELETED__';put(D,live);return false}
+  status('⚠️ Envio direto pendente: '+String(e.message||e),false);return false;
+ }
+}
+let pendingTimer=null;function schedule(ev){
+ if(pendingTimer)clearTimeout(pendingTimer);
+ const direct=ev?.type==='df-op-saved'||ev?.type==='df-producao-auto-saved';
+ pendingTimer=setTimeout(async()=>{pendingTimer=null;if(direct)await pushNewestDirect();if(busy){queued=true;return}sync()},direct?40:250)
+}
+window.DFProductionSavedD1={sync,ready:()=>ready};
+window.addEventListener('df-op-saved',schedule);
+window.addEventListener('df-producao-auto-saved',schedule);
+window.addEventListener('df-producao-team-changed',schedule);
+window.addEventListener('online',schedule);
+window.addEventListener('focus',schedule);
+window.addEventListener('pageshow',schedule);
+// Poll aberto a cada 7 s; o evento local continua enviando imediatamente.
+// Recepção dos demais aparelhos: leitura curta do D1. Envio local é direto por evento.
+setInterval(sync,2500);setTimeout(sync,250);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(sync,120)});
+window.DFProductionSavedD1Deleted=function(code){
+ const t=read(T,null);if(!t?.teamId){status('⚠️ Exclusão local: conecte a equipe para excluir no servidor.',false);return Promise.resolve(false)}
+ const tid=String(t.teamId),s=shadow(tid),key=String(code).trim().toUpperCase();if(!key)return Promise.resolve(false);
+ s.deleted[key]=true;s.known[key]='__DELETED__';put(D,s);if(busy)queued=true;
+ // Send immediately, with a persistent retry queue if offline or the request fails.
+ return call('/production/saved/delete',{teamId:tid,opCode:key}).then(()=>{
+  const live=shadow(tid);live.known[key]='__DELETED__';delete live.deleted[key];put(D,live);
+  status('✅ OP excluída no servidor e bloqueada contra restauração.',true);schedule();return true;
+ }).catch(e=>{status('⚠️ Exclusão pendente no servidor; será reenviada: '+String(e.message||e),false);schedule();return false});
+};
+})();
+
+})();

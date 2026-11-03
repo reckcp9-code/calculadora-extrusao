@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b13">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>DF EXTRUSOR PRO — Teste Minimizar</title>
+<style>html,body{margin:0;min-height:100%;background:#080b13!important;color:#f8fafc}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}</style>
+<script src="./device-identity.js?v=20260908-boot-stable-v98"></script>
+</head>
+<body>
+<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p style="color:#94a3b8">Abrindo teste da Formulação...</p></div>
+<script>
+(async()=>{
+  try{
+    const r=await fetch('./app-shell.html?v=20260910-stable-v106',{cache:'no-store'});
+    if(!r.ok)throw new Error('Falha ao carregar a base');
+    let h=await r.text();
+    h=h.replace('</head>','<style>html,body{background:#080b13!important}</style></head>');
+    const savedAccess=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+    if(savedAccess&&navigator.onLine!==false)h=h.replace('</head>','<style>#licenseGate{display:none!important}#appContent{display:block!important}</style></head>');
+    const close='</scr'+'ipt>',open='<scr'+'ipt>';
+    const p=h.lastIndexOf(open);if(p>=0){const e=h.indexOf(close,p);if(e>=0)h=h.slice(0,p)+h.slice(e+close.length)}
+    const tags='<scr'+'ipt defer src="./app-bundle.js?v=20260909-op-pdf-landscape-v111"></scr'+'ipt>'+
+      '<scr'+'ipt defer src="./formula-material-collapse.js?v=20260909-material-collapse-v1"></scr'+'ipt>'+
+      '<scr'+'ipt>(function(){function go(){try{var b=document.getElementById("btFo");if(b)b.click()}catch(e){}try{window.dispatchEvent(new CustomEvent("df-ui-ready"))}catch(e){}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(go,900)},{once:true});else setTimeout(go,900);setTimeout(go,1500)})();</scr'+'ipt>';
+    h=h.replace('</body>',tags+'</body>');
+    document.open();document.write(h);document.close();
+  }catch(e){document.body.innerHTML='<div style="max-width:520px;margin:80px auto;padding:24px;text-align:center"><h2>DF EXTRUSOR PRO</h2><p>Não foi possível abrir o teste.</p><button onclick="location.reload()" style="margin-top:16px;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:12px;padding:13px 18px;font-weight:900">TENTAR NOVAMENTE</button></div>'}
+})();
+</script>
+</body>
+</html>
