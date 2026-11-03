@@ -106,7 +106,7 @@ function mount(){
  if(!b){b=document.createElement('button');b.id='dfMonthlyPhotoButton';b.type='button';b.textContent='📸 FOTOS';monthBtn.insertAdjacentElement('afterend',b)}
  else if(b.parentElement!==tabs)monthBtn.insertAdjacentElement('afterend',b);
  let pane=$('dfMonthlyPhotoPane');
- if(pane?.dataset.dfPhotoBound==='1'&&active?.pane===pane)return true;
+ if(pane?.dataset.dfPhotoBound==='1'&&active?.pane===pane&&active?.b===b&&pane.querySelector('#dfMonthlyPhotoRows'))return true;
  if(!pane){pane=document.createElement('section');pane.id='dfMonthlyPhotoPane';pane.className='dfOpsPane';tabs.parentElement.appendChild(pane)}
  pane.dataset.dfPhotoBound='1';
  pane.innerHTML='<div class="dfOpsCard"><h3>📸 FOTOS • OPs BAIXADAS</h3><label for="dfMonthlyPhotoMonth">MÊS DAS FOTOS</label><input type="month" id="dfMonthlyPhotoMonth" style="width:100%;min-height:46px"><input id="dfMonthlyPhotoSearch" placeholder="PESQUISAR PRODUTO OU ID DA OP" style="width:100%;min-height:46px;margin-top:10px"><button id="dfMonthlyPhotoRefresh" class="dfOpsBtn alt" style="margin-top:10px">🔄 SINCRONIZAR FOTOS</button><div id="dfMonthlyPhotoStatus" class="dfOpsTiny" style="margin:12px 0;color:#a8c9ed"></div><div id="dfMonthlyPhotoRows" style="margin-top:12px"></div></div>';
