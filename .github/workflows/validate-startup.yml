@@ -81,6 +81,7 @@ jobs:
           node tests/team-license-restore.test.js
           node tests/team-reconnect-client.test.js
           node tests/team-both-sync.test.js
+          node tests/saas-atomic-bootstrap.test.js
       - name: Conferir serviço de restauração na Cloudflare
         run: |
           set -euo pipefail
