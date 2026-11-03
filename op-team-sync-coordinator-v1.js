@@ -41,7 +41,7 @@ async function sync(force){
  if(ok){last=Date.now();attempt=0;everSynced=true;consecutiveFailures=0}else{attempt=Math.min(5,attempt+1);consecutiveFailures++}
  // Falhas transitórias de uma rodada não devem alternar o indicador de sincronizado.
  // A conectividade e as filas pendentes continuam reportadas separadamente.
- notify({ok:ok||(everSynced&&consecutiveFailures<3&&navigator.onLine!==false),verified:ok,stale:!ok,steps:results.length,modules:results});
+ notify({ok,displayStable:everSynced&&consecutiveFailures<3&&navigator.onLine!==false,verified:ok,stale:!ok,steps:results.length,modules:results});
  return ok;
  }catch(e){notify({ok:false,error:String(e?.message||e),modules:results});return false}
  finally{busy=false;if(pending){pending=false;setTimeout(()=>sync(true),Math.min(12000,1000*2**Math.min(attempt,4)))}}}
