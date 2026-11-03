@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const PROD_DEST='./op-producao.html?v=20261103-formula-team-d1-retry-v769';
+  const PROD_DEST='./op-producao.html?v=20261103-resource-cache-v770';
 
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
