@@ -174,7 +174,8 @@ function boot(){
   if(document.hidden||navigator.onLine===false||busy)return;
   if(!verifiedThisPage){restore(false);return}
   if(lastResult?.teams?.length)syncBothTeams(lastResult.teams).catch(e=>console.warn('[DF Teams] D1 retry:',e));
- },15000);
+ },45000);
+ // A sincronização leve de Produção roda no módulo próprio; o histórico completo não deve bloquear suas consultas.
  // Confere novamente a identidade permanente periodicamente, sem confiar no cache.
  setInterval(()=>{if(!document.hidden&&navigator.onLine!==false&&!busy)restore(true)},120000);
 }
