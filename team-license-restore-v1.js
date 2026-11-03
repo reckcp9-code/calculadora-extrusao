@@ -162,12 +162,12 @@ async function restore(force){
 function schedule(delay=900,force=false){setTimeout(()=>restore(force),delay)}
 function boot(){
  // A recuperação roda em toda abertura, inclusive quando existem equipes no cache.
- schedule(900,true);
- window.addEventListener('df-auth-ready',()=>schedule(600));
- window.addEventListener('df-ui-ready',()=>schedule(1400));
- window.addEventListener('online',()=>schedule(500));
- window.addEventListener('pageshow',()=>schedule(1000));
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(600)});
+ schedule(100,true);
+ window.addEventListener('df-auth-ready',()=>schedule(120));
+ window.addEventListener('df-ui-ready',()=>schedule(150));
+ window.addEventListener('online',()=>schedule(100));
+ window.addEventListener('pageshow',()=>schedule(120));
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(120)});
  // A validação de licença é distinta da sincronização de dados. Uma equipe já
  // recuperada deve continuar consultando D1 mesmo sem o dono abrir o painel.
  setInterval(()=>{
