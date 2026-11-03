@@ -29,8 +29,8 @@ async function restore(request,env,origin){
   return respond({ok:false,error:'Identificação de acesso incompleta'},400,origin);
  let original;
  try{
-  original=await fetch(MAIN_API+'/access/session',{
-   method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':deviceId},
+  original=await env.AUTH.fetch(MAIN_API+'/access/session',{
+   method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':deviceId,'Origin':origin},
    body:JSON.stringify({credential,deviceId}),cache:'no-store',redirect:'error'
   });
  }catch(e){return respond({ok:false,error:'Serviço de licença temporariamente indisponível'},503,origin)}
@@ -88,14 +88,14 @@ async function restore(request,env,origin){
  }
  // A second read confirms the binding really belongs to the authenticated owner.
  const verified=await env.DB.prepare(
-  "SELECT t.team_id,t.name,t.area FROM op_teams t JOIN op_team_members m "+
+  "SELECT t.team_id,t.name,t.area,m.display_name FROM op_teams t JOIN op_team_members m "+
   "ON m.team_id=t.team_id AND m.owner_key=t.owner_key AND m.role='owner' "+
   "WHERE t.owner_identity_hash=? AND t.owner_key=? AND t.area IN ('extrusao','producao')"
  ).bind(identityHash,owner).all();
  if((verified.results||[]).length!==teams.length)
   return respond({ok:false,error:'Validação de propriedade incompleta; verifique antes de sincronizar'},503,origin);
  return respond({ok:true,teams:(verified.results||[]).map(t=>({
-  teamId:String(t.team_id),name:String(t.name),area:String(t.area),role:'owner'
+  teamId:String(t.team_id),name:String(t.name),area:String(t.area),role:'owner',displayName:String(t.display_name||'DF PRO')
  })),changed},200,origin);
 }
 export default {
