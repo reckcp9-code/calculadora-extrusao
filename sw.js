@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v696-responsive-viewport';
+const DF_CACHE='df-extrusor-shell-v744-consistent-js';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -33,7 +33,7 @@ async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — N
 
 // Install only the entry shell. Large modules are cached as users open them;
 // precaching every module simultaneously caused unnecessary network/CPU pressure.
-const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./df-viewport-responsive-lock-v1.js','./manifest.webmanifest','./app-version.json','./logo.svg','./device-identity.js','./auto-access.js','./performance-guard-v3.js','./app-bundle.js','./op-producao.html','./producao-stable-flow-v3.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js'];
+const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./df-viewport-responsive-lock-v1.js','./manifest.webmanifest','./app-version.json','./logo.svg','./device-identity.js','./auto-access.js','./performance-guard-v3.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./op-producao.html','./producao-stable-flow-v3.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js'];
 async function precache(){
  const cache=await caches.open(DF_CACHE);
  for(const url of BOOT_CACHE){
@@ -43,7 +43,21 @@ async function precache(){
 async function cached(req){const cache=await caches.open(DF_CACHE);return cache.match(req,{ignoreSearch:true})}
 async function fetchWithTimeout(req,timeout=3500){let controller=null,timer=null;try{if('AbortController'in self){controller=new AbortController();timer=setTimeout(()=>controller.abort(),timeout)}let netReq=req;try{netReq=new Request(req,{cache:'no-store',signal:controller?controller.signal:undefined})}catch(e){}return await fetch(netReq,{cache:'no-store',signal:controller?controller.signal:undefined})}finally{if(timer)clearTimeout(timer)}}
 async function updateCached(req){try{const cache=await caches.open(DF_CACHE);const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone());return res}catch(e){return null}}
-async function networkFirst(req){const cache=await caches.open(DF_CACHE);try{const res=await fetchWithTimeout(req,3500);if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone()).catch(()=>{});return res}catch(e){const hit=await cache.match(req,{ignoreSearch:true});if(hit)return hit;throw e}}
+async function networkFirst(req){
+ const cache=await caches.open(DF_CACHE);
+ try{
+  const res=await fetchWithTimeout(req,3500);
+  if(!res||(!res.ok&&res.type!=='opaque'))throw new Error('Recurso indisponivel');
+  cache.put(req,res.clone()).catch(()=>{});
+  return res;
+ }catch(e){
+  // Nunca combinar dois builds diferentes por ignorar ?v nas bibliotecas.
+  const url=new URL(req.url),isBoot=BOOT_CACHE.some(p=>new URL(p,self.registration.scope).pathname===url.pathname);
+  const hit=await cache.match(req,{ignoreSearch:!url.searchParams.has('v')||isBoot});
+  if(hit)return hit;
+  return new Response('Recurso da versao atual indisponivel. Tente novamente com internet.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
+ }
+}
 async function staleWhileRevalidate(req){
   const cache=await caches.open(DF_CACHE);
   const exact=await cache.match(req);
@@ -68,9 +82,10 @@ self.addEventListener('fetch',event=>{
     event.respondWith(networkFirst(req));return
   }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
-  // Static app shell/modules: serve cached bytes immediately and refresh in background.
-  // API/D1 requests are cross-origin and never pass through this branch.
-  if(/\.(?:js|css|svg|png|jpe?g|webp|woff2?)$/i.test(p)){event.respondWith(staleWhileRevalidate(req));return}
+  // JS precisa ser consistente com a versao publicada. Nao reutilizar modulos antigos em silencio.
+  // API/D1/R2 sao de outra origem e nao sao interceptados aqui.
+  if(/\.js$/i.test(p)){event.respondWith(networkFirst(req));return}
+  if(/\.(?:css|svg|png|jpe?g|webp|woff2?)$/i.test(p)){event.respondWith(staleWhileRevalidate(req));return}
   if(p.endsWith('/cost-simple-v154.js')||p.endsWith('/cost-fabril-v1.js')||p.endsWith('/cost-back-v155.js')||p.endsWith('/formula-saved-search-v1.js')||p.endsWith('/formula-save-first-op-v1.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/producao-machine-produtos-v1.js')||p.endsWith('/producao-produtos-fullscreen-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/index.html')||p.endsWith('/acessar.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
