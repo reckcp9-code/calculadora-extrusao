@@ -23,4 +23,4 @@ self.registration.showNotification=async function(title,options){
 };
 
 // O wrapper é atualizado a cada release; o import não pode permanecer em cache antigo.
-importScripts('./sw.js?v=20261103-formula-delete-d1-verify-v768');
+importScripts('./sw.js?v=20261103-formula-team-d1-retry-v769');
