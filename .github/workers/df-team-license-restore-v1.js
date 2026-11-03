@@ -20,6 +20,35 @@ function decodeToken(token){
   return JSON.parse(new TextDecoder().decode(data));
  }catch(e){return null}
 }
+// Recuperação direta do último cadastro de máquinas no D1, não sujeita à paginação de fotos.
+function decodeCatalogQr(qr,teamId){
+ try{
+  const prefix='DFPRODCFG3.';
+  if(typeof qr!=='string'||!qr.startsWith(prefix))return null;
+  const encoded=qr.slice(prefix.length).replace(/-/g,'+').replace(/_/g,'/');
+  const binary=atob(encoded.padEnd(Math.ceil(encoded.length/4)*4,'='));
+  const payload=JSON.parse(new TextDecoder().decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));
+  if(payload?.kind!=='df-producao-config'||payload?.area!=='producao'||payload?.teamId!==teamId)return null;
+  const config=payload.config;
+  if(!config||typeof config!=='object')return null;
+  const usable=Object.values(config).some(x=>x&&typeof x==='object'&&
+   (Array.isArray(x.machines)&&x.machines.length||Array.isArray(x.products)&&x.products.length));
+  if(!usable)return null;
+  return {config,updatedAt:String(payload.updatedAt||'')};
+ }catch(e){return null}
+}
+async function latestProductionCatalog(env,teamId){
+ try{
+  const r=await env.DB.prepare(
+   "SELECT qr,updated_at FROM op_production_photos WHERE team_id=? AND qr LIKE 'DFPRODCFG3.%' ORDER BY updated_at DESC LIMIT 20"
+  ).bind(teamId).all();
+  for(const p of r.results||[]){
+   const decoded=decodeCatalogQr(p.qr,teamId);
+   if(decoded)return {...decoded,verifiedAt:String(p.updated_at||decoded.updatedAt)};
+  }
+ }catch(e){}
+ return null;
+}
 async function restore(request,env,origin){
  let body;
  try{const s=await request.text();if(s.length>6000)return respond({ok:false,error:'Requisição muito grande'},413,origin);body=JSON.parse(s)}catch(e){return respond({ok:false,error:'Dados inválidos'},400,origin)}
@@ -94,9 +123,13 @@ async function restore(request,env,origin){
  ).bind(identityHash,owner).all();
  if((verified.results||[]).length!==teams.length)
   return respond({ok:false,error:'Validação de propriedade incompleta; verifique antes de sincronizar'},503,origin);
- return respond({ok:true,teams:(verified.results||[]).map(t=>({
-  teamId:String(t.team_id),name:String(t.name),area:String(t.area),role:'owner',displayName:String(t.display_name||'DF PRO')
- })),changed},200,origin);
+ const teamsOut=[];
+ for(const t of verified.results||[]){
+  const result={teamId:String(t.team_id),name:String(t.name),area:String(t.area),role:'owner',displayName:String(t.display_name||'DF PRO')};
+  if(result.area==='producao')result.catalog=await latestProductionCatalog(env,result.teamId);
+  teamsOut.push(result);
+ }
+ return respond({ok:true,teams:teamsOut,changed},200,origin);
 }
 export default {
  async fetch(request,env){
