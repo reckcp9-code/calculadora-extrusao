@@ -56,6 +56,8 @@ function synchronizeMonthInputs(){
 }
 function selectMonth(value){
  if(!persistSelectedMonth(value))return;
+ // Priorizar a escolha confirmada, mesmo se o iOS ainda mantiver o campo em foco.
+ const picker=$('dfPAMonth');if(picker&&picker.value!==value)picker.value=value;
  // Seleção explícita de mês volta ao filtro mensal.
  const all=$('dfPAReadyAllMonths');if(all)all.checked=false;
  lastReadyFilterKey='';lastReadySignature='';
