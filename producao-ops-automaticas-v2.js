@@ -192,19 +192,23 @@ function switchPane(name){synchronizeMonthInputs();const panel=$('dfProdAuto');i
 function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||r.opId||r.id)+'</strong><span class="dfPABadge '+(pending?'warn':'ok')+'">'+(pending?'PENDENTE':'OK')+'</span><div class="dfPATiny">'+esc(r.product||r.reason||'')+(r.measure?' • '+esc(r.measure):'')+(pending?'':'<br>Produção '+fmt(r.production)+' kg • Apara '+fmt(r.scrap)+' kg • Líquida '+fmt(r.net)+' kg')+'</div>'+(r.photoId?'<button class="dfPABtn gray" data-pa-view="'+esc(r.photoId)+'">ABRIR FOTO</button>':'')+(pending?(r.status==='pending'?(window.DFProducaoEquipeOnline?.team?.()?.role==='owner'?'<button class="dfPABtn" data-pa-approve="'+esc(r.id)+'">CONFIRMAR OP</button>':'<div class="dfPATiny">AGUARDANDO CONFIRMAÇÃO DO DONO</div>'):'<button class="dfPABtn alt" data-pa-retry="'+esc(r.id)+'">IDENTIFICAR PELO ID</button>'):'')+(pending?'':'<button class="dfPAEditBtn" data-pa-edit="'+esc(r.id)+'">EDITAR</button><button class="dfPAEditBtn" data-pa-machine-edit="'+esc(r.id)+'">EDITAR MÁQUINA</button>')+'<button class="dfPABtn danger" data-pa-del="'+esc(r.id)+'">EXCLUIR REGISTRO</button></div>'}
 function renderAll(){if(document.getElementById('dfPAEditModal')?.classList.contains('on'))return;if(!window.DFProducaoEquipeOnline?.team?.()){for(const id of ['dfPAPendingList','dfPANowList','dfPAMonthList','dfPAArchiveList']){const el=$(id);if(el){delete el.dataset.dfListSignature;el.innerHTML='<div class="dfPATiny">Entre na Equipe de Produção para visualizar os dados.</div>'}}return}repairRecords();synchronizeMonthInputs();renderOk();renderPending();renderNow();renderMonth();renderArchive()}
 
-let lastReadySignature='',lastPendingSignature='';
+let lastReadySignature='',lastPendingSignature='',lastReadyFilterKey='';
 function renderOk(force=false){
  const b=$('dfPAReadyResults'),input=$('dfPAReadySearch');if(!b||!input)return;
  const query=String(input.value||'').trim().toUpperCase();
  const allMonths=!!$('dfPAReadyAllMonths')?.checked,month=synchronizeMonthInputs();
  const teamId=String(window.DFProducaoEquipeOnline?.team?.()?.teamId||'');
+ const filterKey=JSON.stringify([teamId,month,allMonths,query]);
  if(!query){
   const hint='<div class="dfPAReadyHint">Digite o nome do produto ou o ID da OP.</div>';
   if(b.innerHTML!==hint)b.innerHTML=hint;
-  lastReadySignature='';
+  lastReadySignature='';lastReadyFilterKey=filterKey;
   return;
  }
  if(!teamId)return;
+ // Como na Formulação: sincronização não desmonta uma pesquisa já exibida.
+ // Nova busca, seleção de mês ou equipe trocada continuam atualizando normalmente.
+ if(!force&&lastReadyFilterKey===filterKey&&b.childElementCount>0)return;
  const matches=autos().filter(x=>x?.status==='ok'&&(allMonths||completionMonth(x)===month)&&[x.id,x.opId,x.product,x.machine,x.measure].some(v=>String(v||'').toUpperCase().includes(query))).sort((x,y)=>String(y.date||y.completedAt||y.createdAt||'').localeCompare(String(x.date||x.completedAt||x.createdAt||'')));
  const signature=JSON.stringify([teamId,month,allMonths,query,matches.map(x=>[x.id,x.opId,x.product,x.machine,x.measure,x.date,x.productionDay,x.completedAt,x.createdAt,x.production,x.scrap,x.photoId])]);
  if(!force&&signature===lastReadySignature&&b.childElementCount>0)return;
@@ -213,7 +217,7 @@ function renderOk(force=false){
  const result=matches.length?matches.map(x=>readyCompactCard(x)).join(''):'<div class="dfPAReadyEmpty">Nenhuma OP baixada encontrada com <b>'+esc(input.value.trim())+'</b>.</div>';
  const html=summary+result;
  if(b.innerHTML!==html)b.innerHTML=html;
- lastReadySignature=signature;
+ lastReadySignature=signature;lastReadyFilterKey=filterKey;
 }
 function readyCompactCard(r){
  const title=esc(r.product||r.machine||r.opId||r.id||'OP');
@@ -510,10 +514,10 @@ function retryPending(id){const r=autos().find(x=>x.id===id);if(!r)return;curren
 function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel)return;panel.addEventListener('click',e=>{if(e.target.closest('#dfPAExclusiveBack')){switchPane('read');return}const pane=e.target.closest('[data-pa-pane]');if(pane){switchPane(pane.dataset.paPane);return}const view=e.target.closest('[data-pa-view]');if(view){openPhoto(view.dataset.paView);return}const change=e.target.closest('[data-pa-machine]');if(change){editCompletedMachine(change.dataset.paMachine);return}const del=e.target.closest('[data-pa-del]');if(del){deleteAuto(del.dataset.paDel);return}const approve=e.target.closest('[data-pa-approve]');if(approve){const api=window.DFProducaoEquipeOnline;if(!api?.approveCompletion)return alert('Sincronização indisponível.');api.approveCompletion(approve.dataset.paApprove).then(()=>{renderAll();switchPane('ok')}).catch(err=>alert('Aprovação não concluída: '+String(err.message||err)));return}const retry=e.target.closest('[data-pa-retry]');if(retry){retryPending(retry.dataset.paRetry);return}if(e.target.closest('#dfPATake')){$('dfPATakeInput')?.click();return}if(e.target.closest('#dfPAUpload')){$('dfPAUploadInput')?.click();return}if(e.target.closest('#dfPAReadyFind')){renderOk(true);return}if(e.target.closest('#dfPAManualFind')){identifyManual();return}if(e.target.closest('#dfPARecoverMissing')){recoverMissingOp();return}if(e.target.closest('#dfPASave')){saveCurrent();return}if(e.target.closest('#dfPACloseModal')){closeModal();return}});panel.addEventListener('change',e=>{if(e.target.id==='dfPAReadyAllMonths'){renderOk(true);return}if(e.target.id==='dfPATakeInput'||e.target.id==='dfPAUploadInput'){const f=e.target.files?.[0];e.target.value='';handleFile(f);return}if(['dfPAMonth','dfPAReadyMonth','dfPAArchiveMonth'].includes(e.target.id))selectMonth(e.target.value)});panel.addEventListener('input',e=>{if(e.target.id==='dfPAManualId')offerRecovery(e.target.value);if(e.target.id==='dfPAArchiveSearch')renderArchive();if(e.target.id==='dfPAReadySearch'){clearTimeout(window.__dfPAReadyTimer);window.__dfPAReadyTimer=setTimeout(()=>renderOk(true),180)}});panel.addEventListener('keydown',e=>{if(e.target.id==='dfPAManualId'&&e.key==='Enter'){e.preventDefault();identifyManual()}});synchronizeMonthInputs()}
 
 window.addEventListener('df-production-month-changed',()=>{synchronizeMonthInputs();renderAll()});
-window.addEventListener('df-producao-team-changed',()=>{archivedLastPull=0;archivedRows=[];archivedTeam='';setTimeout(()=>{renderAll();loadArchive(true)},0)});
+window.addEventListener('df-producao-team-changed',()=>{lastReadyFilterKey='';lastReadySignature='';const results=$('dfPAReadyResults');if(results)results.innerHTML='<div class="dfPAReadyHint">Digite o nome do produto ou o ID da OP.</div>';archivedLastPull=0;archivedRows=[];archivedTeam='';setTimeout(()=>{renderAll();loadArchive(true)},0)});
 window.addEventListener('df-producao-auto-saved',()=>{if(archiveOpen())setTimeout(()=>loadArchive(true),800)});
 window.addEventListener('df-producao-auto-deleted',()=>{if(archiveOpen())setTimeout(()=>loadArchive(true),800)});
-window.addEventListener('df-producao-team-cleared',()=>setTimeout(renderAll,0));
+window.addEventListener('df-producao-team-cleared',()=>{lastReadyFilterKey='';lastReadySignature='';const results=$('dfPAReadyResults');if(results)results.innerHTML='<div class="dfPAReadyHint">Entre na Equipe de Produção para visualizar os dados.</div>';setTimeout(renderAll,0)});
 window.addEventListener('df-producao-team-synced',()=>{setTimeout(renderAll,0);if(archiveOpen())setTimeout(()=>loadArchive(false),200)});
 function start(){mount()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
