@@ -83,6 +83,11 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 3 --retry-delay 2 --max-time 15 'https://df-team-license-restore-v1.reck-cp9.workers.dev/health' | grep -q '"ok":true'
+          code=$(curl --silent --show-error --max-time 15 -o /tmp/df-team-unauthorized.json -w '%{http_code}' \
+            -X POST 'https://df-team-license-restore-v1.reck-cp9.workers.dev/restore' \
+            -H 'Origin: https://app.dfextrusor.com.br' -H 'Content-Type: application/json' \
+            --data '{"credential":"INVALID-CREDENTIAL-CI-ONLY","deviceId":"invalid-ci-device-id"}')
+          test "$code" = "401"
       - name: Validate startup references and app version
         run: |
           node <<'NODE'
