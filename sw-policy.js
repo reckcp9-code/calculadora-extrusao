@@ -23,4 +23,4 @@ self.registration.showNotification=async function(title,options){
 };
 
 // O wrapper é atualizado a cada release; o import não pode permanecer em cache antigo.
-importScripts('./sw.js?v=20261103-ui-single-paint-v775');
+importScripts('./sw.js?v=20261103-sync-coordinator-v776');
