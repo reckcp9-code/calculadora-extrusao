@@ -1,6 +1,6 @@
 {
-  "version": "1.0.738",
-  "title": "DF EXTRUSOR PRO — Título OP + QR padronizado",
-  "message": "Removido definitivamente o botão MINIMIZAR da Produção; título OP DE PRODUÇÃO + QR alinhado em uma linha como a Formulação.",
+  "version": "1.0.739",
+  "title": "DF EXTRUSOR PRO — Máquinas e produtos sincronizados",
+  "message": "Máquinas cadastradas pelo Dono aparecem no AGORA com zero até receber baixas. Novos produtos vinculados à máquina sincronizam com os operadores da mesma equipe, preservando os cadastros históricos.",
   "updatedAt": "2026-11-02"
 }
