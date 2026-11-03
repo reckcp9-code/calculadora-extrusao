@@ -5882,16 +5882,9 @@
         }
         nav.appendChild(ops);
       }
+      // Apenas um botão permanente. O clique pertence à navegação da
+      // Formulação, não a uma função antiga presa neste elemento.
       ops.dataset.dfNavOps='1';
-      if(!ops.dataset.dfOpsPermanentBound){
-        ops.dataset.dfOpsPermanentBound='1';
-        ops.addEventListener('click',()=>{
-          if(!document.getElementById('dfFormulaOps')){
-            // O carregamento das OPs é separado; um clique antecipado é respeitado.
-            window.__dfOpenFormulaOpsAfterLoad=true;
-          }
-        });
-      }
     }
     cs.forEach((c,i)=>c.dataset.dfTopic=String(i));
     page.classList.add('dfTopicReady');
@@ -5918,6 +5911,7 @@
     document.body.classList.remove('dfHomeMode');
     document.body.classList.add('dfSectionMode');
     buildAutoTopics(p);
+    if(key==='fo')window.dispatchEvent(new Event('df-formula-section-entered'));
     try{window.scrollTo({top:0,behavior:'instant'})}catch(e){window.scrollTo(0,0)}
   }
 
