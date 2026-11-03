@@ -1,6 +1,6 @@
 {
-  "version": "1.0.749",
+  "version": "1.0.750",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Restauração completa das equipes pela KEY: confirma Dono no servidor antes de sincronizar Produção, Formulação, máquinas e histórico. Corrige sessão revogada após reinstalar.",
+  "message": "Restauração da equipe pela KEY: sincronização de OPs anteriores, recuperação do catálogo de máquinas e produtos diretamente da nuvem, sem apagar o histórico.",
   "updatedAt": "2026-11-03"
 }
