@@ -1,6 +1,6 @@
 {
-  "version": "1.0.767",
+  "version": "1.0.768",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Exclusão de formulações com uma única confirmação e sincronização oficial no D1, sem múltiplas janelas.",
+  "message": "Exclusão de formulações com proteção contra reenvio e verificação no D1; sincronização preservada.",
   "updatedAt": "2026-11-03"
 }
