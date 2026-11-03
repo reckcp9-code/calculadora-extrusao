@@ -39,6 +39,7 @@ async function check(){
       if(sql.includes('SELECT team_id,name,area,owner_key FROM op_teams'))return{results:teams.map(t=>({...t}))};
       if(sql.includes('SELECT t.team_id,t.name,t.area,m.display_name'))return{results:teams.filter(t=>t.owner_key===owner).map(t=>({...t,display_name:'DF PRO'}))};
       if(sql.includes("FROM op_production_photos WHERE team_id=?"))return{results:[{qr:'DFPRODCFG3.'+encodedConfig,updated_at:'2026-11-03T02:17:20.482Z'}]};
+      if(sql.includes('FROM production_saved_ops'))return{results:[{op_code:'DFOP-20261027-080420-QJIP',payload_json:JSON.stringify({id:'DFOP-20261027-080420-QJIP',status:'open',machine:'PICOTADEIRA USN',product:'SACO'}),revision:13,updated_at:'2026-11-02T21:34:50.540Z'}]};
       throw Error('Unexpected query '+sql);
      },
      async first(){
@@ -66,6 +67,8 @@ async function check(){
  assert.equal(batchCalls,1);
  assert.ok(json.teams.every(x=>x.role==='owner'));
  assert.equal(json.teams.find(x=>x.area==='producao')?.catalog?.config?.Picote?.machines?.[0],'PICOTADEIRA USN','Must restore server machines independent of OP photo list pagination');
+ assert.equal(json.teams.find(x=>x.area==='producao')?.savedOps?.length,1,'Only canonical open OPs should be restored');
+ assert.equal(json.teams.find(x=>x.area==='producao')?.savedOps?.[0]?.op?.id,'DFOP-20261027-080420-QJIP');
  const repeat=await worker.fetch(makeReq(),{DB,AUTH:auth});
  assert.equal(repeat.status,200);
  assert.equal((await repeat.json()).changed,0,'Recovery must be idempotent');
