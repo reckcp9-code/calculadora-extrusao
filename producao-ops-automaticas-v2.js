@@ -17,16 +17,19 @@ const monthNow=()=>today().slice(0,7);
 // Mês de consulta compartilhado entre MÊS, PRONTAS e ARQUIVADAS.
 // Nunca remove registros da equipe: somente controla a visualização.
 const HISTORY_MONTH_KEY='df_production_history_month_v1';
+const validHistoryMonth=value=>/^\d{4}-(0[1-9]|1[0-2])$/.test(String(value||''));
 function viewingMonth(){
+ // O mês escolhido é a única fonte de verdade. Abrir outra aba ou
+ // passar um dia não pode substituir a escolha do usuário.
  const now=monthNow();
- try{
-  if(localStorage.getItem(HISTORY_MONTH_KEY+'_calendar')!==now){
-   localStorage.setItem(HISTORY_MONTH_KEY+'_calendar',now);
-   localStorage.setItem(HISTORY_MONTH_KEY,now);
-  }
-  const value=String(localStorage.getItem(HISTORY_MONTH_KEY)||'');
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value)?value:now;
+ try{const value=String(localStorage.getItem(HISTORY_MONTH_KEY)||'');
+  return validHistoryMonth(value)?value:now;
  }catch(e){return now}
+}
+function persistSelectedMonth(value){
+ if(!validHistoryMonth(value))return false;
+ try{localStorage.setItem(HISTORY_MONTH_KEY,String(value))}catch(e){}
+ return true;
 }
 function completionMonth(row){
  // Data efetiva da baixa: uma OP criada em outubro e baixada em novembro pertence a novembro.
@@ -38,18 +41,24 @@ function completionMonth(row){
  return '';
 }
 function synchronizeMonthInputs(){
- const month=viewingMonth();
+ let month=viewingMonth();
+ const picker=$('dfPAMonth');
+ // Em iOS, o seletor nativo pode emitir "input" antes de "change".
+ // Enquanto está ativo, nunca sobrescrever a escolha com o mês antigo.
+ if(picker&&document.activeElement===picker&&validHistoryMonth(picker.value)&&picker.value!==month){
+  persistSelectedMonth(picker.value);
+  month=picker.value;
+ }
  for(const id of ['dfPAReadyMonth','dfPAMonth','dfPAArchiveMonth']){
   const input=$(id);if(input&&input.value!==month)input.value=month;
  }
  return month;
 }
 function selectMonth(value){
- if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(value||'')))return;
- try{
-  localStorage.setItem(HISTORY_MONTH_KEY,value);
-  localStorage.setItem(HISTORY_MONTH_KEY+'_calendar',monthNow());
- }catch(e){}
+ if(!persistSelectedMonth(value))return;
+ // Seleção explícita de mês volta ao filtro mensal.
+ const all=$('dfPAReadyAllMonths');if(all)all.checked=false;
+ lastReadyFilterKey='';lastReadySignature='';
  synchronizeMonthInputs();
  renderAll();
  window.dispatchEvent(new CustomEvent('df-production-month-changed',{detail:{month:value}}));
@@ -193,7 +202,7 @@ function hide(){window.__DF_PROD_AUTO_ACTIVE=false;const panel=$('dfProdAuto');i
 window.DFShowProductionAuto=show;window.DFHideProductionAuto=hide;
 
 const paneId=name=>'dfPAPane'+({read:'Read',ok:'Ok',pending:'Pending',now:'Now',month:'Month',archive:'Archive'}[name]||'Read');
-function switchPane(name){synchronizeMonthInputs();const panel=$('dfProdAuto');if(panel){panel.dataset.dfActivePane=name;panel.classList.toggle('dfPAExclusive',name==='ok');}document.querySelectorAll('#dfProdAuto [data-pa-pane]').forEach(b=>b.classList.toggle('on',b.dataset.paPane===name));document.querySelectorAll('#dfProdAuto .dfPAPane').forEach(p=>p.classList.remove('on'));$(paneId(name))?.classList.add('on');if(name==='ok')renderOk();if(name==='pending')renderPending();if(name==='now')renderNow();if(name==='month')renderMonth();if(name==='archive'){renderArchive();loadArchive(false)}}
+function switchPane(name){if(name!=='month'&&$('dfPAPaneMonth')?.classList.contains('on'))persistSelectedMonth($('dfPAMonth')?.value);synchronizeMonthInputs();const panel=$('dfProdAuto');if(panel){panel.dataset.dfActivePane=name;panel.classList.toggle('dfPAExclusive',name==='ok');}document.querySelectorAll('#dfProdAuto [data-pa-pane]').forEach(b=>b.classList.toggle('on',b.dataset.paPane===name));document.querySelectorAll('#dfProdAuto .dfPAPane').forEach(p=>p.classList.remove('on'));$(paneId(name))?.classList.add('on');if(name==='ok')renderOk();if(name==='pending')renderPending();if(name==='now')renderNow();if(name==='month')renderMonth();if(name==='archive'){renderArchive();loadArchive(false)}}
 function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||r.opId||r.id)+'</strong><span class="dfPABadge '+(pending?'warn':'ok')+'">'+(pending?'PENDENTE':'OK')+'</span><div class="dfPATiny">'+esc(r.product||r.reason||'')+(r.measure?' • '+esc(r.measure):'')+(pending?'':'<br>Produção '+fmt(r.production)+' kg • Apara '+fmt(r.scrap)+' kg • Líquida '+fmt(r.net)+' kg')+'</div>'+(r.photoId?'<button class="dfPABtn gray" data-pa-view="'+esc(r.photoId)+'">ABRIR FOTO</button>':'')+(pending?(r.status==='pending'?(window.DFProducaoEquipeOnline?.team?.()?.role==='owner'?'<button class="dfPABtn" data-pa-approve="'+esc(r.id)+'">CONFIRMAR OP</button>':'<div class="dfPATiny">AGUARDANDO CONFIRMAÇÃO DO DONO</div>'):'<button class="dfPABtn alt" data-pa-retry="'+esc(r.id)+'">IDENTIFICAR PELO ID</button>'):'')+(pending?'':'<button class="dfPAEditBtn" data-pa-edit="'+esc(r.id)+'">EDITAR</button><button class="dfPAEditBtn" data-pa-machine-edit="'+esc(r.id)+'">EDITAR MÁQUINA</button>')+'<button class="dfPABtn danger" data-pa-del="'+esc(r.id)+'">EXCLUIR REGISTRO</button></div>'}
 function renderAll(){if(document.getElementById('dfPAEditModal')?.classList.contains('on'))return;if(!window.DFProducaoEquipeOnline?.team?.()){for(const id of ['dfPAPendingList','dfPANowList','dfPAMonthList','dfPAArchiveList']){const el=$(id);if(el){delete el.dataset.dfListSignature;el.innerHTML='<div class="dfPATiny">Entre na Equipe de Produção para visualizar os dados.</div>'}}return}repairRecords();synchronizeMonthInputs();renderOk();renderPending();renderNow();renderMonth();renderArchive()}
 
@@ -518,7 +527,7 @@ function editCompletedMachine(id){
 }
 function retryPending(id){const r=autos().find(x=>x.id===id);if(!r)return;currentPendingId=r.id||'';currentPhotoId=r.photoId||'';currentFile=null;currentOp=null;switchPane('read');setStatus('⚠️ Digite o ID da OP para concluir este registro.','warn');showManual(normId(r.opId||''));if(currentPhotoId)photoGet(currentPhotoId).then(p=>{if(p?.blob){const img=$('dfPAPreview');if(img){img.src=URL.createObjectURL(p.blob);img.style.display='block'}}}).catch(()=>{})}
 
-function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel)return;panel.addEventListener('click',e=>{if(e.target.closest('#dfPAExclusiveBack')){switchPane('read');return}const pane=e.target.closest('[data-pa-pane]');if(pane){switchPane(pane.dataset.paPane);return}const view=e.target.closest('[data-pa-view]');if(view){openPhoto(view.dataset.paView);return}const change=e.target.closest('[data-pa-machine]');if(change){editCompletedMachine(change.dataset.paMachine);return}const del=e.target.closest('[data-pa-del]');if(del){deleteAuto(del.dataset.paDel);return}const approve=e.target.closest('[data-pa-approve]');if(approve){const api=window.DFProducaoEquipeOnline;if(!api?.approveCompletion)return alert('Sincronização indisponível.');api.approveCompletion(approve.dataset.paApprove).then(()=>{renderAll();switchPane('ok')}).catch(err=>alert('Aprovação não concluída: '+String(err.message||err)));return}const retry=e.target.closest('[data-pa-retry]');if(retry){retryPending(retry.dataset.paRetry);return}if(e.target.closest('#dfPATake')){$('dfPATakeInput')?.click();return}if(e.target.closest('#dfPAUpload')){$('dfPAUploadInput')?.click();return}if(e.target.closest('#dfPAArchiveRefresh')){loadArchive(true);return}if(e.target.closest('#dfPAReadyFind')){renderOk(true);return}if(e.target.closest('#dfPAManualFind')){identifyManual();return}if(e.target.closest('#dfPARecoverMissing')){recoverMissingOp();return}if(e.target.closest('#dfPASave')){saveCurrent();return}if(e.target.closest('#dfPACloseModal')){closeModal();return}});panel.addEventListener('change',e=>{if(e.target.id==='dfPAReadyAllMonths'){renderOk(true);return}if(e.target.id==='dfPATakeInput'||e.target.id==='dfPAUploadInput'){const f=e.target.files?.[0];e.target.value='';handleFile(f);return}if(['dfPAMonth','dfPAReadyMonth','dfPAArchiveMonth'].includes(e.target.id))selectMonth(e.target.value)});panel.addEventListener('input',e=>{if(e.target.id==='dfPAManualId')offerRecovery(e.target.value);if(e.target.id==='dfPAArchiveSearch')renderArchive();if(e.target.id==='dfPAReadySearch'){clearTimeout(window.__dfPAReadyTimer);window.__dfPAReadyTimer=setTimeout(()=>renderOk(true),180)}});panel.addEventListener('keydown',e=>{if(e.target.id==='dfPAManualId'&&e.key==='Enter'){e.preventDefault();identifyManual()}});synchronizeMonthInputs()}
+function bind(){if(bound)return;bound=true;const panel=$('dfProdAuto');if(!panel)return;panel.addEventListener('click',e=>{if(e.target.closest('#dfPAExclusiveBack')){switchPane('read');return}const pane=e.target.closest('[data-pa-pane]');if(pane){switchPane(pane.dataset.paPane);return}const view=e.target.closest('[data-pa-view]');if(view){openPhoto(view.dataset.paView);return}const change=e.target.closest('[data-pa-machine]');if(change){editCompletedMachine(change.dataset.paMachine);return}const del=e.target.closest('[data-pa-del]');if(del){deleteAuto(del.dataset.paDel);return}const approve=e.target.closest('[data-pa-approve]');if(approve){const api=window.DFProducaoEquipeOnline;if(!api?.approveCompletion)return alert('Sincronização indisponível.');api.approveCompletion(approve.dataset.paApprove).then(()=>{renderAll();switchPane('ok')}).catch(err=>alert('Aprovação não concluída: '+String(err.message||err)));return}const retry=e.target.closest('[data-pa-retry]');if(retry){retryPending(retry.dataset.paRetry);return}if(e.target.closest('#dfPATake')){$('dfPATakeInput')?.click();return}if(e.target.closest('#dfPAUpload')){$('dfPAUploadInput')?.click();return}if(e.target.closest('#dfPAArchiveRefresh')){loadArchive(true);return}if(e.target.closest('#dfPAReadyFind')){renderOk(true);return}if(e.target.closest('#dfPAManualFind')){identifyManual();return}if(e.target.closest('#dfPARecoverMissing')){recoverMissingOp();return}if(e.target.closest('#dfPASave')){saveCurrent();return}if(e.target.closest('#dfPACloseModal')){closeModal();return}});panel.addEventListener('change',e=>{if(e.target.id==='dfPAReadyAllMonths'){renderOk(true);return}if(e.target.id==='dfPATakeInput'||e.target.id==='dfPAUploadInput'){const f=e.target.files?.[0];e.target.value='';handleFile(f);return}if(['dfPAMonth','dfPAReadyMonth','dfPAArchiveMonth'].includes(e.target.id))selectMonth(e.target.value)});panel.addEventListener('input',e=>{if(e.target.id==='dfPAMonth'){persistSelectedMonth(e.target.value);return}if(e.target.id==='dfPAManualId')offerRecovery(e.target.value);if(e.target.id==='dfPAArchiveSearch')renderArchive();if(e.target.id==='dfPAReadySearch'){clearTimeout(window.__dfPAReadyTimer);window.__dfPAReadyTimer=setTimeout(()=>renderOk(true),180)}});panel.addEventListener('keydown',e=>{if(e.target.id==='dfPAManualId'&&e.key==='Enter'){e.preventDefault();identifyManual()}});synchronizeMonthInputs()}
 
 window.addEventListener('df-production-month-changed',()=>{synchronizeMonthInputs();renderAll()});
 window.addEventListener('df-producao-team-changed',()=>{lastReadyFilterKey='';lastReadySignature='';const results=$('dfPAReadyResults');if(results)results.innerHTML='<div class="dfPAReadyHint">Digite o nome do produto ou o ID da OP.</div>';archivedLastPull=0;archivedRows=[];archivedTeam='';setTimeout(()=>{renderAll();loadArchive(true)},0)});
