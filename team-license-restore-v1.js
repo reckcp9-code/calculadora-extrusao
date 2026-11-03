@@ -56,6 +56,46 @@ function recoverProductionCatalog(t){
  window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados',{detail:{teamId:t.teamId,restoredFromD1:true}}));
  return true;
 }
+async function syncBothTeams(areas){
+  if(navigator.onLine===false||document.hidden)return false;
+  // A KEY foi confirmada no Worker. Renovar o token usado pelos DOIS módulos.
+  try{sessionStorage.removeItem('df_secure_token_v2')}catch(e){}
+  const jobs=[];
+  if(areas.includes('extrusao')){
+    jobs.push((async()=>{
+      // A equipe deve ser conferida antes da importação de fórmulas e OPs.
+      if(window.DFOpCloud?.refreshTeam)await window.DFOpCloud.refreshTeam();
+      const ops=window.DFOpServerAuthority;
+      if(ops?.sync){
+        // Primeiro carregar histórico preservado, sem alterar o mês que o usuário selecionou.
+        const current=new Date(),now=current.getFullYear()+'-'+String(current.getMonth()+1).padStart(2,'0');
+        const months=[now,'2026-10','2026-09'].filter((x,i,a)=>a.indexOf(x)===i);
+        for(const month of months)await ops.sync(true,month);
+      }
+      if(window.DFTeamFormulasShared?.sync)await window.DFTeamFormulasShared.sync();
+      if(window.DFOpCloud?.sync)await window.DFOpCloud.sync(true);
+      window.dispatchEvent(new CustomEvent('df-formula-team-history-restored'));
+      return true;
+    })());
+  }
+  if(areas.includes('producao')){
+    jobs.push((async()=>{
+      const production=window.DFProducaoEquipeOnline;
+      if(!production?.pull)return false;
+      const ok=await production.pull();
+      if(ok!==false){
+        try{window.DFRenderSavedProductionOps?.()}catch(e){}
+        window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados',{detail:{restoredFromD1:true}}));
+      }
+      return ok!==false;
+    })());
+  }
+  const results=await Promise.allSettled(jobs);
+  const ok=results.length>0&&results.every(r=>r.status==='fulfilled'&&r.value!==false);
+  window.dispatchEvent(new CustomEvent('df-license-full-team-sync',{detail:{ok,areas}}));
+  if(!ok)console.warn('[DF Teams] Sincronização parcial; não apagar dados locais.');
+  return ok;
+}
 async function restore(force){
  if(busy||navigator.onLine===false||!credential()||!device())return false;
  // Ter a equipe no localStorage NAO comprova que o servidor reconheceu o novo aparelho.
@@ -88,10 +128,9 @@ async function restore(force){
    // A transferência de propriedade ou do catálogo exige uma única reconstrução de todas as abas.
    setTimeout(()=>location.reload(),300);
   }else{
-   // Se os componentes já existem, reparar a sessão em tempo real sem atualização manual.
-   try{await window.DFOpCloud?.refreshTeam?.()}catch(e){}
-   try{await window.DFProducaoEquipeOnline?.pull?.()}catch(e){}
+   // Sincronizar Formulação e Produção em paralelo, incluindo meses anteriores.
    window.dispatchEvent(new CustomEvent('df-license-teams-server-verified',{detail:{areas:lastResult.teams}}));
+   await syncBothTeams(lastResult.teams);
   }
   return true;
  }catch(e){lastError=String(e?.message||'Não foi possível conferir as equipes na nuvem');console.warn('[DF Teams]',lastError);return false}
