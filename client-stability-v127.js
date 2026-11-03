@@ -8,7 +8,7 @@
 
   function ensureLocalMonth(){
     const m=document.getElementById('dfOpMonth');
-    if(m&&!m.dataset.dfLocalDateFixed){m.dataset.dfLocalDateFixed='1';m.value=localYmd().slice(0,7);try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}}
+    if(m&&!m.dataset.dfLocalDateFixed){m.dataset.dfLocalDateFixed='1';const saved=String(localStorage.getItem('df_production_history_month_v1')||'').slice(0,7);const chosen=/^\d{4}-(0[1-9]|1[0-2])$/.test(saved)?saved:localYmd().slice(0,7);if(m.value!==chosen){m.value=chosen;try{m.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}}}
   }
 
   function ensureQrLibrary(){
