@@ -60,15 +60,19 @@ function recoverSavedProductionOps(t){
  if(t?.area!=='producao'||!Array.isArray(t.savedOps)||!t.savedOps.length)return 0;
  const linked=read(PROD);
  if(linked?.teamId!==t.teamId||linked.role!=='owner')return 0;
- const pending={teamId:t.teamId,ops:t.savedOps};
+ const present=read('df_producao_ops_setores_test_v3');
+ const ids=new Set((Array.isArray(present)?present:[]).map(x=>String(x?.id||'').trim().toUpperCase()));
+ const missing=t.savedOps.filter(x=>x?.op?.id&&!ids.has(String(x.op.id).trim().toUpperCase()));
+ if(!missing.length)return 0;
+ const pending={teamId:t.teamId,ops:missing};
  // A fila é lida também quando o módulo de Produção iniciar depois da autenticação.
  try{localStorage.setItem('df_producao_saved_ops_canonical_queue_v1',JSON.stringify(pending))}catch(e){}
  if(window.DFProducaoEquipeOnline?.restoreCanonicalSavedOps){
-  if(window.DFProducaoEquipeOnline.restoreCanonicalSavedOps(t.savedOps,t.teamId))
+  if(window.DFProducaoEquipeOnline.restoreCanonicalSavedOps(missing,t.teamId))
    localStorage.removeItem('df_producao_saved_ops_canonical_queue_v1');
  }
  window.dispatchEvent(new CustomEvent('df-producao-canonical-saved-ready',{detail:{teamId:t.teamId}}));
- return t.savedOps.length;
+ return missing.length;
 }
 async function syncBothTeams(areas){
   if(navigator.onLine===false||document.hidden)return false;
