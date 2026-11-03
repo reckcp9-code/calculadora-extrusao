@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v778-formula-delete-click';
+const DF_CACHE='df-extrusor-shell-v779-delete-first';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
