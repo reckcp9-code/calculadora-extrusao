@@ -7,7 +7,8 @@
 - `main`: aplicação publicada; não remover ou substituir sem validação.
 
 ## Sistema DF Server Pro
-- `sistema-df-server-pro/telas/codigo/`: interface, telas, entrada do aplicativo.
+- `sistema-df-server-pro/telas/codigo/`: interface e telas.
+- `sistema-df-server-pro/login/codigo/`: login, digitação de key, recuperação e acesso automático.
 - `sistema-df-server-pro/formulacao/codigo/`: lógica de formulação.
 - `sistema-df-server-pro/formulacao/materiais/`: catálogo e gerenciamento de materiais.
 - `sistema-df-server-pro/formulacao/dados-salvos/`: código de persistência das formulações, não os registros D1.
@@ -21,6 +22,7 @@
 
 ## Painel Administrativo
 - `painel-administrativo/interface/codigo/`: interface do painel.
+- `painel-administrativo/login/codigo/`: login administrativo, recuperação, ativação e reativação de keys.
 - `painel-administrativo/equipes-e-permissoes/codigo/`: equipes, dono, operadores e permissões.
 - `painel-administrativo/acesso-e-licencas/codigo/`: keys e licenças.
 - `painel-administrativo/publicacao/codigo/`: atualização e publicação do painel.
