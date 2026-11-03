@@ -23,4 +23,4 @@ self.registration.showNotification=async function(title,options){
 };
 
 // O wrapper é atualizado a cada release; o import não pode permanecer em cache antigo.
-importScripts('./sw.js?v=20261103-historical-month-sync-v756');
+importScripts('./sw.js?v=20261103-independent-d1-sync-v757');
