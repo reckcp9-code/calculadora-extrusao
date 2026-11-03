@@ -207,7 +207,7 @@ function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||
 function renderAll(){if(document.getElementById('dfPAEditModal')?.classList.contains('on'))return;if(!window.DFProducaoEquipeOnline?.team?.()){for(const id of ['dfPAOkList','dfPAPendingList','dfPANowList','dfPAMonthList','dfPAArchiveList']){const el=$(id);if(el){delete el.dataset.dfListSignature;el.innerHTML='<div class="dfPATiny">Entre na Equipe de Produção para visualizar os dados.</div>'}}return}repairRecords();synchronizeMonthInputs();renderOk();renderPending();renderNow();renderMonth();renderArchive()}
 let lastReadySignature='',lastPendingSignature='';
 function renderOk(){
- const b=$('dfPAOkList');if(!b)return;
+ const b=$('dfPAOkList');if(!b)return;b.style.setProperty('display','block','important');b.style.setProperty('visibility','visible','important');
  const month=synchronizeMonthInputs(),allMonths=!!$('dfPAReadyAllMonths')?.checked;
  const a=autos().filter(x=>x.status==='ok'&&(allMonths||completionMonth(x)===month)).sort((x,y)=>String(y.date||y.completedAt||y.createdAt||'').localeCompare(String(x.date||x.completedAt||x.createdAt||'')));
  const query=String($('dfPAReadySearch')?.value||'').trim().toUpperCase();
@@ -217,7 +217,13 @@ function renderOk(){
  if(summary)summary.innerHTML='<div class="dfPAReadyStats"><div>OPs baixadas<strong>'+matching.length+'</strong></div><div>Produção encontrada<strong>'+fmt(total)+' kg</strong></div></div>';
  const signature=JSON.stringify([window.DFProducaoEquipeOnline?.team?.()?.teamId,month,allMonths,query,a.map(x=>[x.id,x.opId,x.machine,x.product,x.measure,x.operator,x.production,x.scrap,x.photoId,x.status,x.date,x.productionDay,x.completedAt,x.createdAt])]);
  // Always reconcile the visible list: other refreshes can replace its contents without changing the signature.
- b.innerHTML=matching.length?matching.map(x=>readyCompactCard(x)).join(''):'<div class="dfPATiny">Nenhuma OP pronta '+(allMonths?'encontrada no histórico.':'neste mês. Selecione um mês anterior ou marque TODAS.')+'</div>';
+ try{
+  const html=matching.length?matching.map(x=>readyCompactCard(x)).join(''):'<div class="dfPATiny">Nenhuma OP pronta '+(allMonths?'encontrada no histórico.':'neste mês. Selecione um mês anterior ou marque TODAS.')+'</div>';
+  if(b.innerHTML!==html)b.innerHTML=html;
+ }catch(err){
+  console.error('[DF Produção] Falha ao montar cartões de Prontas:',err);
+  b.innerHTML=matching.map(x=>{try{return readyCompactCard(x)}catch(e){return '<div class="dfPAList"><strong>'+esc(x.product||x.machine||x.opId||x.id||'OP')+'</strong><div class="dfPATiny">'+esc(x.opId||x.id||'')+'</div></div>'}}).join('');
+ }
  b.dataset.dfListSignature=signature;
 }
 function readyCompactCard(r){
