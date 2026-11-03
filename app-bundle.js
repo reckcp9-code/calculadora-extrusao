@@ -5848,7 +5848,9 @@
     if(!page||page.id==='pgEx')return;
     const cs=directCards(page);
     let nav=page.querySelector(':scope > .dfAutoTopics');
-    if(cs.length<=1){
+    // A Formulação tem a aba OPS AUTOMÁTICAS permanente, independentemente
+    // do carregamento posterior dos módulos de OP e do número de cartões.
+    if(cs.length<=1&&page.id!=='pgFo'){
       nav?.remove();page.classList.remove('dfTopicReady');
       cs.forEach(c=>{delete c.dataset.dfTopic;c.classList.remove('dfTopicVisible')});
       return;
@@ -5857,14 +5859,45 @@
     if(!nav){nav=document.createElement('div');nav.className='dfAutoTopics';page.insertBefore(nav,page.firstChild)}
     if(nav.dataset.sig!==sig){
       nav.dataset.sig=sig;
-      nav.innerHTML=cs.map((c,i)=>'<button type="button" class="dfAutoTopic" data-topic="'+i+'">'+shortLabel(c,i)+'</button>').join('');
-      nav.onclick=e=>{const b=e.target.closest('.dfAutoTopic');if(b)activateAutoTopic(page,b.dataset.topic)};
+      const html=cs.map((c,i)=>'<button type="button" class="dfAutoTopic" data-topic="'+i+'">'+shortLabel(c,i)+'</button>').join('');
+      if(page.id==='pgFo'){
+        // Atualizar somente os tópicos automáticos. Nunca apagar o botão OPS.
+        nav.querySelectorAll(':scope > .dfAutoTopic[data-topic]').forEach(b=>b.remove());
+        nav.insertAdjacentHTML('afterbegin',html);
+      }else{
+        nav.innerHTML=html;
+      }
+      nav.onclick=e=>{const b=e.target.closest('.dfAutoTopic[data-topic]');if(b)activateAutoTopic(page,b.dataset.topic)};
+    }
+    if(page.id==='pgFo'){
+      let ops=page.querySelector(':scope > .dfAutoTopics > #dfFormTabOps');
+      if(!ops){
+        ops=document.getElementById('dfFormTabOps');
+        if(!ops){
+          ops=document.createElement('button');
+          ops.id='dfFormTabOps';
+          ops.type='button';
+          ops.className='dfAutoTopic';
+          ops.textContent='🤖 OPS AUTOMÁTICAS';
+        }
+        nav.appendChild(ops);
+      }
+      ops.dataset.dfNavOps='1';
+      if(!ops.dataset.dfOpsPermanentBound){
+        ops.dataset.dfOpsPermanentBound='1';
+        ops.addEventListener('click',()=>{
+          if(!document.getElementById('dfFormulaOps')){
+            // O carregamento das OPs é separado; um clique antecipado é respeitado.
+            window.__dfOpenFormulaOpsAfterLoad=true;
+          }
+        });
+      }
     }
     cs.forEach((c,i)=>c.dataset.dfTopic=String(i));
     page.classList.add('dfTopicReady');
-    let sel=nav.querySelector('.dfAutoTopic.on')?.dataset.topic;
+    let sel=nav.querySelector('.dfAutoTopic.on[data-topic]')?.dataset.topic;
     if(sel==null||!cs[Number(sel)])sel='0';
-    activateAutoTopic(page,sel);
+    if(!(page.id==='pgFo'&&document.getElementById('dfFormulaOps')?.classList.contains('on')))activateAutoTopic(page,sel);
   }
 
   function syncFormulaLock(){
