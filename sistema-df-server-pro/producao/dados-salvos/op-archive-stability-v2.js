@@ -1,0 +1,148 @@
+(function(){
+'use strict';
+if(window.DFOpArchiveStabilityV2)return;window.DFOpArchiveStabilityV2=true;
+
+const PAGE_SIZE=20;
+let page=1,lastMonth='',userUntil=0,afterTimer=0;
+const $=id=>document.getElementById(id);
+const validQr=v=>/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim());
+const nativeFragAppend=DocumentFragment.prototype.appendChild;
+const nativeReplaceChildren=Element.prototype.replaceChildren;
+
+function markUser(){userUntil=Date.now()+1200}
+['touchstart','touchmove','pointerdown','wheel'].forEach(ev=>window.addEventListener(ev,markUser,{passive:true,capture:true}));
+window.addEventListener('scroll',markUser,{passive:true});
+
+function addStyle(){
+  if($('dfArchiveStableStyleV2'))return;
+  const s=document.createElement('style');s.id='dfArchiveStableStyleV2';s.textContent=`
+/* A lista antiga continua no DOM para compatibilidade, mas nunca participa do layout. */
+#dfPaneArchive .dfOpsCard > h3,
+#dfPaneArchive .dfOpsCard > .dfOpsTiny,
+#dfPaneArchive .dfOpsCard > #dfZipMonth,
+#dfPaneArchive .dfOpsCard > #dfArchiveList{display:none!important}
+#dfPaneArchive #dfCloudPhotosBox{margin-top:0!important;overflow-anchor:auto!important}
+#dfPaneArchive .dfCloudPhotoRow{overflow-anchor:auto!important;contain:layout style}
+.dfArchiveStableHidden{display:none!important}
+#dfArchiveStablePager{display:flex;align-items:center;justify-content:space-between;gap:7px;margin:10px 0 2px;padding:8px;border:1px solid #263244;background:#0b1324;border-radius:11px;position:sticky;top:8px;z-index:3}
+#dfArchiveStablePager button{border:1px solid #2563eb;background:#10234a;color:#bfdbfe;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:900}
+#dfArchiveStablePager button:disabled{opacity:.4}#dfArchiveStablePager span{font-size:10px;color:#cbd5e1;font-weight:850;text-align:center}
+.dfArchiveHistoryBtn{grid-column:1/-1!important;border:1px solid #475569!important;background:#111827!important;color:#cbd5e1!important}
+`;
+  document.head.appendChild(s);
+}
+function month(){return String($('dfOpMonth')?.value||'').slice(0,7)}
+function rows(host){return Array.from((host||$('dfCloudPhotosRows'))?.querySelectorAll?.(':scope > .dfCloudPhotoRow')||[])}
+function rowId(row){return String(row?.dataset?.photoId||'')}
+function codeFromRow(row){const m=String(row?.textContent||'').match(/DFOP-\d{8}-\d{6}-[A-Z0-9-]+/i);return m?m[0].toUpperCase():''}
+function visibleAnchor(host){
+  if(!$('dfPaneArchive')?.classList.contains('on'))return null;
+  const vh=window.innerHeight||document.documentElement.clientHeight;
+  for(const r of rows(host)){
+    if(r.classList.contains('dfArchiveStableHidden'))continue;
+    const x=r.getBoundingClientRect();
+    if(x.bottom>80&&x.top<vh)return{id:rowId(r),top:x.top};
+  }
+  return null;
+}
+function restoreAnchor(host,a){
+  if(!a?.id||Date.now()<userUntil)return;
+  requestAnimationFrame(()=>{
+    const r=rows(host).find(x=>rowId(x)===a.id);if(!r)return;
+    const d=r.getBoundingClientRect().top-a.top;
+    if(Math.abs(d)>1&&Math.abs(d)<3000)try{window.scrollBy(0,d)}catch(e){}
+  });
+}
+
+// O v3 montava um DocumentFragment movendo para fora do DOM TODAS as linhas existentes.
+// No Safari/iPhone isso faz o documento encolher por um instante e a rolagem é clampada para cima.
+// Aqui, quando a linha já pertence ao arquivo, o fragment recebe apenas um clone de referência.
+// A linha real nunca sai da tela durante a sincronização.
+DocumentFragment.prototype.appendChild=function(node){
+  try{
+    if(node?.nodeType===1&&node.classList?.contains('dfCloudPhotoRow')&&node.parentElement?.id==='dfCloudPhotosRows'){
+      const clone=node.cloneNode(true);clone.dataset.dfStableClone='1';
+      return nativeFragAppend.call(this,clone);
+    }
+  }catch(e){}
+  return nativeFragAppend.call(this,node);
+};
+
+function flattenIncoming(args){
+  const out=[];
+  for(const n of args){
+    if(n?.nodeType===11)out.push(...Array.from(n.childNodes));else if(n!=null)out.push(n);
+  }
+  return out;
+}
+function reconcileHost(host,incoming){
+  const anchor=visibleAnchor(host),existing=rows(host),map=new Map(existing.map(r=>[rowId(r),r]));
+  const desiredRows=incoming.filter(n=>n?.nodeType===1&&n.classList?.contains('dfCloudPhotoRow'));
+  if(!desiredRows.length){nativeReplaceChildren.apply(host,incoming);scheduleAfter();return}
+  const desiredIds=desiredRows.map(rowId).filter(Boolean),wanted=new Set(desiredIds);
+
+  // Retira somente linhas que realmente deixaram de existir no servidor.
+  for(const r of existing)if(!wanted.has(rowId(r)))r.remove();
+
+  // Insere/move apenas o necessário. Nenhum "esvaziar tudo e montar de novo".
+  for(let i=0;i<desiredRows.length;i++){
+    const src=desiredRows[i],id=rowId(src);if(!id)continue;
+    let target=map.get(id);
+    if(!target){target=src;map.set(id,target)}
+    const current=rows(host),at=current[i]||null;
+    if(target.parentNode!==host)host.insertBefore(target,at);
+    else if(at!==target)host.insertBefore(target,at);
+  }
+
+  // Mensagens vazias/auxiliares só são usadas se não houver fotos.
+  host.querySelectorAll(':scope > .dfOpsTiny').forEach(x=>x.remove());
+  scheduleAfter();restoreAnchor(host,anchor);
+}
+Element.prototype.replaceChildren=function(){
+  if(this?.id==='dfCloudPhotosRows'){
+    const incoming=flattenIncoming(Array.from(arguments));
+    reconcileHost(this,incoming);return;
+  }
+  return nativeReplaceChildren.apply(this,arguments);
+};
+
+function decorate(){
+  const host=$('dfCloudPhotosRows');if(!host)return false;
+  for(const row of rows(host)){
+    const code=codeFromRow(row);if(!validQr(code))continue;
+    let box=row.querySelector('.dfCloudPhotoBtns');if(!box)continue;
+    let b=box.querySelector('[data-history-op]');
+    if(!b){b=document.createElement('button');b.type='button';b.className='dfCloudPhotoBtn dfArchiveHistoryBtn';b.textContent='📜 HISTÓRICO DA OP';box.appendChild(b)}
+    b.dataset.historyOp=code;
+  }
+  return true;
+}
+function applyPage(reset){
+  addStyle();const host=$('dfCloudPhotosRows');if(!host)return false;
+  const m=month();if(m&&m!==lastMonth){lastMonth=m;page=1}if(reset)page=1;
+  const all=rows(host),pages=Math.max(1,Math.ceil(all.length/PAGE_SIZE));page=Math.max(1,Math.min(page,pages));
+  const start=(page-1)*PAGE_SIZE,end=start+PAGE_SIZE;
+  all.forEach((r,i)=>r.classList.toggle('dfArchiveStableHidden',i<start||i>=end));
+  let p=$('dfArchiveStablePager');if(!p){p=document.createElement('div');p.id='dfArchiveStablePager';host.parentNode?.insertBefore(p,host)}
+  p.innerHTML='<button id="dfArchiveStablePrev">◀ ANTERIOR</button><span>'+(all.length?`${start+1}–${Math.min(end,all.length)} de ${all.length} fotos • página ${page}/${pages}`:'Nenhuma foto')+'</span><button id="dfArchiveStableNext">PRÓXIMA ▶</button>';
+  const prev=$('dfArchiveStablePrev'),next=$('dfArchiveStableNext');if(prev){prev.disabled=page<=1;prev.onclick=()=>changePage(-1)}if(next){next.disabled=page>=pages;next.onclick=()=>changePage(1)}
+  decorate();return true;
+}
+function changePage(delta){
+  const host=$('dfCloudPhotosRows');if(!host)return;const count=rows(host).length,pages=Math.max(1,Math.ceil(count/PAGE_SIZE));
+  page=Math.max(1,Math.min(page+delta,pages));applyPage(false);
+  const p=$('dfArchiveStablePager');if(p)requestAnimationFrame(()=>p.scrollIntoView({block:'start',behavior:'smooth'}));
+}
+function scheduleAfter(){clearTimeout(afterTimer);afterTimer=setTimeout(()=>{decorate();applyPage(false);try{window.DFOpLifecycleAuthorityV2?.enhance?.()}catch(e){}},30)}
+function boot(){addStyle();setTimeout(()=>applyPage(false),500);setTimeout(()=>applyPage(false),1200)}
+
+document.addEventListener('click',e=>{
+  if(e.target?.closest?.('[data-pane="archive"]'))setTimeout(()=>applyPage(false),120);
+},true);
+document.addEventListener('change',e=>{if(e.target?.id==='dfOpMonth'&&e.isTrusted){page=1;setTimeout(()=>applyPage(true),220)}},true);
+window.addEventListener('df-ui-ready',()=>setTimeout(()=>applyPage(false),500));
+window.addEventListener('pageshow',()=>setTimeout(()=>applyPage(false),350));
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
+window.DFOpArchiveStability={paginate:()=>applyPage(false),reset:()=>applyPage(true)};
+})();

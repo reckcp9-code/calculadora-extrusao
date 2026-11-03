@@ -1,0 +1,133 @@
+(function(){
+  'use strict';
+  if(window.DFUpdateNotifyV1)return;
+  window.DFUpdateNotifyV1=true;
+
+  const SEEN_KEY='df_update_seen_version_v1';
+  const AUTO_KEY='df_update_auto_applied_v1';
+  const CHECK_MS=2*60*1000;
+  let timer=0,updating=false,permHotfixLoaded=false,stabilityLoaded=false;
+
+  function loadStability(){
+    if(stabilityLoaded||window.DFProductionStabilityV1)return;
+    stabilityLoaded=true;
+    try{
+      const s=document.createElement('script');
+      s.src='./production-stability-v1.js?v=20260930-stability-v1';
+      s.async=false;
+      s.onerror=()=>{stabilityLoaded=false};
+      document.head.appendChild(s);
+    }catch(e){stabilityLoaded=false}
+  }
+
+  function loadPermissionHotfix(){
+    if(permHotfixLoaded||window.DFTeamTabPermissionsHotfixV195)return;
+    permHotfixLoaded=true;
+    try{
+      const s=document.createElement('script');
+      s.src='./team-tab-permissions-hotfix-v195.js?v=195&t='+Date.now();
+      s.async=false;
+      s.onerror=()=>{permHotfixLoaded=false};
+      document.head.appendChild(s);
+    }catch(e){permHotfixLoaded=false}
+  }
+
+  async function clearOldShellCaches(){
+    try{
+      if(!('caches' in window))return;
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>
+        k.startsWith('df-app-shell-source-')||
+        k.startsWith('df-app-shell-test-')||
+        k.startsWith('df-extrusor-shell-')
+      ).map(k=>caches.delete(k)));
+    }catch(e){}
+  }
+
+  async function refreshServiceWorker(){
+    try{
+      if(!('serviceWorker' in navigator))return;
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(async r=>{try{await r.update()}catch(e){}}));
+      for(const r of regs){
+        try{if(r.waiting)r.waiting.postMessage({type:'SKIP_WAITING'})}catch(e){}
+      }
+    }catch(e){}
+  }
+
+  async function applyUpdate(v){
+    if(!v||!v.version)return;
+    const current=String(v.version).trim();
+    if(!current)return;
+    // Never force a page reload while an operator is entering production.
+    // Notify once per version; do not clear caches or touch production storage.
+    try{
+      const last=String(localStorage.getItem(SEEN_KEY)||'');
+      if(last===current)return;
+      localStorage.setItem(SEEN_KEY,current);
+      window.DFUpdateAvailableVersion=current;
+      window.dispatchEvent(new CustomEvent('df-update-available',{detail:{version:current}}));
+    }catch(e){}
+  }
+  // A atualização mantém a interface atual até preparar a nova página.
+  // Evita espera indefinida pelo Service Worker no Safari/iPhone.
+  window.dfApplyUpdateManually=async function(){
+    if(updating)return;
+    updating=true;
+    let overlay=null;
+    try{
+      const current=window.DFUpdateAvailableVersion||'';
+      if(current)localStorage.setItem(AUTO_KEY,current);
+      overlay=document.createElement('div');
+      overlay.id='dfUpdateFullScreenStatus';
+      overlay.setAttribute('role','status');
+      overlay.setAttribute('aria-live','polite');
+      overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#080b13;color:#f8fafc;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,sans-serif;text-align:center';
+      overlay.innerHTML='<div><div style="font-size:22px;font-weight:800;margin-bottom:12px">DF EXTRUSOR PRO</div><div style="color:#94a3b8;font-size:15px">Atualizando aplicativo...</div></div>';
+      document.body.appendChild(overlay);
+      // O SW não pode travar o comando de atualização.
+      await Promise.race([refreshServiceWorker(),new Promise(resolve=>setTimeout(resolve,1400))]);
+      const u=new URL(location.href);
+      if(current)u.searchParams.set('v',current);
+      // Preserva as credenciais e os dados; apenas reabre a interface.
+      location.replace(u.toString());
+    }catch(e){
+      if(overlay)overlay.remove();
+      updating=false;
+    }
+  };
+
+  async function check(){
+    loadStability();
+    loadPermissionHotfix();
+    if(updating||document.hidden)return;
+    try{
+      const r=await fetch('./app-version.json?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok)return;
+      const v=await r.json();
+      const current=String(v&&v.version||'').trim();if(!current)return;
+      let seen='';try{seen=String(localStorage.getItem(SEEN_KEY)||'')}catch(e){}
+      if(!seen){
+        try{localStorage.setItem(SEEN_KEY,current);localStorage.setItem(AUTO_KEY,current)}catch(e){}
+        return;
+      }
+      if(seen!==current)await applyUpdate(v);
+    }catch(e){}
+  }
+
+  function start(){
+    loadStability();
+    loadPermissionHotfix();
+    check();
+    clearInterval(timer);
+    timer=setInterval(check,CHECK_MS);
+  }
+
+  window.dfCheckForUpdate=check;
+  loadStability();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  window.addEventListener('pageshow',()=>{loadStability();loadPermissionHotfix();setTimeout(check,250)});
+  window.addEventListener('focus',()=>{loadStability();loadPermissionHotfix();setTimeout(check,150)});
+  window.addEventListener('online',()=>{loadStability();loadPermissionHotfix();setTimeout(check,150)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadStability();loadPermissionHotfix();setTimeout(check,120)}});
+})();

@@ -1,0 +1,13 @@
+{
+  "version": "1.0.248",
+  "status": "estavel-aprovada",
+  "approvedAt": "2026-10-05T00:53:00-03:00",
+  "scope": "producao",
+  "notes": "Versão aprovada pelo usuário. PDF da OP em A4 paisagem, 1 página, usando o gerador producao-pdf-native-v6.js. Manter esta versão como ponto seguro para rollback antes de novos ajustes.",
+  "files": {
+    "appVersion": "app-version.json",
+    "productionPage": "op-producao.html",
+    "pdfLoader": "producao-pdf-native-v1.js",
+    "pdfGenerator": "producao-pdf-native-v6.js"
+  }
+}
