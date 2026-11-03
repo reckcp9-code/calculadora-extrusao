@@ -1,6 +1,6 @@
 {
-  "version": "1.0.755",
+  "version": "1.0.756",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Estabilidade de sincronização da equipe: menos consultas simultâneas, membros preservados e histórico oficial mantido no D1.",
+  "message": "Consulta do mês histórico selecionado diretamente no servidor D1, sincronização de equipes sem sobrescrever registros locais.",
   "updatedAt": "2026-11-03"
 }
