@@ -3,12 +3,19 @@ if(window.DFOpTeamSyncCoordinatorV1)return;
 window.DFOpTeamSyncCoordinatorV1=true;
 const PERIOD=7000,REQUEST_TIMEOUT=8500;
 let busy=false,last=0,pending=false,attempt=0,booted=false;
+const inflight=new Map();
 function team(key){try{return key==='production'?JSON.parse(localStorage.getItem('df_producao_team_v2')||'null'):(window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null'))}catch(e){return null}}
 function notify(detail){try{window.dispatchEvent(new CustomEvent('df-op-team-sync-result',{detail}))}catch(e){}}
-async function limited(fn,name){let timeout;try{
- const result=await Promise.race([Promise.resolve().then(fn),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error(name+' timeout')),REQUEST_TIMEOUT)})]);
+async function limited(fn,name){let timeout;
+ // Uma requisição lenta pode continuar após o timeout visual. Nunca duplicá-la.
+ if(inflight.has(name))return{ok:false,name,error:'request still in progress'};
+ const running=Promise.resolve().then(fn);
+ inflight.set(name,running);
+ running.then(()=>{if(inflight.get(name)===running)inflight.delete(name)},()=>{if(inflight.get(name)===running)inflight.delete(name)});
+ try{
+ const result=await Promise.race([running,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error(name+' timeout')),REQUEST_TIMEOUT)})]);
  return{ok:result!==false,name};
-}catch(e){return{ok:false,name,error:String(e?.message||e)}}finally{clearTimeout(timeout)}}
+ }catch(e){return{ok:false,name,error:String(e?.message||e)}}finally{clearTimeout(timeout)}}
 async function sync(force){
  if(navigator.onLine===false||document.hidden)return false;
  if(busy){pending=true;return false}
@@ -28,7 +35,9 @@ async function sync(force){
  if(team('production')?.teamId&&window.DFProducaoEquipeOnline?.pull)jobs.push(['production-d1',()=>window.DFProducaoEquipeOnline.pull()]);
  // Independent modules: one slow photo upload cannot block D1 record sync.
  results=await Promise.all(jobs.map(([name,fn])=>limited(fn,name)));
- const ok=results.length>0&&results.every(x=>x.ok);
+ // Fotos são auxiliares; uma falha nelas não invalida OPs sincronizadas.
+ const essential=results.filter(x=>['formula-d1','formulas-d1','production-d1'].includes(x.name));
+ const ok=essential.length>0&&essential.every(x=>x.ok);
  if(ok){last=Date.now();attempt=0}else attempt=Math.min(5,attempt+1);
  notify({ok,steps:results.length,modules:results});
  return ok;
