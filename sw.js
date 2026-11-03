@@ -34,11 +34,24 @@ async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — N
 // Install only the entry shell. Large modules are cached as users open them;
 // precaching every module simultaneously caused unnecessary network/CPU pressure.
 const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./df-viewport-responsive-lock-v1.js','./manifest.webmanifest','./app-version.json','./logo.svg','./device-identity.js','./auto-access.js','./performance-guard-v3.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./op-ready-fullscreen-v1.js','./op-team-panel-collapse-v1.js','./op-monthly-photo-editor-v1.js','./op-product-history-search-v1.js','./op-ui-integrity-v1.js','./team-license-restore-v1.js','./op-producao.html','./producao-stable-flow-v3.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js'];
+const BUILD_VERSION='20261103-saas-stable-v753';
+const VERSIONED_BOOT=['./app-shell.html','./auto-access.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./team-license-restore-v1.js','./op-team-panel-collapse-v1.js','./op-ready-fullscreen-v1.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-agora-maquinas-v1.js'];
 async function precache(){
  const cache=await caches.open(DF_CACHE);
- for(const url of BOOT_CACHE){
-  try{const req=new Request(url,{cache:'reload'});const res=await fetch(req,{cache:'no-store'});if(res&&res.ok)await cache.put(req,res.clone())}catch(e){}
- }
+ const urls=[...new Set([...BOOT_CACHE,...VERSIONED_BOOT.map(p=>p+'?v='+BUILD_VERSION)])];
+ let cursor=0;
+ // Sem bloqueio sequencial de dezenas de arquivos em redes móveis.
+ const workers=Array.from({length:5},async()=>{
+  while(cursor<urls.length){
+   const url=urls[cursor++];
+   try{
+    const req=new Request(url,{cache:'reload'});
+    const res=await fetch(req,{cache:'no-store'});
+    if(res&&res.ok)await cache.put(req,res.clone());
+   }catch(e){}
+  }
+ });
+ await Promise.all(workers);
 }
 async function cached(req){const cache=await caches.open(DF_CACHE);return cache.match(req,{ignoreSearch:true})}
 async function fetchWithTimeout(req,timeout=3500){let controller=null,timer=null;try{if('AbortController'in self){controller=new AbortController();timer=setTimeout(()=>controller.abort(),timeout)}let netReq=req;try{netReq=new Request(req,{cache:'no-store',signal:controller?controller.signal:undefined})}catch(e){}return await fetch(netReq,{cache:'no-store',signal:controller?controller.signal:undefined})}finally{if(timer)clearTimeout(timer)}}
