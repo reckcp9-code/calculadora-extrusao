@@ -1,6 +1,6 @@
 {
-  "version": "1.0.778",
+  "version": "1.0.779",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção do botão EXCLUIR de formulações salvas: prioridade do evento e exclusão confirmada no D1.",
+  "message": "Correção prioritária do botão EXCLUIR antes dos scripts legados, com mensagem explícita em caso de falha.",
   "updatedAt": "2026-11-03"
 }
