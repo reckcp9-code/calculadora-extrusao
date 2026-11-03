@@ -1,6 +1,6 @@
 {
-  "version": "1.0.740",
-  "title": "DF EXTRUSOR PRO — Sincronização de cadastros mais rápida",
-  "message": "Máquinas e produtos da Equipe de Produção agora são enviados sem aguardar OPs/fotos, e atualizados no operador assim que o catálogo remoto chega.",
+  "version": "1.0.741",
+  "title": "DF EXTRUSOR PRO — AGORA somente máquinas cadastradas",
+  "message": "AGORA da Produção mostra exclusivamente máquinas do cadastro oficial da equipe; OPs antigas não recriam máquinas ou produtos. Histórico e totais preservados.",
   "updatedAt": "2026-11-02"
 }
