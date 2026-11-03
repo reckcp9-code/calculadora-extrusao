@@ -6,7 +6,7 @@ const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const TOKEN_KEY='df_secure_token_v2',DEVICE_KEY='df_licenseauth_device_v1',ACCESS_KEY='df_auto_access_credential_v1';
 const OPS_KEY='df_formula_ops_auto_v2',TEAM_KEY='df_op_team_v1',TOMB_KEY='df_deleted_ops_v1';
 const QUEUE_KEY='df_op_server_queue_v1',MIG_PREFIX='df_op_d1_migrated_v1:';
-let syncing=false,flushing=false,migrating=false,timer=0,lastPull=0,supported=null,lastSummary=null,currentMonth='',booted=false;let pendingRecords=[];
+let syncing=false,flushing=false,migrating=false,timer=0,lastPull=0,supported=null,lastSummary=null,currentMonth='',booted=false;let pendingRecords=[],pendingPull=null,emptyResultMonth='',emptyResultCount=0;
 const $=id=>document.getElementById(id);
 const norm=v=>String(v||'').trim().toUpperCase();
 const validQr=v=>/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/i.test(String(v||'').trim());
@@ -63,7 +63,38 @@ function applyServerMonth(month,records,summary){
   try{const formulaKey='df_formula_ops_auto_v2',formulaOps=JSON.parse(localStorage.getItem(formulaKey)||'[]'),stateById=new Map(server.map(r=>[norm(r?.opCode),String(r?.state||'ready')]));let formulaChanged=false;for(const o of formulaOps){const id=norm(o?.id||o?.qr);if(!stateById.has(id))continue;const ready=stateById.get(id)==='ready',nextStatus=ready?'ok':'pending';if(o.status!==nextStatus){o.status=nextStatus;o.reasons=ready?[]:['Aguardando conferência do dono da equipe'];formulaChanged=true}}if(formulaChanged){localStorage.setItem(formulaKey,JSON.stringify(formulaOps));try{window.dispatchEvent(new CustomEvent('df-op-formula-status',{detail:{month}}))}catch(e){}}}catch(e){}pendingRecords=server.filter(x=>x?.state==='pending');renderApprovalPanel();emitStatus();return changed
 }
 
-async function pullMonth(force,month){const t=team();if(!t?.teamId||syncing||navigator.onLine===false||document.hidden)return false;month=String(month||selectedMonth()).slice(0,7);if(!force&&month===currentMonth&&Date.now()-lastPull<20000)return true;syncing=true;try{await migrateOnce();if(supported===false)return false;await flushQueue();const j=await apiPost('/op/record/list',{teamId:t.teamId,month,includeDeleted:true});supported=true;lastPull=Date.now();applyServerMonth(month,j.records||[],j.summary||null);return true}catch(e){if(Number(e?.status)===404)supported=false;emitStatus();return false}finally{syncing=false}}
+async function pullMonth(force,month){
+ const t=team();
+ if(!t?.teamId||navigator.onLine===false||document.hidden)return false;
+ month=String(month||selectedMonth()).slice(0,7);
+ if(syncing){pendingPull={month,force:true};return false}
+ if(!force&&month===currentMonth&&Date.now()-lastPull<20000)return true;
+ syncing=true;
+ try{
+  await migrateOnce();
+  if(supported===false)return false;
+  await flushQueue();
+  const j=await apiPost('/op/record/list',{teamId:t.teamId,month,includeDeleted:true});
+  if(!Array.isArray(j.records))throw new Error('Resposta de OPs invalida; preservando registros do aparelho.');
+  // Uma resposta vazia isolada nao pode apagar a lista de Prontas do celular.
+  const localReady=localOps().some(o=>recordMonth(o)===month&&completed(o));
+  if(!j.records.length&&localReady){
+   const key=String(t.teamId)+':'+month;
+   emptyResultCount=emptyResultMonth===key?emptyResultCount+1:1;
+   emptyResultMonth=key;
+   if(emptyResultCount<2){schedule(1200,true,month);return false}
+  }else{emptyResultMonth='';emptyResultCount=0}
+  supported=true;lastPull=Date.now();
+  applyServerMonth(month,j.records,j.summary||null);
+  return true;
+ }catch(e){
+  if(Number(e?.status)===404)supported=false;
+  emitStatus();return false;
+ }finally{
+  syncing=false;
+  if(pendingPull){const next=pendingPull;pendingPull=null;setTimeout(()=>pullMonth(true,next.month),180)}
+ }
+}
 function schedule(ms,force,month){clearTimeout(timer);timer=setTimeout(()=>pullMonth(!!force,month),ms==null?250:ms)}
 
 async function onSaved(rec){if(!rec||(!completed(rec)&&rec.status!=='pending'))return;const t=team();if(!t?.teamId)return;const p=recordPayload(rec);if(rec.cloudPhotoId)p.requestKey='photo:'+p.opCode+':'+String(rec.cloudPhotoId);const key=p.requestKey;enqueue('upsert',p,key);if(navigator.onLine!==false){await flushQueue();schedule(250,true,String(p.localDate||'').slice(0,7)||selectedMonth())}}
