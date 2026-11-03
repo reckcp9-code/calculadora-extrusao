@@ -102,12 +102,16 @@ async function deleteTeamFormulaConfirmed(f){const t=team();const id=String(f.id
 function selectedFormula(){const id=$('foSavedSelect')?.value;return localForms().find(f=>String(f?.id)===String(id))}
  // Um único controlador de exclusão, antes dos handlers antigos do app-bundle.
  // Captura tanto o botão da lista quanto o botão da ficha de fórmula.
+ // Captura no WINDOW antes dos handlers legados do DOCUMENT (que bloqueiam propagação).
+ // Não depende da ordem em que os scripts antigos foram registrados.
  window.addEventListener('click',e=>{
  const b=e.target?.closest?.('[data-delform],[data-fosafe="del"]');if(!b)return;
  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
- const id=b.dataset.delform||$('foSavedSelect')?.value;
- const f=localForms().find(x=>String(x.id)===String(id));
- if(f)deleteTeamFormula(f);
+ const id=String(b.dataset.delform||$('foSavedSelect')?.value||'');
+ const f=localForms().find(x=>String(x.id)===id);
+ if(!f){status('⚠️ Formulação não encontrada. Atualize a lista e tente novamente.','warn');return}
+ if(!team()?.teamId){status('⚠️ Conecte a equipe para excluir definitivamente do D1.','warn');return}
+ deleteTeamFormula(f);
  },true);
 
 function boot(){addStyle();lastHash=hashForms(localForms());if(pendingFormulaIds.size)setTimeout(schedulePush,1400);setTimeout(()=>{ensureStatus();ensureSuggest()},700);setTimeout(()=>sync(true),1800);document.addEventListener('input',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('focusin',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('click',e=>{const b=e.target?.closest?.('[data-dfformula]');if(b){e.preventDefault();e.stopPropagation();const f=localForms().find(x=>String(x?.id)===String(b.dataset.dfformula));applyFormula(f);return}if(!e.target?.closest?.('#foNome,#dfFormulaSuggest'))$('dfFormulaSuggest')?.classList.remove('on');if(e.target?.closest?.('#btFo,#dfFormTabCore,#dfCloudRefresh,#foSaved'))setTimeout(()=>sync(true),250)},true);['df-team-joined','df-team-changed','df-team-materials-updated','online','pageshow','focus'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>sync(true),320)));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>sync(false),350)});setInterval(()=>{if(!document.hidden&&team()?.teamId&&Date.now()-lastPull>8500)sync(false)},10000)}
