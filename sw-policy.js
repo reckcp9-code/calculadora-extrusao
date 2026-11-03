@@ -22,4 +22,5 @@ self.registration.showNotification=async function(title,options){
   return dfOriginalShowNotification(title,opts);
 };
 
-importScripts('./sw.js');
+// O wrapper é atualizado a cada release; o import não pode permanecer em cache antigo.
+importScripts('./sw.js?v=20261103-saas-stable-v753');
