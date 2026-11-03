@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v752-key-unblock-both';
+const DF_CACHE='df-extrusor-shell-v753-atomic-version';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -46,14 +46,15 @@ async function updateCached(req){try{const cache=await caches.open(DF_CACHE);con
 async function networkFirst(req){
  const cache=await caches.open(DF_CACHE);
  try{
-  const res=await fetchWithTimeout(req,3500);
+  const res=await fetchWithTimeout(req,8500);
   if(!res||(!res.ok&&res.type!=='opaque'))throw new Error('Recurso indisponivel');
   cache.put(req,res.clone()).catch(()=>{});
   return res;
  }catch(e){
   // Nunca combinar dois builds diferentes por ignorar ?v nas bibliotecas.
-  const url=new URL(req.url),isBoot=BOOT_CACHE.some(p=>new URL(p,self.registration.scope).pathname===url.pathname);
-  const hit=await cache.match(req,{ignoreSearch:!url.searchParams.has('v')||isBoot});
+  const url=new URL(req.url);
+  // Uma URL com ?v nunca aceita arquivos de outra versão, nem do precache.
+  const hit=await cache.match(req,{ignoreSearch:!url.searchParams.has('v')});
   if(hit)return hit;
   return new Response('Recurso da versao atual indisponivel. Tente novamente com internet.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
  }
