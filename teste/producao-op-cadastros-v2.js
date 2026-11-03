@@ -86,7 +86,7 @@ function renameMachine(oldName,newName){
  if(sec.deletedMachines){delete sec.deletedMachines[norm(newName)];delete sec.deletedMachines[old]}
  write(d)
 }
-function removeMachine(name){const d=read(),s=sector(),target=norm(name);if(!target)return;const sec=d[s];sec.deletedMachines=sec.deletedMachines||{};sec.deletedMachines[target]=Date.now();sec.machines=(sec.machines||[]).filter(v=>norm(v)!==target);Object.keys(sec.machineProducts||{}).forEach(k=>{if(norm(k)===target)delete sec.machineProducts[k]});write(d);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}
+function removeMachine(name){const d=read(),s=sector(),target=norm(name);if(!target)return;const sec=d[s];sec.deletedMachines=sec.deletedMachines||{};sec.deletedMachines[target]=Date.now();sec.machines=(sec.machines||[]).filter(v=>norm(v)!==target);/* Preservar o vínculo histórico dos produtos ao excluir a máquina: não espalhar seus produtos para outras máquinas. */write(d);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}
 function saveProduct(name,measure,oldName,machine){
  unmarkDeleted(name);
  const d=read(),s=sector(),sec=d[s],links=sec.machineProducts||(sec.machineProducts={});
