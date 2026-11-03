@@ -65,6 +65,14 @@ jobs:
           assert.match(startup, /df_production_history_month_v1/, 'Restart must retain the chosen month');
           console.log('Fotos and Prontas regression guards passed');
           NODE
+      - name: Testar restauracao de Prontas e botao da equipe
+        run: |
+          node --check op-ui-integrity-v1.js
+          node --check op-team-panel-collapse-v1.js
+          node --check op-ready-fullscreen-v1.js
+          node --check op-cloud-team-v3.js
+          node --check op-team-code-pwa-v166.js
+          node tests/op-ui-integrity.test.js
       - name: Validate startup references and app version
         run: |
           node <<'NODE'
