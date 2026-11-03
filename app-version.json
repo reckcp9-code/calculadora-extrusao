@@ -1,6 +1,6 @@
 {
-  "version": "1.0.751",
+  "version": "1.0.752",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Equipes e dados restaurados da nuvem: autenticação Dono validada no D1, OPs e meses anteriores sincronizados, catálogo de máquinas recuperado e recarregamento único após troca de aparelho.",
+  "message": "Correção de acesso e sincronização de equipes após troca de aparelho: Formulação e Produção, OPs e histórico dos últimos três meses. Atualização automática de sessão e proteção contra reset antigo.",
   "updatedAt": "2026-11-03"
 }
