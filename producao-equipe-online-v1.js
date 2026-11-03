@@ -6,6 +6,5 @@ document.write('<script src="./producao-equipe-area-guard-v2.js?v=20261005-prod-
 document.write('<script src="./producao-equipe-recovery-v1.js?v=20261005-team-recovery-v254"><\/script>');
 document.write('<script src="./producao-equipe-separada-v2.js?v=20261102-production-notice-v737"><\/script>');
 document.write('<script src="./producao-prontas-sync-v1.js?v=20261006-prontas-fix-v286"><\/script>');
-document.write('<script src="./producao-opqr-minimizar-v1.js?v=20261005-opqr-min-v254"><\/script>');
 document.write('<script src="./producao-excluir-op-sync-v1.js?v=20261005-delete-sync-v254"><\/script>');
 })();
