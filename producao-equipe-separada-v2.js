@@ -362,7 +362,17 @@ async function syncRemote(includePrevious){if(leavingProductionTeam||historyBusy
   }
   return rows;
  }));
- const [official,legacy]=await Promise.all([pullOfficialRecords(t),Promise.allSettled(monthly)]);let all=[];for(const item of legacy){if(item.status==='fulfilled')all.push(...item.value);else console.warn('Consulta mensal indisponível; registros oficiais D1 preservados:',String(item.reason))}if(withPrevious&&legacy.every(x=>x.status==='fulfilled'))lastPrevPull=Date.now();const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverOperatorsFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);serverValidatedForTeam=String(t.teamId);
+ // O estado oficial de baixas/exclusões é prioritário: exiba imediatamente,
+ // sem esperar quatro meses de fotos e histórico terminarem.
+ const official=await pullOfficialRecords(t);
+ if(team()?.teamId!==t.teamId)return false;
+ const fastPhotos=mergePhotoMap(official.photos);
+ if(applyRemoteStates(official.states,fastPhotos,t))refreshUi();
+ serverValidatedForTeam=String(t.teamId);
+ setStatus('🔄 Baixas oficiais atualizadas • carregando histórico da equipe...','');
+ const legacy=await Promise.allSettled(monthly);
+ if(team()?.teamId!==t.teamId)return false;
+ let all=[];for(const item of legacy){if(item.status==='fulfilled')all.push(...item.value);else console.warn('Consulta mensal indisponível; registros oficiais D1 preservados:',String(item.reason))}if(withPrevious&&legacy.every(x=>x.status==='fulfilled'))lastPrevPull=Date.now();const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverOperatorsFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);serverValidatedForTeam=String(t.teamId);
  try{localStorage.setItem(SERVER_REFRESH_KEY,JSON.stringify({teamId:t.teamId,at:Date.now()}))}catch(_e){}
  setStatus('✅ EQUIPE DE PRODUÇÃO online • dados atualizados.','ok');return true}catch(e){setStatus('⚠️ Equipe de Produção aguardando sincronização: '+String(e?.message||e),'warn');return false}finally{pullBusy=false}}
 // Recupera OPs abertas diretamente da tabela oficial production_saved_ops.
