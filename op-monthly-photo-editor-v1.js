@@ -51,7 +51,28 @@ function render(){
  if(sig===lastSig&&host.dataset.dfPhotoRendered==='1')return;
  lastSig=sig;host.dataset.dfPhotoRendered='1';
  const fragment=document.createDocumentFragment();
- if(!rows.length){const msg=document.createElement('div');msg.className='dfOpsTiny';msg.style.margin='16px 0';msg.textContent=busy?'Carregando as OPs do D1. A lista anterior não será apagada.':'Não há fotos de OPs prontas para este período. Selecione outro mês acima.';fragment.appendChild(msg)}
+ if(!rows.length){
+  const msg=document.createElement('div');msg.className='dfOpsTiny';msg.style.margin='16px 0';
+  msg.textContent=busy?'Carregando as OPs do D1. A lista anterior não será apagada.':'Não há fotos de OPs prontas no mês selecionado. As fotos de outros meses continuam disponíveis.';
+  fragment.appendChild(msg);
+  if(!busy&&!q){
+    const all=load(OPS,[]),months=[...new Set((Array.isArray(all)?all:[]).filter(o=>o?.status==='ok'&&code(o)&&!tombstones()[code(o)]).map(month).filter(validMonth))].filter(v=>v!==selected).sort().reverse();
+    const previous=months.find(v=>rowsFor(v).length>0);
+    if(previous){
+      const count=rowsFor(previous).length;
+      const label=new Date(Number(previous.slice(0,4)),Number(previous.slice(5,7))-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      const btn=document.createElement('button');btn.type='button';btn.className='dfOpsBtn alt';
+      btn.style.margin='6px 0 14px';btn.textContent='📅 VER '+label.toUpperCase()+' • '+count+' OP'+(count===1?'':'s');
+      btn.onclick=()=>{
+        localStorage.setItem(MONTH_KEY,previous);
+        const global=$('dfOpMonth');if(global&&global.value!==previous){global.value=previous;global.dispatchEvent(new Event('change',{bubbles:true}))}
+        window.dispatchEvent(new CustomEvent('df-production-month-changed',{detail:{month:previous}}));
+        lastSig='';render();refreshRemote(true);
+      };
+      fragment.appendChild(btn);
+    }
+  }
+}
  rows.forEach(o=>{
   const row=document.createElement('div');row.className='dfMonthlyRow';
   row.innerHTML='<strong>'+esc(name(o))+'</strong><div style="font-size:12px;color:#94a3b8;overflow-wrap:anywhere">'+esc(code(o))+'</div><div>Produção: '+esc(o.produzido||0)+' kg • Apara: '+esc(o.apara||0)+' kg</div><button type="button">📸 ABRIR FOTO DA NUVEM</button><button type="button" class="dfMonthlyEditOp">✏️ EDITAR OP</button>';
