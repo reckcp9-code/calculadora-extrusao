@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const PROD_DEST='./op-producao.html?v=20261103-sync-stability-guard-v759';
+  const PROD_DEST='./op-producao.html?v=20261103-official-op-first-v760';
 
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
