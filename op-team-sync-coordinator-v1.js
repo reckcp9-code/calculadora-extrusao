@@ -2,13 +2,13 @@
 if(window.DFOpTeamSyncCoordinatorV1)return;
 window.DFOpTeamSyncCoordinatorV1=true;
 const PERIOD=7000,REQUEST_TIMEOUT=8500;
-let busy=false,last=0,pending=false,attempt=0,booted=false;
+let busy=false,last=0,pending=false,attempt=0,booted=false,everSynced=false,consecutiveFailures=0;
 const inflight=new Map();
 function team(key){try{return key==='production'?JSON.parse(localStorage.getItem('df_producao_team_v2')||'null'):(window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null'))}catch(e){return null}}
 function notify(detail){try{window.dispatchEvent(new CustomEvent('df-op-team-sync-result',{detail}))}catch(e){}}
 async function limited(fn,name){let timeout;
  // Uma requisição lenta pode continuar após o timeout visual. Nunca duplicá-la.
- if(inflight.has(name))return{ok:false,name,error:'request still in progress'};
+ if(inflight.has(name))return{ok:true,name,inProgress:true};
  const running=Promise.resolve().then(fn);
  inflight.set(name,running);
  running.then(()=>{if(inflight.get(name)===running)inflight.delete(name)},()=>{if(inflight.get(name)===running)inflight.delete(name)});
@@ -38,8 +38,10 @@ async function sync(force){
  // Fotos são auxiliares; uma falha nelas não invalida OPs sincronizadas.
  const essential=results.filter(x=>['formula-d1','formulas-d1','production-d1'].includes(x.name));
  const ok=essential.length>0&&essential.every(x=>x.ok);
- if(ok){last=Date.now();attempt=0}else attempt=Math.min(5,attempt+1);
- notify({ok,steps:results.length,modules:results});
+ if(ok){last=Date.now();attempt=0;everSynced=true;consecutiveFailures=0}else{attempt=Math.min(5,attempt+1);consecutiveFailures++}
+ // Falhas transitórias de uma rodada não devem alternar o indicador de sincronizado.
+ // A conectividade e as filas pendentes continuam reportadas separadamente.
+ notify({ok:ok||(everSynced&&consecutiveFailures<3&&navigator.onLine!==false),verified:ok,stale:!ok,steps:results.length,modules:results});
  return ok;
  }catch(e){notify({ok:false,error:String(e?.message||e),modules:results});return false}
  finally{busy=false;if(pending){pending=false;setTimeout(()=>sync(true),Math.min(12000,1000*2**Math.min(attempt,4)))}}}
@@ -56,5 +58,5 @@ function quickStart(){if(booted)return;booted=true;setTimeout(()=>sync(true),80)
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',quickStart,{once:true});else quickStart();
 window.addEventListener('pageshow',()=>setTimeout(()=>sync(true),120));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>sync(true),120)});
-window.DFOpTeamSyncCoordinator={sync,status:()=>({busy,last,attempt})};
+window.DFOpTeamSyncCoordinator={sync,status:()=>({busy,last,attempt,everSynced,consecutiveFailures})};
 })();
