@@ -79,6 +79,10 @@ jobs:
           node --check team-license-restore-v1.js
           node --check .github/workers/df-team-license-restore-v1.js
           node tests/team-license-restore.test.js
+      - name: Conferir serviço de restauração na Cloudflare
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 --max-time 15 'https://df-team-license-restore-v1.reck-cp9.workers.dev/health' | grep -q '"ok":true'
       - name: Validate startup references and app version
         run: |
           node <<'NODE'
