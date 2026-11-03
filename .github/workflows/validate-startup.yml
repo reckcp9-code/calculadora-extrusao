@@ -87,6 +87,8 @@ jobs:
             -X POST 'https://df-team-license-restore-v1.reck-cp9.workers.dev/restore' \
             -H 'Origin: https://app.dfextrusor.com.br' -H 'Content-Type: application/json' \
             --data '{"credential":"INVALID-CREDENTIAL-CI-ONLY","deviceId":"invalid-ci-device-id"}')
+          echo "Worker de recuperação respondeu HTTP $code ao acesso inválido de teste"
+          cat /tmp/df-team-unauthorized.json
           test "$code" = "401"
       - name: Validate startup references and app version
         run: |
