@@ -1,6 +1,6 @@
 {
-  "version": "1.0.775",
+  "version": "1.0.776",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Inicialização direta na interface nova e melhorias no PDF técnico de formulação.",
+  "message": "Estabilidade do coordenador de sincronização: requisições simultâneas e confirmação separada do estado visual.",
   "updatedAt": "2026-11-03"
 }
