@@ -50,7 +50,8 @@ function recordMonth(o){const d=String(o?.data||'').slice(0,7);if(/^\d{4}-\d{2}$
 function applyServerMonth(month,records,summary){
   if(!/^\d{4}-\d{2}$/.test(month))return false;const old=localOps(),oldBy=new Map();for(const o of old){const id=opId(o);if(id&&!oldBy.has(id))oldBy.set(id,o)}
   const tombs=localTombs(),server=Array.isArray(records)?records:[],serverIds=new Set(server.map(x=>norm(x?.opCode)).filter(validQr));
-  const next=old.filter(o=>{const id=opId(o);if(!id)return true;if(recordMonth(o)!==month)return true;if(!completed(o)&&o.d1State!=='pending')return true;return false});
+  // Atualizacao incremental: uma lista parcial ou vazia nunca apaga OPs locais. Somente IDs oficiais substituem ou removem registros.
+  const next=old.filter(o=>{const id=opId(o);if(!id||recordMonth(o)!==month)return true;return !serverIds.has(id)&&!tombs[id]});
   let changed=false;
   for(const sr of server){const id=norm(sr?.opCode);if(!validQr(id))continue;if(String(sr?.state||'ready')==='deleted'){const at=stamp(sr?.deletedAt)||Date.now();const prev=tombs[id];if(!prev||Number(prev.at||0)!==at||!prev.server){tombs[id]={at,server:true,cloudIds:sr?.photoId?[String(sr.photoId)]:[],produto:clean(sr?.productName),produzido:num(sr?.production),apara:num(sr?.scrap)};changed=true}continue}
     if(tombs[id]){delete tombs[id];changed=true}
@@ -82,7 +83,7 @@ async function pullMonth(force,month){
    const key=String(t.teamId)+':'+month;
    emptyResultCount=emptyResultMonth===key?emptyResultCount+1:1;
    emptyResultMonth=key;
-   if(emptyResultCount<2){schedule(1200,true,month);return false}
+   if(emptyResultCount<3){schedule(3000,true,month);return false}
   }else{emptyResultMonth='';emptyResultCount=0}
   supported=true;lastPull=Date.now();
   applyServerMonth(month,j.records,j.summary||null);
