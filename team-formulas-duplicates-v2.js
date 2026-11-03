@@ -96,7 +96,13 @@ if(!migrationDone){
 }
 clearRestoredLocalTombstones(j.formulas||[]);
 const server=newestFirst(serverForms(j.formulas||[]));
-if(hashForms(server)!==hashForms(localForms())){
+ // Recuperação de um salvamento recente que permaneceu só no aparelho:
+ // jamais reenviar tombstones ou toda a biblioteca antiga.
+ const knownServer=new Set(server.map(f=>String(f.id)));
+ for(const f of localForms()){
+   if(!knownServer.has(String(f.id))&&!deletedIds().has(String(f.id))&&!window.DFFormulaTombstones?.isDeleted?.(String(f.id))&&createdStamp(f)>Date.now()-3*86400000)markPending(f.id);
+ }
+ if(hashForms(server)!==hashForms(localForms())){
  // Uma fórmula criada enquanto a consulta estava em voo nunca pode ser substituída por um snapshot antigo.
  const pending=localForms().filter(f=>pendingFormulaIds.has(String(f.id))||(localRevision!==startRevision&&!server.some(x=>identity(x)===identity(f))));
  applyServer(server,pending);
