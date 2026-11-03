@@ -365,6 +365,33 @@ async function syncRemote(includePrevious){if(leavingProductionTeam||historyBusy
  const [official,legacy]=await Promise.all([pullOfficialRecords(t),Promise.allSettled(monthly)]);let all=[];for(const item of legacy){if(item.status==='fulfilled')all.push(...item.value);else console.warn('Consulta mensal indisponível; registros oficiais D1 preservados:',String(item.reason))}if(withPrevious&&legacy.every(x=>x.status==='fulfilled'))lastPrevPull=Date.now();const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverOperatorsFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);serverValidatedForTeam=String(t.teamId);
  try{localStorage.setItem(SERVER_REFRESH_KEY,JSON.stringify({teamId:t.teamId,at:Date.now()}))}catch(_e){}
  setStatus('✅ EQUIPE DE PRODUÇÃO online • dados atualizados.','ok');return true}catch(e){setStatus('⚠️ Equipe de Produção aguardando sincronização: '+String(e?.message||e),'warn');return false}finally{pullBusy=false}}
+// Recupera OPs abertas diretamente da tabela oficial production_saved_ops.
+const CANONICAL_QUEUE_KEY='df_producao_saved_ops_canonical_queue_v1';
+function restoreCanonicalSavedOps(items,teamId){
+ const t=team();
+ if(!t?.teamId||t.teamId!==teamId||!Array.isArray(items))return false;
+ const saved=ops(),seen=new Set(saved.map(x=>norm(x?.id))),snap=read(SNAP_KEY,{});
+ let added=0;
+ for(const entry of items){
+  const raw=entry?.op,id=norm(raw?.id);
+  if(!raw||!/^DFOP-\d{8}-[A-Z0-9-]+$/.test(id)||String(raw.status||'open')!=='open'||seen.has(id))continue;
+  const op={...raw,id,status:'open',productionTeamId:t.teamId,teamUpdatedAt:String(entry.updatedAt||'')};
+  saved.push(op);seen.add(id);
+  const state=normalizedState(op,null);
+  snap[id]={teamId:t.teamId,hash:hash(state),ts:time(entry.updatedAt),updatedAt:String(entry.updatedAt||'')};
+  registerQR(op);
+  added++;
+ }
+ if(added){write(OPS_KEY,orderOps(saved));write(SNAP_KEY,snap);refreshUi()}
+ return true;
+}
+function processCanonicalQueue(){
+ const pending=read(CANONICAL_QUEUE_KEY,null);
+ if(pending?.teamId&&team()?.teamId===pending.teamId&&Array.isArray(pending.ops)){
+  const handled=restoreCanonicalSavedOps(pending.ops,pending.teamId);
+  if(handled)remove(CANONICAL_QUEUE_KEY);
+ }
+}
 function schedulePull(ms,prev){clearTimeout(pullTimer);pullTimer=setTimeout(()=>syncRemote(!!prev),ms==null?500:ms)}
 
 let viewerUrl='';function closeViewer(){const m=$('dfProdTeamV2Viewer');if(m)m.classList.remove('on');if(viewerUrl){try{URL.revokeObjectURL(viewerUrl)}catch(e){}viewerUrl=''}}
@@ -591,7 +618,7 @@ async function initialSync(){if(!team())return;
  else if(team()?.teamId===t.teamId){setStatus('⚠️ Sem confirmação do D1. Os dados locais foram preservados; sincronização será repetida quando houver conexão.','warn');}
  refreshMembers(true)
 }
-function boot(){let n=0,t=setInterval(()=>{if(ensureHost()||++n>70){clearInterval(t);if(team())initialSync()}},120);document.addEventListener('click',afterLocalAction,true);document.addEventListener('click',interceptCloudPhoto,true);window.addEventListener('df-producao-catalog-local-changed',()=>{if(String(team()?.role||'').toLowerCase()==='owner'){publishCatalogNow(false)}else schedulePull(250,false);schedulePush(650,false)});window.addEventListener('df-producao-auto-saved',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,true)});window.addEventListener('df-producao-auto-deleted',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,false)});window.addEventListener('online',()=>{schedulePull(150,true);setTimeout(()=>{if(serverValidatedForTeam===String(team()?.teamId||''))schedulePush(300,false)},800)});window.addEventListener('offline',()=>setStatus('📴 Sem internet. As alterações ficam neste aparelho até a conexão voltar.','warn'));window.addEventListener('focus',()=>schedulePull(250,true));window.addEventListener('pageshow',()=>{ensureHost();schedulePull(900,true)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedulePull(250,true)});setInterval(async()=>{if(document.hidden||!team())return;await syncRemote(false);await syncLocal(false);refreshMembers(false)},3000)}
+function boot(){let n=0,t=setInterval(()=>{if(ensureHost()||++n>70){clearInterval(t);if(team()){processCanonicalQueue();initialSync()}}},120);document.addEventListener('click',afterLocalAction,true);document.addEventListener('click',interceptCloudPhoto,true);window.addEventListener('df-producao-catalog-local-changed',()=>{if(String(team()?.role||'').toLowerCase()==='owner'){publishCatalogNow(false)}else schedulePull(250,false);schedulePush(650,false)});window.addEventListener('df-producao-auto-saved',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,true)});window.addEventListener('df-producao-auto-deleted',()=>{clearTimeout(pullTimer);schedulePush(30,false);schedulePull(450,false)});window.addEventListener('df-producao-canonical-saved-ready',()=>processCanonicalQueue());window.addEventListener('online',()=>{schedulePull(150,true);setTimeout(()=>{if(serverValidatedForTeam===String(team()?.teamId||''))schedulePush(300,false)},800)});window.addEventListener('offline',()=>setStatus('📴 Sem internet. As alterações ficam neste aparelho até a conexão voltar.','warn'));window.addEventListener('focus',()=>schedulePull(250,true));window.addEventListener('pageshow',()=>{ensureHost();schedulePull(900,true)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedulePull(250,true)});setInterval(async()=>{if(document.hidden||!team())return;await syncRemote(false);await syncLocal(false);refreshMembers(false)},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 async function deleteCompletion(rawId){
  const id=norm(rawId),t=team();if(!t?.teamId)throw Error('Equipe de Produção não conectada.');if(navigator.onLine===false)throw Error('Sem internet.');
@@ -713,5 +740,5 @@ async function editReadyCompletion(rawId,fields){
  setStatus('✅ Edição da OP '+id+' confirmada. Máquina e totais atualizados pelo D1.','ok');
  return official;
 }
-window.DFProducaoEquipeOnline={migrateHistoricalProductionData,archivedReadyOps,editReadyCompletion,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+window.DFProducaoEquipeOnline={restoreCanonicalSavedOps,processCanonicalQueue,migrateHistoricalProductionData,archivedReadyOps,editReadyCompletion,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
