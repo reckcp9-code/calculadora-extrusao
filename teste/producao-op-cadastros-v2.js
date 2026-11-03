@@ -64,29 +64,65 @@ function seedProducts(){
   });
   write(d);try{localStorage.setItem(SEED,'1')}catch(e){}
 }
-function list(type){const d=read(),s=sector(),c=CFG[type],vals=d[s][c.key]||[];return sort(type==='product'?vals.filter(v=>!isDeleted(v)):type==='machine'?vals.filter(v=>!d[s].deletedMachines?.[norm(v)]):vals)}
+function list(type,scope=true){
+ const d=read(),s=sector(),c=CFG[type],vals=d[s][c.key]||[];
+ const base=type==='product'?vals.filter(v=>!isDeleted(v)):type==='machine'?vals.filter(v=>!d[s].deletedMachines?.[norm(v)]):vals;
+ if(type!=='product'||!scope)return sort(base);
+ const machine=String(document.getElementById('prMachine')?.value||'').trim();
+ if(!machine)return sort(base);
+ const links=d[s].machineProducts||{};
+ return sort(base.filter(product=>{
+  const assigned=Object.entries(links).filter(([,items])=>Array.isArray(items)&&items.some(x=>norm(x)===norm(product)));
+  // Cadastros antigos sem vínculo continuam disponíveis em todas as máquinas.
+  return !assigned.length||assigned.some(([key])=>norm(key)===norm(machine));
+ }));
+}
 function measureFor(name){const d=read(),s=sector();return String((d[s].productMeasures||{})[name]||'')}
 function setList(type,a){const d=read(),s=sector(),c=CFG[type];d[s][c.key]=sort(a);if(type==='machine'){const marks=d[s].deletedMachines||(d[s].deletedMachines={});for(const v of a)delete marks[norm(v)]}write(d)}
-function removeMachine(name){const d=read(),s=sector(),target=norm(name);if(!target)return;const sec=d[s];sec.deletedMachines=sec.deletedMachines||{};sec.deletedMachines[target]=Date.now();sec.machines=(sec.machines||[]).filter(v=>norm(v)!==target);write(d);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}
-function saveProduct(name,measure,oldName){
-  unmarkDeleted(name);
-  const d=read(),s=sector(),sec=d[s];
-  if(oldName&&oldName!==name){sec.products=sec.products.filter(x=>x!==oldName);delete sec.productMeasures[oldName]}
-  if(!sec.products.some(x=>norm(x)===norm(name)))sec.products.push(name);
-  sec.products=sort(sec.products);sec.productMeasures[name]=String(measure||'').trim();write(d)
+function renameMachine(oldName,newName){
+ const d=read(),s=sector(),sec=d[s],old=norm(oldName),links=sec.machineProducts||(sec.machineProducts={});
+ sec.machines=sort((sec.machines||[]).filter(x=>norm(x)!==old).concat(newName));
+ Object.keys(links).forEach(k=>{if(norm(k)===old){const previous=links[k];delete links[k];links[newName]=sort([...(links[newName]||[]),...(Array.isArray(previous)?previous:[])])}});
+ if(sec.deletedMachines){delete sec.deletedMachines[norm(newName)];delete sec.deletedMachines[old]}
+ write(d)
+}
+function removeMachine(name){const d=read(),s=sector(),target=norm(name);if(!target)return;const sec=d[s];sec.deletedMachines=sec.deletedMachines||{};sec.deletedMachines[target]=Date.now();sec.machines=(sec.machines||[]).filter(v=>norm(v)!==target);Object.keys(sec.machineProducts||{}).forEach(k=>{if(norm(k)===target)delete sec.machineProducts[k]});write(d);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}
+function saveProduct(name,measure,oldName,machine){
+ unmarkDeleted(name);
+ const d=read(),s=sector(),sec=d[s],links=sec.machineProducts||(sec.machineProducts={});
+ if(oldName&&oldName!==name){
+  sec.products=sec.products.filter(x=>norm(x)!==norm(oldName));
+  Object.keys(sec.productMeasures||{}).forEach(k=>{if(norm(k)===norm(oldName))delete sec.productMeasures[k]});
+  Object.keys(links).forEach(k=>{links[k]=(links[k]||[]).map(x=>norm(x)===norm(oldName)?name:x)});
+ }
+ if(!sec.products.some(x=>norm(x)===norm(name)))sec.products.push(name);
+ sec.products=sort(sec.products);sec.productMeasures[name]=String(measure||'').trim();
+ const key=sec.machines.find(x=>norm(x)===norm(machine));
+ if(key){
+  if(!Array.isArray(links[key]))links[key]=[];
+  if(!links[key].some(x=>norm(x)===norm(name)))links[key].push(name);
+  links[key]=sort(links[key]);
+ }
+ write(d)
 }
 function removeProduct(name){
   markDeleted(name);
   const d=read(),target=norm(name);
   SETORES.forEach(s=>{
     d[s].products=(d[s].products||[]).filter(x=>norm(x)!==target);
-    Object.keys(d[s].productMeasures||{}).forEach(k=>{if(norm(k)===target)delete d[s].productMeasures[k]});
+    Object.keys(d[s].productMeasures||{}).forEach(k=>{if(norm(k)===target)delete d[s].productMeasures[k]});Object.keys(d[s].machineProducts||{}).forEach(k=>{d[s].machineProducts[k]=(d[s].machineProducts[k]||[]).filter(x=>norm(x)!==target)});
   });
   write(d);
   try{window.dispatchEvent(new CustomEvent('df-product-deleted',{detail:{name:String(name||'')}}))}catch(e){}
 }
 function syncMeasure(product){const el=document.getElementById('prMeasure');if(!el)return;const m=measureFor(product);if(m)el.value=m}
-function nativeOptions(type,el){const vals=list(type),cur=String(el.value||'').trim();el.innerHTML='<option value="">Selecione</option>'+vals.map(v=>'<option value="'+esc(v)+'"'+(v===cur?' selected':'')+'>'+esc(v)+'</option>').join('')}
+function nativeOptions(type,el){
+ const vals=list(type),cur=String(el.value||'').trim(),sig=JSON.stringify(vals);
+ if(el.dataset.dfOptionsSignature===sig)return;
+ el.dataset.dfOptionsSignature=sig;
+ el.innerHTML='<option value="">Selecione</option>'+vals.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
+ if(cur&&vals.some(v=>norm(v)===norm(cur)))el.value=vals.find(v=>norm(v)===norm(cur));
+}
 function triggerText(type,el){const v=String(el.value||'').trim();return v||'Selecione'}
 function updateTrigger(type){const el=document.getElementById(CFG[type].id),b=document.querySelector('[data-df-picker="'+type+'"]');if(el&&b){b.textContent=triggerText(type,el);b.classList.toggle('chosen',!!el.value)}}
 function buildPicker(type,el){
@@ -98,7 +134,7 @@ function buildPicker(type,el){
   nativeOptions(type,el);if(cur&&list(type).includes(cur))el.value=cur;
   el.classList.add('dfNativeHidden');
   const trig=document.createElement('button');trig.type='button';trig.className='dfPickerTrigger'+(el.value?' chosen':'');trig.dataset.dfPicker=type;trig.textContent=triggerText(type,el);trig.onclick=()=>openModal(type,'pick');el.insertAdjacentElement('afterend',trig);
-  el.addEventListener('change',()=>{updateTrigger(type);if(type==='product')syncMeasure(el.value)});
+  el.addEventListener('change',()=>{updateTrigger(type);if(type==='machine')refreshType('product');if(type==='product')syncMeasure(el.value)});
   const box=trig.parentElement;if(box&&!box.dataset.dfRegBox){
     box.dataset.dfRegBox='1';const lab=[...box.children].find(x=>x.tagName==='LABEL');
     if(lab){const row=document.createElement('div');row.className='dfRegLabel';lab.before(row);row.appendChild(lab);const b=document.createElement('button');b.type='button';b.className='dfRegBtn';b.textContent='CADASTRAR / EDITAR';b.onclick=()=>openModal(type,'manage');row.appendChild(b)}
@@ -109,7 +145,7 @@ function fixShift(){
   const old=String(el.value||'');let mapped=old;if(old==='00:00–07:00')mapped='1';else if(old==='07:00–15:30')mapped='2';else if(old==='15:30–00:00')mapped='3';
   el.dataset.dfShift123='1';el.innerHTML='<option value="">Selecione</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>';if(['1','2','3'].includes(mapped))el.value=mapped;
 }
-function refresh(){seedProducts();Object.keys(CFG).forEach(t=>buildPicker(t,document.getElementById(CFG[t].id)));fixShift()}
+function refresh(){seedProducts();Object.keys(CFG).forEach(t=>{const el=document.getElementById(CFG[t].id);if(!el)return;if(el.dataset.dfPickerV2==='1'){nativeOptions(t,el);updateTrigger(t)}else buildPicker(t,el)});fixShift()}
 function refreshType(type,preferred){const el=document.getElementById(CFG[type].id);if(!el)return;nativeOptions(type,el);if(preferred&&list(type).includes(preferred))el.value=preferred;updateTrigger(type);if(type==='product'&&el.value)syncMeasure(el.value)}
 function close(){document.getElementById('dfRegModal')?.remove()}
 function choose(type,value){const el=document.getElementById(CFG[type].id);if(el){el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}))}close()}
@@ -143,7 +179,7 @@ function filterSearch(type){
   }else if(empty)empty.remove();
 }
 function render(type){
-  const m=document.getElementById('dfRegModal');if(!m)return;const all=list(type),body=m.querySelector('.dfRegList'),selected=String(document.getElementById(CFG[type].id)?.value||'');
+  const m=document.getElementById('dfRegModal');if(!m)return;const all=list(type,false),body=m.querySelector('.dfRegList'),selected=String(document.getElementById(CFG[type].id)?.value||'');
   body.innerHTML=all.length?all.map(v=>{
     const measure=type==='product'?measureFor(v):'';
     return '<div class="dfRegItem'+(v===selected?' selected':'')+'" data-df-search-match="1"><button type="button" class="dfRegPick" data-pick="'+esc(v)+'"><span class="check">'+(v===selected?'✓':'')+'</span><span class="main"><b>'+esc(v)+'</b>'+(measure?'<small>Medida: '+esc(measure)+'</small>':'')+'</span></button><div class="dfRegActions"><button type="button" class="edit" data-edit="'+esc(v)+'" aria-label="Editar">✎</button><button type="button" class="del" data-del="'+esc(v)+'" aria-label="Excluir">⌫</button></div></div>'
@@ -158,8 +194,14 @@ function saveFromModal(type){
   if(!canManage(type))return alert('Cadastro exclusivo do DONO da equipe.');
   const m=document.getElementById('dfRegModal'),name=String(m.querySelector('#dfRegNew')?.value||'').trim(),measure=String(m.querySelector('#dfRegMeasure')?.value||'').trim();if(!name)return;
   const old=editing&&editing.type===type?editing.old:null;
-  if(list(type).some(x=>norm(x)===norm(name)&&x!==old)){alert('Esse item já está cadastrado.');return}
-  if(type==='product'){if(!measure){alert('Informe a medida do produto.');return}saveProduct(name,measure,old)}else{let a=list(type);if(old)a=a.filter(x=>x!==old);a.push(name);setList(type,a)}
+  if(list(type,false).some(x=>norm(x)===norm(name)&&x!==old)){alert('Esse item já está cadastrado.');return}
+  if(type==='product'){
+   if(!measure){alert('Informe a medida do produto.');return}
+   const machine=String(m.querySelector('#dfRegProductMachine')?.value||'').trim();
+   if(list('machine').length&&!machine){alert('Selecione a máquina deste produto.');return}
+   saveProduct(name,measure,old,machine)
+  }else if(type==='machine'&&old&&norm(old)!==norm(name)){renameMachine(old,name)}
+  else{let a=list(type,false);if(old)a=a.filter(x=>x!==old);a.push(name);setList(type,a)}
   cancelEdit();refreshType(type,name);render(type)
 }
 function canManage(type){if(type==='operator')return true;let t=null;try{t=JSON.parse(localStorage.getItem('df_producao_team_v2')||'null')}catch(e){};if(!t||!t.teamId)return false;return String(t.role||t.memberRole||t.myRole||'').toLowerCase()==='owner'}
