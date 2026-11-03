@@ -1,6 +1,6 @@
 {
-  "version": "1.0.747",
+  "version": "1.0.748",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Estabilização estrutural da Formulação: Prontas em tela cheia, painel da equipe com abrir/minimizar permanente, Fotos por mês, módulos críticos offline e recuperação automática sem reiniciar.",
+  "message": "Restauração automática das equipes originais de Formulação e Produção pela identidade permanente da KEY, mantendo o perfil Dono, as OPs e as fotos sem cadastrar equipe nova.",
   "updatedAt": "2026-11-03"
 }
