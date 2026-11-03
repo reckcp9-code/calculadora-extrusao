@@ -56,6 +56,20 @@ function recoverProductionCatalog(t){
  window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados',{detail:{teamId:t.teamId,restoredFromD1:true}}));
  return true;
 }
+function recoverSavedProductionOps(t){
+ if(t?.area!=='producao'||!Array.isArray(t.savedOps)||!t.savedOps.length)return 0;
+ const linked=read(PROD);
+ if(linked?.teamId!==t.teamId||linked.role!=='owner')return 0;
+ const pending={teamId:t.teamId,ops:t.savedOps};
+ // A fila é lida também quando o módulo de Produção iniciar depois da autenticação.
+ try{localStorage.setItem('df_producao_saved_ops_canonical_queue_v1',JSON.stringify(pending))}catch(e){}
+ if(window.DFProducaoEquipeOnline?.restoreCanonicalSavedOps){
+  if(window.DFProducaoEquipeOnline.restoreCanonicalSavedOps(t.savedOps,t.teamId))
+   localStorage.removeItem('df_producao_saved_ops_canonical_queue_v1');
+ }
+ window.dispatchEvent(new CustomEvent('df-producao-canonical-saved-ready',{detail:{teamId:t.teamId}}));
+ return t.savedOps.length;
+}
 async function syncBothTeams(areas){
   if(navigator.onLine===false||document.hidden)return false;
   // A KEY foi confirmada no Worker. Renovar o token usado pelos DOIS módulos.
@@ -118,11 +132,12 @@ async function restore(force){
   if(currentProd?.teamId&&!teams.some(t=>t.area==='producao'&&t.teamId===currentProd.teamId))throw Error('A equipe de Produção não foi confirmada no D1.');
   for(const team of teams)if(persist(team))restored.push(String(team.area));
   const catalogRecovered=teams.some(t=>recoverProductionCatalog(t));
-  lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored,catalogRecovered};
+  const canonicalSavedCount=teams.reduce((n,t)=>n+recoverSavedProductionOps(t),0);
+  lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored,catalogRecovered,canonicalSavedCount};
   lastError='';verifiedThisPage=true;verifiedDevice=device();verifiedCredential=credential();
   try{localStorage.setItem(FLAG,JSON.stringify({at:new Date().toISOString(),areas:lastResult.teams,verifiedBy:'cloudflare-d1-v2'}))}catch(e){}
   if(restored.length)window.dispatchEvent(new CustomEvent('df-license-teams-restored',{detail:{areas:restored}}));
-  const needsRebuild=restored.length>0||Number(json.changed||0)>0||catalogRecovered;
+  const needsRebuild=restored.length>0||Number(json.changed||0)>0||catalogRecovered||canonicalSavedCount>0;
   if(needsRebuild&&!sessionStorage.getItem(ONCE)){
    sessionStorage.setItem(ONCE,'1');
    // A transferência de propriedade ou do catálogo exige uma única reconstrução de todas as abas.
