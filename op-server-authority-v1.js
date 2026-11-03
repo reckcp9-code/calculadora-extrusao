@@ -136,7 +136,15 @@ function install(){if(booted)return;booted=true;
   document.addEventListener('change',e=>{if(e.target?.id==='dfOpMonth')schedule(180,true,String(e.target.value||''))},true);
   document.addEventListener('click',e=>{if(e.target?.closest?.('#dfCloudRefresh,[data-pane="month"],[data-pane="ok"],[data-pane="archive"]'))schedule(250,true)},true);
   setInterval(()=>{if(!document.hidden&&team()?.teamId&&Date.now()-lastPull>55000){flushQueue();pullMonth(false)}},60000);
-  setTimeout(()=>{migrateOnce().then(()=>schedule(300,true))},1300);
+  // Recupera o histórico da equipe no D1 mesmo após reinstalação ou troca de aparelho.
+  // O mês selecionado é prioritário; outubro/2026 permanece recuperável sem depender de cache local.
+  setTimeout(()=>{migrateOnce().then(async()=>{
+    await pullMonth(true,selectedMonth());
+    const historical=['2026-10',localMonth()].filter((v,i,a)=>v!==selectedMonth()&&a.indexOf(v)===i);
+    for(const month of historical)await pullMonth(true,month);
+  }).catch(e=>console.warn('[DF Formulação] Histórico D1:',e))},350);
+  window.addEventListener('df-license-teams-server-verified',()=>{pullMonth(true,selectedMonth()).then(()=>{if(selectedMonth()!=='2026-10')pullMonth(true,'2026-10')})});
+
 }
 
 
