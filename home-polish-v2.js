@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const PROD_DEST='./op-producao.html?v=20261103-formula-persist-v762';
+  const PROD_DEST='./op-producao.html?v=20261103-formula-publish-v763';
 
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
