@@ -39,6 +39,23 @@ function persist(t){
  }
  return false;
 }
+// Restitui o cadastro oficial de máquinas e produtos sem publicar dados vazios do novo iPhone.
+function sameHash(v){let data='';try{data=JSON.stringify(v)}catch(e){data=String(v||'')}let h=2166136261;for(let i=0;i<data.length;i++){h^=data.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
+function hasCatalog(cfg){return cfg&&typeof cfg==='object'&&Object.values(cfg).some(v=>v&&typeof v==='object'&&(['machines','operators','products'].some(k=>Array.isArray(v[k])&&v[k].length>0)))}
+function recoverProductionCatalog(t){
+ if(t?.area!=='producao'||!t.catalog?.config||!hasCatalog(t.catalog.config))return false;
+ const team=read(PROD);if(!team?.teamId||team.teamId!==t.teamId||team.role!=='owner')return false;
+ const k='df_producao_cadastros_v1',sk='df_producao_team_catalog_snapshot_v2';
+ const old=read(k)||{},snap=read(sk)||{};
+ const remoteDate=Date.parse(String(t.catalog.verifiedAt||t.catalog.updatedAt||''));
+ const remoteTs=Number.isFinite(remoteDate)?remoteDate:0;
+ // Proteger alterações locais ainda não enviadas. Na instalação nova o catálogo fica vazio.
+ if(hasCatalog(old)&&!(snap.teamId===t.teamId&&snap.hash===sameHash(old)&&remoteTs>Number(snap.ts||0)))return false;
+ const cfg=t.catalog.config;localStorage.setItem(k,JSON.stringify(cfg));
+ localStorage.setItem(sk,JSON.stringify({teamId:t.teamId,hash:sameHash(cfg),ts:remoteTs,updatedAt:t.catalog.updatedAt||t.catalog.verifiedAt||''}));
+ window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados',{detail:{teamId:t.teamId,restoredFromD1:true}}));
+ return true;
+}
 async function restore(force){
  if(busy||navigator.onLine===false||!credential()||!device())return false;
  // Ter a equipe no localStorage NAO comprova que o servidor reconheceu o novo aparelho.
@@ -60,7 +77,8 @@ async function restore(force){
   if(currentForm?.teamId&&!teams.some(t=>t.area==='extrusao'&&t.teamId===currentForm.teamId))throw Error('A equipe de Formulação não foi confirmada no D1.');
   if(currentProd?.teamId&&!teams.some(t=>t.area==='producao'&&t.teamId===currentProd.teamId))throw Error('A equipe de Produção não foi confirmada no D1.');
   for(const team of teams)if(persist(team))restored.push(String(team.area));
-  lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored};
+  const catalogRecovered=teams.some(t=>recoverProductionCatalog(t));
+  lastResult={teams:teams.map(t=>t.area),changed:Number(json.changed||0),restored,catalogRecovered};
   lastError='';verifiedThisPage=true;verifiedDevice=device();verifiedCredential=credential();
   try{localStorage.setItem(FLAG,JSON.stringify({at:new Date().toISOString(),areas:lastResult.teams,verifiedBy:'cloudflare-d1-v2'}))}catch(e){}
   if(restored.length){
