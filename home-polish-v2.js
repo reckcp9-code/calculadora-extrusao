@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const PROD_DEST='./op-producao.html?v=20261103-formula-new-id-v766';
+  const PROD_DEST='./op-producao.html?v=20261103-formula-delete-single-v767';
 
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
