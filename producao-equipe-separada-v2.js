@@ -46,7 +46,22 @@ function ops(){const a=read(OPS_KEY,[]);return Array.isArray(a)?orderOps(a):[]}
 function autos(){const a=read(AUTO_KEY,[]);return Array.isArray(a)?a:[]}
 function config(){const c=read(CAD_KEY,{});return c&&typeof c==='object'?c:{}}
 function applyMachineDeletions(cfg){for(const sec of ['Picote','Sacoleira','Blocadora']){const c=cfg[sec];if(!c||typeof c!=='object')continue;const marks=c.deletedMachines||{};if(Array.isArray(c.machines))c.machines=c.machines.filter(v=>!marks[norm(v)]);}return cfg}
-function recoverCatalogFromOps(){const cfg=config(),list=ops();if(!list.length)return false;let changed=false;for(const op of list){if(!op||typeof op!=='object')continue;const sec=String(op.sector||'').trim();if(!['Picote','Sacoleira','Blocadora'].includes(sec))continue;const c=cfg[sec]&&typeof cfg[sec]==='object'?cfg[sec]:(cfg[sec]={machines:[],operators:[],products:[],productMeasures:{},machineProducts:{}});for(const [field,key] of [['machine','machines'],['operator','operators'],['product','products']]){const v=String(op[field]||'').trim();if(!v||(field==='machine'&&c.deletedMachines?.[norm(v)]))continue;if(!Array.isArray(c[key]))c[key]=[];if(!c[key].some(x=>String(x).trim().toLowerCase()===v.toLowerCase())){c[key].push(v);changed=true}}}if(changed){write(CAD_KEY,cfg);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}return changed}
+function recoverOperatorsFromOps(){
+ // Nomes de operadores podem ser recuperados do histórico.
+ // Máquinas e produtos só existem mediante cadastro explícito da equipe.
+ const cfg=config(),list=ops();if(!list.length)return false;
+ let changed=false;
+ for(const op of list){
+  if(!op||typeof op!=='object')continue;
+  const sector=String(op.sector||'').trim(),name=String(op.operator||'').trim();
+  if(!name||!['Picote','Sacoleira','Blocadora'].includes(sector))continue;
+  const row=cfg[sector]&&typeof cfg[sector]==='object'?cfg[sector]:(cfg[sector]={machines:[],operators:[],products:[],productMeasures:{},machineProducts:{}});
+  if(!Array.isArray(row.operators))row.operators=[];
+  if(!row.operators.some(x=>norm(x)===norm(name))){row.operators.push(name);changed=true}
+ }
+ if(changed){write(CAD_KEY,cfg);try{window.dispatchEvent(new CustomEvent('df-producao-cadastros-sincronizados'))}catch(e){}}
+ return changed;
+}
 function localYmd(v){const d=v?new Date(v):new Date();if(isNaN(d.getTime()))return'';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function monthOffset(off){const d=new Date();d.setMonth(d.getMonth()+(off||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function rolls(){return Array.from({length:56},(_,i)=>({n:i+1,peso:'',apara:''}))}
@@ -347,7 +362,7 @@ async function syncRemote(includePrevious){if(leavingProductionTeam||historyBusy
   }
   return rows;
  }));
- const [official,legacy]=await Promise.all([pullOfficialRecords(t),Promise.allSettled(monthly)]);let all=[];for(const item of legacy){if(item.status==='fulfilled')all.push(...item.value);else console.warn('Consulta mensal indisponível; registros oficiais D1 preservados:',String(item.reason))}if(withPrevious&&legacy.every(x=>x.status==='fulfilled'))lastPrevPull=Date.now();const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverCatalogFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);serverValidatedForTeam=String(t.teamId);
+ const [official,legacy]=await Promise.all([pullOfficialRecords(t),Promise.allSettled(monthly)]);let all=[];for(const item of legacy){if(item.status==='fulfilled')all.push(...item.value);else console.warn('Consulta mensal indisponível; registros oficiais D1 preservados:',String(item.reason))}if(withPrevious&&legacy.every(x=>x.status==='fulfilled'))lastPrevPull=Date.now();const parsed=parseRemote(all,t);for(const [id,x] of official.states)parsed.states.set(id,x);Object.assign(parsed.photos,official.photos);const pmap=mergePhotoMap(parsed.photos),a=applyRemoteStates(parsed.states,pmap,t),b=applyRemoteConfig(parsed.config,t),c=recoverOperatorsFromOps();if(a||b||c)refreshUi();if(c)schedulePush(1500,false);serverValidatedForTeam=String(t.teamId);
  try{localStorage.setItem(SERVER_REFRESH_KEY,JSON.stringify({teamId:t.teamId,at:Date.now()}))}catch(_e){}
  setStatus('✅ EQUIPE DE PRODUÇÃO online • dados atualizados.','ok');return true}catch(e){setStatus('⚠️ Equipe de Produção aguardando sincronização: '+String(e?.message||e),'warn');return false}finally{pullBusy=false}}
 function schedulePull(ms,prev){clearTimeout(pullTimer);pullTimer=setTimeout(()=>syncRemote(!!prev),ms==null?500:ms)}
@@ -572,7 +587,7 @@ async function initialSync(){if(!team())return;
  const t=team();serverValidatedForTeam='';
  setStatus('🔄 Atualizando dados da equipe no D1 antes de liberar envios...','');
  const pulled=await syncRemote(true);
- if(pulled&&team()?.teamId===t.teamId){recoverCatalogFromOps();await syncLocal(false)}
+ if(pulled&&team()?.teamId===t.teamId){recoverOperatorsFromOps();await syncLocal(false)}
  else if(team()?.teamId===t.teamId){setStatus('⚠️ Sem confirmação do D1. Os dados locais foram preservados; sincronização será repetida quando houver conexão.','warn');}
  refreshMembers(true)
 }
