@@ -63,6 +63,10 @@
       }
 
       @media(max-width:560px){
+        /* Centraliza visualmente a tela inicial em iPhones altos, sem afetar as abas. */
+        body.dfHomeCompact #appContent > .brand{
+          margin-top:clamp(4px, calc(75svh - 610px), 94px)!important;
+        }
         #appContent > .tabs{gap:8px!important;padding:7px!important}
         #appContent > .tabs > .tab{
           min-height:62px!important;
