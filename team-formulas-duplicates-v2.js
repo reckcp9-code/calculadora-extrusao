@@ -91,7 +91,7 @@ if(hashForms(server)!==hashForms(localForms())){
  // Uma fórmula criada enquanto a consulta estava em voo nunca pode ser substituída por um snapshot antigo.
  const pending=localRevision!==startRevision?localForms().filter(f=>!server.some(x=>identity(x)===identity(f))):[];
  applyServer(server,pending);
- if(pending.length)schedulePush();
+ if(pending.length){lastHash='';schedulePush()}
 }else selectLatestForTeam();
 lastPull=Date.now();status('☁️ Formulações sincronizadas • '+uniqueForms(localForms()).length+' salvas','ok');return true}catch(e){status('⚠️ Formulações salvas localmente; sincronização pendente: '+String(e?.message||e),'warn');return false}finally{syncing=false}}
 function schedulePush(){if(applying)return;clearTimeout(pushTimer);pushTimer=setTimeout(async()=>{const now=hashForms(localForms());if(now===lastHash)return;lastHash=now;try{if(team()?.teamId){if(!initialized)await sync(true);if(initialized)await pushForms(false)}}catch(e){status('⚠️ Formulação salva neste aparelho; sincronização pendente.','warn')}},500)}
