@@ -1,6 +1,6 @@
 {
-  "version": "1.0.760",
+  "version": "1.0.761",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "OPs oficiais sincronizadas primeiro ao abrir o aplicativo; consultas atrasadas não descartam a próxima atualização da equipe.",
+  "message": "Corrigido retorno à formulação antiga após salvar: sincronização preserva a nova fórmula e publica a atualização no D1.",
   "updatedAt": "2026-11-03"
 }
