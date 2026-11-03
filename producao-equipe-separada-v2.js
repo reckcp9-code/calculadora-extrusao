@@ -552,7 +552,7 @@ async function archivedReadyOps(){
   for(const r of Array.isArray(rows)?rows:[]){
    const id=norm(r?.opCode||r?.id||r?.qr);
    if(!/^DFOP-\d{8}-\d{6}-[A-Z0-9-]+$/.test(id)||r?.state!=='ready')continue;
-   const item={opCode:id,completedAt:String(r.completedAt||''),localDate:String(r.localDate||''),productName:String(r.productName||r.product||''),machine:String(r.machine||''),operatorName:String(r.operatorName||''),production:num(r.production),scrap:num(r.scrap),photoId:String(r.photoId||'')};
+   const item={opCode:id,completedAt:String(r.completedAt||''),localDate:String(r.localDate||''),productName:String(r.productName||r.product||''),machine:String(r.machine||''),operatorName:String(r.operatorName||''),production:r.production==null?null:num(r.production),scrap:r.scrap==null?null:num(r.scrap),photoId:String(r.photoId||'')};
    if(!map.has(id))map.set(id,item);
   }
   return Array.from(map.values()).sort((a,b)=>
