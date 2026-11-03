@@ -47,7 +47,7 @@ function render(){
  const rows=source.filter(o=>!q||code(o).includes(q)||name(o).toUpperCase().includes(q));
  const label=new Date(Number(selected.slice(0,4)),Number(selected.slice(5,7))-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
  status.textContent=busy?'🔄 Conferindo OPs e fotos na nuvem...':usingCopy&&source.length?'☁️ Mostrando última lista salva enquanto confirma a sincronização.':source.length?'✅ Fotos das OPs prontas • '+label:'📅 '+label+' • '+(navigator.onLine===false?'Sem conexão; nenhum registro salvo neste aparelho.':'Nenhuma OP pronta carregada para este mês.');
- const sig=selected+'|'+q+'|'+rows.map(o=>[code(o),name(o),o.produzido,o.apara,o.cloudPhotoId].join(':')).join(';')+'|'+(busy?'1':'0');
+ const sig=selected+'|'+q+'|'+rows.map(o=>[code(o),name(o),o.produzido,o.apara,o.cloudPhotoId].join(':')).join(';');
  if(sig===lastSig&&host.dataset.dfPhotoRendered==='1')return;
  lastSig=sig;host.dataset.dfPhotoRendered='1';
  const fragment=document.createDocumentFragment();
