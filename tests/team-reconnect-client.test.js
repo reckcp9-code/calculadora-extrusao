@@ -34,12 +34,12 @@ async function flush(){for(let i=0;i<15;i++){const timer=timers.shift();if(!time
  assert.equal(calls,1,'Even with both teams cached, restore MUST verify ownership on server');
  assert.match(requests[0].url,/df-team-license-restore/);
  assert.equal(db.has('df_license_team_restored_v1'),true,'Must persist verification marker');
- assert.ok(events.includes('refresh-formula'),'Must refresh source of formula team');
- assert.ok(events.includes('refresh-production'),'Must refresh historical production from cloud');
+ assert.equal(reloadCalls,1,'First successful owner migration must rebuild all modules once');
+ assert.equal(session.get('df_team_license_reloaded_once_v1'),'1','Mark one-time bootstrap');
  assert.equal(JSON.parse(db.get('df_producao_cadastros_v1')).Picote.machines[0],'PICOTADEIRA USN','Must restore machines from D1 snapshot');
  assert.ok(events.includes('df-producao-cadastros-sincronizados'),'Must refresh production catalogue widgets');
  assert.equal(window.DFTeamLicenseRestore.status().lastResult.catalogRecovered,true,'Must report catalogue recovery');
- assert.equal(reloadCalls,0,'No destructive reload needed for already cached teams');
+ assert.equal(reloadCalls,1,'Never repeatedly reload the PWA during recovery');
  const status=window.DFTeamLicenseRestore.status();
  assert.equal(status.lastError,'');
  assert.deepEqual(Array.from(status.lastResult.teams).sort(),['extrusao','producao']);
