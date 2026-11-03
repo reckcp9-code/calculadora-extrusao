@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const PROD_DEST='./op-producao.html?v=20261103-fast-dual-team-sync-v758';
+  const PROD_DEST='./op-producao.html?v=20261103-sync-stability-guard-v759';
 
   function addStyle(){
     if(document.getElementById('dfHomePolishV2Style'))return;
