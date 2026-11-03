@@ -1,6 +1,6 @@
 {
-  "version": "1.0.748",
+  "version": "1.0.749",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Restauração automática das equipes originais de Formulação e Produção pela identidade permanente da KEY, mantendo o perfil Dono, as OPs e as fotos sem cadastrar equipe nova.",
+  "message": "Restauração completa das equipes pela KEY: confirma Dono no servidor antes de sincronizar Produção, Formulação, máquinas e histórico. Corrige sessão revogada após reinstalar.",
   "updatedAt": "2026-11-03"
 }
