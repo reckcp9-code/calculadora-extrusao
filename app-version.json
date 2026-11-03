@@ -1,6 +1,6 @@
 {
-  "version": "1.0.746",
+  "version": "1.0.747",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção da origem do sumiço de fotos e OPs Prontas: aba Fotos estável, mês preservado, sincronização oficial D1/R2, proteção contra listas parciais e recuperação automática sem atualizar.",
+  "message": "Estabilização estrutural da Formulação: Prontas em tela cheia, painel da equipe com abrir/minimizar permanente, Fotos por mês, módulos críticos offline e recuperação automática sem reiniciar.",
   "updatedAt": "2026-11-03"
 }
