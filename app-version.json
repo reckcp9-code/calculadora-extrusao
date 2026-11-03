@@ -1,6 +1,6 @@
 {
-  "version": "1.0.757",
+  "version": "1.0.758",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Sincronização independente do D1 para Formulação e Produção; fotos não bloqueiam OPs e saúde do servidor não depende de fila local.",
+  "message": "Sincronização rápida automática das duas equipes ao abrir o app e a cada 7 segundos online, com D1 como fonte oficial.",
   "updatedAt": "2026-11-03"
 }
