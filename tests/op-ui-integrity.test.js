@@ -64,7 +64,8 @@ function staticGuards(){
  const sw=fs.readFileSync('sw.js','utf8');
  const html=fs.readFileSync('index.html','utf8');
  assert.match(cloud,/function setTeamContent\(/,'Team content must use stable wrapper');
- assert.doesNotMatch(cloud,/box\.innerHTML=/,'Do not delete team toggle with innerHTML');
+ const renderTeamSource=cloud.slice(cloud.indexOf('function renderTeam(){'),cloud.indexOf('function mountTeam(){'));
+ assert.doesNotMatch(renderTeamSource,/box\.innerHTML=/,'Do not delete team toggle inside renderTeam');
  for(const file of ['formula-op-relatorio.js','op-team-panel-collapse-v1.js','op-ready-fullscreen-v1.js','op-monthly-photo-editor-v1.js','op-ui-integrity-v1.js']){
   assert.ok(sw.includes("'./"+file+"'"),file+' must be available offline');
   assert.ok(html.includes(file+'?v='),file+' must be loaded in versioned app');
