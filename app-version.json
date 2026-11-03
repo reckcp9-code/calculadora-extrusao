@@ -1,6 +1,6 @@
 {
-  "version": "1.0.733",
-  "title": "DF EXTRUSOR PRO — OPS AUTOMÁTICAS permanente",
-  "message": "Botão OPS AUTOMÁTICAS agora nasce na navegação original da Formulação e permanece durante reconstruções do menu, sem depender do carregamento do módulo.",
+  "version": "1.0.734",
+  "title": "DF EXTRUSOR PRO — Fotos da Produção padronizadas",
+  "message": "FOTOS da Produção com mesmo modelo da Formulação: cartões completos, pesquisa por produto ou ID, atualizar e histórico filtrado pelo mês da aba MÊS.",
   "updatedAt": "2026-11-02"
 }
