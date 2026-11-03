@@ -49,6 +49,25 @@ async function latestProductionCatalog(env,teamId){
  }catch(e){}
  return null;
 }
+// A lista de OPs abertas vem da tabela oficial, nunca da paginação de fotos/eventos.
+async function savedProductionOps(env,teamId){
+ const query=await env.DB.prepare(
+  "SELECT op_code,payload_json,revision,updated_at FROM production_saved_ops "+
+  "WHERE team_id=? AND state='open' AND COALESCE(deleted_at,'')='' "+
+  "ORDER BY updated_at DESC LIMIT 500"
+ ).bind(teamId).all();
+ const rows=[];
+ for(const row of query.results||[]){
+  try{
+   const op=JSON.parse(row.payload_json);
+   if(!op||typeof op!=='object'||Array.isArray(op))continue;
+   const id=String(op.id||'').trim().toUpperCase();
+   if(!/^DFOP-\d{8}-[A-Z0-9-]+$/.test(id)||id!==String(row.op_code||'').toUpperCase())continue;
+   rows.push({op,revision:Number(row.revision||0),updatedAt:String(row.updated_at||'')});
+  }catch(e){}
+ }
+ return rows;
+}
 async function restore(request,env,origin){
  let body;
  try{const s=await request.text();if(s.length>6000)return respond({ok:false,error:'Requisição muito grande'},413,origin);body=JSON.parse(s)}catch(e){return respond({ok:false,error:'Dados inválidos'},400,origin)}
@@ -126,7 +145,7 @@ async function restore(request,env,origin){
  const teamsOut=[];
  for(const t of verified.results||[]){
   const result={teamId:String(t.team_id),name:String(t.name),area:String(t.area),role:'owner',displayName:String(t.display_name||'DF PRO')};
-  if(result.area==='producao')result.catalog=await latestProductionCatalog(env,result.teamId);
+  if(result.area==='producao'){result.catalog=await latestProductionCatalog(env,result.teamId);result.savedOps=await savedProductionOps(env,result.teamId)}
   teamsOut.push(result);
  }
  return respond({ok:true,teams:teamsOut,changed},200,origin);
