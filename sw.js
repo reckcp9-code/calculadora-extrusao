@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v781-formula-auth';
+const DF_CACHE='df-extrusor-shell-v782-formula-d1-authority';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
