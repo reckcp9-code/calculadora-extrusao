@@ -39,6 +39,32 @@ jobs:
             console.log(file + ': ' + blocks.length + ' inline script tags inspected');
           }
           NODE
+      - name: Prevent regression in Fotos and Prontas
+        run: |
+          set -euo pipefail
+          node --check op-monthly-photo-editor-v1.js
+          node --check formula-op-relatorio.js
+          node --check op-server-authority-v1.js
+          node --check client-stability-v127.js
+          node --check op-status-artifact-filter-v170.js
+          node <<'NODE'
+          const fs = require('fs');
+          const assert = require('node:assert/strict');
+          const photo = fs.readFileSync('op-monthly-photo-editor-v1.js','utf8');
+          const formula = fs.readFileSync('formula-op-relatorio.js','utf8');
+          const authority = fs.readFileSync('op-server-authority-v1.js','utf8');
+          const monthGuard = fs.readFileSync('op-status-artifact-filter-v170.js','utf8');
+          const startup = fs.readFileSync('client-stability-v127.js','utf8');
+          assert.match(formula, /id="dfMonthlyPhotoButton"/, 'FOTOS must be part of the primary menu');
+          assert.match(photo, /df-op-d1-applied/, 'FOTOS must respond to official D1 synchronization');
+          assert.match(photo, /DFOpServerAuthority\.sync/, 'FOTOS must request authoritative D1 records');
+          assert.match(photo, /readSnapshot/, 'FOTOS needs safe local fallback for delayed cloud reads');
+          assert.match(photo, /dfMonthlyPhotoMonth/, 'FOTOS must allow a visible month choice');
+          assert.match(authority, /!serverIds\.has\(id\)&&!tombs\[id\]/, 'Partial D1 responses must not erase local OPs');
+          assert.match(monthGuard, /wanted=selectedMonth\(\)/, 'Prontas must respect the selected month');
+          assert.match(startup, /df_production_history_month_v1/, 'Restart must retain the chosen month');
+          console.log('Fotos and Prontas regression guards passed');
+          NODE
       - name: Validate startup references and app version
         run: |
           node <<'NODE'
