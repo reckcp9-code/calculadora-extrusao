@@ -1,6 +1,6 @@
 {
-  "version": "1.0.736",
-  "title": "DF EXTRUSOR PRO — Navegação da Formulação corrigida",
-  "message": "OPS AUTOMÁTICAS, FORMULAÇÃO e BACKUP NA NUVEM abrem após sair da Produção e voltar, sem precisar atualizar. Corrigidos cliques perdidos por reconstrução do menu.",
+  "version": "1.0.737",
+  "title": "DF EXTRUSOR PRO — Avisos da Produção padronizados",
+  "message": "Produção com aviso de OPs aguardando confirmação, quadro OP DE PRODUÇÃO + QR, painel de equipe azul recolhível e indicador de conexão, no estilo da Formulação.",
   "updatedAt": "2026-11-02"
 }
