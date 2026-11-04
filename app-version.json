@@ -1,6 +1,6 @@
 {
-  "version": "1.0.789",
+  "version": "1.0.790",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Ficha técnica privada do dono, cliente e PDF condicional por formulação.",
+  "message": "Abertura dos parâmetros técnicos e botões responsivos sem duplicar.",
   "updatedAt": "2026-11-04"
 }
