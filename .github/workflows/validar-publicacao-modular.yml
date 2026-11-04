@@ -1,0 +1,28 @@
+name: Validar montagem modular DF Extrusor
+on:
+  push:
+    branches: [base-atual-df-extrusor-v778]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Montar publicação sem arquivos antigos na raiz do repositório
+        run: python build/gerar-publicacao.py
+      - name: Validar arquivos essenciais
+        run: |
+          test -f dist/index.html
+          test -f dist/sw.js
+          test -f dist/painel-administrativo-df.html
+          test ! -f dist/tv.html
+          test ! -f dist/tv-controle.html
+      - name: Disponibilizar artefato para testes antes da publicação
+        uses: actions/upload-artifact@v4
+        with:
+          name: df-extrusor-v778-modular-dist
+          path: dist/
+          retention-days: 7
