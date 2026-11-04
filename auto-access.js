@@ -63,10 +63,14 @@ function gate(){
 function removeSavedTransition(){document.getElementById('dfSavedAccessTransition')?.remove()}
 
 async function request(path,body,timeout){
-  const c='AbortController'in window?new AbortController():null;
+  // A validacao deve sempre ir ao Worker, nunca a um wrapper/cache antigo.
+  // Timeout individual: nao deixar o botao travado indefinidamente.
+  const c=typeof AbortController==='function'?new AbortController():null;
   const tm=c?setTimeout(()=>c.abort(),timeout||9000):null;
-  try{return await previousFetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':device()},body:JSON.stringify(body),signal:c?c.signal:undefined})}
-  finally{if(tm)clearTimeout(tm)}
+  try{
+    const url=API+path+'?t='+Date.now();
+    return await previousFetch(url,{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',headers:{'Content-Type':'application/json','X-DF-Device':device()},body:JSON.stringify(body),signal:c?c.signal:undefined});
+  }finally{if(tm)clearTimeout(tm)}
 }
 function save(j,persist=true){const token=String(j&&j.token||'').trim(),credential=String(j&&j.accessCredential||'').trim();if(!token||!credential)throw Error('Resposta de acesso incompleta.');sessionStorage.setItem(TOKEN_KEY,token);if(persist){localStorage.setItem(ACCESS_KEY,credential);localStorage.setItem(SAVE_DEVICE_KEY,'1')}else{localStorage.removeItem(ACCESS_KEY);localStorage.setItem(SAVE_DEVICE_KEY,'0')}}
 function readCookie(name){try{const p=name+'=';for(const part of String(document.cookie||'').split(';')){const s=part.trim();if(s.startsWith(p))return decodeURIComponent(s.slice(p.length)).trim()}}catch(e){}return''}
@@ -116,7 +120,15 @@ function ensureIdentityUi(){
       const submit=manual.querySelector('#dfManualKeyConfirm');submit.disabled=true;submit.textContent='VALIDANDO...';
       try{
         msg('Consultando a licença no servidor...',true);
-        const r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},20000);
+        let r;
+        try{r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},12000)}
+        catch(firstError){
+          // Em caso de falha de rede, fazer uma segunda tentativa direta.
+          // A mesma identidade do aparelho e a mesma KEY sao mantidas.
+          if(firstError&&firstError.name!=='AbortError'&&!(firstError instanceof TypeError))throw firstError;
+          msg('Conexao instavel. Tentando novamente no servidor...',true);
+          r=await request('/access/manual-key',{licenseKey:key,deviceId:device()},12000);
+        }
         let j={};try{j=await r.json()}catch(e){throw Error('Servidor retornou uma resposta inválida ('+r.status+').')}
         if(!r.ok||j.ok===false)throw Error(j.error||j.message||('Falha na validação da KEY (HTTP '+r.status+').'));
         const rememberChoice=!!manual.querySelector('#dfSaveKeyDevice')?.checked;
@@ -125,7 +137,7 @@ function ensureIdentityUi(){
         // antigo exibir novamente a licença antes de recuperar a sessão.
         // A transição deve ser imediata, sem navegação e sem perder a credencial.
         window.dispatchEvent(new CustomEvent('df-access-authorized',{detail:{persisted:rememberChoice}}));
-      }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças demorou mais de 25 segundos. Verifique a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
+      }catch(e){const timeout=e&&e.name==='AbortError';msg(timeout?'Servidor de licenças não respondeu às tentativas. Verifique a conexão e tente novamente.':String(e.message||'Não foi possível validar a key.'),false)}
       finally{submit.disabled=false;submit.textContent='VALIDAR KEY'}
     };
   }
