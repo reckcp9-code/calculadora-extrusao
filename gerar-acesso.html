@@ -435,7 +435,36 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
     try{if($('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,$('secret').value.trim())}catch(e){}
   });
 
-  $('statusBtn').onclick=()=>Promise.allSettled([status(false),loadUsedKeys(),loadStock()]);
+  // Autenticação automática após a digitação; o servidor continua validando a senha.
+  let adminLoginTimer;
+  let adminLoginSeq=0;
+  async function adminLogin(){
+    const value=$('secret').value.trim();
+    if(!value)return;
+    const seq=++adminLoginSeq;
+    $('statusMsg').textContent='Verificando acesso...';
+    $('statusMsg').className='status';
+    try{
+      await status(false);
+      if(seq!==adminLoginSeq||$('secret').value.trim()!==value)return;
+      if($('statusMsg').classList.contains('bad'))return;
+      await Promise.allSettled([loadUsedKeys(),loadStock()]);
+    }catch(e){
+      if(seq!==adminLoginSeq)return;
+      $('statusMsg').textContent=String(e.message||'Falha ao validar acesso.');
+      $('statusMsg').className='status bad';
+    }
+  }
+  $('secret').addEventListener('input',()=>{
+    ++adminLoginSeq;
+    clearTimeout(adminLoginTimer);
+    adminLoginTimer=setTimeout(adminLogin,700);
+  });
+  $('secret').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();clearTimeout(adminLoginTimer);adminLogin()}
+  });
+  $('secret').addEventListener('change',()=>{clearTimeout(adminLoginTimer);adminLogin()});
+  $('statusBtn').onclick=()=>adminLogin();
   $('usedBtn').onclick=loadUsedKeys;
   $('stockBtn').onclick=loadStock;
   $('stockSelectAll').onchange=()=>{if($('stockSelectAll').checked)stockItems.forEach(it=>selectedStock.add(Number(it.id)));else selectedStock.clear();renderStock()};
