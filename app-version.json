@@ -1,6 +1,6 @@
 {
-  "version": "1.0.782",
+  "version": "1.0.783",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulações com D1 autoritativo: bloqueio de restauração automática por aparelhos antigos e sessão válida para operadores.",
-  "updatedAt": "2026-11-03"
+  "message": "Atualização do servidor de formulações: exclusão por ID e proteção contra restauração de registros antigos. Produção permanece separada.",
+  "updatedAt": "2026-11-04"
 }
