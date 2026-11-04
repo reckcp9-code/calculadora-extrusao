@@ -10,6 +10,49 @@
   const selected=()=>{const id=q('foSavedSelect')?.value;return load().find(f=>String(f.id)===String(id));};
   const mat=id=>{try{return window.materialById?window.materialById(id):null}catch(e){return null}};
 
+
+  // Ficha técnica privada: nunca incluir no objeto compartilhado de formulação.
+  const technicalTeam=()=>{try{return window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null')}catch(e){return null}};
+  const technicalOwner=()=>String(technicalTeam()?.role||'').toLowerCase()==='owner';
+  const technicalApi='https://df-extrusor-api.reck-cp9.workers.dev';
+  const technicalDevice=()=>{for(const k of ['df_device_id_v1','df_device_id','df_access_device_id_v1']){const x=localStorage.getItem(k);if(x)return x}return String(window.DFAccessDeviceId||'')};
+  async function technicalPost(path,formulaId,technical){
+    const team=technicalTeam();if(!team?.teamId||!technicalOwner())throw Error('Somente o dono conectado à equipe pode acessar.');
+    const tokenKey='df_session_token_v1';
+    let token=sessionStorage.getItem(tokenKey)||'';
+    const dev=technicalDevice();
+    // Reutiliza o mesmo identificador e a sessão do módulo de sincronização.
+    if(!token||!dev)throw Error('Sessão não disponível. Reabra o aplicativo e tente novamente.');
+    const body={teamId:String(team.teamId),formulaId:String(formulaId)};
+    if(technical!==undefined)body.technical=technical;
+    const response=await fetch(technicalApi+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body),cache:'no-store'});
+    const result=await response.json();if(!response.ok||result.ok===false)throw Error(result.error||'Erro no servidor');
+    return result;
+  }
+  function technicalRows(list,type){
+    return (list||[]).map((x,i)=>'<div class="dfTechRow" data-kind="'+type+'"><input aria-label="Nome" placeholder="Nome" value="'+esc(x.name||'')+'"><input aria-label="Temperatura" placeholder="°C" value="'+esc(x.temperature||'')+'"><button type="button" data-remove-tech="'+i+'">×</button></div>').join('');
+  }
+  async function technicalEditor(f){
+    if(!technicalOwner())return alert('Somente o dono pode editar parâmetros técnicos.');
+    let data={zones:[{name:'Zona 1',temperature:''},{name:'Zona 2',temperature:''},{name:'Zona 3',temperature:''}],components:[]};
+    try{const result=await technicalPost('/op/team/formulas/technical/get',f.id);if(result.technical)data=result.technical;}catch(e){return alert('Não foi possível carregar dados privados: '+e.message)}
+    const shade=document.createElement('div');shade.id='dfTechShade';shade.style.cssText='position:fixed;inset:0;background:#0009;z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:12px';
+    shade.innerHTML='<section style="background:#fff;color:#111;border-radius:14px;padding:18px;width:min(580px,100%);max-height:90vh;overflow:auto;font:14px Arial"><h2>🔒 Parâmetros técnicos — '+esc(f.nome||'')+'</h2><p>Exclusivo do dono • salvo no servidor</p><label>Razão social<input id="dfTechLegal" value="'+esc(data.legalName||'')+'"></label><label>Nome fantasia<input id="dfTechTrade" value="'+esc(data.tradeName||'')+'"></label><label>CNPJ<input id="dfTechCnpj" value="'+esc(data.cnpj||'')+'" placeholder="00.000.000/0000-00"></label><label>Densidade (g/cm³)<input id="dfTechDensity" value="'+esc(data.density||'')+'"></label><label>MFI (g/10 min)<input id="dfTechMfi" value="'+esc(data.mfi||'')+'"></label><h3>Zonas de temperatura</h3><div id="dfTechZones">'+technicalRows(data.zones,'zones')+'</div><button type="button" id="dfTechAddZone">+ Zona</button><h3>Componentes adicionais</h3><div id="dfTechComponents">'+technicalRows(data.components,'components')+'</div><button type="button" id="dfTechAddComponent">+ Componente</button><div style="display:flex;gap:10px;margin-top:18px"><button type="button" id="dfTechSave">SALVAR</button><button type="button" id="dfTechClose">FECHAR</button></div></section>';
+    document.body.appendChild(shade);
+    shade.querySelectorAll('input').forEach(el=>el.style.cssText='display:block;width:100%;box-sizing:border-box;padding:9px;margin:5px 0 10px;border:1px solid #aaa;border-radius:6px');
+    const bindRemove=()=>shade.querySelectorAll('[data-remove-tech]').forEach(b=>b.onclick=()=>b.parentElement.remove());
+    bindRemove();
+    shade.querySelector('#dfTechAddZone').onclick=()=>{const n=shade.querySelectorAll('#dfTechZones .dfTechRow').length+1;shade.querySelector('#dfTechZones').insertAdjacentHTML('beforeend',technicalRows([{name:'Zona '+n,temperature:''}],'zones'));bindRemove()};
+    shade.querySelector('#dfTechAddComponent').onclick=()=>{shade.querySelector('#dfTechComponents').insertAdjacentHTML('beforeend',technicalRows([{name:'',temperature:''}],'components'));bindRemove()};
+    shade.querySelector('#dfTechClose').onclick=()=>shade.remove();
+    shade.querySelector('#dfTechSave').onclick=async()=>{
+      const val=id=>shade.querySelector('#'+id).value.trim();
+      const rows=id=>[...shade.querySelectorAll('#'+id+' .dfTechRow')].map(e=>({name:e.querySelectorAll('input')[0].value.trim(),temperature:e.querySelectorAll('input')[1].value.trim()})).filter(x=>x.name);
+      const payload={legalName:val('dfTechLegal'),tradeName:val('dfTechTrade'),cnpj:val('dfTechCnpj'),density:val('dfTechDensity'),mfi:val('dfTechMfi'),zones:rows('dfTechZones'),components:rows('dfTechComponents')};
+      try{await technicalPost('/op/team/formulas/technical/save',f.id,payload);alert('Parâmetros salvos no servidor.');shade.remove()}catch(e){alert('Não foi possível salvar: '+e.message)}
+    };
+  }
+
   function addComp(){
     if(q('exComp'))return;
     const exL=q('exL');if(!exL)return;
@@ -39,7 +82,7 @@
     if(!a.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return;}
     const current=q('foSavedSelect')?.value;
     const opts=a.map((f,i)=>'<option value="'+esc(f.id)+'" '+((current&&String(current)===String(f.id))||(!current&&i===0)?'selected':'')+'>'+esc(f.nome||'Formulação')+' — '+fm(f.total||0,2)+' kg</option>').join('');
-    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(5,1fr)"><button class="miniBtn" data-fosafe="open">ABRIR</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="miniBtn" data-fosafe="dup">DUPLICAR</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
+    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(5,1fr)"><button class="miniBtn" data-fosafe="technical">🔒 PARÂMETROS</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="miniBtn" data-fosafe="dup">DUPLICAR</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
     q('foSavedSelect')?.addEventListener('change',info);info();
   }
 
@@ -70,7 +113,24 @@
     let trs='';
     rows.forEach((r,i)=>{const m=mat(r.id)||r,it=items[i]||{};trs+='<tr><td>'+esc(m.nome||r.nome||'')+'</td><td>'+fm(r.pct||0,2)+'%</td><td>'+fm(it.kg||0,3)+' kg</td><td>'+money(m.preco||r.preco||0)+'</td><td>'+money(it.custo||0)+'</td></tr>';});
     if(!trs)trs='<tr><td colspan="5">Sem materiais.</td></tr>';
-    const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Formulação '+esc(f.nome||'')+'</title><style>body{font-family:Arial,sans-serif;color:#111;margin:28px}h1{margin:0 0 4px}.top{border-bottom:3px solid #111;padding-bottom:12px}.box{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.kpi{border:1px solid #ddd;border-radius:10px;padding:10px}.kpi span{display:block;color:#555;font-size:12px}.kpi b{font-size:17px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ccc;padding:10px;text-align:left;font-size:13px}th{background:#eee}.foot{margin-top:26px;color:#666;font-size:12px}@media print{body{margin:18px}}</style></head><body><div class="top"><h1>DF Manutenção e Consultoria</h1><div>Relatório de Formulação</div></div><h2>'+esc(f.nome||'Formulação')+'</h2><div class="box"><div class="kpi"><span>Quantidade total</span><b>'+fm(total,3)+' kg</b></div><div class="kpi"><span>Total da porcentagem</span><b>'+fm(srv.totalPct||0,2)+'%</b></div><div class="kpi"><span>Custo total</span><b>'+money(srv.custoTotal||0)+'</b></div><div class="kpi"><span>Custo por kg final</span><b>'+money(srv.custoKgFinal||0)+'</b></div></div><table><thead><tr><th>Material</th><th>%</th><th>Kg</th><th>Valor/kg</th><th>Custo</th></tr></thead><tbody>'+trs+'</tbody></table><div class="foot">Gerado em '+esc(new Date().toLocaleString('pt-BR'))+' • DF EXTRUSOR PRO</div><script>setTimeout(function(){window.focus();window.print()},450)<\/script></body></html>';
+    let html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Formulação '+esc(f.nome||'')+'</title><style>body{font-family:Arial,sans-serif;color:#111;margin:28px}h1{margin:0 0 4px}.top{border-bottom:3px solid #111;padding-bottom:12px}.box{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.kpi{border:1px solid #ddd;border-radius:10px;padding:10px}.kpi span{display:block;color:#555;font-size:12px}.kpi b{font-size:17px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ccc;padding:10px;text-align:left;font-size:13px}th{background:#eee}.foot{margin-top:26px;color:#666;font-size:12px}@media print{body{margin:18px}}</style></head><body><div class="top"><h1>DF Manutenção e Consultoria</h1><div>Relatório de Formulação</div></div><h2>'+esc(f.nome||'Formulação')+'</h2><div class="box"><div class="kpi"><span>Quantidade total</span><b>'+fm(total,3)+' kg</b></div><div class="kpi"><span>Total da porcentagem</span><b>'+fm(srv.totalPct||0,2)+'%</b></div><div class="kpi"><span>Custo total</span><b>'+money(srv.custoTotal||0)+'</b></div><div class="kpi"><span>Custo por kg final</span><b>'+money(srv.custoKgFinal||0)+'</b></div></div><table><thead><tr><th>Material</th><th>%</th><th>Kg</th><th>Valor/kg</th><th>Custo</th></tr></thead><tbody>'+trs+'</tbody></table><div class="foot">Gerado em '+esc(new Date().toLocaleString('pt-BR'))+' • DF EXTRUSOR PRO</div><script>setTimeout(function(){window.focus();window.print()},450)<\/script></body></html>';
+
+    if(technicalOwner()&&technicalTeam()?.teamId){
+      try{
+        const j=await technicalPost('/op/team/formulas/technical/get',f.id);
+        const t=j.technical;
+        if(t){
+          const has=[t.legalName,t.tradeName,t.cnpj,t.density,t.mfi,...(t.zones||[]).map(x=>x.temperature),...(t.components||[]).map(x=>x.temperature)].some(Boolean);
+          if(has){
+            const line=(k,v)=>v?'<div><b>'+k+':</b> '+esc(v)+'</div>':'';
+            const temps=[...(t.zones||[]),...(t.components||[])].filter(x=>x.name&&x.temperature).map(x=>'<span style="display:inline-block;margin:3px 9px 3px 0">'+esc(x.name)+': <b>'+esc(x.temperature)+' °C</b></span>').join('');
+            const detail='<section style="margin-top:12px;border-top:1px solid #ccc;padding-top:8px"><b>FICHA TÉCNICA / CLIENTE</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px">'+line('Razão social',t.legalName)+line('Nome fantasia',t.tradeName)+line('CNPJ',t.cnpj)+line('Densidade',t.density? t.density+' g/cm³':'')+line('MFI',t.mfi?t.mfi+' g/10 min':'')+'</div><div style="font-size:11px">'+temps+'</div></section>';
+            const footer='<div style="margin-top:16px;text-align:center;font-size:10px;border-top:1px solid #aaa;padding-top:8px"><b>DAVID ALEX FERREIRA</b> — Técnico responsável pelo desenvolvimento<br>DF Manutenção e Consultoria<br><span style="font-size:9px">Documento confidencial, destinado exclusivamente ao cliente identificado.</span></div>';
+            html=html.replace('<div class="foot">',detail+footer+'<div class="foot">').replace('body{font-family:Arial','@page{size:A4 portrait;margin:10mm}body{font-family:Arial').replace('th,td{border:1px solid #ccc;padding:10px','th,td{border:1px solid #ccc;padding:5px').replace('body{margin:28px}','body{margin:10px}');
+          }
+        }
+      }catch(e){alert('Não foi possível consultar os dados técnicos privados. O PDF normal será gerado. '+e.message)}
+    }
     const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a janela do PDF. Libere pop-up.');return;}w.document.open();w.document.write(html);w.document.close();
   }
 
@@ -103,6 +163,7 @@
     const act=ev.target?.dataset?.fosafe;if(!act)return;
     ev.preventDefault();ev.stopImmediatePropagation();
     const f=selected();if(!f){alert('Selecione uma formulação.');return;}
+    if(act==='technical'){technicalEditor(f);return;}
     if(act==='open'){if(window.abrirFormula)window.abrirFormula(f,false);return;}
     if(act==='pdf'){pdf(f);return;}
     if(act==='op'){op(f);return;}
