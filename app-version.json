@@ -1,6 +1,6 @@
 {
-  "version": "1.0.787",
+  "version": "1.0.788",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção do ciclo da tela de KEY: remoção da inicialização antiga duplicada e abertura direta do aplicativo com acesso salvo.",
+  "message": "Remoção definitiva do login antigo incorporado ao pacote do aplicativo; mantida a autenticação nova.",
   "updatedAt": "2026-11-04"
 }
