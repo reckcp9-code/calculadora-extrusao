@@ -42,7 +42,11 @@ async function testVersionFallback(){
 async function testRuntime(){
  assert.match(idx,/app-shell\.html\?v='\+BUILD/,'Shell must be build-versioned');
  assert.match(idx,/sw-policy\.js.*updateViaCache:'none'/,'SW wrapper must update bypassing HTTP cache');
- assert.match(wrapper,/importScripts\('\.\/sw\.js\?v=20261103-formula-delete-unified-v771'\)/,'Wrapper must import versioned SW');
+ const imported=wrapper.match(/importScripts\('\.\/sw\.js\?v=([^']+)'\)/);
+ assert.ok(imported,'Wrapper must import versioned SW');
+ const build=idx.match(/const BUILD='([^']+)'/);
+ assert.ok(build,'Index must declare a build identifier');
+ assert.equal(imported[1],build[1],'SW wrapper must use the current build identifier');
  assert.match(app,/serviceWorker\.register\(BASE\+'sw\.js',\{scope:BASE,updateViaCache:'none'\}\)/,'Embedded PWA registration must bypass SW import cache');
  assert.match(worker,/FROM production_saved_ops/,'Recover canonical saved OPs from D1');
  assert.match(worker,/state='open'/,'Never resurrect deleted saved OPs');
