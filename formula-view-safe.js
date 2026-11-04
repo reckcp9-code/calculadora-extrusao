@@ -52,7 +52,7 @@
       gate.remove();technicalEditor(f).catch(err=>alert('Falha ao abrir parâmetros: '+String(err?.message||err)));
     };
   }
-  async function technicalCommercialReport(f,t){
+  async function technicalCommercialReport(f,t,w){
     const srv=await calcSaved(f);
     if(!srv)throw Error('Não foi possível calcular a composição.');
     const rows=Array.isArray(f.rows)?f.rows:[],items=Array.isArray(srv.itens)?srv.itens:[];
@@ -63,7 +63,6 @@
     const technical=hasTech?'<h3>03 / PARÂMETROS TÉCNICOS</h3><div class="details">'+field('Densidade (g/cm³)',t.density)+field('MFI (g/10 min)',t.mfi)+temps+'</div>':'';
     const client=field('Razão social',t.legalName)+field('Nome fantasia',t.tradeName)+field('CNPJ',t.cnpj);
     const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório técnico — '+esc(f.nome||'Formulação')+'</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}body{font:11px Arial,sans-serif;color:#182234;margin:0;background:#fff}.toolbar{display:flex;gap:10px;padding:12px;background:#f2f4f7}.toolbar button{padding:10px;border-radius:7px;border:1px solid #999;background:#fff;font-weight:bold}.page{max-width:190mm;margin:auto;padding:9px}header{border-bottom:2px solid #b08b3b;padding-bottom:10px}header small{color:#987526;letter-spacing:2px}h1{font-size:21px;margin:8px 0 3px}h2{font-size:17px;margin:12px 0}h3{font-size:12px;margin:17px 0 8px;color:#334155}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.detail{border-left:2px solid #b08b3b;padding:5px 8px;min-width:0;overflow-wrap:anywhere}.detail small{display:block;color:#64748b;font-size:9px;margin-bottom:3px}.detail strong{font-size:11px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.metrics>div{border:1px solid #d6dbe2;border-radius:6px;padding:9px}.metrics small{display:block;color:#64748b}.metrics b{font-size:15px}table{border-collapse:collapse;width:100%;font-size:10px}th,td{border:1px solid #cbd0d7;padding:6px 5px;text-align:right}th:first-child,td:first-child{text-align:left}th{background:#f1f3f5}.signature{text-align:center;margin:22px auto 0;max-width:350px;border-top:1px solid #444;padding-top:6px;font-size:10px}.confidential{font-size:9px;text-align:center;color:#596273;margin-top:12px}@media print{.toolbar{display:none}.page{padding:0}h3{break-after:avoid}tr{break-inside:avoid}}</style></head><body><div class="toolbar"><button onclick="history.back()">← VOLTAR</button><button onclick="window.print()">IMPRIMIR / SALVAR PDF</button></div><main class="page"><header><small>DF EXTRUSOR PRO • DOCUMENTAÇÃO TÉCNICA</small><h1>DF Manutenção e Consultoria</h1><div>Relatório técnico de composição e custos</div></header><h2>'+esc(f.nome||'Formulação')+'</h2><div class="details">'+client+field('Identificação do registro',f.id)+'</div><h3>01 / INDICADORES DA COMPOSIÇÃO</h3><div class="metrics"><div><small>Quantidade total</small><b>'+fm(f.total||0,2)+' kg</b></div><div><small>Custo da formulação</small><b>'+money(srv.custoTotal||0)+'</b></div><div><small>Custo final por kg</small><b>'+money(srv.custoKgFinal||0)+'</b></div></div><h3>02 / COMPOSIÇÃO DETALHADA</h3><table><thead><tr><th>Material</th><th>%</th><th>Kg</th><th>Preço/kg</th><th>Custo</th></tr></thead><tbody>'+lines+'</tbody></table>'+technical+'<div class="signature"><b>DAVID ALEX FERREIRA</b><div>Técnico responsável pelo desenvolvimento</div><div>DF Manutenção e Consultoria</div><div>Assinatura: ______________________________</div></div><div class="confidential">Documento confidencial. Uso exclusivo do cliente identificado, quando informado. Reprodução ou compartilhamento sujeitos à autorização da DF Manutenção e Consultoria.</div><div class="confidential">Gerado em '+esc(new Date().toLocaleString('pt-BR'))+'</div></main></body></html>';
-    const w=window.open('','_blank');
     if(!w)throw Error('Permita a abertura de janelas para gerar o relatório.');
     w.document.open();w.document.write(html);w.document.close();
   }
@@ -88,7 +87,8 @@
       const val=id=>shade.querySelector('#'+id).value.trim();
       const rows=id=>[...shade.querySelectorAll('#'+id+' .dfTechRow')].map(e=>({name:e.querySelectorAll('input')[0].value.trim(),temperature:e.querySelectorAll('input')[1].value.trim()})).filter(x=>x.name);
       const payload={legalName:val('dfTechLegal'),tradeName:val('dfTechTrade'),cnpj:val('dfTechCnpj'),density:val('dfTechDensity'),mfi:val('dfTechMfi'),zones:rows('dfTechZones'),components:rows('dfTechComponents')};
-      try{await technicalPost('/op/team/formulas/technical/save',f.id,payload);await technicalCommercialReport(f,payload);shade.remove()}catch(e){alert('Não foi possível gerar o relatório: '+e.message)}
+      const reportWindow=window.open('','_blank');if(!reportWindow){alert('Permita pop-ups para gerar o relatório.');return;}reportWindow.document.write('<title>Gerando relatório...</title><p>Salvando parâmetros e preparando relatório...</p>');
+      try{await technicalPost('/op/team/formulas/technical/save',f.id,payload);await technicalCommercialReport(f,payload,reportWindow);shade.remove()}catch(e){reportWindow.close();alert('Não foi possível gerar o relatório: '+e.message)}
     };
   }
 
