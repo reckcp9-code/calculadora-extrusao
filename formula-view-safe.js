@@ -95,6 +95,18 @@
     shade.querySelector('#dfTechAddComponent').onclick=()=>{shade.querySelector('#dfTechComponents').insertAdjacentHTML('beforeend',technicalRows([{name:'',temperature:''}],'components'));bindRemove()};
     shade.querySelector('#dfTechClose').onclick=()=>shade.remove();
     shade.querySelector('#dfTechBack').onclick=()=>shade.remove();
+    // Protege os botões do editor contra interceptadores globais do aplicativo.
+    // O evento é tratado antes dos handlers de outras telas.
+    if(!window.__dfTechActionCaptureInstalled){
+      window.__dfTechActionCaptureInstalled=true;
+      window.addEventListener('click',function(event){
+        const button=event.target?.closest?.('#dfTechBack,#dfTechClose,#dfTechSave');
+        if(!button||!button.closest('#dfTechShade'))return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if(typeof button.onclick==='function')button.onclick.call(button,event);
+      },true);
+    }
     shade.querySelector('#dfTechSave').onclick=async()=>{
       const val=id=>shade.querySelector('#'+id).value.trim();
       const rows=id=>[...shade.querySelectorAll('#'+id+' .dfTechRow')].map(e=>({name:e.querySelectorAll('input')[0].value.trim(),temperature:e.querySelectorAll('input')[1].value.trim()})).filter(x=>x.name);
