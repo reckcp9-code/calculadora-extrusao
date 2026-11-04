@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v785-auth-retry';
+const DF_CACHE='df-extrusor-shell-v786-direct-entry';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -34,7 +34,7 @@ async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — N
 // Install only the entry shell. Large modules are cached as users open them;
 // precaching every module simultaneously caused unnecessary network/CPU pressure.
 const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./df-viewport-responsive-lock-v1.js','./manifest.webmanifest','./app-version.json','./logo.svg','./device-identity.js','./auto-access.js','./performance-guard-v3.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./op-ready-fullscreen-v1.js','./op-team-panel-collapse-v1.js','./op-monthly-photo-editor-v1.js','./op-product-history-search-v1.js','./op-ui-integrity-v1.js','./team-license-restore-v1.js','./op-team-date-canonical-v1.js','./team-formulas-duplicates-v2.js','./formula-save-first-op-v1.js','./op-producao.html','./producao-stable-flow-v3.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js'];
-const BUILD_VERSION='20261104-auth-retry-v785';
+const BUILD_VERSION='20261104-direct-entry-v786';
 const VERSIONED_BOOT=['./app-shell.html','./auto-access.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./team-license-restore-v1.js','./op-team-panel-collapse-v1.js','./op-ready-fullscreen-v1.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-agora-maquinas-v1.js','./op-team-date-canonical-v1.js','./team-formulas-duplicates-v2.js','./formula-save-first-op-v1.js'];
 async function precache(){
  const cache=await caches.open(DF_CACHE);
