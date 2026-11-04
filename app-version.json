@@ -1,6 +1,6 @@
 {
-  "version": "1.0.791",
+  "version": "1.0.792",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Corrigida abertura da tela técnica e mensagens de erro do servidor.",
+  "message": "Corrigido acionamento do botão de parâmetros técnicos no iPhone.",
   "updatedAt": "2026-11-04"
 }
