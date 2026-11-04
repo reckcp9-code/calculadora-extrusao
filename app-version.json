@@ -1,6 +1,6 @@
 {
-  "version": "1.0.783",
+  "version": "1.0.786",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Atualização do servidor de formulações: exclusão por ID e proteção contra restauração de registros antigos. Produção permanece separada.",
+  "message": "Entrada direta no aplicativo com KEY salva; tela de licença apenas quando necessário após pausa ou reset.",
   "updatedAt": "2026-11-04"
 }
