@@ -81,14 +81,29 @@
   let stockItems=[];
   const selectedStock=new Set();
 
+  const readRequests=new Map();
   async function post(path,body){
     const secret=$('secret').value.trim();
     if(!secret)throw new Error('Digite a senha administrativa.');
-    const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:JSON.stringify(body||{})});
-    let j={};try{j=await r.json()}catch(e){}
-    if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
-    try{if($('rememberSecret')&&$('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,secret)}catch(e){}
-    return j;
+    const isRead=/\/(status|list-used|list-stock)$/.test(path);
+    const signature=isRead?path+'|'+secret:null;
+    if(signature&&readRequests.has(signature))return readRequests.get(signature);
+    const task=(async()=>{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),isRead?12000:20000);
+      try{
+        const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:JSON.stringify(body||{}),signal:controller.signal,cache:'no-store'});
+        let j={};try{j=await r.json()}catch(e){}
+        if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
+        try{if($('rememberSecret')&&$('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,secret)}catch(e){}
+        return j;
+      }catch(e){
+        if(e.name==='AbortError')throw new Error(isRead?'Consulta demorou demais. Toque em atualizar novamente.':'Resposta demorou demais. Confira o estado antes de repetir o comando.');
+        throw e;
+      }finally{clearTimeout(timeout)}
+    })();
+    if(signature){readRequests.set(signature,task);task.finally(()=>{if(readRequests.get(signature)===task)readRequests.delete(signature)}).catch(()=>{})}
+    return task;
   }
 
   function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -116,7 +131,7 @@
 
   async function reloadAll(targetMsg,message){
     if(targetMsg){$(targetMsg).textContent=message||'Atualizado.';$(targetMsg).className='status ok'}
-    await loadStock();await loadUsedKeys();await status(false);
+    await Promise.allSettled([loadStock(),loadUsedKeys(),status(false)]);
   }
 
   async function toggleAccess(it,action,targetMsg,btn){
@@ -129,29 +144,33 @@
     if(!confirm(question))return;
     if(btn){btn.disabled=true;btn.textContent=pausing?'PAUSANDO...':'REATIVANDO...'}
     const label=pausing?'PAUSAR':'REATIVAR';
-    let requestError=null;
-    try{await post('/admin/access/'+action,{keyId:it.id})}
-    catch(e){requestError=e}
-    // A operação pode ter sido aplicada mesmo quando a resposta falhou.
-    // Verificar o estado real antes de anunciar sucesso ou permitir nova tentativa.
-    let confirmed=false,checkError=null;
-    for(let attempt=0;attempt<3;attempt++){
+    let confirmed=false,requestError=null,checkError=null;
+    try{
+      await post('/admin/access/'+action,{keyId:it.id});
+      confirmed=true;
+      if(targetMsg){$(targetMsg).textContent=pausing?'Pausa confirmada pelo servidor.':'Reativação confirmada pelo servidor.';$(targetMsg).className='status ok'}
+    }catch(e){
+      requestError=e;
+      // Uma falha de rede pode ocorrer depois que o servidor concluiu a alteração.
+      // Nunca repetir automaticamente comandos administrativos.
       try{
-        const result=await post('/admin/access/list-used',{});
+        const result=await post('/admin/v1/access/list-used',{});
         const current=(Array.isArray(result.items)?result.items:[]).find(x=>Number(x.id)===Number(it.id));
-        if(current&&String(current.status)===wanted){confirmed=true;break}
-        if(current&&String(current.status)!==(pausing?'used':'paused'))break;
-      }catch(e){checkError=e}
-      if(attempt<2)await new Promise(resolve=>setTimeout(resolve,900));
+        confirmed=!!current&&String(current.status)===wanted;
+      }catch(err){checkError=err}
     }
-    try{await reloadAll(targetMsg,confirmed?(pausing?'Acesso pausado e confirmado.':'Acesso reativado e confirmado.'):'Estado não confirmado.')}catch(e){checkError=e}
+    if(confirmed){
+      if(btn&&btn.isConnected){btn.textContent=pausing?'PAUSADO':'REATIVADO'}
+      // Atualização das listas não bloqueia o retorno visual do comando.
+      reloadAll(null).catch(()=>{});
+    }
     if(targetMsg){
       $(targetMsg).textContent=confirmed
         ?(pausing?'Acesso pausado e confirmado no servidor.':'Acesso reativado e confirmado no servidor.')
-        :(requestError?'Falha na operação: '+requestError.message:'Não foi possível confirmar a mudança no servidor.')+(checkError?' Verificação: '+checkError.message:'');
+        :(requestError?'Não foi possível confirmar: '+requestError.message:'Estado não confirmado.')+(checkError?' Verificação: '+checkError.message:'');
       $(targetMsg).className='status '+(confirmed?'ok':'bad');
     }
-    if(btn&&btn.isConnected){btn.disabled=false;btn.textContent=label}
+    if(btn&&btn.isConnected){btn.disabled=false;if(!confirmed)btn.textContent=label}
   }
 
   function updateStockSelection(){
@@ -252,7 +271,7 @@
     try{if($('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,$('secret').value.trim())}catch(e){}
   });
 
-  $('statusBtn').onclick=()=>status(true);
+  $('statusBtn').onclick=()=>Promise.allSettled([status(false),loadUsedKeys(),loadStock()]);
   $('usedBtn').onclick=loadUsedKeys;
   $('stockBtn').onclick=loadStock;
   $('stockSelectAll').onchange=()=>{if($('stockSelectAll').checked)stockItems.forEach(it=>selectedStock.add(Number(it.id)));else selectedStock.clear();renderStock()};
