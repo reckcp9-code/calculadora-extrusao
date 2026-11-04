@@ -161,8 +161,8 @@ function rs(v){return "R$ "+fmt(v,2)}
 function set(id,t){const e=$(id);if(e)e.textContent=t}
 function deviceId(){let id=localStorage.getItem(DF_DEVICE_KEY);if(!id){id=(crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)));localStorage.setItem(DF_DEVICE_KEY,id)}return id}
 function dfMsg(t,ok=false){const e=$("licenseMsg");if(!e)return;e.textContent=t;e.className="licenseMsg "+(ok?"ok":"err")}
-function dfLocked(){if($("licenseGate"))$("licenseGate").style.display="flex";if($("appContent"))$("appContent").style.display="none"}
-function dfUnlocked(){if($("licenseGate"))$("licenseGate").style.display="none";if($("appContent"))$("appContent").style.display="block"}
+function dfLocked(){if(window.DFAccessSessionUnlocked===true)return;if($("licenseGate"))$("licenseGate").style.display="flex";if($("appContent"))$("appContent").style.display="none"}
+function dfUnlocked(){window.DFAccessSessionUnlocked=true;if($("licenseGate"))$("licenseGate").style.display="none";if($("appContent"))$("appContent").style.display="block"}
 function dens(prefix){const s=$(prefix+"Ds");return s&&s.value==="manual"?n(prefix+"Dm"):s?parseFloat(s.value)||0:0}
 function toggleManual(prefix){const s=$(prefix+"Ds"),box=$(prefix+"DmBox");if(box)box.style.display=s&&s.value==="manual"?"block":"none"}
 function pesoMetroIdeal(){const l=n("exL"),m=n("exM"),d=dens("ex");return l&&m&&d?l*m*d*.01:0}
