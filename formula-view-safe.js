@@ -16,18 +16,41 @@
   const technicalOwner=()=>['owner','dono'].includes(String(technicalTeam()?.role||'').toLowerCase());
   const technicalApi='https://df-extrusor-api.reck-cp9.workers.dev';
   const technicalDevice=()=>{try{const x=window.DFDeviceIdentity?.get?.();if(x)return String(x)}catch(e){}for(const k of ['df_licenseauth_device_v1','df_device_id_v1','df_device_id']){const x=localStorage.getItem(k);if(x)return x}return String(window.DFAccessDeviceId||'')};
-  async function technicalPost(path,formulaId,technical){
-    const team=technicalTeam();if(!team?.teamId)throw Error('Conecte-se à equipe para acessar.');
-    const tokenKey='df_secure_token_v2';
-    let token=sessionStorage.getItem(tokenKey)||'';
+  const technicalTokenKey='df_secure_token_v2';
+  async function technicalSession(force){
+    let token=String(sessionStorage.getItem(technicalTokenKey)||'').trim();
+    if(token&&!force)return token;
+    const credential=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
     const dev=technicalDevice();
-    // Reutiliza o mesmo identificador e a sessão do módulo de sincronização.
-    if(!token||!dev)throw Error('Sessão não disponível. Reabra o aplicativo e tente novamente.');
+    if(!credential||!dev)throw Error('Credencial do aplicativo indisponível. Entre novamente no aplicativo.');
+    const r=await fetch(technicalApi+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
+    let j={};try{j=await r.json()}catch(e){}
+    if(!r.ok||j.ok===false||!j.token)throw Error(j.error||'Não foi possível renovar a sessão.');
+    token=String(j.token).trim();sessionStorage.setItem(technicalTokenKey,token);return token;
+  }
+  async function technicalPost(path,formulaId,technical,retry=true){
+    const team=technicalTeam();if(!team?.teamId)throw Error('Conecte-se à equipe para acessar.');
+    const token=await technicalSession(false),dev=technicalDevice();
     const body={teamId:String(team.teamId),formulaId:String(formulaId)};
     if(technical!==undefined)body.technical=technical;
     const response=await fetch(technicalApi+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body),cache:'no-store'});
-    const result=await response.json();if(!response.ok||result.ok===false)throw Error(result.error||'Erro no servidor');
+    let result={};try{result=await response.json()}catch(e){}
+    if(response.status===401&&retry){await technicalSession(true);return technicalPost(path,formulaId,technical,false)}
+    if(!response.ok||result.ok===false)throw Error(result.error||'Erro no servidor: '+response.status);
     return result;
+  }
+  function technicalPinGate(f){
+    const old=document.getElementById('dfTechPinGate');if(old)old.remove();
+    const gate=document.createElement('div');gate.id='dfTechPinGate';
+    gate.style.cssText='position:fixed;inset:0;background:#080b13;z-index:2147483646;padding:calc(env(safe-area-inset-top,0px) + 28px) 20px;overflow:auto;color:#f5f8ff;font:16px -apple-system,BlinkMacSystemFont,Arial';
+    gate.innerHTML='<button type="button" id="dfTechPinBack" style="background:#15243a;border:1px solid #dca122;border-radius:12px;color:#ffd166;padding:12px">← VOLTAR</button><h2 style="margin:40px 0 12px">🔒 PARÂMETROS TÉCNICOS</h2><p style="color:#aabbd0">Digite a senha de acesso para continuar.</p><form id="dfTechPinForm"><input id="dfTechPinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="Senha de 4 dígitos" style="width:100%;background:#0d1a2e;border:1px solid #39516d;border-radius:12px;color:#fff;font-size:22px;padding:16px;box-sizing:border-box"><p id="dfTechPinError" style="color:#ff9b9b"></p><button type="submit" style="width:100%;padding:16px;background:#0c3b26;color:#9bf2b9;border:1px solid #22c55e;border-radius:12px;font-weight:700">ENTRAR</button></form>';
+    document.body.appendChild(gate);
+    gate.querySelector('#dfTechPinBack').onclick=()=>gate.remove();
+    gate.querySelector('#dfTechPinForm').onsubmit=e=>{
+      e.preventDefault();
+      if(gate.querySelector('#dfTechPinInput').value!=='9273'){gate.querySelector('#dfTechPinError').textContent='Senha incorreta.';return}
+      gate.remove();technicalEditor(f).catch(err=>alert('Falha ao abrir parâmetros: '+String(err?.message||err)));
+    };
   }
   function technicalRows(list,type){
     return (list||[]).map((x,i)=>'<div class="dfTechRow" data-kind="'+type+'"><input aria-label="Nome" placeholder="Nome" value="'+esc(x.name||'')+'"><input aria-label="Temperatura" placeholder="°C" value="'+esc(x.temperature||'')+'"><button type="button" data-remove-tech="'+i+'">×</button></div>').join('');
@@ -165,7 +188,7 @@
     ev.preventDefault();ev.stopImmediatePropagation();
     const f=selected();
     if(!f){alert('Selecione uma formulação salva.');return;}
-    technicalEditor(f).catch(e=>alert('Falha ao abrir parâmetros técnicos: '+String(e?.message||e)));
+    technicalPinGate(f);
   },true);
 
   document.addEventListener('click',function(ev){
@@ -175,7 +198,7 @@
     const act=ev.target?.dataset?.fosafe;if(!act)return;
     ev.preventDefault();ev.stopImmediatePropagation();
     const f=selected();if(!f){alert('Selecione uma formulação.');return;}
-    if(act==='technical'){technicalEditor(f).catch(e=>alert('Falha ao abrir parâmetros: '+String(e.message||e)));return;}
+    if(act==='technical'){technicalPinGate(f);return;}
     if(act==='open'){if(window.abrirFormula)window.abrirFormula(f,false);return;}
     if(act==='pdf'){pdf(f);return;}
     if(act==='op'){op(f);return;}
