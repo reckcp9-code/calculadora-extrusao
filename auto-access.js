@@ -84,8 +84,12 @@ async function restore(){
     if(r.ok&&j.ok!==false&&j.token){sessionStorage.setItem(TOKEN_KEY,String(j.token));unlock();return true}
     if(j.paused===true||r.status===423){dfAccessLock('KEY pausada pelo administrador.');return false}
     if(j.revoked===true||r.status===410){dfAccessLock('Acesso resetado. Digite sua KEY novamente.',true);return false}
-    if(r.status===401||r.status===403){try{const fixed=await window.DFAccessRecovery?.repair?.();if(fixed?.token&&fixed?.credential){sessionStorage.setItem(TOKEN_KEY,String(fixed.token));unlock();return true}}catch(e){}// Falha de autenticação transitória: mantém a interface e a KEY salvas. O servidor continua protegendo as ações autenticadas.
-      unlock();msg('Conexão com a licença instável. O aplicativo tentará validar novamente.',false);return true}
+    if(r.status===401||r.status===403){
+      // Credencial rejeitada explicitamente pelo servidor: não liberar por cache antigo.
+      // Preservar dados de equipe, OPs e formulações; limpar somente a sessão de acesso.
+      dfAccessLock('Sessão antiga inválida. Digite sua KEY para entrar novamente.',true);
+      return false;
+    }
     // Respostas temporárias não apagam a KEY nem forçam um novo login.
     unlock();return true
   }catch(e){unlock();return true}
@@ -163,6 +167,7 @@ async function recoverExisting(){
   // Primeiro recuperar os acessos antigos, sem consumir outra KEY.
   if(saved()){
     if(await restore())return true;
+    if(localStorage.getItem('df_manual_key_required_after_reset')==='1')return false;
     try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
   }else{
     try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
@@ -208,8 +213,8 @@ async function dfAccessRevalidate(){
     if(r.ok&&j.ok!==false&&j.token){
       sessionStorage.setItem(TOKEN_KEY,String(j.token));
       dfAccessLastVerified=Date.now();
-    }else if(r.status===423||j.paused===true||r.status===410||j.revoked===true){
-      const reset=r.status===410||j.revoked===true;
+    }else if(r.status===423||j.paused===true||r.status===410||j.revoked===true||r.status===401||r.status===403){
+      const reset=r.status===410||j.revoked===true||r.status===401||r.status===403;
       dfAccessLock(reset?'Aparelho resetado. Digite a mesma KEY ou outra KEY para entrar.':'KEY pausada, vencida ou bloqueada. Solicite a liberação ao administrador.',reset);
     }else{
       // Falha temporária ou resposta ambígua: manter sessão e KEY intactas.
