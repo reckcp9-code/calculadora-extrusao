@@ -54,8 +54,8 @@
     gate.querySelector('[data-pin-confirm]').onclick=enter;
   }
   async function technicalCommercialReport(f,t,w){
-    const srv=await calcSaved(f);
-    if(!srv)throw Error('Não foi possível calcular a composição.');
+    let srv=await calcSaved(f);
+    if(!srv){const base=(f.rows||[]).map(r=>{const m=mat(r.id)||r;const kg=(pn(f.total)||0)*(pn(r.pct)||0)/100;const preco=pn(m.preco??r.preco??0);return {kg,custo:kg*preco}});const custoTotal=base.reduce((sum,x)=>sum+x.custo,0);srv={itens:base,custoTotal,custoKgFinal:(pn(f.total)>0?custoTotal/pn(f.total):0)};}
     const rows=Array.isArray(f.rows)?f.rows:[],items=Array.isArray(srv.itens)?srv.itens:[];
     const lines=rows.map((r,i)=>{const m=mat(r.id)||r,it=items[i]||{};return '<tr><td>'+esc(m.nome||r.nome||'')+'</td><td>'+fm(r.pct||0,2)+'%</td><td>'+fm(it.kg||0,3)+'</td><td>'+money(m.preco??r.preco??0)+'</td><td>'+money(it.custo||0)+'</td></tr>'}).join('');
     const field=(label,value)=>String(value??'').trim()?'<div class="detail"><small>'+esc(label)+'</small><strong>'+esc(value)+'</strong></div>':'';
@@ -92,7 +92,7 @@
       const rows=id=>[...shade.querySelectorAll('#'+id+' .dfTechRow')].map(e=>({name:e.querySelectorAll('input')[0].value.trim(),temperature:e.querySelectorAll('input')[1].value.trim()})).filter(x=>x.name);
       const payload={legalName:val('dfTechLegal'),tradeName:val('dfTechTrade'),cnpj:val('dfTechCnpj'),density:val('dfTechDensity'),mfi:val('dfTechMfi'),zones:rows('dfTechZones'),components:rows('dfTechComponents')};
       const reportWindow=window.open('','_blank');if(!reportWindow){alert('Permita pop-ups para gerar o relatório.');return;}reportWindow.document.write('<title>Gerando relatório...</title><p>Salvando parâmetros e preparando relatório...</p>');
-      try{await technicalPost('/op/team/formulas/technical/save',f.id,payload);await technicalCommercialReport(f,payload,reportWindow);shade.remove()}catch(e){reportWindow.close();alert('Não foi possível gerar o relatório: '+e.message)}
+      try{await technicalCommercialReport(f,payload,reportWindow);shade.remove();try{await technicalPost('/op/team/formulas/technical/save',f.id,payload)}catch(saveError){alert('Relatório gerado, mas os parâmetros não foram salvos no servidor: '+saveError.message)}}catch(e){try{reportWindow.close()}catch(_){}alert('Não foi possível gerar o relatório: '+e.message)}
     };
   }
 
