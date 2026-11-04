@@ -163,14 +163,29 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
   let freeOnly=false;
   const selectedStock=new Set();
 
+  const dfReadsInFlight=new Map();
   async function post(path,body){
     const secret=$('secret').value.trim();
     if(!secret)throw new Error('Digite a senha administrativa.');
-    const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:JSON.stringify(body||{}),cache:'no-store'});
-    let j={};try{j=await r.json()}catch(e){}
-    if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
-    try{if($('rememberSecret')&&$('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,secret)}catch(e){}
-    return j;
+    const isRead=/\/(status|list-used|list-stock)$/.test(path);
+    const signature=isRead?path+'|'+secret:null;
+    if(signature&&dfReadsInFlight.has(signature))return dfReadsInFlight.get(signature);
+    const promise=(async()=>{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),isRead?12000:20000);
+      try{
+        const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','X-DF-Admin':secret},body:JSON.stringify(body||{}),cache:'no-store',signal:controller.signal});
+        let j={};try{j=await r.json()}catch(e){}
+        if(!r.ok||j.ok===false)throw new Error(j.error||('Erro HTTP '+r.status));
+        try{if($('rememberSecret')&&$('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,secret)}catch(e){}
+        return j;
+      }catch(e){
+        if(e.name==='AbortError')throw new Error(isRead?'Servidor demorou para responder. Atualize novamente.':'Resposta não confirmada. Consulte o estado antes de repetir.');
+        throw e;
+      }finally{clearTimeout(timeout)}
+    })();
+    if(signature){dfReadsInFlight.set(signature,promise);promise.finally(()=>{if(dfReadsInFlight.get(signature)===promise)dfReadsInFlight.delete(signature)}).catch(()=>{})}
+    return promise;
   }
 
   function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -198,7 +213,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
 
   async function reloadAll(targetMsg,message){
     if(targetMsg){$(targetMsg).textContent=message||'Atualizado.';$(targetMsg).className='status ok'}
-    await loadStock();await loadUsedKeys();await status(false);
+    await Promise.allSettled([loadStock(),loadUsedKeys(),status(false)]);
   }
 
   const dfAccessMutations=new Set();
@@ -218,40 +233,26 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
     if(btn){btn.disabled=true;btn.textContent=pausing?'PAUSANDO...':'REATIVANDO...'}
     if(targetMsg&&$(targetMsg)){$(targetMsg).textContent='Confirmando operação no servidor...';$(targetMsg).className='status'}
     try{
-      // O tempo limite não significa que a operação falhou: confirmar o estado antes de permitir nova tentativa.
-      let requestError=null;
+      let confirmed=false,requestError=null;
       try{
-        await Promise.race([
-          post('/admin/access/'+action,{keyId}),
-          new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo de resposta excedido.')),16000))
-        ]);
-      }catch(e){requestError=e}
-      let confirmed=false,latest=null;
-      for(let attempt=0;attempt<3;attempt++){
+        await post('/admin/access/'+action,{keyId});
+        confirmed=true;
+      }catch(e){
+        requestError=e;
+        // Uma resposta perdida não autoriza repetir a alteração no servidor.
         try{
-          const result=await Promise.race([
-            post('/admin/access/list-used',{}),
-            new Promise((_,reject)=>setTimeout(()=>reject(new Error('Consulta excedeu o limite.')),6000))
-          ]);
-          if(Array.isArray(result.items)){
-            usedItems=result.items;
-            latest=usedItems.find(x=>Number(x.id)===keyId);
-            const state=String(latest?.status||'').toLowerCase();
-            confirmed=pausing?state==='paused':state==='used';
-            if(confirmed)break;
-          }
-        }catch(e){if(!requestError)requestError=e}
-        if(attempt<2)await new Promise(resolve=>setTimeout(resolve,550));
+          const result=await post('/admin/v1/access/list-used',{});
+          const current=(Array.isArray(result.items)?result.items:[]).find(x=>Number(x.id)===keyId);
+          confirmed=!!current&&String(current.status)===(pausing?'paused':'used');
+        }catch(checkError){requestError=checkError}
       }
       if(confirmed){
+        it.status=pausing?'paused':'used';
         if(targetMsg&&$(targetMsg)){$(targetMsg).textContent=pausing?'Acesso PAUSADO e confirmado.':'Acesso REATIVADO e confirmado.';$(targetMsg).className='status ok'}
         renderUsed();
-        status(false).catch(()=>{});
+        Promise.allSettled([loadUsedKeys(),loadStock(),status(false)]).catch(()=>{});
       }else{
-        const reason=requestError?.message||'Estado ainda não confirmado.';
-        if(targetMsg&&$(targetMsg)){$(targetMsg).textContent='Não foi possível confirmar a alteração: '+reason+' Atualize a lista antes de tentar novamente.';$(targetMsg).className='status bad'}
-        // Nunca afirmar sucesso nem repetir automaticamente uma alteração de licença.
-        if(Array.isArray(usedItems)&&usedItems.length)renderUsed();
+        if(targetMsg&&$(targetMsg)){$(targetMsg).textContent='Estado não confirmado: '+(requestError?.message||'Atualize antes de repetir.');$(targetMsg).className='status bad'}
       }
     }finally{
       dfAccessMutations.delete(keyId);
@@ -434,7 +435,7 @@ input:focus-visible,button:focus-visible{outline-offset:2px}
     try{if($('rememberSecret').checked)localStorage.setItem(ADMIN_SECRET_KEY,$('secret').value.trim())}catch(e){}
   });
 
-  $('statusBtn').onclick=()=>status(true);
+  $('statusBtn').onclick=()=>Promise.allSettled([status(false),loadUsedKeys(),loadStock()]);
   $('usedBtn').onclick=loadUsedKeys;
   $('stockBtn').onclick=loadStock;
   $('stockSelectAll').onchange=()=>{if($('stockSelectAll').checked)stockItems.forEach(it=>selectedStock.add(Number(it.id)));else selectedStock.clear();renderStock()};
