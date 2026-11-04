@@ -1,6 +1,6 @@
 {
-  "version": "1.0.797",
+  "version": "1.0.798",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Relatório técnico profissional com explicações de densidade, MFI e zonas térmicas.",
+  "message": "Correção da geração do relatório técnico com contingência de cálculo.",
   "updatedAt": "2026-11-04"
 }
