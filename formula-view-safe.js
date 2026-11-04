@@ -37,7 +37,7 @@
     const shade=document.createElement('div');shade.id='dfTechShade';shade.style.cssText='position:fixed;inset:0;background:#0009;z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:12px';
     shade.innerHTML='<section style="background:#fff;color:#111;border-radius:14px;padding:18px;width:min(580px,100%);max-height:90vh;overflow:auto;font:14px Arial"><h2>🔒 Parâmetros técnicos — '+esc(f.nome||'')+'</h2><p>Exclusivo do dono • salvo no servidor</p><label>Razão social<input id="dfTechLegal" value="'+esc(data.legalName||'')+'"></label><label>Nome fantasia<input id="dfTechTrade" value="'+esc(data.tradeName||'')+'"></label><label>CNPJ<input id="dfTechCnpj" value="'+esc(data.cnpj||'')+'" placeholder="00.000.000/0000-00"></label><label>Densidade (g/cm³)<input id="dfTechDensity" value="'+esc(data.density||'')+'"></label><label>MFI (g/10 min)<input id="dfTechMfi" value="'+esc(data.mfi||'')+'"></label><h3>Zonas de temperatura</h3><div id="dfTechZones">'+technicalRows(data.zones,'zones')+'</div><button type="button" id="dfTechAddZone">+ Zona</button><h3>Componentes adicionais</h3><div id="dfTechComponents">'+technicalRows(data.components,'components')+'</div><button type="button" id="dfTechAddComponent">+ Componente</button><div style="display:flex;gap:10px;margin-top:18px"><button type="button" id="dfTechSave">SALVAR</button><button type="button" id="dfTechClose">FECHAR</button></div></section>';
     document.body.appendChild(shade);
-    if(!serverData){try{const result=await technicalPost('/op/team/formulas/technical/get',f.id);if(result.technical){shade.remove();return technicalEditor(f,result.technical)}}catch(e){shade.remove();return alert('Não foi possível carregar dados privados: '+e.message)}}
+    if(!serverData){try{const result=await technicalPost('/op/team/formulas/technical/get',f.id);if(result.technical){shade.remove();return technicalEditor(f,result.technical)}}catch(e){const warning=document.createElement('div');warning.style.cssText='padding:10px;border:1px solid #b45309;border-radius:8px;background:#fff7ed;color:#7c2d12;margin:10px 0';warning.textContent='Não foi possível consultar os dados privados: '+e.message+'. Verifique sua conexão e o acesso como dono. Não salve até a conexão ser restabelecida.';shade.querySelector('section').insertBefore(warning,shade.querySelector('section').children[2]);shade.querySelector('#dfTechSave').disabled=true;}}
     shade.querySelectorAll('input').forEach(el=>el.style.cssText='display:block;width:100%;box-sizing:border-box;padding:9px;margin:5px 0 10px;border:1px solid #aaa;border-radius:6px');
     const bindRemove=()=>shade.querySelectorAll('[data-remove-tech]').forEach(b=>b.onclick=()=>b.parentElement.remove());
     bindRemove();
@@ -163,7 +163,7 @@
     const act=ev.target?.dataset?.fosafe;if(!act)return;
     ev.preventDefault();ev.stopImmediatePropagation();
     const f=selected();if(!f){alert('Selecione uma formulação.');return;}
-    if(act==='technical'){technicalEditor(f);return;}
+    if(act==='technical'){technicalEditor(f).catch(e=>alert('Falha ao abrir parâmetros: '+String(e.message||e)));return;}
     if(act==='open'){if(window.abrirFormula)window.abrirFormula(f,false);return;}
     if(act==='pdf'){pdf(f);return;}
     if(act==='op'){op(f);return;}
