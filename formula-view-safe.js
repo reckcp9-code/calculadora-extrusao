@@ -13,11 +13,11 @@
 
   // Ficha técnica privada: nunca incluir no objeto compartilhado de formulação.
   const technicalTeam=()=>{try{return window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null')}catch(e){return null}};
-  const technicalOwner=()=>String(technicalTeam()?.role||'').toLowerCase()==='owner';
+  const technicalOwner=()=>['owner','dono'].includes(String(technicalTeam()?.role||'').toLowerCase());
   const technicalApi='https://df-extrusor-api.reck-cp9.workers.dev';
   const technicalDevice=()=>{try{const x=window.DFDeviceIdentity?.get?.();if(x)return String(x)}catch(e){}for(const k of ['df_licenseauth_device_v1','df_device_id_v1','df_device_id']){const x=localStorage.getItem(k);if(x)return x}return String(window.DFAccessDeviceId||'')};
   async function technicalPost(path,formulaId,technical){
-    const team=technicalTeam();if(!team?.teamId||!technicalOwner())throw Error('Somente o dono conectado à equipe pode acessar.');
+    const team=technicalTeam();if(!team?.teamId)throw Error('Conecte-se à equipe para acessar.');
     const tokenKey='df_secure_token_v2';
     let token=sessionStorage.getItem(tokenKey)||'';
     const dev=technicalDevice();
@@ -32,13 +32,12 @@
   function technicalRows(list,type){
     return (list||[]).map((x,i)=>'<div class="dfTechRow" data-kind="'+type+'"><input aria-label="Nome" placeholder="Nome" value="'+esc(x.name||'')+'"><input aria-label="Temperatura" placeholder="°C" value="'+esc(x.temperature||'')+'"><button type="button" data-remove-tech="'+i+'">×</button></div>').join('');
   }
-  async function technicalEditor(f){
-    if(!technicalOwner())return alert('Somente o dono pode editar parâmetros técnicos.');
-    let data={zones:[{name:'Zona 1',temperature:''},{name:'Zona 2',temperature:''},{name:'Zona 3',temperature:''}],components:[]};
-    try{const result=await technicalPost('/op/team/formulas/technical/get',f.id);if(result.technical)data=result.technical;}catch(e){return alert('Não foi possível carregar dados privados: '+e.message)}
+  async function technicalEditor(f,serverData){
+    let data=serverData||{zones:[{name:'Zona 1',temperature:''},{name:'Zona 2',temperature:''},{name:'Zona 3',temperature:''}],components:[]};
     const shade=document.createElement('div');shade.id='dfTechShade';shade.style.cssText='position:fixed;inset:0;background:#0009;z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:12px';
     shade.innerHTML='<section style="background:#fff;color:#111;border-radius:14px;padding:18px;width:min(580px,100%);max-height:90vh;overflow:auto;font:14px Arial"><h2>🔒 Parâmetros técnicos — '+esc(f.nome||'')+'</h2><p>Exclusivo do dono • salvo no servidor</p><label>Razão social<input id="dfTechLegal" value="'+esc(data.legalName||'')+'"></label><label>Nome fantasia<input id="dfTechTrade" value="'+esc(data.tradeName||'')+'"></label><label>CNPJ<input id="dfTechCnpj" value="'+esc(data.cnpj||'')+'" placeholder="00.000.000/0000-00"></label><label>Densidade (g/cm³)<input id="dfTechDensity" value="'+esc(data.density||'')+'"></label><label>MFI (g/10 min)<input id="dfTechMfi" value="'+esc(data.mfi||'')+'"></label><h3>Zonas de temperatura</h3><div id="dfTechZones">'+technicalRows(data.zones,'zones')+'</div><button type="button" id="dfTechAddZone">+ Zona</button><h3>Componentes adicionais</h3><div id="dfTechComponents">'+technicalRows(data.components,'components')+'</div><button type="button" id="dfTechAddComponent">+ Componente</button><div style="display:flex;gap:10px;margin-top:18px"><button type="button" id="dfTechSave">SALVAR</button><button type="button" id="dfTechClose">FECHAR</button></div></section>';
     document.body.appendChild(shade);
+    if(!serverData){try{const result=await technicalPost('/op/team/formulas/technical/get',f.id);if(result.technical){shade.remove();return technicalEditor(f,result.technical)}}catch(e){shade.remove();return alert('Não foi possível carregar dados privados: '+e.message)}}
     shade.querySelectorAll('input').forEach(el=>el.style.cssText='display:block;width:100%;box-sizing:border-box;padding:9px;margin:5px 0 10px;border:1px solid #aaa;border-radius:6px');
     const bindRemove=()=>shade.querySelectorAll('[data-remove-tech]').forEach(b=>b.onclick=()=>b.parentElement.remove());
     bindRemove();
@@ -82,7 +81,8 @@
     if(!a.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return;}
     const current=q('foSavedSelect')?.value;
     const opts=a.map((f,i)=>'<option value="'+esc(f.id)+'" '+((current&&String(current)===String(f.id))||(!current&&i===0)?'selected':'')+'>'+esc(f.nome||'Formulação')+' — '+fm(f.total||0,2)+' kg</option>').join('');
-    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(5,1fr)"><button class="miniBtn" data-fosafe="technical">🔒 PARÂMETROS</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="miniBtn" data-fosafe="dup">DUPLICAR</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
+    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(4,minmax(0,1fr))"><button class="miniBtn" data-fosafe="technical">🔒 TÉCNICOS</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
+    b.querySelectorAll('.savedBtns button').forEach(btn=>{btn.style.cssText='min-width:0;width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal;font-size:clamp(9px,2.5vw,12px);line-height:1.2;padding:12px 3px;text-align:center;min-height:54px'});
     q('foSavedSelect')?.addEventListener('change',info);info();
   }
 
