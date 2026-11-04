@@ -6,7 +6,7 @@ const CORE=[
   './device-identity.js','./ios-reinstall-bridge.js','./df-uppercase-input-v1.js','./auto-access.js','./gerador-admin-pwa-v193.js',
   './performance-guard-v3.js','./error-monitor-v1.js','./production-stability-v1.js','./ui-consistency-v1.js','./app-bundle.js',
   './sacolas-density-prod-0980-v1.js','./sacolas-caixa-fardo-fast-input-v1.js','./home-polish-v2.js',
-  './cost-simple-v154.js','./cost-roll-profit-v1.js','./cost-back-v155.js','./cost-fabril-v1.js','./push-background-repair-v1.js','./access-reinstall-recovery-v2.js',
+  './cost-simple-v154.js','./cost-roll-profit-v1.js','./cost-back-v155.js','./cost-fabril-v1.js','./push-background-repair-v1.js',
   './backup-manual-only-v1.js','./local-calculations.js','./data-integrity-v2.js','./runtime-stability-v5.js','./team-tab-permissions-v182.js','./update-notify-v1.js',
   './medida-formulacao-stable.js','./formula-tabs-clean-v1.js','./formula-mobile-nav-fix-v1.js',
   './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./team-formulas-duplicates-v2.js',
