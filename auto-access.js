@@ -164,22 +164,10 @@ function prepareManual(){
 async function recoverExisting(){
   // Após reset, nunca recuperar a licença automaticamente por identificação.
   if(localStorage.getItem('df_manual_key_required_after_reset')==='1')return false;
-  // Primeiro recuperar os acessos antigos, sem consumir outra KEY.
-  if(saved()){
-    if(await restore())return true;
-    if(localStorage.getItem('df_manual_key_required_after_reset')==='1')return false;
-    try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
-  }else{
-    try{const repair=window.DFAccessRecovery?.repair;if(typeof repair==='function'&&await repair()){if(await restore())return true}}catch(e){}
-  }
-  // A identificacao antiga so pode recuperar uma licenca ja existente no D1.
-  // O servidor nao distribui KEY nova por esta rota.
-  try{
-    const identity=automaticIdentity();
-    const r=await request('/access/identify',{identity,deviceId:device()},15000);
-    const j=await r.json();
-    if(r.ok&&j.ok!==false&&j.token&&j.accessCredential){save(j,true);unlock();return true}
-  }catch(e){}
+  // Única recuperação permitida: credencial salva validada pelo Worker.
+  // Sem credencial válida, exigir KEY manual; nunca identificar automaticamente.
+  if(saved())return await restore();
+
   return false;
 }
 
