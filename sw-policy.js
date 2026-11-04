@@ -23,4 +23,4 @@ self.registration.showNotification=async function(title,options){
 };
 
 // O wrapper é atualizado a cada release; o import não pode permanecer em cache antigo.
-importScripts('./sw.js?v=20261104-pin-keypad-v796');
+importScripts('./sw.js?v=20261104-technical-report-v797');
