@@ -19,9 +19,31 @@ export async function registerVerifiedLicense(env,{key,ownerId,licenseId,deviceI
   if(existing?.status!=='active' && existing) return {ok:false,reason:existing.status};
   await env.LICENSE_DB.prepare('INSERT OR IGNORE INTO owners(owner_id) VALUES(?)').bind(ownerId).run();
   await env.LICENSE_DB.prepare("INSERT OR IGNORE INTO licenses(license_id,owner_id,key_fingerprint,status) VALUES(?,?,?,'active')").bind(licenseId,ownerId,fp).run();
-  const generation=existing?.generation||1;
-  await env.LICENSE_DB.prepare('INSERT INTO license_devices(license_id,device_id,generation,revoked_at) VALUES(?,?,?,NULL) ON CONFLICT(license_id,device_id) DO UPDATE SET generation=excluded.generation,revoked_at=NULL,authorized_at=CURRENT_TIMESTAMP').bind(licenseId,deviceId,generation).run();
-  return {ok:true,ownerId,licenseId,generation};
+  // Regra: somente um aparelho ativo por licença. Depois do reset,
+  // a primeira ativação validada assume o vínculo, sem alterar owner_id.
+  // A decisão ocorre no SQL, evitando duas ativações simultâneas.
+  const claim=await env.LICENSE_DB.prepare(`
+    INSERT INTO license_devices(license_id,device_id,generation,revoked_at)
+    SELECT l.license_id,?,l.generation,NULL FROM licenses l
+    WHERE l.license_id=? AND l.status='active'
+      AND NOT EXISTS (
+        SELECT 1 FROM license_devices d WHERE d.license_id=l.license_id
+          AND d.generation=l.generation AND d.revoked_at IS NULL
+          AND d.device_id<>?
+      )
+    ON CONFLICT(license_id,device_id) DO UPDATE SET
+      generation=excluded.generation,revoked_at=NULL,authorized_at=CURRENT_TIMESTAMP
+    WHERE NOT EXISTS (
+      SELECT 1 FROM license_devices d WHERE d.license_id=excluded.license_id
+        AND d.generation=excluded.generation AND d.revoked_at IS NULL
+        AND d.device_id<>excluded.device_id
+    )
+  `).bind(deviceId,licenseId,deviceId).run();
+  const active=await env.LICENSE_DB.prepare(
+    'SELECT d.generation,l.owner_id FROM license_devices d JOIN licenses l ON l.license_id=d.license_id WHERE d.license_id=? AND d.device_id=? AND d.generation=l.generation AND d.revoked_at IS NULL AND l.status=\'active\''
+  ).bind(licenseId,deviceId).first();
+  if(!active)return {ok:false,reason:'device_bound_elsewhere'};
+  return {ok:true,ownerId:active.owner_id,licenseId,generation:active.generation};
 }
 
 export async function licenseState(env,{licenseId,deviceId,generation}) {
