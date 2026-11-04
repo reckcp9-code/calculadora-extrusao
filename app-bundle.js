@@ -3526,7 +3526,7 @@
       '<div class="tools"><button onclick="window.close()">← VOLTAR</button><label style="font-size:11px">Cliente: <input id="dfPdfCliente" maxlength="100" value="'+esc(cliente)+'" placeholder="Nome da empresa" oninput="document.querySelectorAll(\'[data-cliente]\').forEach(x=>x.textContent=this.value.trim()||\'cliente não informado\')" style="padding:7px;border:1px solid #bbb;border-radius:4px"></label><button class="print" onclick="window.print()">IMPRIMIR / SALVAR PDF</button></div>'+ 
       '<main class="sheet">'+
         '<div class="topline"><span>'+esc(data)+', '+esc(hora)+'</span><span>Formulação '+esc(f.nome||'Formulação')+'</span></div>'+ 
-        '<header class="header"><div class="eyebrow">DF EXTRUSOR PRO • DOCUMENTAÇÃO TÉCNICA</div><h1>DF Manutenção e Consultoria</h1><p>Relatório técnico de composição e custos</p></header>'+ 
+        '<header class="header"><div class="eyebrow">DF EXTRUSOR PRO • DOCUMENTAÇÃO TÉCNICA</div><h1>DF Manutenção e Consultoria</h1><p>DESENVOLVIMENTO DE COMPOSIÇÃO POLIMÉRICA — Projeto técnico de formulação personalizada para aplicação industrial</p></header>'+ 
         '<div class="rule"></div>'+ 
         '<div class="formulaRow"><div class="formula">'+esc(f.nome||'Formulação')+'</div><div class="base">BASE PADRÃO: 100 KG</div></div>'+ 
         '<div class="meta"><div><span>EMPRESA DESTINATÁRIA</span><b data-cliente>'+esc(cliente||'cliente não informado')+'</b></div><div><span>IDENTIFICAÇÃO DO REGISTRO</span><b>'+esc(formId||'Não informada')+'</b></div></div>'+ 
