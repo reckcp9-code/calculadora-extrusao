@@ -156,6 +156,16 @@
     const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a janela da OP. Libere pop-up.');return;}w.document.open();w.document.write(html);w.document.close();
   }
 
+  // Captura o toque antes dos handlers globais de formulação no iOS.
+  window.addEventListener('click',function(ev){
+    const btn=ev.target?.closest?.('[data-fosafe="technical"]');
+    if(!btn)return;
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const f=selected();
+    if(!f){alert('Selecione uma formulação salva.');return;}
+    technicalEditor(f).catch(e=>alert('Falha ao abrir parâmetros técnicos: '+String(e?.message||e)));
+  },true);
+
   document.addEventListener('click',function(ev){
     if(ev.target?.id==='foSave'){
       ev.preventDefault();ev.stopImmediatePropagation();saveFormulaSafe();return;
