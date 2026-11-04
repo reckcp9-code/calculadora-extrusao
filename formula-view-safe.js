@@ -15,10 +15,10 @@
   const technicalTeam=()=>{try{return window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null')}catch(e){return null}};
   const technicalOwner=()=>String(technicalTeam()?.role||'').toLowerCase()==='owner';
   const technicalApi='https://df-extrusor-api.reck-cp9.workers.dev';
-  const technicalDevice=()=>{for(const k of ['df_device_id_v1','df_device_id','df_access_device_id_v1']){const x=localStorage.getItem(k);if(x)return x}return String(window.DFAccessDeviceId||'')};
+  const technicalDevice=()=>{try{const x=window.DFDeviceIdentity?.get?.();if(x)return String(x)}catch(e){}for(const k of ['df_licenseauth_device_v1','df_device_id_v1','df_device_id']){const x=localStorage.getItem(k);if(x)return x}return String(window.DFAccessDeviceId||'')};
   async function technicalPost(path,formulaId,technical){
     const team=technicalTeam();if(!team?.teamId||!technicalOwner())throw Error('Somente o dono conectado à equipe pode acessar.');
-    const tokenKey='df_session_token_v1';
+    const tokenKey='df_secure_token_v2';
     let token=sessionStorage.getItem(tokenKey)||'';
     const dev=technicalDevice();
     // Reutiliza o mesmo identificador e a sessão do módulo de sincronização.
