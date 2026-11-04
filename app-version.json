@@ -1,6 +1,6 @@
 {
-  "version": "1.0.801",
+  "version": "1.0.802",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Relatório técnico: exibir somente o custo da composição por kg, sem o custo total.",
+  "message": "Correção dos botões Voltar e Gerar Relatório em Parâmetros Técnicos.",
   "updatedAt": "2026-11-04"
 }
