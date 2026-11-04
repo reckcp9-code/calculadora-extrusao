@@ -217,7 +217,7 @@
     $('usedList').querySelectorAll('[data-resume]').forEach(b=>b.onclick=()=>toggleAccess(usedItems[Number(b.dataset.resume)],'resume','usedMsg',b));
     $('usedList').querySelectorAll('[data-reset]').forEach(b=>b.onclick=async()=>{
       const it=usedItems[Number(b.dataset.reset)];if(!it||!it.id)return;const nome=it.identity||'essa identificação';
-      if(!confirm('Resetar o aparelho de '+nome+'?\n\nO aparelho atual perderá o acesso. A mesma key será usada no próximo aparelho. Nenhuma key nova será consumida.'))return;
+      if(!confirm('RESETAR KEY de '+nome+'?\n\nO vínculo do aparelho atual será revogado. Após confirmação do servidor, a próxima ativação com esta KEY poderá vincular um novo aparelho. Nenhuma OP, equipe, foto ou formulação será apagada.'))return;
       b.disabled=true;b.textContent='RESETANDO...';
       try{const j=await post('/admin/access/reset-device',{keyId:it.id});await reloadAll('usedMsg',j.message||'Aparelho resetado.')}catch(e){$('usedMsg').textContent=e.message;$('usedMsg').className='status bad';b.disabled=false;b.textContent='RESETAR APARELHO'}
     });
