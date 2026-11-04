@@ -34,8 +34,9 @@ function device(){
   return id;
 }
 function msg(t,ok){const e=document.getElementById('licenseMsg');if(e){e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}}
-function unlock(){try{removeSavedTransition();document.documentElement.classList.remove('df-access-restoring');document.documentElement.classList.remove('df-license-locked');document.getElementById('licenseGate')?.style.removeProperty('display');document.getElementById('appContent')?.style.removeProperty('display');if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}window.dispatchEvent(new CustomEvent('df-auth-ready',{detail:{ok:true}}))}catch(e){}}
+function unlock(){try{window.DFAccessSessionUnlocked=true;removeSavedTransition();document.documentElement.classList.remove('df-access-restoring');document.documentElement.classList.remove('df-license-locked');document.getElementById('licenseGate')?.style.removeProperty('display');document.getElementById('appContent')?.style.removeProperty('display');if(typeof window.dfUnlocked==='function')window.dfUnlocked();else{const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');if(g)g.style.display='none';if(a)a.style.display='block'}window.dispatchEvent(new CustomEvent('df-auth-ready',{detail:{ok:true}}))}catch(e){}}
 function gate(){
+  window.DFAccessSessionUnlocked=false;
   document.documentElement.classList.add('df-license-locked');
   const g=document.getElementById('licenseGate'),a=document.getElementById('appContent');
   if(g)g.style.setProperty('display',document.documentElement.classList.contains('df-access-restoring')?'none':'flex','important');
