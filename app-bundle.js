@@ -248,10 +248,8 @@
 
   function boot(){if(booted)return;booted=true;if(isOffline()){resumeOfflineAccess();return}const restored=unlockSavedImmediately();if(!restored){prepareGeneralGate();prepareLegacyGate()}if(savedCredential())resumeSavedAccess()}
 
-  window.addEventListener('offline',resumeOfflineAccess);
-  window.addEventListener('online',function(){const btn=document.getElementById('licenseBtn');if(btn)btn.disabled=false;if(savedCredential()){setMessage('Internet conectada. Validando seu acesso...',true);resumeSavedAccess()}else if(generalMode){prepareGeneralGate();setMessage('Internet conectada. Digite sua identificação para acessar.',true)}else if(linkToken){prepareLegacyGate();setMessage('Internet conectada. Toque em ACESSAR.',true)}});
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  // O controlador novo auto-access.js gerencia a tela de KEY e a sessão.
+  // Este bloco legado mantém apenas a compatibilidade do fetch autenticado.
 })();
 
 /* ---- auto-user.js ---- */
@@ -437,81 +435,6 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
-})();
-
-/* ---- access-device-guard.js ---- */
-(function(){
-  'use strict';
-
-  const ACCESS_KEY='df_auto_access_credential_v1';
-
-  function hasCredential(){
-    try{return !!String(localStorage.getItem(ACCESS_KEY)||'').trim()}catch(e){return false}
-  }
-
-  function setMessage(text,ok){
-    const e=document.getElementById('licenseMsg');
-    if(!e)return;
-    e.textContent=text;
-    e.className='licenseMsg '+(ok?'ok':'err');
-  }
-
-  function unlock(){
-    try{
-      if(typeof window.dfUnlocked==='function')window.dfUnlocked();
-      else{
-        const gate=document.getElementById('licenseGate');
-        const app=document.getElementById('appContent');
-        if(gate)gate.style.display='none';
-        if(app)app.style.display='block';
-      }
-    }catch(e){}
-  }
-
-  function cleanGeneralParam(){
-    try{
-      const u=new URL(location.href);
-      if(String(u.searchParams.get('acesso')||'').toLowerCase()!=='geral')return;
-      u.searchParams.delete('acesso');
-      history.replaceState(null,'',u.pathname+(u.search||'')+(u.hash||''));
-    }catch(e){}
-  }
-
-  function hideVerification(){
-    if(!hasCredential())return;
-    const wrap=document.getElementById('dfAccessIdentityWrap');
-    const key=document.getElementById('licenseKey');
-    if(wrap)wrap.style.display='none';
-    if(key)key.style.display='none';
-  }
-
-  function replaceOldText(){
-    try{
-      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-      let n;
-      while((n=walker.nextNode())){
-        if(n.nodeValue&&n.nodeValue.includes('O vínculo é feito pelo ID deste aparelho no LicenseAuth.')){
-          n.nodeValue=n.nodeValue.replace('O vínculo é feito pelo ID deste aparelho no LicenseAuth.','O vínculo é controlado pelo sistema DF EXTRUSOR.');
-        }
-      }
-    }catch(e){}
-  }
-
-  function guard(){
-    replaceOldText();
-    if(!hasCredential())return;
-
-    // A renovação da sessão pertence exclusivamente ao auto-access.js.
-    // Antes este arquivo também chamava /access/session no boot, criando duas
-    // restaurações concorrentes, mais tráfego e estados visuais diferentes.
-    hideVerification();
-    cleanGeneralParam();
-    unlock();
-    setMessage('Acesso salvo restaurado.',true);
-  }
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',guard,{once:true});
-  else guard();
 })();
 
 /* ---- presence-lite.js ---- */
@@ -724,8 +647,8 @@
 
   function deviceId(){let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem(DEVICE_KEY,id)}return id}
   function dfMsg(t,ok=false){const e=$('licenseMsg');if(!e)return;e.textContent=t;e.className='licenseMsg '+(ok?'ok':'err')}
-  function dfLocked(){if($('licenseGate'))$('licenseGate').style.display='flex';if($('appContent'))$('appContent').style.display='none'}
-  function dfUnlocked(){if($('licenseGate'))$('licenseGate').style.display='none';if($('appContent'))$('appContent').style.display='block'}
+  function dfLocked(){if(window.DFAccessSessionUnlocked===true)return;if($('licenseGate'))$('licenseGate').style.display='flex';if($('appContent'))$('appContent').style.display='none'}
+  function dfUnlocked(){if(document.documentElement.classList.contains('df-license-locked'))return;if($('licenseGate'))$('licenseGate').style.display='none';if($('appContent'))$('appContent').style.display='block'}
 
   async function rawPost(path,body,useToken=true,signal){const headers={'Content-Type':'application/json','X-DF-Device':deviceId()};if(useToken&&token)headers.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers,body:JSON.stringify(body),signal});let j={};try{j=await r.json()}catch(_){}if(!r.ok||j.ok===false){const e=new Error(j.error||('Erro HTTP '+r.status));e.status=r.status;throw e}return j}
   async function dfLicenseAuthLogin(key,silent=false){const k=String(key||'').trim();if(!k){dfMsg('Digite sua licença.');return false}const btn=$('licenseBtn');if(btn)btn.disabled=true;if(!silent)dfMsg('Verificando licença no LicenseAuth...');try{const j=await rawPost('/auth',{licenseKey:k,deviceId:deviceId()},false);token=j.token||'';if(!token)throw new Error('Servidor não retornou uma sessão válida.');sessionStorage.setItem(TOKEN_KEY,token);localStorage.setItem(LICENSE_KEY,k);dfMsg('Licença válida. Acesso liberado.',true);setTimeout(dfUnlocked,120);return true}catch(e){token='';sessionStorage.removeItem(TOKEN_KEY);localStorage.removeItem(LICENSE_KEY);dfLocked();dfMsg(e.message||'Não foi possível validar a licença.');return false}finally{if(btn)btn.disabled=false}}
