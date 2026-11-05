@@ -823,7 +823,7 @@
       head.append(top,search);
       const list=document.createElement('div');list.style.cssText='flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px 12px 16px';
       panel.append(head,list);overlay.append(panel);document.body.append(overlay);
-      const materials=loadMats().filter(m=>dfGravCategory(m)===(slot<2?'base':'aditivo')).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+      const materials=loadMats().filter(m=>slot<2?dfGravCategory(m)==='base':true).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
       function draw(){
         list.replaceChildren();const q=search.value.trim().toLocaleLowerCase('pt-BR');
         const matches=materials.filter(m=>String(m.nome||'').toLocaleLowerCase('pt-BR').includes(q));
