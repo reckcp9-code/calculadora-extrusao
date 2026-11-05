@@ -596,12 +596,76 @@
   function renderMatBatch(){const b=$('matBatch');if(!b)return;b.innerHTML='<div class="formRow"><div class="rowTitle">Novo material</div><div class="grid"><div><label>Nome do material</label><input id="matNome1" placeholder="Ex.: Canela"></div><div><label>Preço por kg opcional</label><input id="matPreco1" inputmode="decimal" placeholder="Ex.: 5,50"></div></div></div>';if($('matSave'))$('matSave').textContent='CADASTRAR MATERIAL';if($('matClearBatch'))$('matClearBatch').style.display='none'}
   function salvarMateriais(){const ne=$('matNome1'),pe=$('matPreco1'),nome=(ne?.value||'').trim(),preco=parseNum(pe?.value||'');if(!nome){alert('Digite o nome do material.');ne?.focus();return}const mats=loadMats();if(mats.some(m=>safeLower(m.nome)===safeLower(nome))){alert('Esse material já está cadastrado. Não pode cadastrar duas vezes com o mesmo nome.');return}mats.push({id:Date.now()+Math.floor(Math.random()*999),nome,preco});saveMats(mats);if(ne)ne.value='';if(pe)pe.value='';ne?.focus();alert('Material cadastrado. Campo liberado para o próximo material.')}
   function addFoRow(){const sel=$('foAddMat'),pctEl=$('foAddPct'),id=sel?.value||'',pct=parseNum(pctEl?.value||'');if(!id){alert('Escolha um material.');return}if(!(pct>0)){alert('Digite a porcentagem do material.');return}if(FO_ROWS.some(r=>String(r.id)===String(id))){alert('Esse material já foi colocado na formulação.');return}if(FO_ROWS.length>=8){alert('Limite de 8 materiais nesta formulação.');return}const m=materialById(id);FO_ROWS.push({id,nome:m?.nome||'',preco:+m?.preco||0,pct});if(sel)sel.value='';if(pctEl)pctEl.value='';renderMixList();debounce('fo',calcFo,20)}
-  function renderMixRows(savedRows=[]){FO_ROWS=(savedRows||[]).map(r=>{const m=materialById(r.id)||r;return{id:String(r.id||''),nome:m.nome||r.nome||'',preco:+m.preco||+r.preco||0,pct:+r.pct||0}}).filter(r=>r.id&&r.pct>0);const b=$('foMixRows');if(!b)return;b.innerHTML='<div class="formRow"><div class="rowTitle">Adicionar na formulação</div><div class="grid"><div><label>Material</label><select id="foAddMat">'+buildMatOptions()+'</select></div><div><label>Porcentagem %</label><input id="foAddPct" inputmode="decimal" placeholder="Ex.: 60"></div></div><button id="foAddRow" class="calcBtn" type="button">ADICIONAR NA FORMULAÇÃO</button></div><div id="foMixList"></div>';$('foAddRow')?.addEventListener('click',addFoRow);$('foAddPct')?.addEventListener('keydown',e=>{if(e.key==='Enter')addFoRow()});$('foMixList')?.addEventListener('click',ev=>{const i=ev.target?.dataset?.remrow;if(i!==undefined){FO_ROWS.splice(+i,1);renderMixList();debounce('fo',calcFo,20)}});renderMixList()}
+  function dfGravCategory(m){
+    const explicit=String(m?.categoria||m?.tipo||'').toLowerCase();
+    if(/pigment|aditiv|master|dessec|carga/.test(explicit))return 'aditivo';
+    if(/resina|base|polimer/.test(explicit))return 'base';
+    const name=String(m?.nome||'').toUpperCase();
+    if(/PIGMENT|MASTER|ADITIV|DESSEC|ANTIBLOQ|DESLIZ|CARBONATO|TALCO|CORANTE|ESTABILIZ/.test(name))return 'aditivo';
+    return 'base';
+  }
+  let DF_GRAV_COUNT=4,DF_GRAV_SLOTS=Array.from({length:8},()=>({id:'',pct:''}));
+  function dfGravSync(){
+    const active=DF_GRAV_SLOTS.slice(0,DF_GRAV_COUNT);
+    const other=active.slice(1).reduce((s,r)=>s+(Number(parseNum(r.pct))||0),0);
+    const a1=100-other;
+    const ids=active.filter(r=>r.id).map(r=>String(r.id));
+    const duplicate=new Set(ids).size!==ids.length;
+    const missing=active.some((r,i)=>(i===0||Number(parseNum(r.pct))>0)&&!r.id);
+    const invalidPct=active.slice(1).some(r=>!Number.isFinite(parseNum(r.pct))||parseNum(r.pct)<0||parseNum(r.pct)>100);
+    const bad=other>=100||duplicate||missing||invalidPct;
+    const display=$('dfGravA1');if(display){display.textContent=a1>=0?fmt(a1,2)+'%':'INVÁLIDO';display.style.color=bad?'#f87171':'#4ade80'}
+    const warn=$('dfGravWarning');
+    if(warn)warn.textContent=other>100?'Percentuais excedem 100% em '+fmt(other-100,2)+'%. Reduza A2–A'+DF_GRAV_COUNT+'.':other===100?'A1 ficou em 0%. Reserve uma porcentagem para a resina principal.':duplicate?'Material repetido. Escolha materiais diferentes.':missing?'Selecione os materiais com percentual maior que zero.':invalidPct?'Informe porcentagens válidas entre 0 e 100.':'';
+    FO_ROWS=bad?[]:active.map((r,i)=>{const m=materialById(r.id);return m&&r.id?{id:String(r.id),nome:m.nome,preco:+m.preco||0,pct:i===0?a1:Number(parseNum(r.pct))||0}:null}).filter(r=>r&&r.pct>0);
+    debounce('fo',calcFo,20);
+    return !bad;
+  }
+  function renderMixRows(savedRows=[]){
+    const saved=Array.isArray(savedRows)?savedRows:[];
+    DF_GRAV_COUNT=Math.min(8,Math.max(4,saved.length||DF_GRAV_COUNT));
+    DF_GRAV_SLOTS=Array.from({length:8},(_,i)=>({id:String(saved[i]?.id||''),pct:i===0?'':String(saved[i]?.pct??'')}));
+    const b=$('foMixRows');if(!b)return;
+    b.innerHTML='<div class="formRow" id="dfGravBox"><div class="rowTitle">Adicionar na formulação</div><div class="formNote">A1 e A2: resinas base. A3 em diante: pigmentos e aditivos. A1 completa automaticamente 100%.</div><div class="df-grav-count" style="display:flex;gap:5px;margin:10px 0 12px"></div><div id="dfGravLines" style="display:grid;gap:7px"></div><div id="dfGravWarning" role="alert" style="color:#f87171;font-size:12px;margin-top:7px"></div></div>';
+    const count=b.querySelector('.df-grav-count');
+    for(let n=4;n<=8;n++){const bt=document.createElement('button');bt.type='button';bt.textContent=String(n);bt.style.cssText='flex:1;min-width:0;padding:9px 0;border:1px solid #475569;border-radius:8px;background:'+(n===DF_GRAV_COUNT?'#334155':'transparent')+';color:white;font-weight:700';bt.addEventListener('click',()=>{DF_GRAV_COUNT=n;drawGravLines();});count.appendChild(bt)}
+    function drawGravLines(){
+      [...count.children].forEach((bt,i)=>bt.style.background=i+4===DF_GRAV_COUNT?'#334155':'transparent');
+      const wrap=$('dfGravLines');wrap.replaceChildren();
+      const all=loadMats();
+      for(let i=0;i<DF_GRAV_COUNT;i++){
+        const row=document.createElement('div');row.style.cssText='display:flex;gap:7px;align-items:center;min-width:0';
+        const label=document.createElement('strong');label.textContent='A'+(i+1);label.style.cssText='width:27px;flex:none;font-size:13px';
+        const select=document.createElement('select');select.setAttribute('aria-label','Material A'+(i+1));select.style.cssText='min-width:0;flex:1;width:100%;font-size:13px;padding:9px 5px';
+        select.add(new Option('Selecionar material',''));
+        const available=all.filter(m=>dfGravCategory(m)===(i<2?'base':'aditivo'));
+        available.forEach(m=>select.add(new Option(m.nome+(m.preco>0?' — '+rs(m.preco)+'/kg':''),String(m.id))));
+        select.value=DF_GRAV_SLOTS[i].id;
+        select.addEventListener('change',()=>{DF_GRAV_SLOTS[i].id=select.value;dfGravSync()});
+        const value=document.createElement(i===0?'div':'input');value.style.cssText='width:78px;flex:none;min-width:0;text-align:center;font-size:13px;padding:9px 4px;border-radius:8px';
+        if(i===0){value.id='dfGravA1';value.style.background='#1e293b';value.style.fontWeight='700'}
+        else{value.value=DF_GRAV_SLOTS[i].pct;value.inputMode='decimal';value.placeholder='0%';value.setAttribute('aria-label','Porcentagem A'+(i+1));value.addEventListener('input',()=>{DF_GRAV_SLOTS[i].pct=value.value;dfGravSync()})}
+        row.append(label,select,value);wrap.appendChild(row);
+      }
+      dfGravSync();
+    }
+    drawGravLines();
+  }
   function renderMixList(){const b=$('foMixList');if(!b)return;if(!FO_ROWS.length){b.innerHTML="<div class='formNote'>Nenhum material adicionado na formulação ainda.</div>";return}const items=Array.isArray(LAST_FO.itens)?LAST_FO.itens:[];b.innerHTML=FO_ROWS.map((r,i)=>{const m=materialById(r.id)||r,sv=items[i]||{};return '<div class="savedItem"><b>'+esc(m.nome||r.nome)+'</b><div class="formNote">'+fmt(+r.pct||0,2)+'%'+(sv.kg?' = '+fmt(sv.kg,3)+' kg':'')+(sv.custo?' • '+rs(sv.custo):'')+'</div><div class="savedBtns"><button class="delBtn" type="button" data-remrow="'+i+'">REMOVER</button></div></div>'}).join('')}
   function getFoRows(){return FO_ROWS.slice()}
   function parseFoKg(v){const raw=String(v??'').trim().replace(/\s/g,'').replace(/[^0-9,.-]/g,'');if(!raw)return 0;let z=raw;if(raw.includes(',')&&raw.includes('.'))z=raw.lastIndexOf(',')>raw.lastIndexOf('.')?raw.replace(/\./g,'').replace(',','.'):raw.replace(/,/g,'');else if(raw.includes(','))z=raw.replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(raw))z=raw.replace(/\./g,'');const n=Number(z);return Number.isFinite(n)?n:0}
   async function calcFo(){try{const total=parseFoKg($('foTotal')?.value),rows=getFoRows().map(r=>({pct:+r.pct||0,precoKg:+(materialById(r.id)?.preco??r.preco)||0})),r=await dfCalc('formulacao',{totalKg:total,rows});LAST_FO=r;renderMixList();set('foTotPct',r.totalPct?fmt(r.totalPct,2)+'%':'—');set('foTotKg',r.somaKg?fmt(r.somaKg,3)+' kg':'—');set('foCustoTotal',r.custoTotal?rs(r.custoTotal):'—');set('foCustoKg',r.custoKgFinal?rs(r.custoKgFinal)+'/kg':'—');const st=$('foStatus'),d=Number(r.diferencaPara100)||0;if(st){if(Math.abs(d)<=0.05&&Number(r.totalPct)>0){st.textContent='FORMULAÇÃO FECHADA 100% ✅';st.className='midRes ok'}else if(d>0){st.textContent='FALTAM '+fmt(d,2)+'% PARA FECHAR ⚠️';st.className='midRes warn'}else{st.textContent='PASSOU '+fmt(Math.abs(d),2)+'% DO LIMITE ❌';st.className='midRes bad'}}return r}catch(e){apiError(e);return{}}}
-  async function salvarFormula(){const nome=($('foNome')?.value||'').trim()||'Formulação',total=parseFoKg($('foTotal')?.value),rows=getFoRows().filter(r=>r.id&&r.pct>0);if(!total){alert('Digite quantos kg quer fazer.');return}if(!rows.length){alert('Escolha pelo menos 1 material.');return}const r=await calcFo();const d=Number(r.diferencaPara100)||0;if(Math.abs(d)>0.05&&!confirm('A formulação não fechou 100%. Salvar mesmo assim?'))return;const rec={id:Date.now(),nome,total,rows,custo:Number(r.custoTotal)||0,custoKg:Number(r.custoKgFinal)||0,criado:new Date().toISOString()};const a=loadForms();a.unshift(rec);saveForms(a);alert('Formulação salva.')}
+  async function salvarFormula(){
+    if(!dfGravSync()){alert('Corrija os materiais e percentuais antes de salvar.');return}
+    const nome=($('foNome')?.value||'').trim()||'Formulação',total=parseFoKg($('foTotal')?.value),rows=getFoRows().filter(r=>r.id&&r.pct>0);
+    if(!(total>0)){alert('Digite quantos kg quer fazer.');return}
+    const pct=rows.reduce((v,r)=>v+Number(r.pct),0);
+    if(Math.abs(pct-100)>0.001){alert('A formulação precisa fechar exatamente 100%.');return}
+    const r=await calcFo();
+    const custo=rows.reduce((v,row)=>v+(total*row.pct/100)*(Number(materialById(row.id)?.preco??row.preco)||0),0);
+    const rec={id:Date.now(),nome,total,rows,custo,custoKg:custo/total,criado:new Date().toISOString()};
+    const a=loadForms();a.unshift(rec);saveForms(a);alert('Formulação salva.');
+  }
   function renderForms(){const b=$('foSaved'),a=loadForms();if(!b)return;if(!a.length){b.innerHTML="<div class='formNote'>Nenhuma formulação salva ainda.</div>";return}b.innerHTML=a.map(f=>'<div class="savedItem"><b>'+esc(f.nome)+'</b><div class="formNote">'+fmt(f.total||0,2)+' kg • '+((f.rows||[]).length)+' materiais • '+(f.custo?rs(f.custo):'sem custo')+'</div><div class="savedBtns"><button class="miniBtn" data-openform="'+f.id+'">ABRIR</button><button class="delBtn" data-delform="'+f.id+'">EXCLUIR</button></div></div>').join('')}
   function abrirFormula(f,dup=false){if(!f)return;if($('foNome'))$('foNome').value=dup?(f.nome+' cópia'):f.nome;if($('foTotal'))$('foTotal').value=String(f.total||'').replace('.',',');renderMixRows(f.rows||[]);debounce('fo',calcFo,20);show('fo')}
   function initFormula(){renderMatBatch();renderMixRows();renderForms();$('matSave')?.addEventListener('click',salvarMateriais);$('matNome1')?.addEventListener('keydown',e=>{if(e.key==='Enter')salvarMateriais()});$('matPreco1')?.addEventListener('keydown',e=>{if(e.key==='Enter')salvarMateriais()});$('foTotal')?.addEventListener('input',()=>debounce('fo',calcFo));$('foSave')?.addEventListener('click',salvarFormula);$('foSaved')?.addEventListener('click',ev=>{const id=ev.target.dataset.openform||ev.target.dataset.dupform||ev.target.dataset.delform;if(!id)return;let forms=loadForms(),f=forms.find(x=>String(x.id)===String(id));if(ev.target.dataset.delform){if(window.DFTeamFormulasShared?.deleteFormula){window.DFTeamFormulasShared.deleteFormula(f)}else alert('Exclusão no servidor indisponível. Aguarde a sincronização e tente novamente.');return}if(ev.target.dataset.dupform){const cp={...f,id:Date.now(),nome:(f.nome||'Formulação')+' cópia',criado:new Date().toISOString()};forms.unshift(cp);saveForms(forms);return}abrirFormula(f,false)})}
