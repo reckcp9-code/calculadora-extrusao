@@ -1,6 +1,6 @@
 {
-  "version": "1.0.822",
+  "version": "1.0.823",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Seletor próprio e cadastro de densidades em Sacolas.",
+  "message": "Sacolas com densidades fixas 0,922, 0,956 e 0,980 e cadastro local.",
   "updatedAt": "2026-11-04"
 }
