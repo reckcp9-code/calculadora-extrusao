@@ -615,6 +615,7 @@
     const invalidPct=active.slice(1).some(r=>!Number.isFinite(parseNum(r.pct))||parseNum(r.pct)<0||parseNum(r.pct)>100);
     const bad=other>=100||duplicate||missing||invalidPct;
     const display=$('dfGravA1');if(display){display.textContent=a1>=0?fmt(a1,2)+'%':'INVÁLIDO';display.style.color=bad?'#f87171':'#4ade80'}
+    const total=$('dfGravTotal'),progress=$('dfGravProgress');if(total&&progress){const pct=Math.max(0,Math.min(100,a1+other));total.textContent=fmt(a1+other,2)+'%';total.style.color=bad?'#fbbf24':'#86efac';progress.style.width=pct+'%';progress.style.background=bad?'#fbbf24':'#22c55e';}
     const warn=$('dfGravWarning');
     if(warn)warn.textContent=other>100?'Percentuais excedem 100% em '+fmt(other-100,2)+'%. Reduza A2–A'+DF_GRAV_COUNT+'.':other===100?'A1 ficou em 0%. Reserve uma porcentagem para a resina principal.':duplicate?'Material repetido. Escolha materiais diferentes.':missing?'Selecione os materiais com percentual maior que zero.':invalidPct?'Informe porcentagens válidas entre 0 e 100.':'';
     FO_ROWS=bad?[]:active.map((r,i)=>{const m=materialById(r.id);return m&&r.id?{id:String(r.id),nome:m.nome,preco:+m.preco||0,pct:i===0?a1:Number(parseNum(r.pct))||0}:null}).filter(r=>r&&r.pct>0);
@@ -626,21 +627,21 @@
     DF_GRAV_COUNT=Math.min(8,Math.max(4,saved.length||DF_GRAV_COUNT));
     DF_GRAV_SLOTS=Array.from({length:8},(_,i)=>({id:String(saved[i]?.id||''),pct:i===0?'':String(saved[i]?.pct??'')}));
     const b=$('foMixRows');if(!b)return;
-    b.innerHTML='<div class="formRow" id="dfGravBox"><div class="rowTitle">Adicionar na formulação</div><div class="formNote">A1 e A2: resinas base. A3 em diante: pigmentos e aditivos. A1 completa automaticamente 100%.</div><div class="df-grav-count" style="display:flex;gap:5px;margin:10px 0 12px"></div><div id="dfGravLines" style="display:grid;gap:7px"></div><div id="dfGravWarning" role="alert" style="color:#f87171;font-size:12px;margin-top:7px"></div></div>';
+    b.innerHTML='<div class="formRow" id="dfGravBox" style="background:linear-gradient(145deg,#101827,#0b1220);border:1px solid #334155;border-radius:18px;padding:16px 12px;box-shadow:0 10px 30px rgba(0,0,0,.14)"><div style="font-size:10px;letter-spacing:1.8px;color:#fbbf24;font-weight:800;margin-bottom:5px">DF EXTRUSOR · FORMULAÇÃO</div><div class="rowTitle" style="font-size:21px;font-weight:800;line-height:1.2">Composição da mistura <span style="float:right;color:#fbbf24;font-size:20px">⚙</span></div><div class="formNote" style="margin-top:8px">Selecione os materiais e ajuste os percentuais. A1 completa automaticamente 100%.</div><div class="df-grav-count" style="display:flex;gap:5px;margin:12px 0"></div><div id="dfGravLines" style="display:grid;gap:9px"></div><div id="dfGravWarning" role="alert" style="color:#f87171;font-size:12px;margin-top:9px"></div><div style="margin-top:13px;padding-top:12px;border-top:1px solid #334155"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:8px"><span style="color:#cbd5e1">Total da mistura</span><strong id="dfGravTotal" style="color:#86efac">100,00%</strong></div><div style="height:9px;border-radius:20px;background:#334155;overflow:hidden"><div id="dfGravProgress" style="width:100%;height:100%;background:#22c55e;border-radius:20px;transition:width .2s"></div></div></div></div>';
     const count=b.querySelector('.df-grav-count');
-    for(let n=4;n<=8;n++){const bt=document.createElement('button');bt.type='button';bt.textContent=String(n);bt.style.cssText='flex:1;min-width:0;padding:9px 0;border:1px solid #475569;border-radius:8px;background:'+(n===DF_GRAV_COUNT?'#334155':'transparent')+';color:white;font-weight:700';bt.addEventListener('click',()=>{DF_GRAV_COUNT=n;drawGravLines();});count.appendChild(bt)}
+    for(let n=4;n<=8;n++){const bt=document.createElement('button');bt.type='button';bt.textContent=String(n);bt.style.cssText='flex:1;min-width:0;padding:10px 0;border:1px solid #475569;border-radius:10px;background:'+(n===DF_GRAV_COUNT?'#fbbf24':'#151f31')+';color:'+(n===DF_GRAV_COUNT?'#111827':'#f8fafc')+';font-weight:800';bt.addEventListener('click',()=>{DF_GRAV_COUNT=n;drawGravLines();});count.appendChild(bt)}
     function drawGravLines(){
-      [...count.children].forEach((bt,i)=>bt.style.background=i+4===DF_GRAV_COUNT?'#334155':'transparent');
+      [...count.children].forEach((bt,i)=>{const on=i+4===DF_GRAV_COUNT;bt.style.background=on?'#fbbf24':'#151f31';bt.style.color=on?'#111827':'#f8fafc';bt.style.borderColor=on?'#fbbf24':'#475569'});
       const wrap=$('dfGravLines');wrap.replaceChildren();
       const all=loadMats();
       for(let i=0;i<DF_GRAV_COUNT;i++){
-        const row=document.createElement('div');row.style.cssText='display:flex;gap:7px;align-items:center;min-width:0';
-        const label=document.createElement('strong');label.textContent='A'+(i+1);label.style.cssText='width:27px;flex:none;font-size:13px';
-        const select=document.createElement('button');select.type='button';select.setAttribute('aria-label','Selecionar material A'+(i+1));select.style.cssText='min-width:0;flex:1;width:100%;font-size:13px;padding:9px 8px;text-align:left;border:1px solid #475569;border-radius:8px;background:#0f172a;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+        const row=document.createElement('div');row.style.cssText='display:grid;grid-template-columns:38px minmax(0,1fr) 80px;gap:7px;align-items:center;min-width:0;padding:11px 8px;border:1px solid '+(i===0?'#b98915':'#334155')+';border-radius:13px;background:'+(i===0?'#24200f':'#151f31');
+        const label=document.createElement('strong');label.textContent='A'+(i+1);label.style.cssText='display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-size:12px;background:'+(i===0?'#fbbf24':'#26354d')+';color:'+(i===0?'#111827':'#e2e8f0');
+        const select=document.createElement('button');select.type='button';select.setAttribute('aria-label','Selecionar material A'+(i+1));select.style.cssText='min-width:0;width:100%;font-size:13px;font-weight:650;padding:11px 8px;text-align:left;border:1px solid #475569;border-radius:9px;background:#0f172a;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
         const selected=materialById(DF_GRAV_SLOTS[i].id);select.textContent=selected?.nome||'Selecionar material  ⌄';
         select.addEventListener('click',()=>openGravMaterialPicker(i));
-        const value=document.createElement(i===0?'div':'input');value.style.cssText='width:78px;flex:none;min-width:0;text-align:center;font-size:13px;padding:9px 4px;border-radius:8px';
-        if(i===0){value.id='dfGravA1';value.style.background='#1e293b';value.style.fontWeight='700'}
+        const value=document.createElement(i===0?'div':'input');value.style.cssText='width:100%;min-width:0;text-align:center;font-size:13px;padding:11px 3px;border:1px solid #475569;border-radius:9px;background:#0f172a;color:#f8fafc';
+        if(i===0){value.id='dfGravA1';value.style.background='#342b13';value.style.borderColor='#b98915';value.style.fontWeight='800'}
         else{value.value=DF_GRAV_SLOTS[i].pct;value.inputMode='decimal';value.placeholder='0%';value.setAttribute('aria-label','Porcentagem A'+(i+1));value.addEventListener('input',()=>{DF_GRAV_SLOTS[i].pct=value.value;dfGravSync()})}
         row.append(label,select,value);wrap.appendChild(row);
       }
