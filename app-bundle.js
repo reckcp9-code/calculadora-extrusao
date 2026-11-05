@@ -3158,14 +3158,17 @@
     box.className='formRow';
     box.style.marginTop='14px';
     box.innerHTML=`
-      <div class="rowTitle">Calcular mistura em kg</div>
+      <button id="dfMixKgToggle" type="button" aria-expanded="false" aria-controls="dfMixKgContent" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;background:transparent;color:inherit;text-align:left;padding:0;cursor:pointer"><span class="rowTitle" style="margin:0">Calcular mistura em kg</span><span id="dfMixKgArrow" aria-hidden="true" style="font-size:22px;color:#fbbf24">⌄</span></button>
+      <div id="dfMixKgContent" hidden style="padding-top:12px">
       <div class="formNote">O campo “Quantos kg quer fazer?” continua sendo a quantidade total que será produzida nessa medida. Aqui embaixo você digita separadamente o tamanho da mistura que quer preparar.</div>
       <label>Quantos kg quer preparar nesta mistura?</label>
       <input id="dfMixBatchKg" class="main" inputmode="decimal" value="100" placeholder="Ex.: 100, 250 ou 750">
       <button id="dfCalcMixKg" class="calcBtn alt" type="button">CALCULAR MISTURA</button>
-      <div id="dfMixKgResult" style="margin-top:10px"></div>`;
+      <div id="dfMixKgResult" style="margin-top:10px"></div></div>`;
 
     grid.insertAdjacentElement('afterend',box);
+    const toggle=q('dfMixKgToggle'),content=q('dfMixKgContent'),arrow=q('dfMixKgArrow');
+    toggle?.addEventListener('click',()=>{const expanded=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!expanded));content.hidden=expanded;arrow.textContent=expanded?'⌄':'⌃';});
     q('dfCalcMixKg')?.addEventListener('click',renderMix);
     q('dfMixBatchKg')?.addEventListener('keydown',e=>{if(e.key==='Enter')renderMix()});
   }
