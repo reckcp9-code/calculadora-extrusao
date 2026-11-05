@@ -6754,3 +6754,24 @@
   const start=()=>{const page=document.getElementById('pgFo');if(page){observer.observe(page,{childList:true,subtree:true});align();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+
+/* v819: recuperar rolagem após retorno do relatório Técnicos no iOS.
+   Só remove bloqueio deixado pelo seletor de materiais quando ele não está aberto. */
+(function(){
+  'use strict';
+  function recoverScroll(){
+    if(document.getElementById('dfGravPicker'))return;
+    const body=document.body,html=document.documentElement;
+    if(!body||!html)return;
+    const fixed=body.style.position==='fixed'&&/^-[0-9.]+px$/.test(body.style.top||'');
+    if(fixed){
+      const y=Math.abs(parseFloat(body.style.top))||0;
+      body.style.position='';body.style.top='';body.style.left='';body.style.right='';body.style.width='';body.style.overflow='';
+      if(html.style.overflow==='hidden')html.style.overflow='';
+      requestAnimationFrame(()=>window.scrollTo(0,y));
+    }
+  }
+  window.addEventListener('pageshow',()=>requestAnimationFrame(recoverScroll));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(recoverScroll)});
+  window.addEventListener('focus',()=>requestAnimationFrame(recoverScroll));
+})();
