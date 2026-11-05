@@ -832,7 +832,9 @@
           bt.onclick=()=>{DF_GRAV_SLOTS[slot].id=String(m.id);closePicker();drawGravLines();requestAnimationFrame(()=>window.scrollTo(0,savedScrollY))};list.append(bt)
         });
       }
-      search.addEventListener('input',draw);draw();search.focus();
+      search.addEventListener('input',draw);draw();
+      // A lista abre sem teclado; o iPhone só exibe o teclado quando o usuário toca em Pesquisar.
+      search.blur();
     }
     drawGravLines();
   }
