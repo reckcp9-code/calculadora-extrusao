@@ -869,6 +869,9 @@
       '.dfMatMgrBtn{display:block;width:100%!important;min-height:56px!important;max-width:none!important;margin:0!important;font-size:clamp(12px,3.4vw,16px)!important;touch-action:manipulation}',
       '.dfMatPanel{position:fixed!important;inset:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)!important;z-index:2147483000!important;width:100vw!important;max-width:100vw!important;height:auto!important;max-height:none!important;margin:0!important;border-radius:20px 20px 0 0!important;padding:22px 16px 36px!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;box-sizing:border-box!important}',
       '.dfMatPanelHead{position:sticky;top:-22px;z-index:3;background:#0f172a;padding:10px 0 16px!important;border-bottom:1px solid #334155}',
+      '.dfMatPanel{background:#080d17!important;border:0!important;border-radius:0!important;padding-top:calc(env(safe-area-inset-top,0px) + 16px)!important}',
+      '.dfMatSearch{display:block;width:100%;min-height:50px;margin:0 0 15px;padding:12px 15px;background:#0f172a;color:#f8fafc;border:1px solid #64748b;border-radius:12px;font:600 16px system-ui;outline:none}',
+      '.dfMatPanelHead{top:0!important;padding-top:12px!important}',
       '.dfMatClose{min-height:46px;touch-action:manipulation}',
       '.dfMatItem{min-height:62px}',
       '.dfMatMgrBtn:active,.dfMatAction:active{filter:brightness(1.15)}',,
@@ -902,7 +905,7 @@
     const panel=document.getElementById(PANEL_ID);
     if(!panel)return;
     const mats=loadMats();
-    let html='<div class="dfMatPanelHead"><b>Materiais cadastrados</b><button type="button" class="dfMatClose" data-dfmat="close">FECHAR</button></div>';
+    let html='<div class="dfMatPanelHead"><b>Materiais cadastrados</b><button type="button" class="dfMatClose" data-dfmat="close">FECHAR ×</button></div><input class="dfMatSearch" type="search" placeholder="PESQUISAR MATERIAL..." aria-label="Pesquisar materiais cadastrados" autocomplete="off">';
     if(!mats.length){
       panel.innerHTML=html+'<div class="dfMatEmpty">Nenhum material cadastrado.</div>';
       return;
@@ -923,6 +926,15 @@
       '</div>';
     }).join('');
     panel.innerHTML=html;
+    const search=panel.querySelector('.dfMatSearch');
+    if(search)search.addEventListener('input',()=>{
+      const q=search.value.trim().toLocaleLowerCase('pt-BR');
+      panel.querySelectorAll('.dfMatItem').forEach(item=>{
+        const name=item.querySelector('.dfMatName')?.textContent||'';
+        item.hidden=!name.toLocaleLowerCase('pt-BR').includes(q);
+        item.style.display=item.hidden?'none':'';
+      });
+    });
   }
 
   function openEditor(id){
