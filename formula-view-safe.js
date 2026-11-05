@@ -58,15 +58,11 @@
   // Renderizar a senha e o editor fora do layout da aplicação.
   // Evita que transformações, rolagem e containers do app recortem o modal no iOS.
   function technicalFullScreen(node){
+    // O modal ja e fixo e tem rolagem propria. Nao bloquear html/body:
+    // no iOS o bloqueio podia persistir depois de VOLTAR e impedir a rolagem.
+    // Remover apenas locks deixados pela implementacao antiga da tela tecnica.
     const root=document.documentElement;
-    const oldHtml=root.style.overflow,oldBody=document.body.style.overflow;
-    root.style.overflow='hidden';document.body.style.overflow='hidden';
     root.appendChild(node);
-    const observer=new MutationObserver(()=>{
-      if(document.getElementById('dfTechPinGate')||document.getElementById('dfTechShade'))return;
-      observer.disconnect();root.style.overflow=oldHtml;document.body.style.overflow=oldBody;
-    });
-    observer.observe(root,{childList:true});
   }
   function technicalPinGate(f){
     document.getElementById('dfTechPinGate')?.remove();
