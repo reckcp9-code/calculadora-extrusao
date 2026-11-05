@@ -648,13 +648,20 @@
     }
     function openGravMaterialPicker(slot){
       const old=document.getElementById('dfGravPicker');if(old)old.remove();
+      const savedScrollY=window.scrollY||document.documentElement.scrollTop||0;
+      const savedBodyStyle=document.body.getAttribute('style');
+      const savedHtmlOverflow=document.documentElement.style.overflow;
+      document.body.style.position='fixed';document.body.style.top=(-savedScrollY)+'px';document.body.style.left='0';document.body.style.right='0';document.body.style.width='100%';document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden';
+      let restored=false;
+      function restorePickerScroll(){if(restored)return;restored=true;if(savedBodyStyle===null)document.body.removeAttribute('style');else document.body.setAttribute('style',savedBodyStyle);document.documentElement.style.overflow=savedHtmlOverflow;window.scrollTo(0,savedScrollY);requestAnimationFrame(()=>window.scrollTo(0,savedScrollY));}
+      function closePicker(){overlay.remove();restorePickerScroll();}
       const overlay=document.createElement('div');overlay.id='dfGravPicker';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Selecionar material A'+(slot+1));
       overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,.94);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 10px);height:100dvh;overflow:hidden;color:#f8fafc';
       const panel=document.createElement('div');panel.style.cssText='width:100%;max-width:650px;margin:0 auto;display:flex;flex-direction:column;height:100%;max-height:100%;min-height:0;background:#101827;border:1px solid #334155;border-radius:16px;overflow:hidden';
       const head=document.createElement('div');head.style.cssText='padding:16px;border-bottom:1px solid #334155;flex:0 0 auto;position:relative;z-index:1;background:#101827';
       const top=document.createElement('div');top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px';
       const title=document.createElement('strong');title.textContent='Selecionar material — A'+(slot+1);title.style.fontSize='17px';
-      const close=document.createElement('button');close.type='button';close.textContent='FECHAR ×';close.style.cssText='padding:9px 12px;border:1px solid #475569;border-radius:8px;color:white;background:#334155';close.onclick=()=>overlay.remove();top.append(title,close);
+      const close=document.createElement('button');close.type='button';close.textContent='FECHAR ×';close.style.cssText='padding:9px 12px;border:1px solid #475569;border-radius:8px;color:white;background:#334155';close.onclick=closePicker;top.append(title,close);
       const search=document.createElement('input');search.type='search';search.placeholder='Pesquisar material...';search.setAttribute('aria-label','Pesquisar material');search.style.cssText='box-sizing:border-box;width:100%;padding:13px;border:1px solid #64748b;border-radius:9px;background:#0f172a;color:white;font-size:16px';
       head.append(top,search);
       const list=document.createElement('div');list.style.cssText='flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px 12px 16px';
@@ -666,7 +673,7 @@
         if(!matches.length){const empty=document.createElement('p');empty.textContent='Nenhum material encontrado.';empty.style.cssText='color:#94a3b8;padding:14px';list.append(empty);return}
         matches.forEach(m=>{const bt=document.createElement('button');bt.type='button';bt.style.cssText='display:block;width:100%;padding:14px 12px;margin:4px 0;text-align:left;background:#172338;border:1px solid #334155;border-radius:9px;color:white;font-size:15px;overflow-wrap:anywhere';
           bt.textContent=m.nome+(Number(m.preco)>0?' — '+rs(m.preco)+'/kg':'');
-          bt.onclick=()=>{DF_GRAV_SLOTS[slot].id=String(m.id);overlay.remove();drawGravLines()};list.append(bt)
+          bt.onclick=()=>{DF_GRAV_SLOTS[slot].id=String(m.id);closePicker();drawGravLines();requestAnimationFrame(()=>window.scrollTo(0,savedScrollY))};list.append(bt)
         });
       }
       search.addEventListener('input',draw);draw();search.focus();
