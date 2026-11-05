@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v816-dose-alert';
+const DF_CACHE='df-extrusor-shell-v817-mix-collapse';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
