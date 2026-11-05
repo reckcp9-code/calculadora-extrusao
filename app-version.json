@@ -1,6 +1,6 @@
 {
-  "version": "1.0.813",
+  "version": "1.0.812",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulações prontas abrem somente ao tocar no botão.",
+  "message": "Restaurado comportamento da versão 812: cadastro minimizado e seleção de materiais.",
   "updatedAt": "2026-11-04"
 }
