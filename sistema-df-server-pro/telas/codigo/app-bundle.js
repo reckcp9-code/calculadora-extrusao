@@ -805,9 +805,9 @@
     function openGravMaterialPicker(slot){
       const old=document.getElementById('dfGravPicker');if(old)old.remove();
       const overlay=document.createElement('div');overlay.id='dfGravPicker';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Selecionar material A'+(slot+1));
-      overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,.94);display:flex;flex-direction:column;padding:env(safe-area-inset-top,16px) 12px env(safe-area-inset-bottom,16px);color:#f8fafc';
-      const panel=document.createElement('div');panel.style.cssText='width:100%;max-width:650px;margin:auto;display:flex;flex-direction:column;max-height:100%;min-height:0;background:#101827;border:1px solid #334155;border-radius:16px;overflow:hidden';
-      const head=document.createElement('div');head.style.cssText='padding:16px;border-bottom:1px solid #334155;flex:none';
+      overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,.94);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 10px);height:100dvh;overflow:hidden;color:#f8fafc';
+      const panel=document.createElement('div');panel.style.cssText='width:100%;max-width:650px;margin:0 auto;display:flex;flex-direction:column;height:100%;max-height:100%;min-height:0;background:#101827;border:1px solid #334155;border-radius:16px;overflow:hidden';
+      const head=document.createElement('div');head.style.cssText='padding:16px;border-bottom:1px solid #334155;flex:0 0 auto;position:relative;z-index:1;background:#101827';
       const top=document.createElement('div');top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px';
       const title=document.createElement('strong');title.textContent='Selecionar material — A'+(slot+1);title.style.fontSize='17px';
       const close=document.createElement('button');close.type='button';close.textContent='FECHAR ×';close.style.cssText='padding:9px 12px;border:1px solid #475569;border-radius:8px;color:white;background:#334155';close.onclick=()=>overlay.remove();top.append(title,close);
