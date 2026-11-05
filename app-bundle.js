@@ -6629,3 +6629,61 @@
   window.addEventListener('pageshow',()=>{if(!activeDialog())unlock()});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&returning)unlock()});
 })();
+
+/* Sacolas: seletor interno de densidades e cadastro de valores personalizados. */
+(function(){
+ 'use strict';
+ const KEY='df_sacolas_densidades_personalizadas_v1';
+ const $=id=>document.getElementById(id);
+ const parse=s=>Number(String(s||'').trim().replace(',','.'));
+ const fmt=n=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:3,maximumFractionDigits:3});
+ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&typeof x.name==='string'&&Number.isFinite(Number(x.value))):[]}catch(_){return []}};
+ function init(){
+  const select=$('saDs');if(!select||$('dfSacDensityTrigger'))return;
+  const field=select.parentElement;if(!field)return;
+  const wrap=document.createElement('div');wrap.className='df-density-wrap';
+  select.insertAdjacentElement('afterend',wrap);
+  select.classList.add('df-picker-native');
+  const trigger=document.createElement('button');trigger.type='button';trigger.id='dfSacDensityTrigger';trigger.className='df-density-trigger';
+  const options=document.createElement('div');options.className='df-density-options';options.hidden=true;
+  const manual=$('saDmBox');
+  const form=document.createElement('div');form.style.cssText='margin-top:12px;padding:12px;background:#101827;border:1px solid #334155;border-radius:12px;display:none';
+  form.innerHTML='<div style="color:#fbbf24;font-weight:800;margin-bottom:10px">Cadastrar densidade</div><input id="dfDensityName" placeholder="Nome do material" maxlength="70" style="width:100%;margin-bottom:9px"><input id="dfDensityValue" inputmode="decimal" placeholder="Densidade. Ex.: 0,940" style="width:100%;margin-bottom:9px"><button type="button" id="dfDensitySave" style="width:100%;padding:12px;border-radius:10px;background:#173c29;color:#a7f3d0;border:1px solid #16a34a;font-weight:800">SALVAR DENSIDADE</button><div id="dfDensityMsg" role="status" style="font-size:12px;margin-top:8px"></div>';
+  wrap.append(trigger,options,form);
+  function update(){
+   const selected=select.options[select.selectedIndex];
+   trigger.innerHTML='<span>'+esc(selected?.textContent||'Selecionar densidade')+'</span><span class="df-density-arrow">⌄</span>';
+   if(manual)manual.style.display=select.value==='manual'?'block':'none';
+  }
+  function choose(value){
+   select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));
+   options.hidden=true;form.style.display=value==='manual'?'block':'none';update();
+  }
+  function render(){
+   options.replaceChildren();
+   [...select.options].forEach(o=>{
+    const btn=document.createElement('button');btn.type='button';btn.className='df-density-option';btn.textContent=o.textContent;
+    btn.addEventListener('click',()=>choose(o.value));options.appendChild(btn);
+   });
+  }
+  function refreshSaved(){
+   [...select.options].filter(o=>o.dataset.dfCustom==='yes').forEach(o=>o.remove());
+   for(const x of load()){const o=document.createElement('option');o.value=String(x.value);o.textContent=fmt(x.value)+' — '+x.name;o.dataset.dfCustom='yes';select.insertBefore(o,select.querySelector('option[value="manual"]'))}
+   render();update();
+  }
+  trigger.addEventListener('click',()=>{options.hidden=!options.hidden;if(!options.hidden)render()});
+  document.addEventListener('click',e=>{if(!wrap.contains(e.target))options.hidden=true});
+  $('dfDensitySave').addEventListener('click',()=>{
+   const name=$('dfDensityName').value.trim().toUpperCase(),value=parse($('dfDensityValue').value);
+   const msg=$('dfDensityMsg');
+   if(!name||!Number.isFinite(value)||value<=0||value>3){msg.textContent='Informe o nome e uma densidade válida.';msg.style.color='#fca5a5';return}
+   const saved=load();if(saved.some(x=>x.name.toUpperCase()===name)){msg.textContent='Já existe uma densidade com esse nome.';msg.style.color='#fca5a5';return}
+   saved.push({name,value});localStorage.setItem(KEY,JSON.stringify(saved));
+   refreshSaved();choose(String(value));form.style.display='none';$('dfDensityName').value='';$('dfDensityValue').value='';
+  });
+  select.addEventListener('change',update);
+  refreshSaved();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
