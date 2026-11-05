@@ -1,6 +1,6 @@
 {
-  "version": "1.0.803",
+  "version": "1.0.804",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Relatório técnico sem coluna Custo e parâmetros técnicos disponíveis offline.",
+  "message": "Telas de senha e parâmetros técnicos em modo tela cheia, sem sobreposição.",
   "updatedAt": "2026-11-04"
 }
