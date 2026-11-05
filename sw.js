@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v826-tecnicos-scroll';
+const DF_CACHE='df-extrusor-shell-v828-materiais-tela';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
