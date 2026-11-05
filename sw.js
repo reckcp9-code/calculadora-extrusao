@@ -12,7 +12,7 @@ const CORE=[
   './material-manager.js','./team-materials-shared-v1.js','./formula-delete-tombstone-v1.js','./team-formulas-duplicates-v2.js',
   './formula-saved-search-v1.js','./formula-save-first-op-v1.js','./formula-material-picker-v1.js','./formula-edit-resin-v293.js','./nav-formula-fit-v294.js','./formula-ready-library-v2.js','./formula-material-collapse.js',
   './op-team-date-canonical-v1.js','./op-product-d1-authority-v1.js','./extrusao-matriz-bur.js','./extrusao-matriz-complemento.js','./op-status-artifact-filter-v170.js',
-  './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v347.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./producao-sacoleira-vm900-v1.js','./producao-machine-produtos-v1.js','./producao-produtos-fullscreen-v1.js','./teste/producao-op-setores-v3.js','./teste/producao-op-cadastros-v2.js'
+  './op-producao.html','./producao-stable-flow-v3.js','./producao-pdf-native-v1.js','./producao-pdf-native-v6.js','./producao-ops-automaticas-v2.js','./producao-agora-maquinas-v347.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-equipe-area-guard-v2.js','./producao-sacoleira-vm900-v1.js','./producao-machine-produtos-v1.js','./producao-produtos-fullscreen-v1.js',
 ];
 
 function stateUrl(name){return new URL('__df_state_'+name+'__',self.registration.scope).href}
