@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v804-technical-fullscreen';
+const DF_CACHE='df-extrusor-shell-v808-material-picker-live';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
