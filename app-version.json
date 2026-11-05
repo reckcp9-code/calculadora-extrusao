@@ -1,6 +1,6 @@
 {
-  "version": "1.0.825",
+  "version": "1.0.826",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Turno com seletor personalizado e densidade com cores padrão DF Extrusor.",
-  "updatedAt": "2026-11-04"
+  "message": "Correção da rolagem ao voltar de Técnicos no iPhone.",
+  "updatedAt": "2026-11-05"
 }
