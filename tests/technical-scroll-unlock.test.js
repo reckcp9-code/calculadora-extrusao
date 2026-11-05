@@ -1,0 +1,13 @@
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const source=fs.readFileSync('formula-view-safe.js','utf8');
+const start=source.indexOf('function technicalFullScreen(node)');
+const end=source.indexOf('function technicalPinGate(',start);
+assert.ok(start>=0&&end>start,'Technical fullscreen helper missing');
+const helper=source.slice(start,end);
+assert.doesNotMatch(helper,/style\\.overflow\\s*=\\s*['\"]hidden['\"]/, 'Technical screen must not lock global scroll');
+assert.doesNotMatch(helper,/MutationObserver/, 'Technical fullscreen must not leave global observer');
+assert.match(helper,/appendChild\\(node\\)/,'Technical fullscreen must still mount its screen');
+assert.match(source,/dfTechPinBack[^\\n]*onclick=\\(\\)=>gate\\.remove\\(\\)/,'PIN back must close');
+assert.match(source,/dfTechBack[^\\n]*onclick=\\(\\)=>shade\\.remove\\(\\)/,'Editor back must close');
+console.log('Technical modal scroll-lock regression checks passed');
