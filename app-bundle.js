@@ -618,6 +618,15 @@
     const total=$('dfGravTotal'),progress=$('dfGravProgress');if(total&&progress){const pct=Math.max(0,Math.min(100,a1+other));total.textContent=fmt(a1+other,2)+'%';total.style.color=bad?'#fbbf24':'#86efac';progress.style.width=pct+'%';progress.style.background=bad?'#fbbf24':'#22c55e';}
     const warn=$('dfGravWarning');
     if(warn)warn.textContent=other>100?'Percentuais excedem 100% em '+fmt(other-100,2)+'%. Reduza A2–A'+DF_GRAV_COUNT+'.':other===100?'A1 ficou em 0%. Reserve uma porcentagem para a resina principal.':duplicate?'Material repetido. Escolha materiais diferentes.':missing?'Selecione os materiais com percentual maior que zero.':invalidPct?'Informe porcentagens válidas entre 0 e 100.':'';
+    // v816: aviso informativo por linha, sem bloquear cálculo ou salvamento.
+    for(let i=2;i<DF_GRAV_COUNT;i++){
+      const alert=$('dfGravDoseWarning'+i);
+      if(!alert)continue;
+      const pct=Number(parseNum(active[i].pct));
+      const high=Number.isFinite(pct)&&pct>4;
+      alert.hidden=!high;
+      if(high){alert.textContent='⚠ ATENÇÃO — DOSAGEM ELEVADA: A'+(i+1)+' está em '+fmt(pct,2)+'%. Confira a recomendação do fabricante. Você pode continuar normalmente.';}
+    }
     FO_ROWS=bad?[]:active.map((r,i)=>{const m=materialById(r.id);return m&&r.id?{id:String(r.id),nome:m.nome,preco:+m.preco||0,pct:i===0?a1:Number(parseNum(r.pct))||0}:null}).filter(r=>r&&r.pct>0);
     debounce('fo',calcFo,20);
     return !bad;
@@ -644,6 +653,7 @@
         if(i===0){value.id='dfGravA1';value.style.background='#342b13';value.style.borderColor='#b98915';value.style.fontWeight='800'}
         else{value.value=DF_GRAV_SLOTS[i].pct;value.inputMode='decimal';value.placeholder='0%';value.setAttribute('aria-label','Porcentagem A'+(i+1));value.addEventListener('input',()=>{DF_GRAV_SLOTS[i].pct=value.value;dfGravSync()})}
         row.append(label,select,value);wrap.appendChild(row);
+        if(i>=2){const alert=document.createElement('div');alert.id='dfGravDoseWarning'+i;alert.hidden=true;alert.setAttribute('role','status');alert.style.cssText='padding:10px 12px;margin-top:-4px;border:1px solid #b98915;border-radius:10px;background:#211b0f;color:#fde68a;font-size:12px;line-height:1.45';wrap.appendChild(alert);}
       }
       dfGravSync();
     }
