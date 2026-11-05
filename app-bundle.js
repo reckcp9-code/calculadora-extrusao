@@ -6557,32 +6557,3 @@
   obs.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(()=>obs.disconnect(),12000);
 })();
-
-/* v813: Formulações prontas só aparecem por toque explícito, nunca por rolagem. */
-(function(){
-  'use strict';
-  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
-  let open=false;
-  function savedCards(){
-    const page=document.getElementById('pgFo');if(!page)return[];
-    return [...page.querySelectorAll('.card')].filter(card=>{
-      const heading=card.querySelector('h2,h3');
-      return heading&&/FORMULACOES (SALVAS|PRONTAS)/.test(norm(heading.textContent));
-    });
-  }
-  function sync(){savedCards().forEach(card=>{card.style.setProperty('display',open?'':'none',open?'':'important')});}
-  function isReadyButton(el){
-    const btn=el?.closest?.('button,[role="button"]');if(!btn)return false;
-    return /FORMULACOES PRONTAS/.test(norm(btn.textContent||btn.getAttribute('aria-label')));
-  }
-  document.addEventListener('click',e=>{
-    if(isReadyButton(e.target)){open=true;setTimeout(sync,0);return;}
-    const nav=e.target?.closest?.('button,[role="button"]');
-    if(nav&&(/FORMULACAO/.test(norm(nav.textContent))&&!/PRONTAS/.test(norm(nav.textContent)))){open=false;setTimeout(sync,0);}
-  },true);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync,{once:true});else sync();
-  document.addEventListener('df-formula-section-entered',()=>{open=false;sync()});
-  const obs=new MutationObserver(()=>sync());
-  const attach=()=>{const p=document.getElementById('pgFo');if(p)obs.observe(p,{childList:true,subtree:true});sync()};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
-})();
