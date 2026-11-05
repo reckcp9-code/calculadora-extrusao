@@ -1,0 +1,55 @@
+name: DF stability and clean project guard
+on:
+  push:
+    branches: [main, migracao-limpeza-df-20261104]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  verify-static-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check critical assets and local HTML references
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('node:fs');
+          const assert=require('node:assert/strict');
+          const critical=['index.html','app-shell.html','app.html','op-producao.html','sacolas.html','gerar-acesso.html','painel-administrativo-df.html','sw.js','app-bundle.js','manifest.webmanifest'];
+          for(const p of critical)assert.ok(fs.existsSync(p),'Missing critical app file: '+p);
+          const pages=['index.html','app-shell.html','app.html','op-producao.html','sacolas.html','gerar-acesso.html','painel-administrativo-df.html'];
+          let count=0;
+          for(const page of pages){
+            const html=fs.readFileSync(page,'utf8');
+            const refs=[...html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)\s*=\s*["']([^"']+)["']/gi)];
+            for(const [,url] of refs){
+              if(!url.startsWith('./')&&!url.startsWith('../')&&!url.startsWith('/'))continue;
+              const clean=url.split(/[?#]/)[0];
+              if(!clean||clean==='/'||clean==='./')continue;
+              const relative=clean.startsWith('/')?clean.slice(1):require('node:path').normalize(require('node:path').join(require('node:path').dirname(page),clean));
+              assert.ok(fs.existsSync(relative),page+' references missing local asset: '+url);
+              count++;
+            }
+          }
+          for(const path of ['tv.html','tv-controle.html'])assert.ok(!fs.existsSync(path),'Obsolete TV page reintroduced: '+path);
+          console.log('Validated '+count+' local asset references across '+pages.length+' pages');
+          NODE
+      - name: Check critical JavaScript syntax
+        run: |
+          set -euo pipefail
+          for file in app-bundle.js sw.js op-server-authority-v1.js op-cloud-team-v3.js team-license-restore-v1.js; do
+            node --check "$file"
+          done
+      - name: Run synchronization and startup regression tests
+        run: |
+          set -euo pipefail
+          node tests/op-ui-integrity.test.js
+          node tests/team-license-restore.test.js
+          node tests/team-reconnect-client.test.js
+          node tests/team-both-sync.test.js
+          node tests/saas-atomic-bootstrap.test.js
