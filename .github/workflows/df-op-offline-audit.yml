@@ -21,14 +21,14 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('fs'),cp=require('child_process');
-          const files=['teste/op-delete-stability-v1.js','teste/preview-loader-op-offline-v2.js'];
+          const files=['tests/legacy-offline/op-delete-stability-v1.js','tests/legacy-offline/preview-loader-op-offline-v2.js'];
           for(const f of files){if(!fs.existsSync(f))throw Error('arquivo ausente: '+f);cp.execFileSync(process.execPath,['--check',f],{stdio:'inherit'});console.log('OK sintaxe',f)}
           const loader=fs.readFileSync(files[1],'utf8');
           const del=fs.readFileSync(files[0],'utf8');
           if(!loader.includes('navigator.onLine===false'))throw Error('loader sem fallback offline imediato');
           if(!loader.includes('Promise.race'))throw Error('loader sem corrida curta rede/cache');
-          if(!loader.includes("teste/op-delete-stability-v1.js"))throw Error('protecao de exclusao nao carregada');
-          if(loader.indexOf('teste/op-delete-stability-v1.js')>loader.indexOf('op-server-authority-v1.js'))throw Error('protecao de exclusao precisa carregar antes da autoridade do servidor');
+          if(!loader.includes("tests/legacy-offline/op-delete-stability-v1.js"))throw Error('protecao de exclusao nao carregada');
+          if(loader.indexOf('tests/legacy-offline/op-delete-stability-v1.js')>loader.indexOf('op-server-authority-v1.js'))throw Error('protecao de exclusao precisa carregar antes da autoridade do servidor');
           if(!del.includes("GUARD='df_deleted_ops_guard_v1'"))throw Error('exclusao sem guarda persistente');
           if(!del.includes("df-op-d1-applied"))throw Error('exclusao sem protecao contra retorno do D1');
           if(!del.includes("df-op-record-deleted"))throw Error('exclusao nao sinaliza fila do servidor');
