@@ -1,6 +1,6 @@
 {
-  "version": "1.0.824",
+  "version": "1.0.825",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Quatro densidades padrão PEBD 0,922, PEAD 0,956, PEBDL 0,918, reciclado 0,980 em Sacolas e Extrusão.",
+  "message": "Turno com seletor personalizado e densidade com cores padrão DF Extrusor.",
   "updatedAt": "2026-11-04"
 }
