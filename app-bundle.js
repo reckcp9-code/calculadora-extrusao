@@ -659,13 +659,9 @@
     }
     function openGravMaterialPicker(slot){
       const old=document.getElementById('dfGravPicker');if(old)old.remove();
+      // Sem bloqueio global de body/html: evita rolagem travada ao voltar de outras telas.
       const savedScrollY=window.scrollY||document.documentElement.scrollTop||0;
-      const savedBodyStyle=document.body.getAttribute('style');
-      const savedHtmlOverflow=document.documentElement.style.overflow;
-      document.body.style.position='fixed';document.body.style.top=(-savedScrollY)+'px';document.body.style.left='0';document.body.style.right='0';document.body.style.width='100%';document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden';
-      let restored=false;
-      function restorePickerScroll(){if(restored)return;restored=true;if(savedBodyStyle===null)document.body.removeAttribute('style');else document.body.setAttribute('style',savedBodyStyle);document.documentElement.style.overflow=savedHtmlOverflow;window.scrollTo(0,savedScrollY);requestAnimationFrame(()=>window.scrollTo(0,savedScrollY));}
-      function closePicker(){overlay.remove();restorePickerScroll();}
+      function closePicker(){overlay.remove();requestAnimationFrame(()=>window.scrollTo(0,savedScrollY));}
       const overlay=document.createElement('div');overlay.id='dfGravPicker';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Selecionar material A'+(slot+1));
       overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,.94);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 10px);height:100dvh;overflow:hidden;color:#f8fafc';
       const panel=document.createElement('div');panel.style.cssText='width:100%;max-width:650px;margin:0 auto;display:flex;flex-direction:column;height:100%;max-height:100%;min-height:0;background:#101827;border:1px solid #334155;border-radius:16px;overflow:hidden';
