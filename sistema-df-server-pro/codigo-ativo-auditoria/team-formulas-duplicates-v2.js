@@ -1,0 +1,117 @@
+(function(){
+'use strict';
+if(window.DFTeamFormulasDuplicatesV2)return;window.DFTeamFormulasDuplicatesV2=true;
+
+const API='https://df-extrusor-api.reck-cp9.workers.dev';
+const FORM_KEY='df_formulacoes_v2',MAT_KEY='df_formula_materiais_v2',TEAM_KEY='df_op_team_v1';
+let queuedSync=false,syncing=false,applying=false,initialized=false,currentTeamId='',lastPull=0,pushTimer=0,lastHash='',localRevision=0,pendingFormulaIds=new Set(loadPendingIds()),lastServerSelectedId='',publishBusy=false;
+const $=id=>document.getElementById(id);
+function loadPendingIds(){try{return JSON.parse(localStorage.getItem('df_formula_pending_d1_v1')||'[]')}catch(e){return []}}
+function savePendingIds(){try{localStorage.setItem('df_formula_pending_d1_v1',JSON.stringify([...pendingFormulaIds]))}catch(e){}}
+function markPending(id){id=String(id);if(deletedIds().has(id)||window.DFFormulaTombstones?.isDeleted?.(id))return;pendingFormulaIds.add(id);savePendingIds()}
+function clearPending(id){pendingFormulaIds.delete(String(id));savePendingIds()}
+const DELETE_KEY='df_formula_delete_inflight_v1';
+function deletedIds(){const v=loadJson(DELETE_KEY,{});return new Set(Object.keys(v||{}))}
+function markDeleting(id){const v=loadJson(DELETE_KEY,{});v[String(id)]=Date.now();localStorage.setItem(DELETE_KEY,JSON.stringify(v));clearPending(id)}
+function unmarkDeleting(id){const v=loadJson(DELETE_KEY,{});delete v[String(id)];localStorage.setItem(DELETE_KEY,JSON.stringify(v))}
+function notDeleting(f){const id=String(f?.id??f?.formulaId);return !deletedIds().has(id)&&!window.DFFormulaTombstones?.isDeleted?.(id)}
+function loadJson(k,f){try{const v=JSON.parse(localStorage.getItem(k)||'');return v??f}catch(e){return f}}
+function clean(v,max){const s=String(v??'').replace(/\s+/g,' ').trim();return max?s.slice(0,max):s}
+function nameKey(v){let s=clean(v);try{s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')}catch(e){}return s.toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ')}
+function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function team(){try{if(window.DFOpCloud&&typeof window.DFOpCloud.team==='function'){const t=window.DFOpCloud.team();if(t&&t.teamId)return t}}catch(e){}return loadJson(TEAM_KEY,null)}
+function isOwner(){return String(team()?.role||'').toLowerCase()==='owner'}
+
+// Tombstones confirmados nunca são apagados por snapshots restaurados.
+function localForms(){const a=loadJson(FORM_KEY,[]);const rows=Array.isArray(a)?a:[];return (window.DFFormulaTombstones?.filterDeleted?window.DFFormulaTombstones.filterDeleted(rows):rows).filter(notDeleting)}
+function localMats(){const a=loadJson(MAT_KEY,[]);return Array.isArray(a)?a:[]}
+function canonicalRows(rows){const mats=localMats(),by={};mats.forEach(m=>by[String(m?.id??'')]=m);return (Array.isArray(rows)?rows:[]).slice(0,12).map(r=>{const m=by[String(r?.id??'')]||{};return{id:String(r?.id??m?.id??''),nome:clean(r?.nome||m?.nome,100),preco:num(r?.preco??m?.preco),pct:num(r?.pct)}}).filter(r=>r.id||r.nome)}
+function canonicalForm(f){const nome=clean(f?.nome||f?.name,120);if(!nome)return null;const id=clean(f?.id??f?.formulaId,120);return{id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,8),nome,total:num(f?.total),rows:canonicalRows(f?.rows),custo:num(f?.custo),custoKg:num(f?.custoKg),op:f?.op&&typeof f.op==='object'?f.op:{},criado:clean(f?.criado||f?.createdAt,64),updatedAt:clean(f?.updatedAt,64)}}
+function identity(f){const id=clean(f?.id??f?.formulaId,120);if(id)return 'id:'+id;return 'legacy:'+nameKey(f?.nome)+'|'+num(f?.total)+'|'+JSON.stringify(canonicalRows(f?.rows))+'|'+clean(f?.criado||f?.createdAt,64)}
+function uniqueForms(list){const out=[],seen=new Set();for(const f of Array.isArray(list)?list:[]){const c=canonicalForm(f);if(!c||!notDeleting(c))continue;const k=identity(c);if(seen.has(k))continue;seen.add(k);out.push(c)}return out}
+function hashForms(list){try{return JSON.stringify(uniqueForms(list).map(f=>[identity(f),nameKey(f.nome),f.total,f.rows,f.op,f.custo,f.custoKg]))}catch(e){return''}}
+function esc(t){return String(t??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fm(v,d=2){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):''}
+
+function addStyle(){if($('dfFormulaSameNameStyle'))return;const s=document.createElement('style');s.id='dfFormulaSameNameStyle';s.textContent=`
+#dfFormulaSuggest{display:none;margin-top:7px;border:1px solid #6b531b;background:#08111c;border-radius:12px;overflow:hidden;box-shadow:0 16px 36px #0009;position:relative;z-index:30}
+#dfFormulaSuggest.on{display:block}.dfFormulaSuggestion{display:block;width:100%;text-align:left;border:0;border-top:1px solid #263244;background:#08111c;color:#f8fafc;padding:11px 12px;cursor:pointer}.dfFormulaSuggestion:first-child{border-top:0}.dfFormulaSuggestion b{display:block;color:#f3c45c;font-size:13px}.dfFormulaSuggestion span{display:block;color:#aab6c6;font-size:10px;line-height:1.4;margin-top:3px}.dfFormulaSuggestion:hover,.dfFormulaSuggestion:focus{background:#101b29;outline:none}
+#dfTeamFormulaStatus{margin-top:8px;border:1px solid #334155;background:#0f172a;border-radius:10px;padding:8px 10px;font-size:10px;line-height:1.4;color:#94a3b8}
+#dfFormulaLoadedMsg{margin-top:7px;border:1px solid #166534;background:#082414;border-radius:9px;padding:7px 9px;color:#86efac;font-size:10px;font-weight:850}
+`;document.head.appendChild(s)}
+function ensureStatus(){addStyle();const input=$('foNome');if(!input)return null;let e=$('dfTeamFormulaStatus');if(e)return e;e=document.createElement('div');e.id='dfTeamFormulaStatus';input.insertAdjacentElement('afterend',e);return e}
+function status(text,type){const e=ensureStatus();if(!e)return;e.textContent=text;e.style.color=type==='ok'?'#86efac':type==='warn'?'#fde68a':type==='bad'?'#fca5a5':'#94a3b8';e.style.borderColor=type==='ok'?'#166534':type==='warn'?'#a16207':type==='bad'?'#7f1d1d':'#334155'}
+function ensureSuggest(){addStyle();const input=$('foNome');if(!input)return null;let box=$('dfFormulaSuggest');if(box&&box.previousElementSibling!==input&&box.parentNode){box.remove();box=null}if(!box){box=document.createElement('div');box.id='dfFormulaSuggest';input.insertAdjacentElement('afterend',box)}return box}
+function materialSummary(f){const mats=localMats(),by={};mats.forEach(m=>by[String(m?.id??'')]=m);return (f.rows||[]).slice(0,5).map(r=>{const m=by[String(r?.id??'')]||r;const n=clean(m?.nome||r?.nome);return n?(n+(num(r?.pct)>0?' '+fm(r.pct)+'%':'')):''}).filter(Boolean).join(' • ')}
+function rankedMatches(q){const k=nameKey(q);if(k.length<2)return[];return uniqueForms(localForms()).map((f,i)=>{const fk=nameKey(f.nome);let rank=9;if(fk===k)rank=0;else if(fk.startsWith(k))rank=1;else if(fk.includes(k))rank=2;else if(k.split(' ').every(p=>fk.includes(p)))rank=3;return{f,rank,i}}).filter(x=>x.rank<9).sort((a,b)=>a.rank-b.rank||a.i-b.i).slice(0,12).map(x=>x.f)}
+function renderSuggest(value){const box=ensureSuggest();if(!box)return;const list=rankedMatches(value);if(!list.length){box.classList.remove('on');box.innerHTML='';return}box.innerHTML=list.map(f=>'<button type="button" class="dfFormulaSuggestion" data-dfformula="'+esc(String(f.id))+'"><b>'+esc(f.nome)+'</b><span>'+esc(materialSummary(f)||('ID '+String(f.id).slice(-6)))+'</span></button>').join('');box.classList.add('on')}
+function showLoaded(){let e=$('dfFormulaLoadedMsg');const input=$('foNome');if(!input)return;if(!e){e=document.createElement('div');e.id='dfFormulaLoadedMsg';const st=$('dfTeamFormulaStatus');(st||input).insertAdjacentElement('afterend',e)}e.textContent='✅ Formulação carregada. Pode alterar porcentagens e salvar com o mesmo nome.';clearTimeout(e.__tm);e.__tm=setTimeout(()=>e.remove(),6500)}
+function applyFormula(f){if(!f)return;try{if(typeof window.abrirFormula==='function')window.abrirFormula(f,false)}catch(e){}if($('foNome'))$('foNome').value=f.nome||'';if($('foTotal')&&num(f.total)>0)$('foTotal').value=String(f.total).replace('.',',');try{if(typeof window.calcFo==='function')setTimeout(()=>window.calcFo(),60)}catch(e){}const box=$('dfFormulaSuggest');if(box){box.classList.remove('on');box.innerHTML=''}showLoaded();try{window.dispatchEvent(new CustomEvent('df-team-formula-selected',{detail:{id:f.id,nome:f.nome}}))}catch(e){}}
+
+const TOKEN_KEY='df_secure_token_v2',DEVICE_KEY='df_licenseauth_device_v1',ACCESS_KEY='df_auto_access_credential_v1';
+function deviceId(){try{const x=String(window.DFDeviceIdentity?.get?.()||'').trim();if(x)return x}catch(e){}return String(localStorage.getItem(DEVICE_KEY)||'').trim()}
+function tokenPayload(token){try{let s=String(token||'').split('.')[0]||'';s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(Array.from(atob(s)).map(c=>'%'+c.charCodeAt(0).toString(16).padStart(2,'0')).join('')))}catch(e){return null}}
+async function renewSession(force){let token=String(sessionStorage.getItem(TOKEN_KEY)||'').trim(),p=tokenPayload(token);if(token&&!force)return token;const credential=String(localStorage.getItem(ACCESS_KEY)||'').trim(),dev=deviceId();if(!credential||!dev)throw Error('Acesso automático indisponível');const r=await fetch(API+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.ok===false)throw Error(j.error||'Sessão indisponível');token=String(j.token||'').trim();if(!token)throw Error('Sessão vazia');sessionStorage.setItem(TOKEN_KEY,token);return token}
+async function apiPost(path,body,retry){const token=await renewSession(false),dev=deviceId();const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body||{}),cache:'no-store'});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&retry!==false){await renewSession(true);return apiPost(path,body,false)}if(!r.ok||j.ok===false){const er=new Error(j.error||('HTTP '+r.status));er.status=r.status;throw er}return j}
+function serverForms(rows){return uniqueForms((Array.isArray(rows)?rows:[]).filter(x=>!window.DFFormulaTombstones?.isDeleted?.(String(x?.id??x?.formulaId??''))).map(x=>({id:x?.id??x?.formulaId,nome:x?.nome??x?.name,total:x?.total,rows:x?.rows,custo:x?.custo,custoKg:x?.custoKg,op:x?.op,criado:x?.criado??x?.createdAt,updatedAt:x?.updatedAt})))}
+function createdStamp(f){
+  // IDs de 13 dígitos são emitidos por Date.now() e sobrevivem à restauração dos backups.
+  // Não ordenar por updatedAt: sincronizar a biblioteca modifica essa data em receitas antigas.
+  const id=String(f?.id??f?.formulaId??'').trim(),n=Number(id);
+  if(/^\d{13}$/.test(id)&&Number.isFinite(n)&&n>=1577836800000&&n<4102444800000)return n;
+  const created=Date.parse(String(f?.criado||f?.createdAt||''));
+  if(Number.isFinite(created))return created;
+  const updated=Date.parse(String(f?.updatedAt||''));
+  return Number.isFinite(updated)?updated:0;
+}
+function newestFirst(forms){return uniqueForms(forms).sort((a,b)=>createdStamp(b)-createdStamp(a)||String(b.id).localeCompare(String(a.id)))}
+function selectLatestForTeam(){const forms=newestFirst(localForms()),id=forms[0]?.id,sel=$('foSavedSelect');if(!id||!sel)return;const option=Array.from(sel.options).find(o=>String(o.value)===String(id));if(!option)return;if(String(sel.value)!==String(id)){sel.value=String(id);sel.dispatchEvent(new Event('change',{bubbles:true}))}}
+function writeForms(forms){applying=true;try{localStorage.setItem(FORM_KEY,JSON.stringify(newestFirst(forms)));lastHash=hashForms(forms)}finally{applying=false}try{if(typeof window.renderForms==='function')window.renderForms()}catch(e){}selectLatestForTeam();setTimeout(selectLatestForTeam,100);const v=$('foNome')?.value;if(v)renderSuggest(v);try{window.dispatchEvent(new CustomEvent('df-team-formulas-updated',{detail:{count:uniqueForms(forms).length,teamId:currentTeamId}}))}catch(e){}}
+function applyServer(rows,preserve){const server=serverForms(rows).filter(notDeleting),all=server.slice(),seen=new Set(server.map(identity));for(const f of uniqueForms([...(preserve||[]),...localForms().filter(f=>pendingFormulaIds.has(String(f.id)))])){const k=identity(f);if(!seen.has(k)){seen.add(k);all.push(f)}}writeForms(all);return all}
+
+async function pushForms(fillOnly){const t=team();if(!t?.teamId||!initialized)return false;const revision=localRevision;const forms=uniqueForms(localForms()).filter(notDeleting);if(!forms.length)return true;const sent=forms.filter(f=>pendingFormulaIds.has(String(f.id))&&notDeleting(f));if(!sent.length)return true;const j=await apiPost('/op/team/formulas/upsert',{teamId:String(t.teamId),fillOnly:true,formulas:sent});if(!Array.isArray(j.formulas))throw new Error('Servidor não confirmou as formulações.');const read=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if(!Array.isArray(read.formulas))throw new Error('D1 indisponível para confirmação');const missing=sent.filter(f=>!read.formulas.some(x=>String(x.id??x.formulaId)===String(f.id)));if(missing.length)throw new Error('D1 não recebeu '+missing.length+' fórmula(s)');applyServer(read.formulas,localRevision!==revision?localForms():[]);for(const f of sent)clearPending(String(f.id));lastPull=Date.now();status('☁️ Biblioteca sincronizada • nomes repetidos liberados por ID','ok');return true}
+async function sync(force){const t=team();if(!t?.teamId){initialized=false;currentTeamId='';status('Formulações salvas neste aparelho. Nomes repetidos estão liberados.','ok');return false}if(syncing){queuedSync=true;return false}if(!force&&Date.now()-lastPull<8500)return true;syncing=true;currentTeamId=String(t.teamId);const startRevision=localRevision;try{let j=await apiPost('/op/team/formulas/list',{teamId:currentTeamId});if(!j.initialized){if(isOwner()){const own=uniqueForms(localForms()).filter(f=>pendingFormulaIds.has(String(f.id))&&notDeleting(f));status('☁️ Publicando biblioteca da equipe...','warn');j=await apiPost('/op/team/formulas/seed-owner',{teamId:currentTeamId,formulas:own})}else{initialized=false;status('☁️ Aguardando o DONO publicar a biblioteca de formulações.','warn');lastPull=Date.now();return false}}initialized=true;
+// D1 autoritativo: não migrar automaticamente snapshots antigos de outros aparelhos.
+// Não restaurar exclusões a partir de snapshots antigos.
+const server=newestFirst(serverForms(j.formulas||[]));
+ // Somente IDs explicitamente pendentes de criação podem ser enviados ao D1.
+ if(hashForms(server)!==hashForms(localForms())){
+ // Uma fórmula criada enquanto a consulta estava em voo nunca pode ser substituída por um snapshot antigo.
+ const pending=localForms().filter(f=>pendingFormulaIds.has(String(f.id)));
+ applyServer(server,pending);
+ if(pending.length){for(const f of pending)markPending(f.id);lastHash='';schedulePush()}
+}else selectLatestForTeam();
+lastPull=Date.now();status('☁️ Formulações sincronizadas • '+uniqueForms(localForms()).length+' salvas','ok');return true}catch(e){status('⚠️ Formulações salvas localmente; sincronização pendente: '+String(e?.message||e),'warn');return false}finally{syncing=false;if(queuedSync){queuedSync=false;setTimeout(()=>sync(true),100)}}}
+function schedulePush(){if(applying)return;clearTimeout(pushTimer);pushTimer=setTimeout(async()=>{const now=hashForms(localForms());if(now===lastHash&&!localForms().some(f=>pendingFormulaIds.has(String(f.id))))return;try{if(team()?.teamId){if(!initialized)await sync(true);if(initialized){const ok=await pushForms(false);if(ok)lastHash=hashForms(localForms())}}}catch(e){status('⚠️ Formulação salva neste aparelho; sincronização pendente.','warn');setTimeout(()=>{lastHash='';schedulePush()},3000)}},500)}
+try{const previousSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){const watch=this===localStorage&&String(k)===FORM_KEY,old=watch?String(this.getItem(k)||''):'';const out=previousSetItem.call(this,k,v);if(watch&&!applying&&old!==String(v||'')){localRevision++;try{const before=JSON.parse(old||'[]'),after=JSON.parse(String(v||'[]'));const known=new Set((Array.isArray(before)?before:[]).map(x=>String(x.id)));for(const x of Array.isArray(after)?after:[])if(!known.has(String(x.id)))markPending(String(x.id))}catch(e){}schedulePush()}return out}}catch(e){}
+let deletingFormula=false;
+async function deleteTeamFormula(f){if(!f||deletingFormula)return false;if(!confirm('Excluir esta formulação "'+String(f.nome||'Formulação')+'" para toda a equipe?'))return false;deletingFormula=true;try{ return await deleteTeamFormulaConfirmed(f) }finally{deletingFormula=false}}
+async function deleteTeamFormulaConfirmed(f){const t=team();const id=String(f.id||'');markDeleting(id);if(!t?.teamId){unmarkDeleting(id);status('⚠️ Equipe não conectada. Exclusão compartilhada exige confirmação do D1.','warn');return false}try{await apiPost('/op/team/formulas/delete',{teamId:String(t.teamId),formulaId:id});const check=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});if((check.formulas||[]).some(x=>String(x.id??x.formulaId)===id))throw new Error('D1 ainda contém o ID excluído');window.DFFormulaTombstones?.markDeleted?.(id);clearPending(id);localRevision++;applyServer((check.formulas||[]).filter(x=>String(x.id??x.formulaId)!==id));unmarkDeleting(id);lastPull=Date.now();try{localStorage.setItem('df_formula_team_delete_signal_v1',JSON.stringify({teamId:String(t.teamId),id,at:Date.now()}));window.dispatchEvent(new CustomEvent('df-team-formulas-updated',{detail:{deletedId:id,teamId:String(t.teamId)}}))}catch(e){}status('✅ Exclusão confirmada no D1 e removida deste aparelho.','ok');setTimeout(()=>sync(true),300);return true}catch(e){unmarkDeleting(id);status('⚠️ Exclusão não confirmada pelo servidor. Tente novamente: '+String(e?.message||e),'warn');setTimeout(()=>sync(true),350);return false}}
+function selectedFormula(){const id=$('foSavedSelect')?.value;return localForms().find(f=>String(f?.id)===String(id))}
+ // Um único controlador de exclusão, antes dos handlers antigos do app-bundle.
+ // Captura tanto o botão da lista quanto o botão da ficha de fórmula.
+ // Captura no WINDOW antes dos handlers legados do DOCUMENT (que bloqueiam propagação).
+ // Não depende da ordem em que os scripts antigos foram registrados.
+ window.addEventListener('click',e=>{
+ const b=e.target?.closest?.('[data-delform],[data-fosafe="del"]');if(!b)return;
+ e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+ const id=String(b.dataset.delform||$('foSavedSelect')?.value||'');
+ const f=localForms().find(x=>String(x.id)===id);
+ if(!f){status('⚠️ Formulação não encontrada. Atualize a lista e tente novamente.','warn');return}
+ if(!team()?.teamId){status('⚠️ Conecte a equipe para excluir definitivamente do D1.','warn');return}
+ deleteTeamFormula(f);
+ },true);
+
+function boot(){addStyle();lastHash=hashForms(localForms());if(pendingFormulaIds.size)setTimeout(schedulePush,1400);setTimeout(()=>{ensureStatus();ensureSuggest()},700);setTimeout(()=>sync(true),1800);document.addEventListener('input',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('focusin',e=>{if(e.target?.id==='foNome')renderSuggest(e.target.value)},true);document.addEventListener('click',e=>{const b=e.target?.closest?.('[data-dfformula]');if(b){e.preventDefault();e.stopPropagation();const f=localForms().find(x=>String(x?.id)===String(b.dataset.dfformula));applyFormula(f);return}if(!e.target?.closest?.('#foNome,#dfFormulaSuggest'))$('dfFormulaSuggest')?.classList.remove('on');if(e.target?.closest?.('#btFo,#dfFormTabCore,#dfCloudRefresh,#foSaved'))setTimeout(()=>sync(true),250)},true);['df-team-joined','df-team-changed','df-team-materials-updated','online','pageshow','focus'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>sync(true),320)));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>sync(false),350)});setInterval(()=>{if(!document.hidden&&team()?.teamId&&Date.now()-lastPull>3500)sync(false)},4000)}
+window.DFTeamFormulasShared={sync:()=>sync(true),publishSaved:async(id)=>{if(publishBusy){markPending(id);schedulePush();return false}publishBusy=true;const wanted=String(id||'');markPending(wanted);try{const t=team();if(!t?.teamId)return false;const rec=localForms().find(f=>String(f.id)===wanted);if(!rec)return false;
+ // Reaproveitar nome/receita deve seguir exatamente a rota de criação de um registro NOVO.
+ // Envia só o novo ID, não toda a biblioteca antiga, que poderia reordenar/substituir a seleção.
+ const j=await apiPost('/op/team/formulas/upsert',{teamId:String(t.teamId),fillOnly:true,formulas:[canonicalForm(rec)]});
+ const read=await apiPost('/op/team/formulas/list',{teamId:String(t.teamId)});
+ const found=Array.isArray(read.formulas)&&read.formulas.some(f=>String(f.id??f.formulaId)===wanted);
+ if(!found){status('⚠️ Novo ID ainda não foi registrado no D1.','warn');schedulePush();return false}
+ initialized=true;lastServerSelectedId=wanted;clearPending(wanted);applyServer(read.formulas);
+ lastPull=Date.now();status('✅ Nova formulação confirmada no D1 • ID '+wanted,'ok');return true
+ }catch(e){status('⚠️ Aguardando D1: '+String(e.message||e),'warn');setTimeout(schedulePush,2500);return false}finally{publishBusy=false}},deleteFormula:deleteTeamFormula,select:applyFormula,initialized:()=>initialized,allowSameName:true};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();

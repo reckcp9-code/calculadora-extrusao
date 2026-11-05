@@ -1,0 +1,281 @@
+(function(){
+  'use strict';
+  const q=id=>document.getElementById(id);
+  const pn=v=>{let s=String(v??'').trim().replace(/\s/g,'');if(!s)return 0;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else s=s.replace(',','.');const n=parseFloat(s);return Number.isFinite(n)?n:0};
+  const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fm=(v,d=2)=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—'};
+  const money=v=>Number(v)>0?'R$ '+fm(v,2):'sem custo';
+  const load=()=>{try{return window.loadForms?window.loadForms():JSON.parse(localStorage.getItem('df_formulacoes_v2')||'[]')}catch(e){return[]}};
+  const save=a=>{try{localStorage.setItem('df_formulacoes_v2',JSON.stringify(a))}catch(e){}render();};
+  const selected=()=>{const id=q('foSavedSelect')?.value;return load().find(f=>String(f.id)===String(id));};
+  const mat=id=>{try{return window.materialById?window.materialById(id):null}catch(e){return null}};
+
+
+  // Ficha técnica privada: nunca incluir no objeto compartilhado de formulação.
+  const technicalTeam=()=>{try{return window.DFOpCloud?.team?.()||JSON.parse(localStorage.getItem('df_op_team_v1')||'null')}catch(e){return null}};
+  const technicalOwner=()=>['owner','dono'].includes(String(technicalTeam()?.role||'').toLowerCase());
+  const technicalApi='https://df-extrusor-api.reck-cp9.workers.dev';
+  const technicalDevice=()=>{try{const x=window.DFDeviceIdentity?.get?.();if(x)return String(x)}catch(e){}for(const k of ['df_licenseauth_device_v1','df_device_id_v1','df_device_id']){const x=localStorage.getItem(k);if(x)return x}return String(window.DFAccessDeviceId||'')};
+  const technicalTokenKey='df_secure_token_v2';
+  async function technicalSession(force){
+    let token=String(sessionStorage.getItem(technicalTokenKey)||'').trim();
+    if(token&&!force)return token;
+    const credential=String(localStorage.getItem('df_auto_access_credential_v1')||'').trim();
+    const dev=technicalDevice();
+    if(!credential||!dev)throw Error('Credencial do aplicativo indisponível. Entre novamente no aplicativo.');
+    const r=await fetch(technicalApi+'/access/session',{method:'POST',headers:{'Content-Type':'application/json','X-DF-Device':dev},body:JSON.stringify({credential,deviceId:dev}),cache:'no-store'});
+    let j={};try{j=await r.json()}catch(e){}
+    if(!r.ok||j.ok===false||!j.token)throw Error(j.error||'Não foi possível renovar a sessão.');
+    token=String(j.token).trim();sessionStorage.setItem(technicalTokenKey,token);return token;
+  }
+  async function technicalPost(path,formulaId,technical,retry=true){
+    const team=technicalTeam();if(!team?.teamId)throw Error('Conecte-se à equipe para acessar.');
+    const token=await technicalSession(false),dev=technicalDevice();
+    const body={teamId:String(team.teamId),formulaId:String(formulaId)};
+    if(technical!==undefined)body.technical=technical;
+    const response=await fetch(technicalApi+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':dev},body:JSON.stringify(body),cache:'no-store'});
+    let result={};try{result=await response.json()}catch(e){}
+    if(response.status===401&&retry){await technicalSession(true);return technicalPost(path,formulaId,technical,false)}
+    if(!response.ok||result.ok===false)throw Error(result.error||'Erro no servidor: '+response.status);
+    return result;
+  }
+  function technicalLocalKey(f){const team=technicalTeam();return 'df_technical_offline_v1_'+String(team?.teamId||'local')+'_'+String(f.id)}
+  function technicalLocalGet(f){try{return JSON.parse(localStorage.getItem(technicalLocalKey(f))||'null')?.data||null}catch(e){return null}}
+  function technicalLocalSet(f,data,pending){try{localStorage.setItem(technicalLocalKey(f),JSON.stringify({data,pending:!!pending,updatedAt:Date.now()}))}catch(e){console.warn('Falha ao salvar parâmetros locais',e)}}
+  async function technicalFlushPending(){
+    if(navigator.onLine===false)return;
+    const team=technicalTeam();if(!team?.teamId)return;
+    const prefix='df_technical_offline_v1_'+String(team.teamId)+'_';
+    const keys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key)}
+    for(const key of keys){
+      let rec;try{rec=JSON.parse(localStorage.getItem(key)||'null')}catch(e){continue}
+      if(!rec?.pending||!rec.data)continue;
+      try{await technicalPost('/op/team/formulas/technical/save',key.slice(prefix.length),rec.data);localStorage.setItem(key,JSON.stringify({...rec,pending:false}))}catch(e){}
+    }
+  }
+  window.addEventListener('online',()=>technicalFlushPending());
+  setTimeout(()=>technicalFlushPending(),2500);
+  // Renderizar a senha e o editor fora do layout da aplicação.
+  // Evita que transformações, rolagem e containers do app recortem o modal no iOS.
+  function technicalFullScreen(node){
+    const root=document.documentElement;
+    const oldHtml=root.style.overflow,oldBody=document.body.style.overflow;
+    root.style.overflow='hidden';document.body.style.overflow='hidden';
+    root.appendChild(node);
+    const observer=new MutationObserver(()=>{
+      if(document.getElementById('dfTechPinGate')||document.getElementById('dfTechShade'))return;
+      observer.disconnect();root.style.overflow=oldHtml;document.body.style.overflow=oldBody;
+    });
+    observer.observe(root,{childList:true});
+  }
+  function technicalPinGate(f){
+    document.getElementById('dfTechPinGate')?.remove();
+    const gate=document.createElement('div');gate.id='dfTechPinGate';
+    gate.style.cssText='position:fixed!important;inset:0!important;width:100vw;height:100dvh;max-height:100dvh;background:#080d17;z-index:2147483647!important;color:#f8fafc;font:16px -apple-system,BlinkMacSystemFont,Arial;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 18px) 20px calc(env(safe-area-inset-bottom,0px) + 22px)';
+    gate.innerHTML='<style>#dfTechPinGate *{box-sizing:border-box}#dfTechPinGate .pinWrap{max-width:420px;margin:0 auto}#dfTechPinGate .pinBack{background:#132238;border:1px solid #d99b1b;border-radius:12px;color:#ffd06b;padding:13px 17px;font-weight:700}#dfTechPinGate .pinCard{margin-top:32px;padding:25px 19px 24px;background:#101c2c;border:1px solid #30435d;border-radius:22px;text-align:center;box-shadow:0 15px 36px #0004}#dfTechPinGate .pinIcon{display:grid;place-items:center;width:65px;height:65px;margin:0 auto 16px;border-radius:19px;background:#103c2a;border:1px solid #208956;font-size:29px}#dfTechPinGate h2{font-size:22px;line-height:1.25;margin:0 0 9px}#dfTechPinGate .pinHint{color:#a7b8cd;font-size:14px;margin:0 0 24px}#dfTechPinGate .pinDots{display:flex;justify-content:center;gap:16px;margin:12px 0 24px}#dfTechPinGate .pinDot{height:16px;width:16px;border:2px solid #68809d;border-radius:50%;background:transparent}#dfTechPinGate .pinDot.on{background:#8df0b6;border-color:#8df0b6}#dfTechPinGate .pinPad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:310px;margin:auto}#dfTechPinGate .pinKey{height:63px;background:#192a40;color:#f8fafc;border:1px solid #405573;border-radius:14px;font-size:25px;font-weight:600;touch-action:manipulation}#dfTechPinGate .pinKey:active{background:#245039}#dfTechPinGate .pinConfirm{background:#0c452b;color:#9af1ba;border:1px solid #23a55c;font-size:16px}#dfTechPinGate .pinError{min-height:22px;color:#ffaaaa;font-size:13px;margin:14px 0 0}</style><div class="pinWrap"><button type="button" class="pinBack" id="dfTechPinBack">← VOLTAR</button><div class="pinCard"><div class="pinIcon">🔒</div><h2>PARÂMETROS TÉCNICOS</h2><p class="pinHint">Acesso restrito • Digite sua senha de 4 dígitos</p><div class="pinDots" aria-label="Senha digitada"><span class="pinDot"></span><span class="pinDot"></span><span class="pinDot"></span><span class="pinDot"></span></div><div class="pinPad"><button type="button" class="pinKey" data-pin-digit="1">1</button><button type="button" class="pinKey" data-pin-digit="2">2</button><button type="button" class="pinKey" data-pin-digit="3">3</button><button type="button" class="pinKey" data-pin-digit="4">4</button><button type="button" class="pinKey" data-pin-digit="5">5</button><button type="button" class="pinKey" data-pin-digit="6">6</button><button type="button" class="pinKey" data-pin-digit="7">7</button><button type="button" class="pinKey" data-pin-digit="8">8</button><button type="button" class="pinKey" data-pin-digit="9">9</button><button type="button" class="pinKey" data-pin-clear="1" aria-label="Apagar">⌫</button><button type="button" class="pinKey" data-pin-digit="0">0</button><button type="button" class="pinKey pinConfirm" data-pin-confirm="1">ENTRAR</button></div><p class="pinError" id="dfTechPinError" role="alert"></p></div></div>';
+    technicalFullScreen(gate);
+    let digits='',busy=false;
+    const draw=()=>gate.querySelectorAll('.pinDot').forEach((dot,i)=>dot.classList.toggle('on',i<digits.length));
+    const enter=()=>{if(busy)return;if(digits!=='9273'){gate.querySelector('#dfTechPinError').textContent='Senha incorreta. Tente novamente.';digits='';draw();return;}busy=true;gate.remove();technicalEditor(f).catch(err=>alert('Falha ao abrir parâmetros: '+String(err?.message||err)))};
+    gate.querySelector('#dfTechPinBack').onclick=()=>gate.remove();
+    gate.querySelectorAll('[data-pin-digit]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(busy||digits.length>=4)return;digits+=btn.dataset.pinDigit;gate.querySelector('#dfTechPinError').textContent='';draw();}));
+    gate.querySelector('[data-pin-clear]').onclick=()=>{digits=digits.slice(0,-1);gate.querySelector('#dfTechPinError').textContent='';draw()};
+    gate.querySelector('[data-pin-confirm]').onclick=enter;
+  }
+  async function technicalCommercialReport(f,t,w){
+    let srv=null;if(navigator.onLine!==false){try{srv=await Promise.race([calcSaved(f),new Promise(resolve=>setTimeout(()=>resolve(null),4500))])}catch(e){}}
+    if(!srv){const base=(f.rows||[]).map(r=>{const m=mat(r.id)||r;const kg=(pn(f.total)||0)*(pn(r.pct)||0)/100;const preco=pn(m.preco??r.preco??0);return {kg,custo:kg*preco}});const custoTotal=base.reduce((sum,x)=>sum+x.custo,0);srv={itens:base,custoTotal,custoKgFinal:(pn(f.total)>0?custoTotal/pn(f.total):0)};}
+    const rows=Array.isArray(f.rows)?f.rows:[],items=Array.isArray(srv.itens)?srv.itens:[];
+    const lines=rows.map((r,i)=>{const m=mat(r.id)||r,it=items[i]||{};return '<tr><td>'+esc(m.nome||r.nome||'')+'</td><td>'+fm(r.pct||0,2)+'%</td><td>'+fm(it.kg||0,3)+'</td><td>'+money(m.preco??r.preco??0)+'</td></tr>'}).join('');
+    const field=(label,value)=>String(value??'').trim()?'<div class="detail"><small>'+esc(label)+'</small><strong>'+esc(value)+'</strong></div>':'';
+    const temps=[...(t.zones||[]),...(t.components||[])].filter(x=>x.name&&/^\d+(?:[.,]\d+)?$/.test(String(x.temperature||'').trim())).map(x=>field(x.name,x.temperature+' °C')).join('');
+    const hasTech=Boolean(t.density||t.mfi||temps);
+    const validTemp=x=>{const v=String(x?.temperature??'').trim().replace(',','.');return /^-?\d+(?:\.\d+)?$/.test(v)&&Number(v)>=0&&Number(v)<=400};
+    const zoneValues=(t.zones||[]).filter(validTemp),lastZone=zoneValues[zoneValues.length-1];
+    const finalTemp=lastZone?Number(String(lastZone.temperature).replace(',','.')).toLocaleString('pt-BR')+' °C':'não informada';
+    const technical=hasTech?'<h3>03 / PERFIL TÉCNICO DE PROCESSAMENTO</h3><div class="details">'+field('Densidade (g/cm³)',t.density)+field('MFI (g/10 min)',t.mfi)+temps+'</div><div class="technical-note"><b>Interpretação dos parâmetros</b><p><strong>Densidade:</strong> indica a massa por volume do material e auxilia na estimativa do peso do filme. <strong>MFI:</strong> índice de fluidez medido em condições padronizadas; ajuda a caracterizar o comportamento de escoamento da resina.</p><p><strong>Zonas térmicas:</strong> a alimentação inicia o aquecimento; a compressão promove fusão e homogeneização; a dosagem busca regularidade da massa fundida. Cabeçote e matriz ajudam a manter a temperatura de saída uniforme. Temperatura da última zona cadastrada: <strong>'+finalTemp+'</strong>.</p><p class="tech-caveat">O perfil é uma referência operacional cadastrada e deve ser validado na máquina. A fusão ocorre progressivamente, conforme material, rosca, vazão e condições do processo.</p></div>':'';
+    const client=field('Razão social',t.legalName)+field('Nome fantasia',t.tradeName)+field('CNPJ',t.cnpj);
+    const trace='<h3>04 / RASTREABILIDADE E DESENVOLVIMENTO</h3><div class="details">'+field('Desenvolvimento','DF Manutenção e Consultoria')+field('Revisão','01')+field('Responsável técnico','David Alex Ferreira')+field('Condição de aplicação','Parâmetros sujeitos à validação em produção')+'</div>';
+    const clientName=String(t.legalName||t.tradeName||'').trim();
+    const confidentiality='<h3>05 / DESTINAÇÃO E CONFIDENCIALIDADE</h3><div class="confidential-card"><b>FORMULAÇÃO TÉCNICA EXCLUSIVA • USO RESTRITO</b><p>Desenvolvida pela DF Manutenção e Consultoria'+(clientName?' para '+esc(clientName):'')+'. Composição, custos e parâmetros são informações comerciais e técnicas reservadas. Reprodução ou divulgação a terceiros somente mediante autorização.</p></div>';
+    const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório técnico — '+esc(f.nome||'Formulação')+'</title><style>@page{size:A4 portrait;margin:7mm}*{box-sizing:border-box}body{font:11px Arial,sans-serif;color:#182234;margin:0;background:#fff}.toolbar{display:flex;gap:10px;padding:12px;background:#e9eef4;position:sticky;top:0;z-index:5;border-bottom:1px solid #cbd5e1}.toolbar button{padding:12px;border-radius:9px;border:1px solid #aebaca;background:#fff;color:#17314d;font-weight:bold;cursor:pointer}.toolbar button:last-child{background:#163c35;color:#fff;border-color:#163c35}.page{max-width:190mm;margin:auto;padding:14px 12px 22px}header{border-bottom:3px solid #b08b3b;padding:12px 14px 14px;background:#f7f5ef;border-radius:8px 8px 0 0}header small{color:#987526;letter-spacing:2px}h1{font-size:21px;margin:8px 0 3px;letter-spacing:-.4px}h2{font-size:17px;margin:14px 0 10px;padding-left:10px;border-left:4px solid #b08b3b}h3{font-size:11px;margin:15px 0 8px;color:#27374b;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid #e1e5e9;padding-bottom:5px}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.detail{border-left:2px solid #b08b3b;padding:5px 8px;min-width:0;overflow-wrap:anywhere}.detail small{display:block;color:#64748b;font-size:9px;margin-bottom:3px}.detail strong{font-size:11px;line-height:1.35}.metrics{display:grid;grid-template-columns:1fr;gap:8px;margin:10px 0}.metrics>div{border:1px solid #d6dbe2;border-top:3px solid #b08b3b;border-radius:7px;padding:10px;background:#fafbfc}.metrics small{display:block;color:#64748b}.metrics b{font-size:15px}table{border-collapse:collapse;width:100%;font-size:10px}th,td{border:1px solid #cbd0d7;padding:6px 5px;text-align:right}th:first-child,td:first-child{text-align:left}th{background:#e9eef4;color:#1d3046}tbody tr:nth-child(even){background:#f7f9fb}.technical-note{background:#f6f8fa;border-left:3px solid #b08b3b;border-radius:3px;padding:9px 12px;margin-top:10px;font-size:9.5px;line-height:1.4;color:#334155}.technical-note b{color:#182234}.technical-note p{margin:5px 0}.technical-note .tech-caveat{color:#64748b;font-size:8.5px}.confidential-card{border:1px solid #c8ac72;background:#faf7ef;border-radius:7px;padding:10px 13px;color:#364152;font-size:9.5px;line-height:1.45}.confidential-card b{color:#72521d;letter-spacing:.4px}.confidential-card p{margin:6px 0 0}.signature{text-align:center;margin:22px auto 0;max-width:350px;border-top:1px solid #444;padding-top:6px;font-size:10px}.confidential{font-size:8px;text-align:center;color:#596273;margin-top:10px;line-height:1.35}@media print{html,body{width:196mm!important;height:283mm!important;overflow:hidden!important}.toolbar{display:none!important}.page{padding:0!important;margin:0!important;max-width:none!important;transform-origin:top left;transform:scale(var(--df-print-scale,1));width:calc(100% / var(--df-print-scale,1))!important}header{background:#f7f5ef!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}h3{break-after:avoid}tr,.detail,.metrics>div,.technical-note,.confidential-card,.signature{break-inside:avoid}body{font-size:10px}}</style></head><body><div class="toolbar"><button type="button" id="dfReportBack">← VOLTAR À FORMULAÇÃO</button><button onclick="window.print()">IMPRIMIR / SALVAR PDF</button></div><main class="page"><header><small>DF EXTRUSOR PRO • DOCUMENTAÇÃO TÉCNICA</small><h1>DF Manutenção e Consultoria</h1><div>DESENVOLVIMENTO DE COMPOSIÇÃO POLIMÉRICA</div></header><h2>'+esc(f.nome||'Formulação')+'</h2><div class="details">'+client+field('Identificação do registro',f.id)+'</div><h3>01 / INDICADORES DA COMPOSIÇÃO</h3><div class="metrics"><div><small>Custo da composição por kg</small><b>'+money(srv.custoKgFinal||0)+'/kg</b></div></div><h3>02 / COMPOSIÇÃO DETALHADA</h3><table><thead><tr><th>Material</th><th>%</th><th>Kg</th><th>Preço/kg</th></tr></thead><tbody>'+lines+'</tbody></table>'+technical+trace+confidentiality+'<div class="signature"><b>DAVID ALEX FERREIRA</b><div>Técnico responsável pelo desenvolvimento</div><div>DF Manutenção e Consultoria</div><div>Assinatura: ______________________________</div></div><div class="confidential">Gerado em '+esc(new Date().toLocaleString('pt-BR'))+'</div></main></body></html>';
+    if(!w)throw Error('Permita a abertura de janelas para gerar o relatório.');
+    w.document.open();w.document.write(html);w.document.close();
+    const fitPrintPage=()=>{try{const d=w.document,pg=d.querySelector('.page');if(!pg)return;pg.style.removeProperty('--df-print-scale');const ruler=d.createElement('div');ruler.style.cssText='position:absolute;visibility:hidden;width:196mm;height:283mm;pointer-events:none';d.body.appendChild(ruler);const maxH=ruler.getBoundingClientRect().height,maxW=ruler.getBoundingClientRect().width;ruler.remove();const contentH=pg.scrollHeight,contentW=pg.scrollWidth;const scale=Math.max(0.15,Math.min(1,(maxH-8)/Math.max(1,contentH),(maxW-2)/Math.max(1,contentW)));pg.style.setProperty('--df-print-scale',String(Math.floor(scale*1000)/1000));}catch(e){}};
+    w.addEventListener('beforeprint',fitPrintPage);
+    const printButton=w.document.querySelector('.toolbar button:last-child');if(printButton)printButton.onclick=()=>{fitPrintPage();w.print()};
+    w.setTimeout(fitPrintPage,200);
+    const back=w.document.getElementById('dfReportBack');if(back)back.addEventListener('click',()=>{try{if(w.opener&&!w.opener.closed){w.opener.focus();w.close();return}}catch(e){}try{w.close();if(w.closed)return}catch(e){}w.location.replace('https://app.dfextrusor.com.br/')});
+  }
+  function technicalRows(list,type){
+    return (list||[]).map((x,i)=>'<div class="dfTechRow" data-kind="'+type+'"><input aria-label="Nome" placeholder="Nome" value="'+esc(x.name||'')+'"><input aria-label="Temperatura" placeholder="°C" value="'+esc(x.temperature||'')+'"><button type="button" data-remove-tech="'+i+'">×</button></div>').join('');
+  }
+  async function technicalEditor(f,serverData){
+    let data=serverData||technicalLocalGet(f)||{zones:[{name:'Zona 1',temperature:''},{name:'Zona 2',temperature:''},{name:'Zona 3',temperature:''}],components:[]};
+    document.getElementById('dfTechShade')?.remove();
+    const shade=document.createElement('div');shade.id='dfTechShade';shade.style.cssText='position:fixed!important;inset:0!important;width:100vw;height:100dvh;background:#080b13;z-index:2147483647!important;display:block;padding:0;overflow:hidden';
+    shade.innerHTML='<style>#dfTechShade *{box-sizing:border-box}#dfTechShade .dfTechPage{background:#080b13;color:#f3f6fc;width:100%;height:100dvh;overflow-y:auto;overscroll-behavior:contain;padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 28px);font:15px -apple-system,BlinkMacSystemFont,Arial,sans-serif}#dfTechShade .dfTechTop{position:sticky;top:0;z-index:2;background:#080b13;padding:10px 0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #25364d;margin-bottom:20px}#dfTechShade .dfTechBack{background:#14243a;color:#ffcc63;border:1px solid #d89b13;border-radius:12px;padding:12px 14px;font-weight:700}#dfTechShade h2{font-size:21px;margin:0;line-height:1.25}#dfTechShade h3{font-size:19px;margin:25px 0 14px}#dfTechShade label{display:block;color:#cbd5e1;margin:15px 0 8px}#dfTechShade input{display:block;width:100%;background:#0c1729;color:#f5f8ff;border:1px solid #38506b;border-radius:12px;padding:14px;font-size:16px;margin:7px 0 0;min-height:52px}#dfTechShade .dfTechRow{display:grid;grid-template-columns:minmax(0,1fr) 105px 40px;gap:8px;align-items:center;margin:10px 0}#dfTechShade .dfTechRow input{margin:0;min-width:0}#dfTechShade button{cursor:pointer}#dfTechShade .dfTechRow button{height:50px;border-radius:10px;background:#341a20;color:#ffb4b4;border:1px solid #7c3030}#dfTechShade .dfTechAction{background:#122b22;border:1px solid #16a34a;border-radius:12px;color:#91f0b4;padding:14px;font-weight:700}#dfTechShade .dfTechSave{background:#0b4229;border:1px solid #22c55e;color:#9af5b9;flex:1}#dfTechShade .dfTechFooter{display:flex;gap:10px;margin:24px 0}#dfTechShade .dfTechFooter button{padding:15px;border-radius:12px;font-weight:700}#dfTechShade .dfTechClose{background:#18283c;color:#f5f8ff;border:1px solid #43536c}#dfTechShade .dfTechIntro{color:#9eafc5;font-size:13px;margin:0 0 22px}</style><section class="dfTechPage"><header class="dfTechTop"><button type="button" class="dfTechBack" id="dfTechBack">← VOLTAR</button><h2>🔒 PARÂMETROS TÉCNICOS</h2></header><h3>'+esc(f.nome||'')+'</h3><p class="dfTechIntro">Exclusivo do dono • salvo no servidor</p><label>Razão social<input id="dfTechLegal" value="'+esc(data.legalName||'')+'"></label><label>Nome fantasia<input id="dfTechTrade" value="'+esc(data.tradeName||'')+'"></label><label>CNPJ<input id="dfTechCnpj" value="'+esc(data.cnpj||'')+'" placeholder="00.000.000/0000-00"></label><label>Densidade (g/cm³)<input id="dfTechDensity" value="'+esc(data.density||'')+'"></label><label>MFI (g/10 min)<input id="dfTechMfi" value="'+esc(data.mfi||'')+'"></label><h3>Zonas de temperatura</h3><div id="dfTechZones">'+technicalRows(data.zones,'zones')+'</div><button type="button" class="dfTechAction" id="dfTechAddZone">+ ADICIONAR ZONA</button><h3>Componentes adicionais</h3><div id="dfTechComponents">'+technicalRows(data.components,'components')+'</div><button type="button" class="dfTechAction" id="dfTechAddComponent">+ ADICIONAR COMPONENTE</button><div class="dfTechFooter"><button type="button" class="dfTechSave" id="dfTechSave">GERAR RELATÓRIO</button><button type="button" class="dfTechClose" id="dfTechClose">FECHAR</button></div></section>';
+    technicalFullScreen(shade);
+    if(!serverData&&navigator.onLine!==false){try{const result=await Promise.race([technicalPost('/op/team/formulas/technical/get',f.id),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo de consulta excedido')),4000))]);if(result.technical){technicalLocalSet(f,result.technical,false);shade.remove();return technicalEditor(f,result.technical)}}catch(e){/* Sem conexão: continuar com dados locais. */}}
+
+    const bindRemove=()=>shade.querySelectorAll('[data-remove-tech]').forEach(b=>b.onclick=()=>b.parentElement.remove());
+    bindRemove();
+    shade.querySelector('#dfTechAddZone').onclick=()=>{const n=shade.querySelectorAll('#dfTechZones .dfTechRow').length+1;shade.querySelector('#dfTechZones').insertAdjacentHTML('beforeend',technicalRows([{name:'Zona '+n,temperature:''}],'zones'));bindRemove()};
+    shade.querySelector('#dfTechAddComponent').onclick=()=>{shade.querySelector('#dfTechComponents').insertAdjacentHTML('beforeend',technicalRows([{name:'',temperature:''}],'components'));bindRemove()};
+    shade.querySelector('#dfTechClose').onclick=()=>shade.remove();
+    shade.querySelector('#dfTechBack').onclick=()=>shade.remove();
+    // Protege os botões do editor contra interceptadores globais do aplicativo.
+    // O evento é tratado antes dos handlers de outras telas.
+    if(!window.__dfTechActionCaptureInstalled){
+      window.__dfTechActionCaptureInstalled=true;
+      window.addEventListener('click',function(event){
+        const button=event.target?.closest?.('#dfTechBack,#dfTechClose,#dfTechSave');
+        if(!button||!button.closest('#dfTechShade'))return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if(typeof button.onclick==='function')button.onclick.call(button,event);
+      },true);
+    }
+    shade.querySelector('#dfTechSave').onclick=async()=>{
+      const val=id=>shade.querySelector('#'+id).value.trim();
+      const rows=id=>[...shade.querySelectorAll('#'+id+' .dfTechRow')].map(e=>({name:e.querySelectorAll('input')[0].value.trim(),temperature:e.querySelectorAll('input')[1].value.trim()})).filter(x=>x.name);
+      const payload={legalName:val('dfTechLegal'),tradeName:val('dfTechTrade'),cnpj:val('dfTechCnpj'),density:val('dfTechDensity'),mfi:val('dfTechMfi'),zones:rows('dfTechZones'),components:rows('dfTechComponents')};
+      const reportWindow=window.open('','_blank');if(!reportWindow){alert('Permita pop-ups para gerar o relatório.');return;}reportWindow.document.write('<title>Gerando relatório...</title><p>Salvando parâmetros e preparando relatório...</p>');
+      try{technicalLocalSet(f,payload,true);await technicalCommercialReport(f,payload,reportWindow);shade.remove();if(navigator.onLine!==false){try{await technicalPost('/op/team/formulas/technical/save',f.id,payload);technicalLocalSet(f,payload,false)}catch(saveError){alert('Relatório gerado e dados salvos neste aparelho. Sincronização pendente.')}}else{alert('Relatório gerado e dados salvos neste aparelho. Sem internet: sincronização pendente.')}}catch(e){try{reportWindow.close()}catch(_){}alert('Não foi possível gerar o relatório: '+e.message)}
+    };
+  }
+
+  function addComp(){
+    if(q('exComp'))return;
+    const exL=q('exL');if(!exL)return;
+    const box=exL.closest('div');if(!box||!box.parentNode)return;
+    const div=document.createElement('div');
+    div.innerHTML='<label>Comprimento final / saco (cm)</label><input id="exComp" class="main" inputmode="decimal" placeholder="Ex.: 105"><div class="smallNote">Usado somente para puxar o tamanho final na OP. Não entra na conta de g/m.</div>';
+    box.parentNode.insertBefore(div,box.nextSibling);
+  }
+
+  function getExtrusaoOP(){
+    return{
+      largura:pn(q('exL')?.value),
+      comprimento:pn(q('exComp')?.value),
+      micra:pn(q('exM')?.value),
+      grama:typeof window.pesoMetroIdeal==='function'?Number(window.pesoMetroIdeal())||0:0
+    };
+  }
+
+  function info(){
+    const b=q('foSavedInfo'),f=selected();if(!b)return;
+    if(!f){b.innerHTML='Selecione uma formulação salva.';return;}
+    b.innerHTML='<b>'+esc(f.nome||'Formulação')+'</b><br>'+fm(f.total||0,2)+' kg • '+((f.rows||[]).length)+' materiais • '+money(f.custo||0);
+  }
+
+  function render(){
+    const b=q('foSaved'),a=load();if(!b)return;
+    if(!a.length){b.innerHTML='<div class="formNote">Nenhuma formulação salva ainda.</div>';return;}
+    const current=q('foSavedSelect')?.value;
+    const opts=a.map((f,i)=>'<option value="'+esc(f.id)+'" '+((current&&String(current)===String(f.id))||(!current&&i===0)?'selected':'')+'>'+esc(f.nome||'Formulação')+' — '+fm(f.total||0,2)+' kg</option>').join('');
+    b.innerHTML='<div class="formRow"><label>Formulação salva</label><select id="foSavedSelect">'+opts+'</select><div id="foSavedInfo" class="formNote"></div><div class="savedBtns" style="grid-template-columns:repeat(4,minmax(0,1fr))"><button class="miniBtn" data-fosafe="technical">🔒 TÉCNICOS</button><button class="miniBtn" data-fosafe="pdf">PDF</button><button class="miniBtn" data-fosafe="op">OP</button><button class="delBtn" data-fosafe="del">EXCLUIR</button></div></div>';
+    b.querySelectorAll('.savedBtns button').forEach(btn=>{btn.style.cssText='min-width:0;width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal;font-size:clamp(9px,2.5vw,12px);line-height:1.2;padding:12px 3px;text-align:center;min-height:54px'});
+    q('foSavedSelect')?.addEventListener('change',info);info();
+  }
+
+  async function calcSaved(f){
+    if(!f||typeof window.dfCalc!=='function')return null;
+    const rows=(f.rows||[]).map(r=>({pct:Number(r.pct)||0,precoKg:Number((mat(r.id)||r).preco||r.preco)||0}));
+    try{return await window.dfCalc('formulacao',{totalKg:Number(f.total)||0,rows});}catch(e){console.error(e);return null;}
+  }
+
+  async function saveFormulaSafe(){
+    const nome=(q('foNome')?.value||'').trim()||'Formulação';
+    const total=pn(q('foTotal')?.value);
+    const rows=(typeof window.getFoRows==='function'?window.getFoRows():[]).filter(r=>r.id&&Number(r.pct)>0);
+    if(!total){alert('Digite quantos kg quer fazer.');return;}
+    if(!rows.length){alert('Escolha pelo menos 1 material.');return;}
+    const tmp={total,rows};
+    const srv=await calcSaved(tmp);if(!srv){alert('Não foi possível calcular a formulação no servidor.');return;}
+    const d=Number(srv.diferencaPara100)||0;
+    if(Math.abs(d)>0.05&&!confirm('A formulação não fechou 100%. Salvar mesmo assim?'))return;
+    const rec={id:Date.now(),nome,total,rows,custo:Number(srv.custoTotal)||0,custoKg:Number(srv.custoKgFinal)||0,op:getExtrusaoOP(),criado:new Date().toISOString()};
+    const a=load();a.unshift(rec);save(a);alert('Formulação salva.');
+  }
+
+  async function pdf(f){
+    if(!f)return;
+    const srv=await calcSaved(f);if(!srv){alert('Não foi possível gerar o PDF.');return;}
+    const total=Number(f.total)||0,rows=f.rows||[],items=Array.isArray(srv.itens)?srv.itens:[];
+    let trs='';
+    rows.forEach((r,i)=>{const m=mat(r.id)||r,it=items[i]||{};trs+='<tr><td>'+esc(m.nome||r.nome||'')+'</td><td>'+fm(r.pct||0,2)+'%</td><td>'+fm(it.kg||0,3)+' kg</td><td>'+money(m.preco||r.preco||0)+'</td><td>'+money(it.custo||0)+'</td></tr>';});
+    if(!trs)trs='<tr><td colspan="5">Sem materiais.</td></tr>';
+    let html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Formulação '+esc(f.nome||'')+'</title><style>body{font-family:Arial,sans-serif;color:#111;margin:28px}h1{margin:0 0 4px}.top{border-bottom:3px solid #111;padding-bottom:12px}.box{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.kpi{border:1px solid #ddd;border-radius:10px;padding:10px}.kpi span{display:block;color:#555;font-size:12px}.kpi b{font-size:17px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ccc;padding:10px;text-align:left;font-size:13px}th{background:#eee}.foot{margin-top:26px;color:#666;font-size:12px}@media print{body{margin:18px}}</style></head><body><div class="top"><h1>DF Manutenção e Consultoria</h1><div>Relatório de Formulação</div></div><h2>'+esc(f.nome||'Formulação')+'</h2><div class="box"><div class="kpi"><span>Quantidade total</span><b>'+fm(total,3)+' kg</b></div><div class="kpi"><span>Total da porcentagem</span><b>'+fm(srv.totalPct||0,2)+'%</b></div><div class="kpi"><span>Custo por kg final</span><b>'+money(srv.custoKgFinal||0)+'</b></div></div><table><thead><tr><th>Material</th><th>%</th><th>Kg</th><th>Valor/kg</th><th>Custo</th></tr></thead><tbody>'+trs+'</tbody></table><div class="foot">Gerado em '+esc(new Date().toLocaleString('pt-BR'))+' • DF EXTRUSOR PRO</div><script>setTimeout(function(){window.focus();window.print()},450)<\/script></body></html>';
+
+    if(technicalOwner()&&technicalTeam()?.teamId){
+      try{
+        const j=await technicalPost('/op/team/formulas/technical/get',f.id);
+        const t=j.technical;
+        if(t){
+          const has=[t.legalName,t.tradeName,t.cnpj,t.density,t.mfi,...(t.zones||[]).map(x=>x.temperature),...(t.components||[]).map(x=>x.temperature)].some(Boolean);
+          if(has){
+            const line=(k,v)=>v?'<div><b>'+k+':</b> '+esc(v)+'</div>':'';
+            const temps=[...(t.zones||[]),...(t.components||[])].filter(x=>x.name&&x.temperature).map(x=>'<span style="display:inline-block;margin:3px 9px 3px 0">'+esc(x.name)+': <b>'+esc(x.temperature)+' °C</b></span>').join('');
+            const detail='<section style="margin-top:12px;border-top:1px solid #ccc;padding-top:8px"><b>FICHA TÉCNICA / CLIENTE</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px">'+line('Razão social',t.legalName)+line('Nome fantasia',t.tradeName)+line('CNPJ',t.cnpj)+line('Densidade',t.density? t.density+' g/cm³':'')+line('MFI',t.mfi?t.mfi+' g/10 min':'')+'</div><div style="font-size:11px">'+temps+'</div></section>';
+            const footer='<div style="margin-top:16px;text-align:center;font-size:10px;border-top:1px solid #aaa;padding-top:8px"><b>DAVID ALEX FERREIRA</b> — Técnico responsável pelo desenvolvimento<br>DF Manutenção e Consultoria<br><span style="font-size:9px">Documento confidencial, destinado exclusivamente ao cliente identificado.</span></div>';
+            html=html.replace('<div class="foot">',detail+footer+'<div class="foot">').replace('body{font-family:Arial','@page{size:A4 portrait;margin:10mm}body{font-family:Arial').replace('th,td{border:1px solid #ccc;padding:10px','th,td{border:1px solid #ccc;padding:5px').replace('body{margin:28px}','body{margin:10px}');
+          }
+        }
+      }catch(e){alert('Não foi possível consultar os dados técnicos privados. O PDF normal será gerado. '+e.message)}
+    }
+    const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a janela do PDF. Libere pop-up.');return;}w.document.open();w.document.write(html);w.document.close();
+  }
+
+  function op(f){
+    if(!f){alert('Formulação não encontrada.');return;}
+    const nome=f.nome||'Formulação',total=Number(f.total)||0,rows=f.rows||[];
+    const atual=getExtrusaoOP(),dados=f.op||{};
+    const largura=Number(dados.largura||atual.largura)||0;
+    const comprimento=Number(dados.comprimento||atual.comprimento)||0;
+    const micra=Number(dados.micra||atual.micra)||0;
+    const grama=Number(dados.grama||atual.grama)||0;
+    const hoje=new Date().toLocaleDateString('pt-BR');
+    const dupla=micra?fm(micra/100,2)+' mc':'_____';
+    const parede=micra?fm(micra/200,2)+' mc':'_____';
+    const gram=grama?fm(grama,1)+' g/m':'_____';
+    const lb=largura?fm(largura,1).replace(',0','')+' CM':'_____ CM';
+    const tamanho=largura&&comprimento&&micra?fm(largura,0)+' X '+fm(comprimento,0)+' X '+fm(micra/1000,3)+' mc':'';
+    const letras=['A','B','C','D','E','F','G','H'];
+    let matRows='';for(let i=0;i<8;i++){const r=rows[i]||{},m=r.id?(mat(r.id)||r):{},desc=m.nome||r.nome||'',pct=Number(r.pct)||0;matRows+='<tr class="'+((desc||pct)?'matFilled':'')+'"><td class="center b">'+letras[i]+'</td><td>'+esc(desc)+'</td><td class="center b">'+(pct?fm(pct,2)+'%':'')+'</td></tr>';}
+    let prodRows='';for(let i=0;i<8;i++)prodRows+='<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+    const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>OP '+esc(nome)+'</title><style>@page{size:A4 landscape;margin:6mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:11.5px;background:#fff}.page{border:2px solid #111;padding:6px}.op{width:100%;border-collapse:collapse;table-layout:fixed}.op td,.op th{border:1px solid #333;padding:4px 5px;vertical-align:middle}.center{text-align:center}.b{font-weight:700}.logo{font-size:16px;font-weight:900;letter-spacing:.4px}.title{background:#111827!important;color:#fff!important;text-align:center;font-weight:900;letter-spacing:.4px}.hl{background:#fff200!important;font-weight:900}.hl2{background:#eaf3ff!important;font-weight:900}.hl3{background:#eaffea!important;font-weight:900}.top td{height:21px}.big{font-size:15px}.xbig{font-size:18px}.mat th{background:#111827!important;color:#fff!important}.mat td{height:22px}.matFilled td{background:#fffbe6!important;font-weight:700}.prod th{background:#e5e7eb!important;font-size:10px}.prod td{height:23px}.codes td{font-size:10.5px;background:#fafafa}.sectionGap{height:6px;border:0}.printHint{margin:0 0 6px;color:#555;font-size:11px}.obs{height:34px}.stamp{float:right;border:1px solid #333;border-radius:8px;padding:5px 12px;font-weight:900;background:#fff200}.miniTitle{font-size:10px;color:#333;font-weight:700;text-transform:uppercase}.value{font-size:14px;font-weight:900}@media print{body{margin:0}.printHint{display:none}.page{border:0;padding:0}}</style></head><body><div class="printHint">OP pronta para imprimir. Escolha salvar como PDF ou imprimir.</div><div class="page">'+
+      '<table class="op top"><tr><td colspan="5" class="logo">FERREIRA EMBALAGENS</td><td class="title" colspan="2">ORDEM DE PRODUÇÃO</td><td class="b">Data emissão:</td><td class="hl center">'+esc(hoje)+'</td></tr><tr><td colspan="3" class="hl"><span class="miniTitle">Cliente / Formulação</span><br><span class="xbig">'+esc(nome)+'</span></td><td>UF:</td><td colspan="2" class="title">FASE 1: EXTRUSÃO</td><td class="b center">OS:</td><td colspan="2"></td></tr><tr><td colspan="3" class="hl2"><span class="miniTitle">Tamanho final</span><br><span class="value">'+esc(tamanho||'_____')+'</span></td><td colspan="3">cod de barra</td><td colspan="3" class="b">PREVISÃO ENTREGA:</td></tr><tr><td colspan="3" class="hl3"><span class="miniTitle">Peso líquido</span><br><span class="value">'+fm(total,0)+' KG</span></td><td colspan="3" class="hl3"><span class="miniTitle">Peso bruto</span><br><span class="value">'+fm(total,0)+' KG</span></td><td colspan="3">Total (FD):</td></tr></table><div class="sectionGap"></div><table class="op"><tr><td class="b center" style="width:7%">CP:</td><td colspan="8" class="hl"><span class="miniTitle">Descrição do produto</span><br><span class="big">'+esc(nome)+'</span></td></tr><tr><td colspan="3" class="hl2"><span class="miniTitle">Espessura de extrusão dupla</span><br><b>'+dupla+'</b></td><td colspan="3" class="hl2"><span class="miniTitle">Espessura por parede</span><br><b>'+parede+'</b></td><td colspan="3" class="hl2"><span class="miniTitle">Gramatura</span><br><b>'+gram+'</b></td></tr><tr><td colspan="3" class="hl3"><span class="miniTitle">Largura da bobina</span><br><b>'+lb+'</b></td><td colspan="3" class="hl3"><span class="miniTitle">Largura do balão</span><br><b>'+lb+'</b></td><td colspan="3"></td></tr><tr><td colspan="9" class="obs"><span class="miniTitle">Observações importantes</span><br></td></tr></table><div class="sectionGap"></div><table class="op mat"><tr><th style="width:7%">MATERIAL</th><th>DESCRIÇÃO DA MATÉRIA-PRIMA</th><th style="width:10%">%</th></tr>'+matRows+'</table><div class="sectionGap"></div><table class="op prod"><tr><th>Data</th><th>Operador</th><th>Máquina</th><th>Aparas kg</th><th>Quantidade kg</th><th>Cód. parada</th><th>Início parada</th><th>Final parada</th><th>Início produção</th><th>Final produção</th><th>Nº bobinas</th></tr>'+prodRows+'</table><table class="op codes"><tr><td>01- troca de TELA</td><td>02-acerto</td><td>03-M.mecânica</td><td>04-falta de energia</td><td>05-material molhado</td><td>06-teste</td></tr><tr><td>07-M.elétrica</td><td>08-limpeza da borda</td><td>09-troca de tela</td><td>10-outros</td><td colspan="2"><span class="stamp">DF EXTRUSOR PRO</span></td></tr></table></div><script>setTimeout(function(){window.focus();window.print()},450)<\/script></body></html>';
+    const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a janela da OP. Libere pop-up.');return;}w.document.open();w.document.write(html);w.document.close();
+  }
+
+  // Captura o toque antes dos handlers globais de formulação no iOS.
+  window.addEventListener('click',function(ev){
+    const btn=ev.target?.closest?.('[data-fosafe="technical"]');
+    if(!btn)return;
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const f=selected();
+    if(!f){alert('Selecione uma formulação salva.');return;}
+    technicalPinGate(f);
+  },true);
+
+  document.addEventListener('click',function(ev){
+    if(ev.target?.id==='foSave'){
+      ev.preventDefault();ev.stopImmediatePropagation();saveFormulaSafe();return;
+    }
+    const act=ev.target?.dataset?.fosafe;if(!act)return;
+    ev.preventDefault();ev.stopImmediatePropagation();
+    const f=selected();if(!f){alert('Selecione uma formulação.');return;}
+    if(act==='technical'){technicalPinGate(f);return;}
+    if(act==='open'){if(window.abrirFormula)window.abrirFormula(f,false);return;}
+    if(act==='pdf'){pdf(f);return;}
+    if(act==='op'){op(f);return;}
+    if(act==='dup'){const a=load(),cp=JSON.parse(JSON.stringify(f));cp.id=Date.now();cp.nome=(f.nome||'Formulação')+' cópia';cp.criado=new Date().toISOString();a.unshift(cp);save(a);return;}
+    if(act==='del'){if(!confirm('Excluir esta formulação?'))return;save(load().filter(x=>String(x.id)!==String(f.id)));}
+  },true);
+
+  function force(){window.renderForms=render;window.salvarFormula=saveFormulaSafe;window.getExtrusaoOP=getExtrusaoOP;window.printFormulaOp=op;addComp();render();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(force,250));else setTimeout(force,250);
+  [600,1200,2200].forEach(t=>setTimeout(force,t));
+  document.addEventListener('click',()=>setTimeout(()=>{if(q('foSaved')&&!q('foSavedSelect'))force();},120),true);
+})();

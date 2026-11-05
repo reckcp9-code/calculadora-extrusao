@@ -1,0 +1,73 @@
+(function(){
+'use strict';
+if(window.DFReadyFullScreenV1)return;window.DFReadyFullScreenV1=true;
+const $=id=>document.getElementById(id);
+function addStyle(){
+ if($('dfReadyFullStyle'))return;
+ const style=document.createElement('style');style.id='dfReadyFullStyle';
+ style.textContent=[
+  'body.df-ready-full #dfPaneOk{display:block!important;position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain!important;background:#080b13!important;z-index:10000!important;padding:calc(env(safe-area-inset-top,0px) + 78px) 12px 24px!important;box-sizing:border-box!important;-webkit-overflow-scrolling:touch!important}',
+  'body.df-ready-full #dfPaneOk>.dfOpsCard{padding:10px!important;background:transparent!important;border:0!important;margin:0!important}',
+  'body.df-ready-full #dfPaneOk>.dfOpsCard>h3{display:none!important}',
+  '#dfReadyFullTop{display:none;position:fixed;top:0;left:0;right:0;z-index:10002;background:#080b13;border-bottom:1px solid #334155;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 10px;align-items:center;gap:12px;min-height:52px;box-sizing:border-box}',
+  'body.df-ready-full #dfReadyFullTop{display:flex!important}',
+  '#dfReadyFullClose{border:1px solid #f5a000;border-radius:10px;background:#241600;color:#ffd36a;font-weight:800;padding:10px 12px;flex-shrink:0}',
+  '#dfReadyFullTop strong{color:#fff;font-size:16px}',
+  'body.df-ready-full #dfProductHistoryBox{position:sticky!important;top:0!important;z-index:2!important;background:#0b1220!important;margin:0 auto 12px!important;padding:14px!important;border:1px solid #334155!important;border-radius:14px!important;box-sizing:border-box!important;width:100%!important;max-width:680px!important}',
+  'body.df-ready-full #dfProductHistoryBox h4,body.df-ready-full #dfProductHistoryBox .dfPhSub{display:none!important}',
+  'body.df-ready-full #dfProductHistorySearch{font-size:16px!important;min-height:48px!important;width:100%!important;box-sizing:border-box!important}',
+  'body.df-ready-full #dfProductHistoryResults{max-height:none!important;overflow:visible!important;overscroll-behavior:contain!important}',
+  'body.df-ready-full #dfPaneOk .dfPhSearchLine{width:100%!important;box-sizing:border-box!important}',
+  'body.df-ready-full #dfPaneOk .dfPhSearchLine button{width:100%!important;min-height:42px!important}',
+  'body.df-ready-full #dfPaneOk #dfOkList{max-width:680px;margin:0 auto}',
+  'body.df-ready-full #dfPaneOk{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px)!important}',
+  'body.df-ready-full #dfPaneOk .dfOpsCard{min-height:calc(100dvh - 110px)!important}',
+  'body.df-ready-full #dfOpModal,body.df-ready-full #dfCloudViewer{z-index:11000!important}'
+ ].join('\n');
+ document.head.appendChild(style);
+}
+function ensure(){
+ const pane=$('dfPaneOk'),tabs=document.querySelector('#dfFormulaOps .dfOpsTabs');
+ if(!pane||!tabs)return false;
+ addStyle();
+ let top=$('dfReadyFullTop');
+ if(!top){
+  top=document.createElement('div');top.id='dfReadyFullTop';
+  top.innerHTML='<button id="dfReadyFullClose" type="button">← VOLTAR</button><strong>✅ OPs PRONTAS</strong>';
+  document.body.appendChild(top);
+ }else if(!$('dfReadyFullClose')){
+  top.innerHTML='<button id="dfReadyFullClose" type="button">← VOLTAR</button><strong>✅ OPs PRONTAS</strong>';
+ }
+ return true;
+}
+function close(){document.body.classList.remove('df-ready-full');try{$('dfProductHistorySearch')?.blur()}catch(e){}}
+function repair(){
+ if(!ensure())return false;
+ const pane=$('dfPaneOk'),tab=document.querySelector('#dfFormulaOps .dfOpsTabs [data-pane="ok"]');
+ const visible=$('dfFormulaOps')?.classList.contains('on')&&pane?.classList.contains('on')&&tab?.classList.contains('on');
+ if(visible)document.body.classList.add('df-ready-full');else close();
+ return visible;
+}
+function boot(){
+ ensure();
+ document.addEventListener('click',e=>{
+  const target=e.target;
+  if(!target?.closest)return;
+  if(target.closest('#dfReadyFullClose')){
+   e.preventDefault();e.stopPropagation();close();
+   document.querySelector('#dfFormulaOps .dfOpsTabs [data-pane="read"]')?.click();return;
+  }
+  const tab=target.closest('#dfFormulaOps .dfOpsTabs [data-pane]');
+  if(tab){if(tab.dataset.pane==='ok'){ensure();document.body.classList.add('df-ready-full')}else close();setTimeout(repair,55);return}
+  if(target.closest('#dfMonthlyPhotoButton,#dfFormTabCore,#btFo,#dfFormTabOps')&&
+     !target.closest('#dfFormulaOps .dfOpsTabs [data-pane="ok"]')){close();setTimeout(repair,70)}
+ },true);
+ for(const event of ['df-ui-ready','df-formula-section-entered','pageshow','df-op-d1-applied'])
+  window.addEventListener(event,()=>setTimeout(repair,110));
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(repair,140)});
+ window.addEventListener('popstate',close);
+ // A restauração do modo PRONTAS não depende mais de somente 10 segundos de tentativas.
+ setInterval(()=>{if(!document.hidden&&$('dfFormulaOps')?.classList.contains('on'))repair()},1400);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
