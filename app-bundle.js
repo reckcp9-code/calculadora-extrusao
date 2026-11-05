@@ -6538,3 +6538,22 @@
   window.addEventListener('df-ui-ready',()=>setTimeout(init,120));
   setTimeout(init,700);
 })();
+
+/* v812: Cadastro de material começa minimizado; usuário pode expandir normalmente. */
+(function(){
+  let applied=false;
+  function minimizeOnLoad(){
+    if(applied)return;
+    const h=[...document.querySelectorAll('h2,h3')].find(el=>/1\\.\\s*cadastrar material/i.test(el.textContent||''));
+    if(!h)return;
+    const card=h.closest('.card');if(!card)return;
+    const controls=[...card.querySelectorAll('button')];
+    const toggle=controls.find(b=>/^[\\s−–-]+$/.test((b.textContent||'').trim())||/minimizar/i.test(b.getAttribute('aria-label')||''));
+    if(toggle){applied=true;toggle.click();return;}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',minimizeOnLoad,{once:true});
+  else minimizeOnLoad();
+  const obs=new MutationObserver(()=>{minimizeOnLoad();if(applied)obs.disconnect()});
+  obs.observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(()=>obs.disconnect(),12000);
+})();
