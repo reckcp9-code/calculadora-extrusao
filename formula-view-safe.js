@@ -59,14 +59,8 @@
   // Evita que transformações, rolagem e containers do app recortem o modal no iOS.
   function technicalFullScreen(node){
     const root=document.documentElement;
-    const oldHtml=root.style.overflow,oldBody=document.body.style.overflow;
-    root.style.overflow='hidden';document.body.style.overflow='hidden';
+    // Tela tecnica ja possui rolagem propria; nao travar html/body no iOS.
     root.appendChild(node);
-    const observer=new MutationObserver(()=>{
-      if(document.getElementById('dfTechPinGate')||document.getElementById('dfTechShade'))return;
-      observer.disconnect();root.style.overflow=oldHtml;document.body.style.overflow=oldBody;
-    });
-    observer.observe(root,{childList:true});
   }
   function technicalPinGate(f){
     document.getElementById('dfTechPinGate')?.remove();
