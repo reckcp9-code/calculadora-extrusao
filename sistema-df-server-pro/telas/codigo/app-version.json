@@ -1,6 +1,6 @@
 {
-  "version": "1.0.778",
+  "version": "1.0.807",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção do botão EXCLUIR de formulações salvas: prioridade do evento e exclusão confirmada no D1.",
-  "updatedAt": "2026-11-03"
+  "message": "Seletor de materiais interno com pesquisa, atualização de cache no iPhone.",
+  "updatedAt": "2026-11-04"
 }
