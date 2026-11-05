@@ -865,7 +865,13 @@
     const st=document.createElement('style');
     st.id=STYLE_ID;
     st.textContent=[
-      '.dfMatMgr{margin-top:12px}',
+      '.dfMatMgr{margin-top:12px;width:100%}',
+      '.dfMatMgrBtn{display:block;width:100%!important;min-height:56px!important;max-width:none!important;margin:0!important;font-size:clamp(12px,3.4vw,16px)!important;touch-action:manipulation}',
+      '.dfMatPanel{position:fixed!important;inset:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)!important;z-index:2147483000!important;width:100vw!important;max-width:100vw!important;height:auto!important;max-height:none!important;margin:0!important;border-radius:20px 20px 0 0!important;padding:22px 16px 36px!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;box-sizing:border-box!important}',
+      '.dfMatPanelHead{position:sticky;top:-22px;z-index:3;background:#0f172a;padding:10px 0 16px!important;border-bottom:1px solid #334155}',
+      '.dfMatClose{min-height:46px;touch-action:manipulation}',
+      '.dfMatItem{min-height:62px}',
+      '.dfMatMgrBtn:active,.dfMatAction:active{filter:brightness(1.15)}',,
       '.dfMatMgrBtn{width:100%;border:1px solid #f59e0b;background:#111827;color:#facc15;border-radius:14px;padding:13px 14px;font:900 13px system-ui;cursor:pointer}',
       '.dfMatPanel{margin-top:12px;border:1px solid #334155;background:#0f172a;border-radius:16px;padding:12px}',
       '.dfMatPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}',
@@ -985,10 +991,10 @@
 
     const panel=document.getElementById(PANEL_ID);
     bindPanel(panel);
-    document.getElementById('dfMaterialEditBtn').addEventListener('click',()=>{
-      renderList();
-      panel.style.display=panel.style.display==='none'?'block':'none';
-    });
+    // Painel independente e fixo, com rolagem propria; nao bloquear body/html.
+    panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Materiais cadastrados');
+    const openPanel=()=>{renderList();panel.style.display='block';panel.scrollTop=0;};
+    document.getElementById('dfMaterialEditBtn').addEventListener('click',openPanel);
   }
 
   function init(){
