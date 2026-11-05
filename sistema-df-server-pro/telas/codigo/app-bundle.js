@@ -6727,3 +6727,30 @@
   obs.observe(document.documentElement,{childList:true,subtree:true});
   setTimeout(()=>obs.disconnect(),12000);
 })();
+
+/* v818: cabeçalho Montar formulação — Medida no lugar de Formulações prontas. */
+(function(){
+  'use strict';
+  const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+  let working=false;
+  function align(){
+    if(working)return;
+    const page=document.getElementById('pgFo');if(!page)return;
+    const buttons=[...page.querySelectorAll('button,a,[role="button"]')];
+    const ready=buttons.find(b=>normalize(b.textContent).includes('FORMULACOES PRONTAS'));
+    const measure=buttons.find(b=>normalize(b.textContent)==='MEDIDA');
+    if(!ready||!measure||ready===measure)return;
+    working=true;
+    try{
+      // Move o botão original: mantém seus eventos e a funcionalidade de Medida.
+      ready.replaceWith(measure);
+      measure.style.margin='0';
+      measure.style.flex='0 0 auto';
+      measure.style.alignSelf='center';
+    }finally{working=false;}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',align,{once:true});else align();
+  const observer=new MutationObserver(()=>align());
+  const start=()=>{const page=document.getElementById('pgFo');if(page){observer.observe(page,{childList:true,subtree:true});align();}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
