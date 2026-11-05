@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v809-material-picker-fixed';
+const DF_CACHE='df-extrusor-shell-v810-material-picker-scroll';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
