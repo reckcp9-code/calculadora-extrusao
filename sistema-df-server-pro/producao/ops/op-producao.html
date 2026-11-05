@@ -53,4 +53,52 @@ new MutationObserver(function(){
   }
   refresh();
  });
-}).observe(document.querySelector('main.wrap'),{childList:true,subtree:false});refresh()})();</script></body></html>
+}).observe(document.querySelector('main.wrap'),{childList:true,subtree:false});refresh()})();</script><style>
+/* v825: turno com seletor interno no padrão DF Extrusor */
+.df-turno-custom{position:relative;width:100%}
+.df-turno-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px;padding:13px 15px;border:1px solid #41516a;border-radius:13px;background:#0f172a;color:#f8fafc;font:inherit;text-align:left}
+.df-turno-trigger:focus-visible{outline:2px solid #fbbf24}
+.df-turno-list{position:absolute;z-index:200;top:calc(100% + 5px);left:0;right:0;padding:6px;border:1px solid #41516a;border-radius:13px;background:#111827;box-shadow:0 14px 28px #0009}
+.df-turno-choice{display:block;width:100%;padding:13px 15px;background:transparent;color:#f8fafc;border:0;border-radius:9px;text-align:left;font:inherit}
+.df-turno-choice[aria-selected="true"]{background:#263449;color:#fbbf24}
+.df-turno-choice:active{background:#334155}
+</style>
+<script>
+(function(){
+ 'use strict';
+ function init(){
+  var candidates=[...document.querySelectorAll('select')];
+  var select=candidates.find(function(el){
+   var id=(el.id||'').toLowerCase();
+   var label=el.labels&&[...el.labels].map(function(x){return x.textContent}).join(' ')||'';
+   var prev=el.previousElementSibling;
+   label+=' '+(prev&&prev.tagName==='LABEL'?prev.textContent:'');
+   return /turno/.test(id)||/\bturno\b/i.test(label);
+  });
+  if(!select||select.dataset.dfTurnoCustom)return;
+  select.dataset.dfTurnoCustom='1';
+  var wrap=document.createElement('div');wrap.className='df-turno-custom';
+  var trigger=document.createElement('button');trigger.type='button';trigger.className='df-turno-trigger';trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');
+  var list=document.createElement('div');list.className='df-turno-list';list.setAttribute('role','listbox');list.hidden=true;
+  select.insertAdjacentElement('afterend',wrap);wrap.append(trigger,list);
+  select.style.position='absolute';select.style.width='1px';select.style.height='1px';select.style.opacity='0';select.style.pointerEvents='none';
+  function render(){
+   var option=select.options[select.selectedIndex];trigger.textContent=option?option.textContent:'Selecione';
+   var arrow=document.createElement('span');arrow.textContent='⌄';arrow.style.color='#fbbf24';trigger.appendChild(arrow);
+   list.replaceChildren();
+   [...select.options].forEach(function(o){
+    var b=document.createElement('button');b.type='button';b.className='df-turno-choice';b.textContent=o.textContent;b.setAttribute('role','option');b.setAttribute('aria-selected',String(o.selected));
+    b.onclick=function(){select.value=o.value;select.dispatchEvent(new Event('change',{bubbles:true}));close();render()};
+    list.appendChild(b);
+   });
+  }
+  function close(){list.hidden=true;trigger.setAttribute('aria-expanded','false')}
+  trigger.onclick=function(){render();list.hidden=!list.hidden;trigger.setAttribute('aria-expanded',String(!list.hidden))};
+  document.addEventListener('click',function(e){if(!wrap.contains(e.target))close()});
+  select.addEventListener('change',render);render();
+ }
+ var obs=new MutationObserver(init);
+ function start(){init();obs.observe(document.body,{childList:true,subtree:true});setTimeout(function(){obs.disconnect()},20000)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script></body></html>
