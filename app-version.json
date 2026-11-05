@@ -1,6 +1,6 @@
 {
-  "version": "1.0.820",
+  "version": "1.0.821",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Removido bloqueio global de rolagem na Formulação.",
+  "message": "Liberar rolagem ao voltar de Gerar relatório para Formulação.",
   "updatedAt": "2026-11-04"
 }
