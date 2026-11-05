@@ -5752,8 +5752,8 @@
       '</div><label>Observações da regulagem</label><textarea disabled placeholder="Ex.: altura do balão, posição do banana, pressão, telas, comportamento do filme..."></textarea><div class="dfRecipeActions"><button disabled type="button">SALVAR RECEITA</button><button disabled type="button">ABRIR RECEITAS</button></div></div><div class="dfRecipeNotice">🔒 <b>FUNÇÃO BLOQUEADA:</b> esta tela é somente uma prévia. Nenhum campo pode ser alterado e nada é salvo enquanto terminamos e conferimos juntos o funcionamento.</div></div></div>';
   }
 
-  function closePreview(){const p=$('dfRecipePreview');if(p)p.hidden=true;document.body.style.overflow=''}
-  function openPreview(){ensurePreview();const p=$('dfRecipePreview');if(!p)return;p.hidden=false;p.scrollTop=0;document.body.style.overflow='hidden'}
+  function closePreview(){const p=$('dfRecipePreview');if(p)p.hidden=true;/* Não bloquear a rolagem da página ao fechar */}
+  function openPreview(){ensurePreview();const p=$('dfRecipePreview');if(!p)return;p.hidden=false;p.scrollTop=0;/* A prévia tem rolagem própria; não alterar o body */}
   function ensurePreview(){addStyle();if($('dfRecipePreview'))return;document.body.insertAdjacentHTML('beforeend',previewHtml());const back=$('dfRecipeBack');if(back)back.onclick=closePreview}
   function removeOldCard(){const old=$('dfMachineRecipeCard');if(old)old.remove()}
   function firstExtrusaoCard(){const pg=$('pgEx');return pg?(pg.querySelector(':scope > .card')||null):null}
@@ -6751,40 +6751,7 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 
-/* v821: liberar rolagem ao retornar de Gerar relatório para Formulação. */
-(function(){
-  'use strict';
-  let returning=false;
-  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  function activeDialog(){
-    return !!document.querySelector('#dfGravPicker,dialog[open],[role="dialog"][aria-modal="true"]');
-  }
-  function unlock(){
-    if(activeDialog())return;
-    const body=document.body,html=document.documentElement;
-    if(!body||!html)return;
-    const wasFixed=body.style.position==='fixed';
-    const y=wasFixed?Math.max(0,-parseFloat(body.style.top||'0')||0):window.scrollY;
-    if(wasFixed){body.style.position='';body.style.top='';body.style.left='';body.style.right='';body.style.width='';}
-    if(body.style.overflow==='hidden'||body.style.overflow==='clip')body.style.overflow='';
-    if(html.style.overflow==='hidden'||html.style.overflow==='clip')html.style.overflow='';
-    if(body.style.touchAction==='none')body.style.touchAction='';
-    if(html.style.touchAction==='none')html.style.touchAction='';
-    if(wasFixed)requestAnimationFrame(()=>window.scrollTo(0,y));
-  }
-  document.addEventListener('click',e=>{
-    const btn=e.target?.closest?.('button,a,[role="button"]');
-    if(!btn)return;
-    const label=norm((btn.textContent||'')+' '+(btn.getAttribute('aria-label')||''));
-    if(/voltar.*formula|fechar.*relat|sair.*relat/.test(label)){
-      returning=true;
-      requestAnimationFrame(()=>requestAnimationFrame(unlock));
-      setTimeout(()=>{unlock();returning=false},300);
-    }
-  },true);
-  window.addEventListener('pageshow',()=>{if(!activeDialog())unlock()});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&returning)unlock()});
-})();
+
 
 /* Sacolas: seletor interno de densidades e cadastro de valores personalizados. */
 (function(){
