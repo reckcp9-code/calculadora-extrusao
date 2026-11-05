@@ -1,6 +1,6 @@
 {
-  "version": "1.0.826",
+  "version": "1.0.827",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Seletores internos padronizados nas telas de Formulação, Produção e Administração.",
-  "updatedAt": "2026-11-04"
+  "message": "Removido bloqueio de rolagem da prévia e código paliativo antigo.",
+  "updatedAt": "2026-11-05"
 }
