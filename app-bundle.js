@@ -636,18 +636,40 @@
       for(let i=0;i<DF_GRAV_COUNT;i++){
         const row=document.createElement('div');row.style.cssText='display:flex;gap:7px;align-items:center;min-width:0';
         const label=document.createElement('strong');label.textContent='A'+(i+1);label.style.cssText='width:27px;flex:none;font-size:13px';
-        const select=document.createElement('select');select.setAttribute('aria-label','Material A'+(i+1));select.style.cssText='min-width:0;flex:1;width:100%;font-size:13px;padding:9px 5px';
-        select.add(new Option('Selecionar material',''));
-        const available=all.filter(m=>dfGravCategory(m)===(i<2?'base':'aditivo'));
-        available.forEach(m=>select.add(new Option(m.nome+(m.preco>0?' — '+rs(m.preco)+'/kg':''),String(m.id))));
-        select.value=DF_GRAV_SLOTS[i].id;
-        select.addEventListener('change',()=>{DF_GRAV_SLOTS[i].id=select.value;dfGravSync()});
+        const select=document.createElement('button');select.type='button';select.setAttribute('aria-label','Selecionar material A'+(i+1));select.style.cssText='min-width:0;flex:1;width:100%;font-size:13px;padding:9px 8px;text-align:left;border:1px solid #475569;border-radius:8px;background:#0f172a;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+        const selected=materialById(DF_GRAV_SLOTS[i].id);select.textContent=selected?.nome||'Selecionar material  ⌄';
+        select.addEventListener('click',()=>openGravMaterialPicker(i));
         const value=document.createElement(i===0?'div':'input');value.style.cssText='width:78px;flex:none;min-width:0;text-align:center;font-size:13px;padding:9px 4px;border-radius:8px';
         if(i===0){value.id='dfGravA1';value.style.background='#1e293b';value.style.fontWeight='700'}
         else{value.value=DF_GRAV_SLOTS[i].pct;value.inputMode='decimal';value.placeholder='0%';value.setAttribute('aria-label','Porcentagem A'+(i+1));value.addEventListener('input',()=>{DF_GRAV_SLOTS[i].pct=value.value;dfGravSync()})}
         row.append(label,select,value);wrap.appendChild(row);
       }
       dfGravSync();
+    }
+    function openGravMaterialPicker(slot){
+      const old=document.getElementById('dfGravPicker');if(old)old.remove();
+      const overlay=document.createElement('div');overlay.id='dfGravPicker';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Selecionar material A'+(slot+1));
+      overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,.94);display:flex;flex-direction:column;padding:env(safe-area-inset-top,16px) 12px env(safe-area-inset-bottom,16px);color:#f8fafc';
+      const panel=document.createElement('div');panel.style.cssText='width:100%;max-width:650px;margin:auto;display:flex;flex-direction:column;max-height:100%;min-height:0;background:#101827;border:1px solid #334155;border-radius:16px;overflow:hidden';
+      const head=document.createElement('div');head.style.cssText='padding:16px;border-bottom:1px solid #334155;flex:none';
+      const top=document.createElement('div');top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px';
+      const title=document.createElement('strong');title.textContent='Selecionar material — A'+(slot+1);title.style.fontSize='17px';
+      const close=document.createElement('button');close.type='button';close.textContent='FECHAR ×';close.style.cssText='padding:9px 12px;border:1px solid #475569;border-radius:8px;color:white;background:#334155';close.onclick=()=>overlay.remove();top.append(title,close);
+      const search=document.createElement('input');search.type='search';search.placeholder='Pesquisar material...';search.setAttribute('aria-label','Pesquisar material');search.style.cssText='box-sizing:border-box;width:100%;padding:13px;border:1px solid #64748b;border-radius:9px;background:#0f172a;color:white;font-size:16px';
+      head.append(top,search);
+      const list=document.createElement('div');list.style.cssText='flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px 12px 16px';
+      panel.append(head,list);overlay.append(panel);document.body.append(overlay);
+      const materials=loadMats().filter(m=>dfGravCategory(m)===(slot<2?'base':'aditivo')).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+      function draw(){
+        list.replaceChildren();const q=search.value.trim().toLocaleLowerCase('pt-BR');
+        const matches=materials.filter(m=>String(m.nome||'').toLocaleLowerCase('pt-BR').includes(q));
+        if(!matches.length){const empty=document.createElement('p');empty.textContent='Nenhum material encontrado.';empty.style.cssText='color:#94a3b8;padding:14px';list.append(empty);return}
+        matches.forEach(m=>{const bt=document.createElement('button');bt.type='button';bt.style.cssText='display:block;width:100%;padding:14px 12px;margin:4px 0;text-align:left;background:#172338;border:1px solid #334155;border-radius:9px;color:white;font-size:15px;overflow-wrap:anywhere';
+          bt.textContent=m.nome+(Number(m.preco)>0?' — '+rs(m.preco)+'/kg':'');
+          bt.onclick=()=>{DF_GRAV_SLOTS[slot].id=String(m.id);overlay.remove();drawGravLines()};list.append(bt)
+        });
+      }
+      search.addEventListener('input',draw);draw();search.focus();
     }
     drawGravLines();
   }
