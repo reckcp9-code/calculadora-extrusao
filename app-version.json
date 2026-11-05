@@ -1,6 +1,6 @@
 {
-  "version": "1.0.810",
+  "version": "1.0.811",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Seleção de materiais sem movimentar a página de fundo.",
+  "message": "Lista de materiais abre sem teclado; pesquisa ativa teclado apenas ao tocar.",
   "updatedAt": "2026-11-04"
 }
