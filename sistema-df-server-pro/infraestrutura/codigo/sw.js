@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v778-formula-delete-click';
+const DF_CACHE='df-extrusor-shell-v807-material-picker-interno';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
