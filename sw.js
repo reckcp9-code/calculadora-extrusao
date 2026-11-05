@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v823-density-fixed';
+const DF_CACHE='df-extrusor-shell-v824-density-standard';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
