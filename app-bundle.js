@@ -6654,7 +6654,7 @@
   function update(){
    const selected=select.options[select.selectedIndex];
    trigger.innerHTML='<span>'+esc(selected?.textContent||'Selecionar densidade')+'</span><span class="df-density-arrow">⌄</span>';
-   if(manual)manual.style.display=select.value==='manual'?'block':'none';
+   if(manual)manual.style.display='none';
   }
   function choose(value){
    select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));
