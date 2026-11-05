@@ -1,6 +1,6 @@
 {
-  "version": "1.0.818",
+  "version": "1.0.819",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Botão Medida alinhado no cabeçalho da montagem de formulação.",
+  "message": "Correção de rolagem ao retornar de Técnicos no iPhone.",
   "updatedAt": "2026-11-04"
 }
