@@ -1,6 +1,6 @@
 {
-  "version": "1.0.823",
+  "version": "1.0.824",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Sacolas com densidades fixas 0,922, 0,956 e 0,980 e cadastro local.",
+  "message": "Quatro densidades padrão PEBD 0,922, PEAD 0,956, PEBDL 0,918, reciclado 0,980 em Sacolas e Extrusão.",
   "updatedAt": "2026-11-04"
 }
