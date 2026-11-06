@@ -1,6 +1,6 @@
 {
-  "version": "1.0.831",
+  "version": "1.0.832",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Produção: operadores podem cadastrar produtos e operadores; máquinas exclusivas do dono.",
+  "message": "Produção: confirmar OP sem sair de Pendentes e sem duplo toque.",
   "updatedAt": "2026-11-05"
 }
