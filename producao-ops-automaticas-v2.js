@@ -40,7 +40,7 @@ function completionMonth(row){
   if(Number.isFinite(d.getTime()))return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit'}).format(d);
  }
  const day=String(row?.localDate||row?.productionDay||row?.date||'');
- return /^\\d{4}-(0[1-9]|1[0-2])/.test(day)?day.slice(0,7):'';
+ return /^\d{4}-(0[1-9]|1[0-2])/.test(day)?day.slice(0,7):'';
 }
 function synchronizeMonthInputs(){
  let month=viewingMonth();
