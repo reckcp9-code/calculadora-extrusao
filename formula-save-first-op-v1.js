@@ -101,7 +101,7 @@ function showLatestAsText(){
  sel.setAttribute('aria-hidden','true');sel.tabIndex=-1;
  const label=host.querySelector('label[for="foSavedSelect"]');if(label)label.style.setProperty('display','none','important');
  let display=q('dfLatestFormulaFixed');
- if(!display){display=document.createElement('div');display.id='dfLatestFormulaFixed';display.setAttribute('aria-live','polite');display.style.cssText='padding:12px 0 8px;color:#f8fafc;font-size:17px;font-weight:800;overflow-wrap:anywhere';sel.insertAdjacentElement('afterend',display)}
+ if(!display){display=document.createElement('div');display.id='dfLatestFormulaFixed';display.setAttribute('aria-live','polite');display.style.cssText='padding:16px 14px;margin:8px 0 12px;border:1px solid #405576;border-radius:14px;background:#101b30;color:#f8fafc;font-size:17px;font-weight:800;line-height:1.45;overflow-wrap:anywhere;box-shadow:inset 0 1px 0 #ffffff0b';sel.insertAdjacentElement('afterend',display)}
  const forms=newest(load()).filter(f=>!window.DFFormulaTombstones?.isDeleted?.(String(f.id)));
  const latest=forms[0],name=String(latest?.nome||'').trim();
  const text=name?(name+' — '+Number(latest.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' kg'):'Nenhuma formulação salva.';
