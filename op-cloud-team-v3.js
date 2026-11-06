@@ -93,8 +93,8 @@ async function joinTeam(){
  try{
   // A participação só é criada depois da confirmação; nunca apagamos o banco remoto.
   const knownName=String(document.querySelector('#dfCloudOperatorName, #dfOpOperatorName, [data-df-operator-name]')?.value||localStorage.getItem('df_operator_name_v1')||'').trim();
-  const displayName=knownName||String(prompt('Informe seu nome para entrar na equipe:')||'').trim();
-  if(!displayName){if(m)m.textContent='Informe o nome do operador para entrar na equipe.';if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}return}
+  const displayName=knownName; // Nome informado no campo existente; nunca abrir uma segunda solicitação.
+  if(!displayName){if(m)m.textContent='Preencha seu nome no campo de operador acima e tente novamente.';if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}return}
   const j=await apiPost('/op/team/join',{code,displayName,area:'extrusao'});
   if(!j?.team?.teamId)throw Error('Servidor não confirmou a entrada na equipe.');
   if(m)m.textContent='Limpando somente este celular...';
