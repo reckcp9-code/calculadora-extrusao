@@ -1,6 +1,6 @@
 {
-  "version": "1.0.842",
+  "version": "1.0.843",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulação: reentrada na equipe, sincronização após retorno e proteção contra códigos locais de outra equipe.",
+  "message": "Formulação: nome do operador digitado uma única vez no campo existente, sem pop-up adicional.",
   "updatedAt": "2026-11-06"
 }
