@@ -1,6 +1,6 @@
 {
-  "version": "1.0.833",
+  "version": "1.0.834",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Abertura e reabertura mais rápidas, carregamento visível e cache PWA otimizado.",
+  "message": "Agora e relatório com o mesmo mês e produção; máquinas duplicadas agrupadas pelo cadastro.",
   "updatedAt": "2026-11-05"
 }
