@@ -6,8 +6,18 @@
   const LOG_KEY='df_error_log_v1';
   const MAX_LOGS=30;
   const DEDUPE_MS=10*60*1000;
-  const TOAST_COOLDOWN=7000;
+  const TOAST_COOLDOWN=60000;
   let lastToastAt=0,lastAction='',lastActive=Date.now(),lastTick=performance.now(),lastPerfAt=0;
+  const recentErrors=new Map();
+  const benign=/networkerror|failed to fetch|load failed|network request failed|the network connection was lost|aborterror|aborted|cancelled|canceled|offline|timeout|timed out|falha ao carregar recurso/i;
+  function shouldNotify(rec){
+    if(!rec||rec.kind==='performance'||rec.kind==='resource')return false;
+    if(benign.test(rec.message||''))return false;
+    const key=rec.code,now=Date.now(),prev=recentErrors.get(key)||0;
+    recentErrors.set(key,now);
+    if(recentErrors.size>80){for(const [k,t] of recentErrors){if(now-t>600000)recentErrors.delete(k)}}
+    return now-prev>600000;
+  }
 
   const $=id=>document.getElementById(id);
   const nowIso=()=>new Date().toISOString();
@@ -115,13 +125,13 @@
       if(same>=0){const old=a.splice(same,1)[0];rec.count=(old.count||1)+1}
       a.unshift(rec);save(a);
       try{window.dispatchEvent(new CustomEvent('df-error-recorded',{detail:{code:rec.code,kind:rec.kind}}))}catch(e){}
-      if(visible!==false)showToast(rec);
+      if(visible!==false&&shouldNotify(rec))showToast(rec);
       return rec;
     }catch(e){return null}
   }
 
   window.addEventListener('error',function(e){
-    if(e&&e.target&&e.target!==window){const src=e.target.src||e.target.href||'';if(src)record('resource',{message:'Falha ao carregar recurso',filename:src},true);return}
+    if(e&&e.target&&e.target!==window){const src=e.target.src||e.target.href||'';if(src)record('resource',{message:'Falha ao carregar recurso',filename:src},false);return}
     record('javascript',{message:e.message||'Erro JavaScript',filename:e.filename||'',line:e.lineno,col:e.colno,stack:e.error&&e.error.stack},true);
   },true);
   window.addEventListener('unhandledrejection',function(e){const r=e&&e.reason;record('promise',{message:r&&r.message?r.message:String(r||'Falha assíncrona'),stack:r&&r.stack||''},true)});
@@ -133,10 +143,10 @@
   window.addEventListener('focus',()=>{lastTick=performance.now()});
 
   setInterval(()=>{
-    const now=performance.now(),lag=now-lastTick-2000;lastTick=now;
+    const now=performance.now(),lag=now-lastTick-10000;lastTick=now;
     if(document.hidden||lag<30000||Date.now()-lastActive>60000||Date.now()-lastPerfAt<5*60*1000)return;
     lastPerfAt=Date.now();record('performance',{message:'Possível pausa prolongada do navegador ('+Math.round(lag/1000)+' s). Verifique se houve travamento real.',filename:'runtime'},false);
-  },2000);
+  },10000);
 
   window.DFErrorMonitor={report:(message,meta)=>record('manual',{message,...(meta||{})},true),open:openModal,last:()=>load()[0]||null,list:()=>load().slice(),clear:()=>save([]),copyLast:()=>{const r=load()[0];return copyText(r?r.code:'SEM-ERRO')}};
 })();
