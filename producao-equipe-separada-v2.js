@@ -751,5 +751,5 @@ async function editReadyCompletion(rawId,fields){
  setStatus('✅ Edição da OP '+id+' confirmada. Máquina e totais atualizados pelo D1.','ok');
  return official;
 }
-window.DFProducaoEquipeOnline={restoreCanonicalSavedOps,processCanonicalQueue,migrateHistoricalProductionData,archivedReadyOps,editReadyCompletion,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
+window.DFProducaoEquipeOnline={officialRecords:async()=>{const t=team();if(!t?.teamId)throw Error('Equipe de Produção não selecionada');const j=await apiPost('/op/record/list',{teamId:t.teamId,includeDeleted:false});if(!Array.isArray(j.records))throw Error('Resposta oficial do D1 inválida');return j.records.filter(r=>r.state==='ready'&&!r.deletedAt);},restoreCanonicalSavedOps,processCanonicalQueue,migrateHistoricalProductionData,archivedReadyOps,editReadyCompletion,pushOneReady:syncOneReady,checkAlreadyCompleted,deleteCompletion,approveCompletion,pull:()=>syncRemote(true),findOpById:findRemoteOpById,push:()=>syncLocal(false),pushOne:(id)=>syncOnePending(id),team:()=>team(),members:()=>refreshMembers(true),area:AREA};
 })();
