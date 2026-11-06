@@ -32,13 +32,15 @@ function persistSelectedMonth(value){
  return true;
 }
 function completionMonth(row){
- // Data efetiva da baixa: uma OP criada em outubro e baixada em novembro pertence a novembro.
- for(const field of ['date','productionDay','localDate','completedAt','autoUpdatedAt','closedAt','confirmedAt','createdAt']){
-  const value=String(row?.[field]||'').trim();
-  const match=value.match(/^(\d{4})-(0[1-9]|1[0-2])(?:-\d{2})?/);
-  if(match)return match[1]+'-'+match[2];
+ // Fonte unica: instante da baixa confirmado pelo servidor no fuso America/Sao_Paulo.
+ // Nao usar data de criacao, data manual ou UTC cru para classificar o mes.
+ const stamp=row?.completedAt||row?.confirmedAt||row?.autoUpdatedAt||row?.closedAt;
+ if(stamp){
+  const d=new Date(stamp);
+  if(Number.isFinite(d.getTime()))return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit'}).format(d);
  }
- return '';
+ const day=String(row?.localDate||row?.productionDay||row?.date||'');
+ return /^\\d{4}-(0[1-9]|1[0-2])/.test(day)?day.slice(0,7):'';
 }
 function synchronizeMonthInputs(){
  let month=viewingMonth();
