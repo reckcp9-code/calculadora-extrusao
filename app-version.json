@@ -1,6 +1,6 @@
 {
-  "version": "1.0.843",
+  "version": "1.0.844",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulação: nome do operador digitado uma única vez no campo existente, sem pop-up adicional.",
+  "message": "Formulação: corrigida leitura do nome já digitado ao entrar na equipe.",
   "updatedAt": "2026-11-06"
 }
