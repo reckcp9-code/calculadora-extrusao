@@ -211,9 +211,16 @@ function saveFromModal(type){
   else{let a=list(type,false);if(old)a=a.filter(x=>x!==old);a.push(name);setList(type,a)}
   cancelEdit();if(type==='product'){const machine=String(m.querySelector('#dfRegProductMachine')?.value||'').trim();if(machine)refreshType('machine',machine)}refreshType(type,name);render(type)
 }
-function canManage(type){if(type==='operator')return true;let t=null;try{t=JSON.parse(localStorage.getItem('df_producao_team_v2')||'null')}catch(e){};if(!t||!t.teamId)return false;return String(t.role||t.memberRole||t.myRole||'').toLowerCase()==='owner'}
+function canManage(type){
+  // Operadores podem cadastrar/editar produtos e operadores e gerar OP.
+  // Cadastro, edição e exclusão de máquinas permanecem exclusivos do dono.
+  if(type==='product'||type==='operator')return true;
+  if(type!=='machine')return false;
+  let t=null;try{t=JSON.parse(localStorage.getItem('df_producao_team_v2')||'null')}catch(e){}
+  return !!(t&&t.teamId&&String(t.role||t.memberRole||t.myRole||'').toLowerCase()==='owner');
+}
 function openModal(type,mode){
-  if(mode==='manage'&&!canManage(type)){alert('Somente o DONO da equipe pode cadastrar ou editar máquinas e produtos.');return;}
+  if(mode==='manage'&&!canManage(type)){alert('Somente o DONO da equipe pode cadastrar ou editar máquinas.');return;}
   close();editing=null;const c=CFG[type],m=document.createElement('div');m.id='dfRegModal';m.className='dfRegModal';
   const currentMachine=String(document.getElementById('prMachine')?.value||'').trim();
   const machineChoice=type==='product'?'<label class="dfRegMachineChoice">MÁQUINA DESTE PRODUTO<select id="dfRegProductMachine"><option value="">SELECIONE A MÁQUINA</option>'+list('machine').map(v=>'<option value="'+esc(v)+'"'+(norm(v)===norm(currentMachine)?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label>':'';
