@@ -93,7 +93,7 @@ async function joinTeam(){
  try{
   // A participação só é criada depois da confirmação; nunca apagamos o banco remoto.
   const panel=$('dfCloudCode')?.parentElement;
-  const existingName=panel?.querySelector('input:not(#dfCloudCode):not([type="hidden"])')||$('dfCloudCode')?.previousElementSibling?.matches?.('input')&&$('dfCloudCode').previousElementSibling;
+  const existingName=panel?.querySelector('input:not(#dfCloudCode):not([type="hidden"])')||Array.from(document.querySelectorAll('#dfOpTeamCloud input')).find(el=>el!==$('dfCloudCode')&&el.type!=='hidden');
   const knownName=String(existingName?.value||document.querySelector('#dfCloudOperatorName, #dfOpOperatorName, [data-df-operator-name]')?.value||localStorage.getItem('df_operator_name_v1')||'').trim();
   const displayName=knownName; // Nome informado no campo existente; nunca abrir uma segunda solicitação.
   if(!displayName){if(m)m.textContent='Preencha seu nome no campo de operador acima e tente novamente.';if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}return}
