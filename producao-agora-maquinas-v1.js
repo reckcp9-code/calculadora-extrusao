@@ -79,6 +79,11 @@ function grouped(records,keyFn,keyFnNorm){const map=new Map(),kn=typeof keyFnNor
 let editingId='';
 function addStyle(){if($('dfAgoraMachinesCss'))return;const s=document.createElement('style');s.id='dfAgoraMachinesCss';s.textContent=`
 #dfPAPaneNow>.dfPACard{padding:16px}#dfPAPaneNow>.dfPACard>h3{font-size:22px;margin:0 0 6px}.dfAgoraSub{color:#94a3b8;font-size:12px;margin-bottom:12px}.dfAgoraMachine{border:1px solid #334155;background:#0f172a;border-radius:17px;padding:15px;margin-top:10px}.dfAgoraMachineName{font-size:18px;font-weight:950;color:#f8fafc;margin-bottom:11px}.dfAgoraTotals{display:grid;grid-template-columns:1fr 1fr;gap:9px}.dfAgoraKpi{border:1px solid #263244;background:#111827;border-radius:14px;padding:13px}.dfAgoraKpi span{display:block;color:#94a3b8;font-size:10px;font-weight:800}.dfAgoraKpi b{display:block;color:#fff;font-size:21px;margin-top:5px}.dfAgoraEmpty{border:1px dashed #475569;border-radius:15px;padding:16px;color:#94a3b8;text-align:center;margin-top:10px}.dfPAEditBtn,.dfPAMonthPdfBtn{width:100%;border:1px solid #f5a000;background:#241600;color:#ffd36a;border-radius:13px;padding:13px 9px;margin-top:9px;font:950 13px/1.15 system-ui}.dfPAEditModal{position:fixed;inset:0;z-index:1000003;background:#020617f2;display:none;overflow:auto;padding:18px}.dfPAEditModal.on{display:block}.dfPAEditBox{max-width:560px;margin:40px auto;background:#111827;border:1px solid #334155;border-radius:20px;padding:16px}.dfPAEditBox h3{margin:0 0 5px;font-size:22px}.dfPAEditInfo{color:#94a3b8;font-size:12px;line-height:1.45;margin-bottom:12px}.dfPAEditGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dfPAEditGrid label{display:block;color:#cbd5e1;font-size:11px;margin:0 0 5px}.dfPAEditGrid input{width:100%;border:1px solid #334155;background:#0f172a;color:#fff;border-radius:12px;padding:13px;font-size:17px}.dfPAEditSave,.dfPAEditClose{width:100%;min-height:50px;border-radius:13px;padding:12px;margin-top:10px;font:950 13px/1.15 system-ui}.dfPAEditSave{border:1px solid #16a34a;background:#0c321c;color:#86efac}.dfPAEditClose{border:1px solid #475569;background:#0f172a;color:#e2e8f0}.dfPAEditMsg{margin-top:9px;font-size:12px;font-weight:850}.dfPAEditMsg.bad{color:#fca5a5}.dfPAEditMsg.ok{color:#86efac}#dfPAPaneMonth #dfPAMonthReport>.dfPAList{display:none!important}#dfPAPaneMonth #dfPAMonthReport>.dfPATiny{display:none!important}@media(max-width:480px){.dfPAEditGrid{grid-template-columns:minmax(0,1fr)}.dfPAEditBox{margin:16px auto}}`;document.head.appendChild(s)}
+function monthBrazil(timestamp,fallback){
+ const d=new Date(timestamp||'');
+ if(Number.isFinite(d.getTime()))return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit'}).format(d);
+ const s=String(fallback||'');return /^\\d{4}-(0[1-9]|1[0-2])/.test(s)?s.slice(0,7):'';
+}
 let officialCache=null,officialAt=0,officialTeam='',officialLoading=null;
 async function officialMonthly(force=false){
  const api=window.DFProducaoEquipeOnline,team=api?.team?.();
@@ -86,7 +91,7 @@ async function officialMonthly(force=false){
  if(!force&&officialCache&&officialTeam===team.teamId&&Date.now()-officialAt<10000)return officialCache;
  if(officialLoading)return officialLoading;
  officialLoading=api.officialRecords().then(rows=>{
-  const records=rows.map(r=>({opId:r.opCode,machine:r.machine||'',product:r.productName||'',production:num(r.production),scrap:num(r.scrap),completedAt:r.completedAt||r.localDate||'',month:String(r.completedAt||r.localDate||'').slice(0,7),status:'ok'}));
+  const records=rows.map(r=>({opId:r.opCode,machine:r.machine||'',product:r.productName||'',production:num(r.production),scrap:num(r.scrap),completedAt:r.completedAt||r.localDate||'',month:monthBrazil(r.completedAt,r.localDate),status:'ok'}));
   officialCache=records;officialAt=Date.now();officialTeam=team.teamId;return records;
  }).finally(()=>{officialLoading=null});return officialLoading;
 }
