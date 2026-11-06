@@ -95,9 +95,21 @@ window.addEventListener('click',function(ev){
   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
   saveAndOpen();
 },true);
-function normalizeUi(){const latest=newest(load())[0];selectNewest(latest?.id??null)}
+function showLatestAsText(){
+ const host=q('foSaved'),sel=q('foSavedSelect');if(!host||!sel)return;
+ sel.style.setProperty('display','none','important');
+ sel.setAttribute('aria-hidden','true');sel.tabIndex=-1;
+ const label=host.querySelector('label[for="foSavedSelect"]');if(label)label.style.setProperty('display','none','important');
+ let display=q('dfLatestFormulaFixed');
+ if(!display){display=document.createElement('div');display.id='dfLatestFormulaFixed';display.setAttribute('aria-live','polite');display.style.cssText='padding:12px 0 8px;color:#f8fafc;font-size:17px;font-weight:800;overflow-wrap:anywhere';sel.insertAdjacentElement('afterend',display)}
+ const forms=newest(load()).filter(f=>!window.DFFormulaTombstones?.isDeleted?.(String(f.id)));
+ const latest=forms[0],name=String(latest?.nome||'').trim();
+ const text=name?(name+' — '+Number(latest.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' kg'):'Nenhuma formulação salva.';
+ if(display.textContent!==text)display.textContent=text;
+}
+function normalizeUi(){const latest=newest(load())[0];selectNewest(latest?.id??null);showLatestAsText()}
 function observe(){const b=q('foSaved');if(!b)return false;const o=new MutationObserver(()=>setTimeout(normalizeUi,0));o.observe(b,{childList:true,subtree:true});normalizeUi();return true}
 function start(){let n=0,t=setInterval(()=>{if(observe()||++n>30)clearInterval(t)},150)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-window.addEventListener('df-ui-ready',()=>setTimeout(normalizeUi,500));
+window.addEventListener('df-ui-ready',()=>setTimeout(normalizeUi,500));window.addEventListener('df-team-formulas-updated',normalizeUi);window.addEventListener('df-formula-saved',normalizeUi);
 })();
