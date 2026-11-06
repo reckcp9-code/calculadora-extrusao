@@ -119,6 +119,13 @@
     removeForm();const host=$('dfOpStatus')?.parentNode;if(host){const d=document.createElement('div');d.className='dfManualBadge';d.innerHTML=String(formulaId).startsWith('LEGACY-')?'✅ Foto + produção + apara vinculados automaticamente à OP '+esc(currentQr)+'. A formulação histórica não estava disponível.':'✅ Foto + produção + apara vinculados à formulação '+esc(formulaId)+' e à OP '+esc(currentQr);host.insertBefore(d,host.querySelector('.dfQrDemo')||null)}
     const input=$('dfOpPhoto');if(input){try{input.value=''}catch(e){}}
     currentFile=null;currentQr='';currentId='';
+    // A baixa concluída não deve mandar o operador para PRONTAS.
+    // Mantém LER OP ativo, com o formulário limpo para a próxima leitura.
+    const preview=$('dfOpPreview');if(preview){preview.removeAttribute('src');preview.style.display='none'}
+    const readTab=document.querySelector('#dfFormulaOps .dfOpsTabs [data-pane="read"]');
+    if(readTab&&!readTab.classList.contains('on'))readTab.click();
+    const readyMsg=$('dfOpStatus');if(readyMsg)readyMsg.innerHTML='✅ <b>OP salva com sucesso.</b> Pronto para ler a próxima OP.';
+
     }catch(e){status('⚠️ '+esc(e.message||e),'warn')}finally{busy=false}
   }
 
