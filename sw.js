@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v832-pendentes-stay';
+const DF_CACHE='df-extrusor-shell-v833-fast-reopen';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -95,10 +95,15 @@ self.addEventListener('fetch',event=>{
     if(p.endsWith('/painel-administrativo-df.html')||p.endsWith('/gerar-acesso.html')||p.endsWith('/op-producao.html')||p.endsWith('/producao-agora-maquinas-v347.js')||p.endsWith('/acessar.html')||p.endsWith('/index.html')||p.endsWith('/app-shell.html')){event.respondWith(networkFirst(req));return}
     event.respondWith(networkFirst(req));return
   }
+  // O shell e os modulos versionados nao dependem de D1/R2: usar copia exata
+  // da versao atual na reabertura, evitando aguardar a rede em cada toque.
+  if(p.endsWith('/app-shell.html')&&url.searchParams.has('v')){
+    event.respondWith((async()=>{const cache=await caches.open(DF_CACHE);const hit=await cache.match(req);return hit||networkFirst(req)})());return;
+  }
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
   // JS precisa ser consistente com a versao publicada. Nao reutilizar modulos antigos em silencio.
   // API/D1/R2 sao de outra origem e nao sao interceptados aqui.
-  if(/\.js$/i.test(p)){event.respondWith(networkFirst(req));return}
+  if(/\.js$/i.test(p)){event.respondWith(url.searchParams.has('v')?(async()=>{const cache=await caches.open(DF_CACHE);const hit=await cache.match(req);return hit||networkFirst(req)})():networkFirst(req));return}
   if(/\.(?:css|svg|png|jpe?g|webp|woff2?)$/i.test(p)){event.respondWith(staleWhileRevalidate(req));return}
   if(p.endsWith('/cost-simple-v154.js')||p.endsWith('/cost-fabril-v1.js')||p.endsWith('/cost-back-v155.js')||p.endsWith('/formula-saved-search-v1.js')||p.endsWith('/formula-save-first-op-v1.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/producao-machine-produtos-v1.js')||p.endsWith('/producao-produtos-fullscreen-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
