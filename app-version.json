@@ -1,6 +1,6 @@
 {
-  "version": "1.0.835",
+  "version": "1.0.837",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Agora consulta diretamente OPs confirmadas no D1 e apresenta o total mensal oficial.",
+  "message": "OP contabilizada uma única vez no mês da baixa em horário de Brasília; Agora, Prontas e PDF alinhados.",
   "updatedAt": "2026-11-05"
 }
