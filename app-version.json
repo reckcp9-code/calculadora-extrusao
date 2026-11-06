@@ -1,6 +1,6 @@
 {
-  "version": "1.0.840",
+  "version": "1.0.841",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Leitura consecutiva de OPs sem sair da tela; publicação alinhada à branch de produção.",
+  "message": "Formulação: entrada e reentrada de operadores com validação de código no D1 e nome obrigatório.",
   "updatedAt": "2026-11-06"
 }
