@@ -92,7 +92,10 @@ async function joinTeam(){
  if(m)m.textContent='Verificando equipe no servidor...';
  try{
   // A participação só é criada depois da confirmação; nunca apagamos o banco remoto.
-  const j=await apiPost('/op/team/join',{code});
+  const knownName=String(document.querySelector('#dfCloudOperatorName, #dfOpOperatorName, [data-df-operator-name]')?.value||localStorage.getItem('df_operator_name_v1')||'').trim();
+  const displayName=knownName||String(prompt('Informe seu nome para entrar na equipe:')||'').trim();
+  if(!displayName){if(m)m.textContent='Informe o nome do operador para entrar na equipe.';return}
+  const j=await apiPost('/op/team/join',{code,displayName,area:'extrusao'});
   if(!j?.team?.teamId)throw Error('Servidor não confirmou a entrada na equipe.');
   if(m)m.textContent='Limpando somente este celular...';
   await window.DFTeamLocalCleanup.clear();
@@ -100,7 +103,7 @@ async function joinTeam(){
   if(m)m.textContent='✅ Aparelho limpo. Carregando dados da nova equipe...';
   location.reload();
  }catch(e){
-  if(m)m.textContent='Não foi possível concluir a entrada: '+String(e?.message||e);
+  if(m)m.textContent=/C[oó]digo da equipe n[aã]o encontrado/i.test(String(e?.message||''))?'Código não registrado no D1. Peça ao dono o código atual da equipe em CONECTAR EQUIPE. Nenhum dado foi apagado.':'Não foi possível concluir a entrada: '+String(e?.message||e);
   if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}
  }
 }
