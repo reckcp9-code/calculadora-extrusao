@@ -92,7 +92,9 @@ async function joinTeam(){
  if(m)m.textContent='Verificando equipe no servidor...';
  try{
   // A participação só é criada depois da confirmação; nunca apagamos o banco remoto.
-  const knownName=String(document.querySelector('#dfCloudOperatorName, #dfOpOperatorName, [data-df-operator-name]')?.value||localStorage.getItem('df_operator_name_v1')||'').trim();
+  const panel=$('dfCloudCode')?.parentElement;
+  const existingName=panel?.querySelector('input:not(#dfCloudCode):not([type="hidden"])')||$('dfCloudCode')?.previousElementSibling?.matches?.('input')&&$('dfCloudCode').previousElementSibling;
+  const knownName=String(existingName?.value||document.querySelector('#dfCloudOperatorName, #dfOpOperatorName, [data-df-operator-name]')?.value||localStorage.getItem('df_operator_name_v1')||'').trim();
   const displayName=knownName; // Nome informado no campo existente; nunca abrir uma segunda solicitação.
   if(!displayName){if(m)m.textContent='Preencha seu nome no campo de operador acima e tente novamente.';if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}return}
   const j=await apiPost('/op/team/join',{code,displayName,area:'extrusao'});
