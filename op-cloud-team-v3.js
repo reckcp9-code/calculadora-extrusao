@@ -95,8 +95,8 @@ async function joinTeam(){
   const panel=$('dfCloudCode')?.parentElement;
   const existingName=panel?.querySelector('input:not(#dfCloudCode):not([type="hidden"])')||Array.from(document.querySelectorAll('#dfOpTeamCloud input')).find(el=>el!==$('dfCloudCode')&&el.type!=='hidden');
   const knownName=String(existingName?.value||document.querySelector('#dfCloudOperatorName, #dfOpOperatorName, [data-df-operator-name]')?.value||localStorage.getItem('df_operator_name_v1')||'').trim();
-  const displayName=knownName; // Nome informado no campo existente; nunca abrir uma segunda solicitação.
-  if(!displayName){if(m)m.textContent='Preencha seu nome no campo de operador acima e tente novamente.';if(btn){btn.disabled=false;btn.textContent='🔗 ENTRAR NA EQUIPE'}return}
+  // O nome é apenas identificação visual: nunca bloqueia a entrada.
+  const displayName=knownName||'Operador';
   const j=await apiPost('/op/team/join',{code,displayName,area:'extrusao'});
   if(!j?.team?.teamId)throw Error('Servidor não confirmou a entrada na equipe.');
   if(m)m.textContent='Limpando somente este celular...';
