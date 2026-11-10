@@ -171,7 +171,8 @@
     const b=$('dfOkList');if(!b)return;
     // A lista pronta não é reordenada por data nem por ID durante sincronizações.
     // Manter a posição dos cartões existentes evita saltos no scroll do iPhone.
-    const a=load().filter(x=>x.status==='ok'),known=new Map();
+    const all=load(),filterIds=window.__dfReadyFilterIds;
+    const a=all.filter(x=>x.status==='ok'&&(!filterIds||[x.id,x.qr].some(id=>filterIds.has(normId(id))))),known=new Map();
     Array.from(b.children).filter(r=>r.classList?.contains('dfOpList')).forEach(row=>{
       const btn=row.querySelector('[data-view]'),id=normId(btn?.getAttribute('data-view')||'');
       if(id)known.set(id,row);
@@ -201,7 +202,14 @@
         }
       }
     }
-    for(const [id,row] of known){if(!currentIds.has(id)&&row.parentNode===b)row.remove()}
+    // Não interpretar uma resposta parcial da sincronização como exclusão.
+    // Só retirar cartões ausentes quando a OP permanece no armazenamento com
+    // outro status ou quando o filtro explícito deixa de selecioná-la.
+    const indexed=new Map(all.map(o=>[normId(o?.id||o?.qr),o]));
+    for(const [id,row] of known){
+      const stored=indexed.get(id);
+      if(!currentIds.has(id)&&row.parentNode===b&&(stored||filterIds))row.remove();
+    }
     if(!a.length){
       const e=document.createElement('div');e.className='dfOpsTiny';e.dataset.emptyOk='1';
       e.textContent=(!dfServerLoaded&&navigator.onLine!==false&&!!window.DFOpCloud?.team?.()?.teamId)?'🔄 Consultando OPs da equipe...':'Nenhuma OP concluída ainda.';
@@ -314,6 +322,7 @@
       if($('dfPaneArchive')?.classList.contains('on'))renderArchive();
     },ms==null?120:ms);
   }
+  window.addEventListener('df-ready-filter-changed',()=>scheduleServerRender(0));
   window.addEventListener('df-op-d1-applied',()=>{dfServerLoaded=true;scheduleServerRender(80)});
   window.addEventListener('df-op-server-status',e=>{if(Number(e.detail?.lastPull||0)>0)dfServerLoaded=true;scheduleServerRender(100)});
   window.addEventListener('df-op-team-sync-result',()=>scheduleServerRender(140));
