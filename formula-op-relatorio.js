@@ -227,7 +227,7 @@
       // Ausência em uma leitura parcial NÃO é exclusão.
       if(!currentIds.has(id)&&row.parentNode===b&&stored&&!matches(stored))row.remove();
     }
-    if(!a.length){
+    if(!a.length&&!b.querySelector(':scope > .dfOpList')){
       const e=document.createElement('div');e.className='dfOpsTiny';e.dataset.emptyOk='1';
       e.textContent=(!dfServerLoaded&&navigator.onLine!==false&&!!window.DFOpCloud?.team?.()?.teamId)?'🔄 Consultando OPs da equipe...':'Nenhuma OP concluída ainda.';
       b.appendChild(e);
