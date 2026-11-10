@@ -43,17 +43,21 @@ function openExisting(id){
 function selectedMonth(){try{return String(localStorage.getItem('df_production_history_month_v1')||document.getElementById('dfOpMonth')?.value||new Date().toISOString().slice(0,7)).slice(0,7)}catch(e){return new Date().toISOString().slice(0,7)}}
 function opMonth(r){var o=r&&r.op||{};return String(o.data||o.createdAt||r.createdAt||'').slice(0,7)}
 function render(){
-  var input=$('dfProductHistorySearch'),out=$('dfProductHistoryResults');if(!input||!out)return;
-  var q=normText(input.value);if(!q){out.innerHTML='<div class="dfPhHint">Digite o nome do produto ou o ID da OP. Ex.: <b>Coque</b> ou <b>DFOP-</b>.</div>';return}
-  var idQuery=normId(input.value),all=!!$('dfProductHistoryAll')?.checked,month=selectedMonth();var list=buildIndex().filter(function(r){return r.op&&statusFor(r).key==='ok'&&(all||opMonth(r)===month)&&((r.name&&normText(r.name).indexOf(q)>=0)||(idQuery&&[r.id].concat(ids(r.op)).some(function(code){return normId(code).indexOf(idQuery)>=0})))});
-  list.sort(function(a,b){return String(b.op&&b.op.data||b.createdAt||'').localeCompare(String(a.op&&a.op.data||a.createdAt||''))});
-  var produced=0,ready=0;
-  list.forEach(function(r){var s=statusFor(r);if(s.key==='ok')ready++;if(r.op)produced+=Number(r.op.produzido||0)});
-  if(!list.length){out.innerHTML='<div class="dfPhEmpty">Nenhuma OP baixada encontrada com <b>'+esc(input.value.trim())+'</b>.</div>';return}
-  var summary='<div class="dfPhSummary"><div><span>OPs baixadas</span><b>'+ready+'</b></div><div><span>Produção encontrada</span><b>'+fmt(produced,2)+' kg</b></div></div>';
-  var cards=list.map(function(r){var o=r.op,s=statusFor(r),date=String(o&&o.data||r.createdAt||'').slice(0,10),prod=o?Number(o.produzido||0):0,ap=o?Number(o.apara||0):0,canOpen=!!o;return '<div class="dfPhRow"><div class="dfPhTop"><div><strong>'+esc(r.name)+'</strong><small>'+esc(r.id)+'</small></div><span class="dfPhBadge '+s.cls+'">'+esc(s.label)+'</span></div><div class="dfPhMeta">'+(date?esc(date)+' • ':'')+(canOpen?'Produção '+fmt(prod,2)+' kg • Apara '+fmt(ap,2)+' kg':'Ainda não há baixa/foto processada para esta OP')+'</div><button type="button" class="dfPhOpen" data-ph-open="'+esc(r.id)+'" '+(canOpen?'':'disabled')+'>'+(canOpen?'ABRIR FOTO':'SEM FOTO / SEM BAIXA')+'</button></div>'}).join('');
-  out.innerHTML=summary+cards;
-  out.querySelectorAll('[data-ph-open]').forEach(function(b){b.onclick=function(){openExisting(b.getAttribute('data-ph-open'))}});
+  var input=$('dfProductHistorySearch'),out=$('dfProductHistoryResults'),box=$('dfOkList');
+  if(!input||!out||!box)return;
+  var q=normText(input.value),idQuery=normId(input.value),all=!!$('dfProductHistoryAll')?.checked,month=selectedMonth();
+  var list=buildIndex().filter(function(r){
+    return r.op&&statusFor(r).key==='ok'&&(all||opMonth(r)===month)&&(!q||(r.name&&normText(r.name).indexOf(q)>=0)||(idQuery&&[r.id].concat(ids(r.op)).some(function(code){return normId(code).indexOf(idQuery)>=0})));
+  });
+  var matching=new Set(),produced=0;
+  list.forEach(function(r){ids(r.op).forEach(function(id){matching.add(id)});matching.add(normId(r.id));produced+=Number(r.op.produzido||0)});
+  out.innerHTML='<div class="dfPhSummary"><div><span>OPs baixadas</span><b>'+list.length+'</b></div><div><span>Produção encontrada</span><b>'+fmt(produced,2)+' kg</b></div></div>'+(list.length?'':'<div class="dfPhEmpty">Nenhuma OP encontrada neste filtro.</div>');
+  // Reutiliza os cartões oficiais, inclusive foto, exclusão e histórico;
+  // não cria uma segunda lista divergente da fonte de verdade.
+  box.querySelectorAll(':scope > .dfOpList').forEach(function(row){
+    var btn=row.querySelector('[data-view]'),id=normId(btn&&btn.getAttribute('data-view'));
+    row.style.display=matching.has(id)?'':'none';
+  });
 }
 function style(){if($('dfProductHistoryStyle'))return;var s=document.createElement('style');s.id='dfProductHistoryStyle';s.textContent='\
 #dfProductHistoryBox .dfPhAllLabel{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:#f8fafc;font-weight:800;font-size:14px;cursor:pointer}#dfProductHistoryAll{width:20px;height:20px;accent-color:#f5a000}#dfProductHistoryBox{margin:0 0 15px;padding:13px;border:1px solid #334155;background:#0b1324;border-radius:14px}\
@@ -70,10 +74,12 @@ function mount(){
   style();var list=$('dfOkList');if(!list||$('dfProductHistoryBox'))return !!list;
   var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<label class="dfPhAllLabel"><input type="checkbox" id="dfProductHistoryAll"> TODAS — TODOS OS MESES</label><h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto ou pelo ID da OP para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="NOME DO PRODUTO OU ID DA OP" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite o nome do produto ou o ID da OP.</div></div>';
   list.parentNode.insertBefore(box,list);
+  $('dfProductHistoryAll').checked=true;
   $('dfProductHistoryAll').addEventListener('change',render);
   $('dfProductHistoryBtn').onclick=render;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(render,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render()}});
+  requestAnimationFrame(render);
   return true;
 }
-function boot(){if(mount())return;var obs=new MutationObserver(function(){if(mount())obs.disconnect()});obs.observe(document.documentElement,{childList:true,subtree:true});setTimeout(mount,800);setTimeout(mount,1800);window.addEventListener('storage',function(e){if(e.key==='df_production_history_month_v1')render()});document.addEventListener('change',function(e){if(e.target&&e.target.id==='dfOpMonth')render()});window.addEventListener('df-prontas-products-synced',function(){if($('dfProductHistorySearch')&&$('dfProductHistorySearch').value.trim())render()});}
+function boot(){if(mount())return;var obs=new MutationObserver(function(){if(mount())obs.disconnect()});obs.observe(document.documentElement,{childList:true,subtree:true});setTimeout(mount,800);setTimeout(mount,1800);window.addEventListener('storage',function(e){if(e.key==='df_production_history_month_v1')render()});document.addEventListener('change',function(e){if(e.target&&e.target.id==='dfOpMonth')render()});window.addEventListener('df-prontas-products-synced',render);window.addEventListener('df-op-d1-applied',render);window.addEventListener('df-op-saved',function(){setTimeout(render,80)});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
