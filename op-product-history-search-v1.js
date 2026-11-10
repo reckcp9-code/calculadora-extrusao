@@ -84,6 +84,6 @@ function mount(){
   requestAnimationFrame(render);
   return true;
 }
-function boot(){if(!mount()){var obs=new MutationObserver(function(){if(mount())obs.disconnect()});obs.observe(document.documentElement,{childList:true,subtree:true});setTimeout(mount,800);setTimeout(mount,1800)}window.addEventListener('storage',function(e){if(e.key==='df_production_history_month_v1')render()});document.addEventListener('change',function(e){if(e.target&&e.target.id==='dfOpMonth')render()});window.addEventListener('df-prontas-products-synced',render);window.addEventListener('df-op-d1-applied',render);window.addEventListener('df-op-saved',function(){setTimeout(render,80)});}
+function boot(){if(!mount()){var obs=new MutationObserver(function(){if(mount())obs.disconnect()});obs.observe(document.documentElement,{childList:true,subtree:true});setTimeout(mount,800);setTimeout(mount,1800)}window.addEventListener('storage',function(e){if(e.key==='df_production_history_month_v1')render()});document.addEventListener('change',function(e){if(e.target&&e.target.id==='dfOpMonth')render()});var scheduled=false;function scheduleRender(){if(scheduled)return;scheduled=true;setTimeout(function(){scheduled=false;if($('dfPaneOk')?.classList.contains('on'))render()},350)}window.addEventListener('df-prontas-products-synced',scheduleRender);window.addEventListener('df-op-d1-applied',scheduleRender);window.addEventListener('df-op-saved',scheduleRender);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
