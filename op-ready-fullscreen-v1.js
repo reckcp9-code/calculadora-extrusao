@@ -66,6 +66,9 @@ function arrangeReadyOptions(){
   row.querySelectorAll('[data-life-delete-op],[data-op-history],[data-history-op],.dfOpHistoryBtn').forEach(btn=>{
    if(!details.contains(btn))details.appendChild(btn);
   });
+  row.querySelectorAll('button').forEach(btn=>{
+   if(/hist[oó]rico da op/i.test(btn.textContent||'')&&!details.contains(btn))details.appendChild(btn);
+  });
   const next=row.nextElementSibling;
   if(next&&/hist[oó]rico da op/i.test(next.textContent||'')&&next.matches('button'))details.appendChild(next);
  });
