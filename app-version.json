@@ -1,6 +1,6 @@
 {
-  "version": "1.0.855",
+  "version": "1.0.856",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção de tremedeira na rolagem das OPs Prontas da Formulação.",
+  "message": "OPs Prontas compactas: exclusão e histórico dentro de Mais opções.",
   "updatedAt": "2026-11-10"
 }
