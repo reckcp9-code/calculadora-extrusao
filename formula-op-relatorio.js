@@ -171,8 +171,23 @@
     const b=$('dfOkList');if(!b)return;
     // A lista pronta não é reordenada por data nem por ID durante sincronizações.
     // Manter a posição dos cartões existentes evita saltos no scroll do iPhone.
-    const all=load(),filterIds=window.__dfReadyFilterIds;
-    const a=all.filter(x=>x.status==='ok'&&(!filterIds||[x.id,x.qr].some(id=>filterIds.has(normId(id))))),known=new Map();
+    const all=load();
+    // A lista e a pesquisa usam o MESMO snapshot, sem um segundo índice assíncrono.
+    const input=$('dfProductHistorySearch'),search=String(input?.value||'').trim().toLocaleLowerCase('pt-BR');
+    const allMonths=!!$('dfProductHistoryAll')?.checked;
+    const month=String(localStorage.getItem('df_production_history_month_v1')||$('dfOpMonth')?.value||monthNow()).slice(0,7);
+    const normalized=s=>String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+    const q=normalized(search);
+    const reg=registry();
+    const matches=o=>{
+      if(o.status!=='ok')return false;
+      if(!allMonths&&String(o.data||o.createdAt||'').slice(0,7)!==month)return false;
+      if(!q)return true;
+      const e=reg[o.id]?.expected||{};
+      return [o.id,o.qr,o.numero,o.serverProductName,o.clienteFormulacao,o.produto,e.clienteFormulacao,e.title]
+        .some(v=>normalized(v).includes(q));
+    };
+    const a=all.filter(matches),known=new Map();
     Array.from(b.children).filter(r=>r.classList?.contains('dfOpList')).forEach(row=>{
       const btn=row.querySelector('[data-view]'),id=normId(btn?.getAttribute('data-view')||'');
       if(id)known.set(id,row);
@@ -208,7 +223,9 @@
     const indexed=new Map(all.map(o=>[normId(o?.id||o?.qr),o]));
     for(const [id,row] of known){
       const stored=indexed.get(id);
-      if(!currentIds.has(id)&&row.parentNode===b&&(stored||filterIds))row.remove();
+      // Apenas mudanças explícitas de filtro/status removem o cartão.
+      // Ausência em uma leitura parcial NÃO é exclusão.
+      if(!currentIds.has(id)&&row.parentNode===b&&stored&&!matches(stored))row.remove();
     }
     if(!a.length){
       const e=document.createElement('div');e.className='dfOpsTiny';e.dataset.emptyOk='1';
