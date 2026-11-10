@@ -7,7 +7,7 @@ function addStyle(){
  const style=document.createElement('style');style.id='dfReadyFullStyle';
  style.textContent=[
   'body.df-ready-full #dfPaneOk{display:block!important;position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain!important;background:#080b13!important;z-index:10000!important;padding:calc(env(safe-area-inset-top,0px) + 78px) 12px 24px!important;box-sizing:border-box!important;-webkit-overflow-scrolling:touch!important}',
-  'body.df-ready-full #dfPaneOk>.dfOpsCard{padding:10px!important;background:transparent!important;border:0!important;margin:0!important}',
+  'body.df-ready-full #dfPaneOk>.dfOpsCard{padding:10px!important;background:transparent!important;border:0!important;margin:0 auto!important;max-width:704px!important;min-height:0!important;display:block!important}',
   'body.df-ready-full #dfPaneOk>.dfOpsCard>h3{display:none!important}',
   '#dfReadyFullTop{display:none;position:fixed;top:0;left:0;right:0;z-index:10002;background:#080b13;border-bottom:1px solid #334155;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 10px;align-items:center;gap:12px;min-height:52px;box-sizing:border-box}',
   'body.df-ready-full #dfReadyFullTop{display:flex!important}',
@@ -19,9 +19,9 @@ function addStyle(){
   'body.df-ready-full #dfProductHistoryResults{max-height:none!important;overflow:visible!important;overscroll-behavior:contain!important}',
   'body.df-ready-full #dfPaneOk .dfPhSearchLine{width:100%!important;box-sizing:border-box!important}',
   'body.df-ready-full #dfPaneOk .dfPhSearchLine button{width:100%!important;min-height:42px!important}',
-  'body.df-ready-full #dfPaneOk #dfOkList{max-width:680px;margin:0 auto}',
+  'body.df-ready-full #dfPaneOk #dfOkList{max-width:680px;margin:0 auto;display:block!important;padding:0!important}',
   'body.df-ready-full #dfPaneOk{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px)!important}',
-  'body.df-ready-full #dfPaneOk .dfOpsCard{min-height:calc(100dvh - 110px)!important}',
+  'body.df-ready-full #dfPaneOk .dfOpsCard{min-height:0!important}',
   'body.df-ready-full #dfPaneOk .dfFormulaReadyCard{padding:10px!important;background:#111827!important;border:1px solid #29364a!important;border-radius:12px!important;margin:8px auto!important;max-width:680px!important}',
   'body.df-ready-full #dfPaneOk .dfFormulaReadyHead{display:flex;justify-content:space-between;gap:9px;align-items:flex-start}',
   'body.df-ready-full #dfPaneOk .dfFormulaReadyHead strong{display:block;color:#ffd36a;font-size:14px;line-height:1.3;overflow-wrap:anywhere}',
