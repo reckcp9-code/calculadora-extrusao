@@ -188,6 +188,14 @@
         .some(v=>normalized(v).includes(q));
     };
     const a=all.filter(matches),known=new Map();
+    // D1 pode emitir eventos de status sem alterar nenhuma OP. Nesse caso,
+    // não tocar no DOM nem no scroll (inclusive cabeçalho e lista).
+    const visualSignature=JSON.stringify({
+      q,allMonths,month,
+      rows:a.map(o=>[normId(o.id||o.qr),o.data,o.produto,o.produzido,o.apara,o.status,o.serverProductName,o.clienteFormulacao])
+    });
+    if(b.dataset.dfVisualSignature===visualSignature)return;
+    b.dataset.dfVisualSignature=visualSignature;
     // O cabeçalho e os cartões recebem exatamente o mesmo conjunto de OPs.
     // Não existe outra consulta/reconstrução de resultados.
     const results=$('dfProductHistoryResults');
@@ -347,15 +355,13 @@
       if($('dfPaneArchive')?.classList.contains('on'))renderArchive();
     },ms==null?120:ms);
   }
+  // Somente alterações de dados e filtros redesenham Prontas.
+  // Status/polling/visibilidade não são mudanças de dados e não devem
+  // provocar reconstruções de cartões durante a rolagem.
   window.addEventListener('df-ready-filter-changed',()=>scheduleServerRender(0));
-  window.addEventListener('df-op-d1-applied',()=>{dfServerLoaded=true;scheduleServerRender(80)});
-  window.addEventListener('df-op-server-status',e=>{if(Number(e.detail?.lastPull||0)>0)dfServerLoaded=true;scheduleServerRender(100)});
-  window.addEventListener('df-op-team-sync-result',()=>scheduleServerRender(140));
-  window.addEventListener('df-op-saved',()=>scheduleServerRender(80));
-  window.addEventListener('df-op-formula-status',()=>scheduleServerRender(80));
-  window.addEventListener('online',()=>scheduleServerRender(300));
-  window.addEventListener('pageshow',()=>scheduleServerRender(300));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleServerRender(250)});
+  window.addEventListener('df-op-d1-applied',()=>{dfServerLoaded=true;scheduleServerRender(100)});
+  window.addEventListener('df-op-saved',()=>scheduleServerRender(100));
+  window.addEventListener('df-op-formula-status',()=>scheduleServerRender(100));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);
   window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));
   setTimeout(mount,1200);setTimeout(mount,2200);
