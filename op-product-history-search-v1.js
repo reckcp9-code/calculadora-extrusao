@@ -76,8 +76,9 @@ function mount(){
   var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<label class="dfPhAllLabel"><input type="checkbox" id="dfProductHistoryAll"> TODAS — TODOS OS MESES</label><h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto ou pelo ID da OP para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="NOME DO PRODUTO OU ID DA OP" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite o nome do produto ou o ID da OP.</div></div>';
   // A barra de pesquisa pertence ao painel fixo, não à lista reconstruída.
   // Inserção única: nunca mover a barra durante sincronizações.
-  var pane=$('dfPaneOk');if(pane)pane.insertBefore(box,pane.firstChild);
-  else list.parentNode.insertBefore(box,list);
+  var card=list.closest('.dfOpsCard');
+  // Pesquisa e cartões na mesma coluna/rolagem, sem dois painéis separados.
+  (card||list.parentNode).insertBefore(box,list);
   $('dfProductHistoryAll').checked=true;
   $('dfProductHistoryAll').addEventListener('change',render);
   $('dfProductHistoryBtn').onclick=render;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(render,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render()}});
