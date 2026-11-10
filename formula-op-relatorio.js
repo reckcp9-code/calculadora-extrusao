@@ -301,10 +301,21 @@
   async function zipMonth(){const list=monthRecords();if(!list.length){alert('Não há fotos neste mês.');return}try{await loadZip();const z=new JSZip();let n=0;for(const o of list){const p=await photoGet(o.id);if(p?.blob){const ext=(p.mime||'').includes('png')?'png':'jpg';z.file((o.numero?'OP-'+o.numero:o.id)+'.'+ext,p.blob);n++}}if(!n){alert('Nenhuma foto encontrada neste aparelho.');return}const blob=await z.generateAsync({type:'blob'});downloadBlob(blob,'DF-OPs-'+($('dfOpMonth').value||monthNow())+'.zip')}catch(e){alert('Falha ao gerar backup: '+(e.message||e))}}
 
   let dfServerLoaded=false,dfRenderTimer=0;
+  // Durante o gesto de rolagem, nenhuma sincronização substitui cartões.
+  let dfReadyScrolling=false,dfReadyScrollIdle=0;
+  function markReadyScrolling(){
+    if(!$('dfPaneOk')?.classList.contains('on'))return;
+    dfReadyScrolling=true;
+    clearTimeout(dfReadyScrollIdle);
+    dfReadyScrollIdle=setTimeout(()=>{dfReadyScrolling=false;scheduleServerRender(50)},650);
+  }
+  document.addEventListener('touchmove',e=>{if(e.target?.closest?.('#dfPaneOk'))markReadyScrolling()},{passive:true});
+  document.addEventListener('scroll',e=>{if(e.target?.id==='dfPaneOk')markReadyScrolling()},{passive:true,capture:true});
   function scheduleServerRender(ms){
     clearTimeout(dfRenderTimer);
     dfRenderTimer=setTimeout(()=>{
       if(!$('dfFormulaOps'))return;
+      if(dfReadyScrolling){scheduleServerRender(700);return;}
       renderOk();
       if($('dfPanePending')?.classList.contains('on'))renderPending();
       if($('dfPaneMonth')?.classList.contains('on'))renderReport();
