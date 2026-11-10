@@ -61,28 +61,13 @@ function ensure(){
  }
  return true;
 }
-function arrangeReadyOptions(){
- const pane=$('dfPaneOk');if(!pane)return;
- pane.querySelectorAll('#dfOkList .dfFormulaReadyCard').forEach(row=>{
-  const details=row.querySelector('.dfFormulaReadyDetails');if(!details)return;
-  // Controles adicionados por outros módulos permanecem funcionais,
-  // mas ficam recolhidos como na lista de Produção.
-  row.querySelectorAll('[data-life-delete-op],[data-op-history],[data-history-op],.dfOpHistoryBtn').forEach(btn=>{
-   if(!details.contains(btn))details.appendChild(btn);
-  });
-  row.querySelectorAll('button').forEach(btn=>{
-   if(/hist[oó]rico da op/i.test(btn.textContent||'')&&!details.contains(btn))details.appendChild(btn);
-  });
-  const next=row.nextElementSibling;
-  if(next&&/hist[oó]rico da op/i.test(next.textContent||'')&&next.matches('button'))details.appendChild(next);
- });
-}
+// Controles são renderizados dentro de cada cartão pela origem; nunca mover nós no scroll.
 function close(){document.body.classList.remove('df-ready-full');try{$('dfProductHistorySearch')?.blur()}catch(e){}}
 function repair(){
  if(!ensure())return false;
  const pane=$('dfPaneOk'),tab=document.querySelector('#dfFormulaOps .dfOpsTabs [data-pane="ok"]');
  const visible=$('dfFormulaOps')?.classList.contains('on')&&pane?.classList.contains('on')&&tab?.classList.contains('on');
- if(visible){document.body.classList.add('df-ready-full');arrangeReadyOptions()}else close();
+ if(visible){document.body.classList.add('df-ready-full')}else close();
  return visible;
 }
 function boot(){
@@ -99,13 +84,13 @@ function boot(){
   if(target.closest('#dfMonthlyPhotoButton,#dfFormTabCore,#btFo,#dfFormTabOps')&&
      !target.closest('#dfFormulaOps .dfOpsTabs [data-pane="ok"]')){close();setTimeout(repair,70)}
  },true);
- for(const event of ['df-ui-ready','df-formula-section-entered','pageshow','df-op-d1-applied'])
+ for(const event of ['df-ui-ready','df-formula-section-entered','pageshow'])
   window.addEventListener(event,()=>setTimeout(repair,110));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(repair,140)});
  window.addEventListener('popstate',close);
  // A restauração do modo PRONTAS não depende mais de somente 10 segundos de tentativas.
 
- const readyList=$('dfOkList');if(readyList){let pending=false;const observer=new MutationObserver(mutations=>{if(!document.body.classList.contains('df-ready-full')||pending||!mutations.some(m=>m.type==='childList'&&m.addedNodes.length))return;pending=true;requestAnimationFrame(()=>{pending=false;arrangeReadyOptions()})});observer.observe(readyList,{childList:true,subtree:false})}
+
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
