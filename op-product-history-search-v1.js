@@ -42,21 +42,9 @@ function openExisting(id){
 }
 function selectedMonth(){try{return String(localStorage.getItem('df_production_history_month_v1')||document.getElementById('dfOpMonth')?.value||new Date().toISOString().slice(0,7)).slice(0,7)}catch(e){return new Date().toISOString().slice(0,7)}}
 function opMonth(r){var o=r&&r.op||{};return String(o.data||o.createdAt||r.createdAt||'').slice(0,7)}
-function render(){
-  var input=$('dfProductHistorySearch'),out=$('dfProductHistoryResults'),box=$('dfOkList');
-  if(!input||!out||!box)return;
-  var q=normText(input.value),idQuery=normId(input.value),all=!!$('dfProductHistoryAll')?.checked,month=selectedMonth();
-  var list=buildIndex().filter(function(r){
-    return r.op&&statusFor(r).key==='ok'&&(all||opMonth(r)===month)&&(!q||(r.name&&normText(r.name).indexOf(q)>=0)||(idQuery&&[r.id].concat(ids(r.op)).some(function(code){return normId(code).indexOf(idQuery)>=0})));
-  });
-  var matching=new Set(),produced=0;
-  list.forEach(function(r){ids(r.op).forEach(function(id){matching.add(id)});matching.add(normId(r.id));produced+=Number(r.op.produzido||0)});
-  var summaryHtml='<div class="dfPhSummary"><div><span>OPs baixadas</span><b>'+list.length+'</b></div><div><span>Produção encontrada</span><b>'+fmt(produced,2)+' kg</b></div></div>'+(list.length?'':'<div class="dfPhEmpty">Nenhuma OP encontrada neste filtro.</div>');
-  if(out.dataset.lastHtml!==summaryHtml){out.innerHTML=summaryHtml;out.dataset.lastHtml=summaryHtml}
-  // Nenhum segundo controlador de cartões. A renderização oficial lê
-  // diretamente os campos da pesquisa e o snapshot das OPs.
-
-}
+// Pesquisa é somente um controle. Os resultados e cartões pertencem
+// exclusivamente a renderOk() em formula-op-relatorio.js.
+function render(){window.dispatchEvent(new Event('df-ready-filter-changed'))}
 function style(){if($('dfProductHistoryStyle'))return;var s=document.createElement('style');s.id='dfProductHistoryStyle';s.textContent='\
 #dfProductHistoryBox .dfPhAllLabel{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:#f8fafc;font-weight:800;font-size:14px;cursor:pointer}#dfProductHistoryAll{width:20px;height:20px;accent-color:#f5a000}#dfProductHistoryBox{margin:0 0 15px;padding:13px;border:1px solid #334155;background:#0b1324;border-radius:14px}\
 #dfProductHistoryBox h4{margin:0 0 5px;font-size:17px;color:#f8fafc}\
@@ -77,7 +65,7 @@ function mount(){
   // Pesquisa e cartões na mesma coluna/rolagem, sem dois painéis separados.
   (card||list.parentNode).insertBefore(box,list);
   $('dfProductHistoryAll').checked=true;
-  function searchChanged(){render();window.dispatchEvent(new Event('df-ready-filter-changed'))}
+  function searchChanged(){render()}
   $('dfProductHistoryAll').addEventListener('change',searchChanged);
   $('dfProductHistoryBtn').onclick=searchChanged;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(searchChanged,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();searchChanged()}});
   requestAnimationFrame(render);
