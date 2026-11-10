@@ -12,7 +12,7 @@
   const fmt=(v,d=2)=>Number.isFinite(+v)?(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
   const today=()=>new Date().toISOString().slice(0,10), monthNow=()=>today().slice(0,7);
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
-  function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}renderAll()}
+  function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}scheduleServerRender(80)}
   function registry(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){return{}}}
   // Somente leitura: nenhum dado de produção ou fechamento é regravado.
   let originalProducts={};
@@ -144,12 +144,12 @@
   function validate(p,exp,qr,ocrConfidence){const reasons=[];if(!qr||!/^DFOP-/i.test(qr))reasons.push('QR da OP não foi identificado');if(!exp)reasons.push('QR não encontrado no cadastro das OPs geradas');if(!(p.produzido>0))reasons.push('quantidade produzida não foi lida com segurança');if(!p.data)reasons.push('data não foi lida');if(!p.operador)reasons.push('operador não foi lido');if(!p.maquina)reasons.push('máquina não foi lida');if(p.apara<0||p.apara>p.produzido)reasons.push('apara fora do limite');if(exp?.totalKg>0&&p.produzido>exp.totalKg*1.35)reasons.push('produção lida muito acima do peso previsto da OP');if(ocrConfidence<45)reasons.push('qualidade da leitura da foto ficou baixa');return reasons}
   function buildMaterials(exp,produzido){return (exp?.materials||[]).map(m=>({name:m.name,pct:+m.pct||0,kg:produzido>0?produzido*(+m.pct||0)/100:0}))}
 
-  async function photoChosen(e){selectedFile=e.target.files?.[0]||null;if(!selectedFile||working)return;const img=$('dfOpPreview');img.src=URL.createObjectURL(selectedFile);img.style.display='block';await processPhoto(selectedFile)}
+  async function photoChosen(e){if(working)return;selectedFile=e.target.files?.[0]||null;if(!selectedFile)return;const img=$('dfOpPreview');if(img.dataset.dfObjectUrl)URL.revokeObjectURL(img.dataset.dfObjectUrl);img.dataset.dfObjectUrl=URL.createObjectURL(selectedFile);img.src=img.dataset.dfObjectUrl;img.style.display='block';await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));await processPhoto(selectedFile)}
   async function processPhoto(file){working=true;status('📷 Foto recebida. Procurando o QR da OP...','warn');let qr='',exp=null,ocrText='',confidence=0,p={};try{
       try{qr=await decodeQR(file)}catch(e){}exp=qr?expectedFor(qr):null;
       const provisional=qr||('SEMQR-'+Date.now());await photoPut(provisional,file,{qr:qr||'',month:monthNow()});
       status((qr?'✅ QR identificado: <b>'+esc(qr)+'</b><br>':'⚠️ QR ainda não identificado.<br>')+'Lendo os campos preenchidos automaticamente...','warn');
-      await loadTess();const c=await imageCanvas(file,2200);const res=await window.Tesseract.recognize(c,'por',{logger:m=>{if(m.status==='recognizing text')status('🤖 Lendo a OP... <b>'+Math.round((m.progress||0)*100)+'%</b>','warn')}});ocrText=res?.data?.text||'';confidence=+res?.data?.confidence||0;p=parseOcr(ocrText,exp);
+      await loadTess();const c=await imageCanvas(file,1600);await new Promise(resolve=>setTimeout(resolve,0));const res=await window.Tesseract.recognize(c,'por',{logger:m=>{if(m.status==='recognizing text')status('🤖 Lendo a OP... <b>'+Math.round((m.progress||0)*100)+'%</b>','warn')}});ocrText=res?.data?.text||'';confidence=+res?.data?.confidence||0;p=parseOcr(ocrText,exp);
       const reasons=validate(p,exp,qr,confidence),fid=formulaIdFor(exp),id=qr||provisional,reviewReasons=['Aguardando conferência do dono da equipe',...reasons];if(!fid)reviewReasons.unshift('ID da formulação não veio no QR da OP');const rec={id,qr:qr||'',formulaId:fid,photoType:'formulation',createdAt:new Date().toISOString(),data:p.data||today(),numero:p.numero||'',operador:p.operador||'',maquina:p.maquina||'',produto:p.product||'',largura:p.largura||0,micra:p.micra||0,gm:p.gm||0,produzido:p.produzido||0,apara:p.apara||0,bobinas:p.bobinas||0,materials:buildMaterials(exp,p.produzido||0),expectedTotal:+exp?.totalKg||0,ocrConfidence:confidence,status:'pending',reasons:reviewReasons,ocrText:ocrText.slice(0,15000)};
       upsert(rec);status(reasons.length?'⚠️ Foto arquivada. A OP foi para <b>PENDENTES</b> porque: '+esc(reasons.join('; '))+'.':'✅ <b>OP salva automaticamente.</b><br>Produção: '+fmt(rec.produzido,2)+' kg • Apara: '+fmt(rec.apara,2)+' kg • Operador: '+esc(rec.operador),' '+(reasons.length?'warn':'ok'));
       if(!reasons.length)status('✅ <b>OP salva automaticamente.</b><br>Produção: '+fmt(rec.produzido,2)+' kg • Apara: '+fmt(rec.apara,2)+' kg • Operador: '+esc(rec.operador),'ok');
