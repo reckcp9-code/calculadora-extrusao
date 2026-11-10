@@ -38,7 +38,6 @@ function addStyle(){
   'body.df-ready-full #dfPaneOk #dfProductHistoryBtn{min-height:48px!important}',
   'body.df-ready-full #dfPaneOk #dfProductHistorySearch{min-height:50px!important}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryBox .dfPhHint{font-size:12px!important}',
-  'body.df-ready-full #dfPaneOk .dfPhRow{display:none}',
   
   'body.df-ready-full #dfOpModal,body.df-ready-full #dfCloudViewer{z-index:11000!important}'
  ].join('\n');
