@@ -188,13 +188,16 @@
         row=t.content.firstElementChild;
         if(row){row.dataset.renderSig=sig;b.appendChild(row)}
       }else if(row.dataset.renderSig!==sig){
+        // Atualizar apenas os campos alterados. Nunca substituir o cartão:
+        // replaceWith desmontava nós, perdia estado e provocava saltos visuais.
         const t=document.createElement('template');t.innerHTML=itemHtml(o,false).trim();
         const fresh=t.content.firstElementChild;
         if(fresh){
-          fresh.dataset.renderSig=sig;
-          const expanded=row.querySelector('.dfFormulaReadyDetails')?.open;
-          if(expanded)fresh.querySelector('.dfFormulaReadyDetails').open=true;
-          row.replaceWith(fresh);
+          for(const selector of ['.dfFormulaReadyHead strong','.dfFormulaReadyHead small','.dfFormulaReadyBadge','.dfFormulaReadyMeta','.dfFormulaReadyExtra']){
+            const target=row.querySelector(selector),source=fresh.querySelector(selector);
+            if(target&&source&&target.innerHTML!==source.innerHTML)target.innerHTML=source.innerHTML;
+          }
+          row.dataset.renderSig=sig;
         }
       }
     }
@@ -301,29 +304,10 @@
   async function zipMonth(){const list=monthRecords();if(!list.length){alert('Não há fotos neste mês.');return}try{await loadZip();const z=new JSZip();let n=0;for(const o of list){const p=await photoGet(o.id);if(p?.blob){const ext=(p.mime||'').includes('png')?'png':'jpg';z.file((o.numero?'OP-'+o.numero:o.id)+'.'+ext,p.blob);n++}}if(!n){alert('Nenhuma foto encontrada neste aparelho.');return}const blob=await z.generateAsync({type:'blob'});downloadBlob(blob,'DF-OPs-'+($('dfOpMonth').value||monthNow())+'.zip')}catch(e){alert('Falha ao gerar backup: '+(e.message||e))}}
 
   let dfServerLoaded=false,dfRenderTimer=0;
-  // Durante o gesto de rolagem, nenhuma sincronização substitui cartões.
-  let dfReadyScrolling=false,dfReadyScrollIdle=0;
-  function markReadyScrolling(){
-    if(!$('dfPaneOk')?.classList.contains('on'))return;
-    dfReadyScrolling=true;
-    clearTimeout(dfReadyScrollIdle);
-    dfReadyScrollIdle=setTimeout(()=>{dfReadyScrolling=false;scheduleServerRender(50)},650);
-  }
-  // O iPhone pode rolar o documento, o painel ou um ancestral do painel.
-  // Detectar todos esses casos, inclusive o impulso após soltar o dedo.
-  document.addEventListener('touchstart',e=>{if($('dfPaneOk')?.classList.contains('on'))markReadyScrolling()},{passive:true,capture:true});
-  document.addEventListener('touchmove',e=>{if($('dfPaneOk')?.classList.contains('on'))markReadyScrolling()},{passive:true,capture:true});
-  document.addEventListener('touchend',e=>{if($('dfPaneOk')?.classList.contains('on'))markReadyScrolling()},{passive:true,capture:true});
-  document.addEventListener('scroll',e=>{
-    const pane=$('dfPaneOk');if(!pane?.classList.contains('on'))return;
-    const target=e.target;
-    if(target===document||target===document.documentElement||target===document.body||target===window||pane.contains(target)||target?.contains?.(pane))markReadyScrolling();
-  },{passive:true,capture:true});
   function scheduleServerRender(ms){
     clearTimeout(dfRenderTimer);
     dfRenderTimer=setTimeout(()=>{
       if(!$('dfFormulaOps'))return;
-      if(dfReadyScrolling){scheduleServerRender(700);return;}
       renderOk();
       if($('dfPanePending')?.classList.contains('on'))renderPending();
       if($('dfPaneMonth')?.classList.contains('on'))renderReport();
