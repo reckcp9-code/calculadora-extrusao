@@ -167,7 +167,45 @@
   function dfCreatedAt(o){const qr=String(o.id||o.qr||'').match(/^DFOP-(\\d{8})-(\\d{6})-/i);if(qr){const d=qr[1],t=qr[2],n=new Date(Number(d.slice(0,4)),Number(d.slice(4,6))-1,Number(d.slice(6,8)),Number(t.slice(0,2)),Number(t.slice(2,4)),Number(t.slice(4,6))).getTime();if(Number.isFinite(n))return n}const v=o.createdAt||o.dataHora||o.data||'';return Date.parse(v)||0}
   function dfOpOrder(a,b){return 0}
     function dfPhotoOrder(a,b){return dfCreatedAt(b)-dfCreatedAt(a)||String(b.id||'').localeCompare(String(a.id||''))}
-  function renderOk(){const b=$('dfOkList');if(!b)return;const a=load().filter(x=>x.status==='ok').sort(dfPhotoOrder);const rows=Array.from(b.children).filter(r=>r.classList?.contains('dfOpList')),existing=new Map();for(const r of rows){const btn=r.querySelector('[data-view]'),rid=btn?normId(btn.getAttribute('data-view')):'';if(rid)existing.set(rid,r)}b.querySelectorAll(':scope > .dfOpsTiny[data-empty-ok]').forEach(x=>x.remove());let cursor=b.firstElementChild;for(const o of a){const id=normId(o?.id||o?.qr),html=itemHtml(o,false),sig=[o.data,o.produto,o.produzido,o.apara,o.status].join('|');let row=existing.get(id);if(!row){const t=document.createElement('template');t.innerHTML=html.trim();row=t.content.firstElementChild;if(row)row.dataset.renderSig=sig}else{existing.delete(id);if(row.dataset.renderSig!==sig){const t=document.createElement('template');t.innerHTML=html.trim();const fresh=t.content.firstElementChild;if(fresh){fresh.dataset.renderSig=sig;try{row.replaceWith(fresh);row=fresh}catch(e){row.innerHTML=fresh.innerHTML;row.className=fresh.className;row.dataset.renderSig=sig}}}}if(!row)continue;try{if(row!==cursor)b.insertBefore(row,cursor||null)}catch(e){if(!row.parentNode)b.appendChild(row)}cursor=row.nextElementSibling}for(const row of existing.values()){try{if(row.parentNode===b)b.removeChild(row)}catch(e){}}if(!a.length){const e=document.createElement('div');e.className='dfOpsTiny';e.dataset.emptyOk='1';e.textContent=(!dfServerLoaded&&navigator.onLine!==false&&!!window.DFOpCloud?.team?.()?.teamId)?'🔄 Consultando OPs da equipe...':'Nenhuma OP concluída ainda.';b.appendChild(e)}bindViews(b)}
+  function renderOk(){
+    const b=$('dfOkList');if(!b)return;
+    // A lista pronta não é reordenada por data nem por ID durante sincronizações.
+    // Manter a posição dos cartões existentes evita saltos no scroll do iPhone.
+    const a=load().filter(x=>x.status==='ok'),known=new Map();
+    Array.from(b.children).filter(r=>r.classList?.contains('dfOpList')).forEach(row=>{
+      const btn=row.querySelector('[data-view]'),id=normId(btn?.getAttribute('data-view')||'');
+      if(id)known.set(id,row);
+    });
+    b.querySelectorAll(':scope > .dfOpsTiny[data-empty-ok]').forEach(x=>x.remove());
+    const currentIds=new Set();
+    for(const o of a){
+      const id=normId(o?.id||o?.qr);if(!id)continue;
+      currentIds.add(id);
+      const sig=[o.data,o.produto,o.produzido,o.apara,o.status,o.serverProductName,o.clienteFormulacao].join('|');
+      let row=known.get(id);
+      if(!row){
+        const t=document.createElement('template');t.innerHTML=itemHtml(o,false).trim();
+        row=t.content.firstElementChild;
+        if(row){row.dataset.renderSig=sig;b.appendChild(row)}
+      }else if(row.dataset.renderSig!==sig){
+        const t=document.createElement('template');t.innerHTML=itemHtml(o,false).trim();
+        const fresh=t.content.firstElementChild;
+        if(fresh){
+          fresh.dataset.renderSig=sig;
+          const expanded=row.querySelector('.dfFormulaReadyDetails')?.open;
+          if(expanded)fresh.querySelector('.dfFormulaReadyDetails').open=true;
+          row.replaceWith(fresh);
+        }
+      }
+    }
+    for(const [id,row] of known){if(!currentIds.has(id)&&row.parentNode===b)row.remove()}
+    if(!a.length){
+      const e=document.createElement('div');e.className='dfOpsTiny';e.dataset.emptyOk='1';
+      e.textContent=(!dfServerLoaded&&navigator.onLine!==false&&!!window.DFOpCloud?.team?.()?.teamId)?'🔄 Consultando OPs da equipe...':'Nenhuma OP concluída ainda.';
+      b.appendChild(e);
+    }
+    bindViews(b);
+  }
   function renderPending(){const b=$('dfPendingList');if(!b)return;const a=load().filter(x=>x.status==='pending').sort(dfOpOrder);b.innerHTML=a.length?a.map(o=>itemHtml(o,true)).join(''):'<div class="dfOpsStatus ok">✅ Nenhuma pendência.</div>';bindViews(b)}
 
   async function openStored(id){const rec=load().find(x=>x.id===id),ph=await photoGet(id);if(!rec&&!ph){if(window.DFOpCloud?.viewPhotoByOp){try{await window.DFOpCloud.viewPhotoByOp(id);return}catch(e){}}alert('Foto indisponível neste aparelho. Verifique a conexão e a equipe.');return}let cloudBlob=null;if(!ph){try{const map=JSON.parse(localStorage.getItem('df_op_photo_cloud_map_v1')||'{}'),remote=window.DFOpCloud?.photos?.()||[],match=remote.find(p=>String(p?.qr||p?.sourceId||'').trim().toUpperCase()===String(id).trim().toUpperCase());let photoId=String(match?.id||rec?.cloudPhotoId||map[String(id).toUpperCase()]?.photoId||'');if(!photoId&&window.DFOpCloud?.photoForOp){try{photoId=await window.DFOpCloud.photoForOp(id,'formulation')}catch(e){try{photoId=await window.DFOpCloud.photoForOp(id,'production_op')}catch(_e){}}}if(photoId&&window.DFOpCloud?.getPhotoBlob)cloudBlob=await window.DFOpCloud.getPhotoBlob(photoId)}catch(e){}}const u=ph?.blob?URL.createObjectURL(ph.blob):cloudBlob?URL.createObjectURL(cloudBlob):'';$('dfModalBody').innerHTML=`${u?'<img id="dfStoredImg" src="'+u+'">':'<div class="dfOpsStatus warn">⚠️ FOTO ORIGINAL NÃO ENCONTRADA NESTE APARELHO OU NA NUVEM. OS DADOS DA OP CONTINUAM PRESERVADOS.</div>'}<div class="dfOpsStatus ${rec?.status==='ok'?'ok':'warn'}"><b>${esc(rec?.numero?'OP '+rec.numero:id)}</b><br>${rec?.reasons?.length?esc(rec.reasons.join(' • ')):'Leitura concluída.'}</div><div class="dfOpGrid"><div><label>Operador</label><input id="fixOperador" value="${esc(rec?.operador||'')}"></div><div><label>Máquina</label><input id="fixMaquina" value="${esc(rec?.maquina||'')}"></div><div><label>Produzido kg</label><input id="fixProd" inputmode="decimal" value="${rec?.produzido||''}"></div><div><label>Apara kg</label><input id="fixApara" inputmode="decimal" value="${rec?.apara||''}"></div></div><button id="dfFixSave" class="dfOpsBtn">✅ SALVAR CORREÇÃO E ENVIAR PARA CONFIRMAÇÃO</button>${u?'<button id="dfPhotoDownload" class="dfOpsBtn alt">⬇️ BAIXAR FOTO</button>':''}`;$('dfOpModal').classList.add('on');$('dfFixSave').onclick=()=>fixRecord(id);if(u)$('dfPhotoDownload').onclick=()=>downloadBlob(ph?.blob||cloudBlob,(rec?.numero?'OP-'+rec.numero:id)+'.jpg')}
