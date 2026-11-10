@@ -34,7 +34,7 @@ function addStyle(){
   'body.df-ready-full #dfPaneOk .dfFormulaReadyDetails[open] summary{list-style:disclosure-open}',
   'body.df-ready-full #dfPaneOk .dfFormulaReadyExtra{padding:10px;color:#cbd5e1;font-size:13px;line-height:1.7}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryBox{margin-top:0!important;margin-bottom:8px!important;padding:10px!important}',
-  'body.df-ready-full #dfPaneOk #dfProductHistoryBox{position:sticky!important;top:72px!important;z-index:12!important;overflow-anchor:none!important}',
+  'body.df-ready-full #dfPaneOk>#dfProductHistoryBox{position:sticky!important;top:0!important;z-index:12!important;overflow-anchor:none!important}',
   'body.df-ready-full #dfPaneOk #dfOkList{overflow-anchor:none!important}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryResults{margin-top:8px!important}',
   'body.df-ready-full #dfPaneOk .dfPhSummary div{padding:8px!important}',
@@ -104,8 +104,8 @@ function boot(){
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(repair,140)});
  window.addEventListener('popstate',close);
  // A restauração do modo PRONTAS não depende mais de somente 10 segundos de tentativas.
- setInterval(()=>{if(!document.hidden&&$('dfFormulaOps')?.classList.contains('on'))repair()},1400);
- const readyList=$('dfOkList');if(readyList){const observer=new MutationObserver(()=>{if(document.body.classList.contains('df-ready-full'))requestAnimationFrame(arrangeReadyOptions)});observer.observe(readyList,{childList:true,subtree:true})}
+ setInterval(()=>{if(!document.hidden&&$('dfFormulaOps')?.classList.contains('on')){const expected=$('dfPaneOk')?.classList.contains('on');if(document.body.classList.contains('df-ready-full')!==!!expected)repair()}},8000);
+ const readyList=$('dfOkList');if(readyList){let pending=false;const observer=new MutationObserver(mutations=>{if(!document.body.classList.contains('df-ready-full')||pending||!mutations.some(m=>m.type==='childList'&&m.addedNodes.length))return;pending=true;requestAnimationFrame(()=>{pending=false;arrangeReadyOptions()})});observer.observe(readyList,{childList:true,subtree:false})}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
