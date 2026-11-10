@@ -1,6 +1,6 @@
 {
-  "version": "1.0.852",
+  "version": "1.0.853",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção de cache: não carregar telas antigas de Prontas da Formulação.",
+  "message": "Correção definitiva do carregamento de atualização no iPhone.",
   "updatedAt": "2026-11-10"
 }
