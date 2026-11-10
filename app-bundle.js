@@ -2023,7 +2023,7 @@
 
   async function currentVersion(){
     try{
-      const r=await fetch(VERSION_URL+'?t='+Date.now(),{});
+      const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
       if(!r.ok)return'';
       const j=await r.json();
       return String(j&&j.version||'').trim();
