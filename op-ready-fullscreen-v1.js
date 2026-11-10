@@ -13,7 +13,7 @@ function addStyle(){
   'body.df-ready-full #dfReadyFullTop{display:flex!important}',
   '#dfReadyFullClose{border:1px solid #f5a000;border-radius:10px;background:#241600;color:#ffd36a;font-weight:800;padding:10px 12px;flex-shrink:0}',
   '#dfReadyFullTop strong{color:#fff;font-size:16px}',
-  'body.df-ready-full #dfProductHistoryBox{position:sticky!important;top:0!important;z-index:2!important;background:#0b1220!important;margin:0 auto 12px!important;padding:14px!important;border:1px solid #334155!important;border-radius:14px!important;box-sizing:border-box!important;width:100%!important;max-width:680px!important}',
+  'body.df-ready-full #dfProductHistoryBox{position:relative!important;top:auto!important;z-index:2!important;background:#0b1220!important;margin:0 auto 12px!important;padding:14px!important;border:1px solid #334155!important;border-radius:14px!important;box-sizing:border-box!important;width:100%!important;max-width:680px!important}',
   'body.df-ready-full #dfProductHistoryBox h4,body.df-ready-full #dfProductHistoryBox .dfPhSub{display:none!important}',
   'body.df-ready-full #dfProductHistorySearch{font-size:16px!important;min-height:48px!important;width:100%!important;box-sizing:border-box!important}',
   'body.df-ready-full #dfProductHistoryResults{max-height:none!important;overflow:visible!important;overscroll-behavior:contain!important}',
@@ -34,7 +34,7 @@ function addStyle(){
   'body.df-ready-full #dfPaneOk .dfFormulaReadyDetails[open] summary{list-style:disclosure-open}',
   'body.df-ready-full #dfPaneOk .dfFormulaReadyExtra{padding:10px;color:#cbd5e1;font-size:13px;line-height:1.7}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryBox{margin-top:0!important;margin-bottom:8px!important;padding:10px!important}',
-  'body.df-ready-full #dfPaneOk>#dfProductHistoryBox{position:sticky!important;top:0!important;z-index:12!important;overflow-anchor:none!important}',
+  'body.df-ready-full #dfPaneOk>#dfProductHistoryBox{position:relative!important;top:auto!important;z-index:2!important;overflow-anchor:none!important}',
   'body.df-ready-full #dfPaneOk #dfOkList{overflow-anchor:none!important}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryResults{margin-top:8px!important}',
   'body.df-ready-full #dfPaneOk .dfPhSummary div{padding:8px!important}',
@@ -104,7 +104,7 @@ function boot(){
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(repair,140)});
  window.addEventListener('popstate',close);
  // A restauração do modo PRONTAS não depende mais de somente 10 segundos de tentativas.
- setInterval(()=>{if(!document.hidden&&$('dfFormulaOps')?.classList.contains('on')){const expected=$('dfPaneOk')?.classList.contains('on');if(document.body.classList.contains('df-ready-full')!==!!expected)repair()}},8000);
+
  const readyList=$('dfOkList');if(readyList){let pending=false;const observer=new MutationObserver(mutations=>{if(!document.body.classList.contains('df-ready-full')||pending||!mutations.some(m=>m.type==='childList'&&m.addedNodes.length))return;pending=true;requestAnimationFrame(()=>{pending=false;arrangeReadyOptions()})});observer.observe(readyList,{childList:true,subtree:false})}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
