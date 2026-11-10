@@ -57,12 +57,25 @@ function ensure(){
  }
  return true;
 }
+function arrangeReadyOptions(){
+ const pane=$('dfPaneOk');if(!pane)return;
+ pane.querySelectorAll('#dfOkList .dfFormulaReadyCard').forEach(row=>{
+  const details=row.querySelector('.dfFormulaReadyDetails');if(!details)return;
+  // Controles adicionados por outros módulos permanecem funcionais,
+  // mas ficam recolhidos como na lista de Produção.
+  row.querySelectorAll('[data-life-delete-op],[data-op-history],[data-history-op],.dfOpHistoryBtn').forEach(btn=>{
+   if(!details.contains(btn))details.appendChild(btn);
+  });
+  const next=row.nextElementSibling;
+  if(next&&/hist[oó]rico da op/i.test(next.textContent||'')&&next.matches('button'))details.appendChild(next);
+ });
+}
 function close(){document.body.classList.remove('df-ready-full');try{$('dfProductHistorySearch')?.blur()}catch(e){}}
 function repair(){
  if(!ensure())return false;
  const pane=$('dfPaneOk'),tab=document.querySelector('#dfFormulaOps .dfOpsTabs [data-pane="ok"]');
  const visible=$('dfFormulaOps')?.classList.contains('on')&&pane?.classList.contains('on')&&tab?.classList.contains('on');
- if(visible)document.body.classList.add('df-ready-full');else close();
+ if(visible){document.body.classList.add('df-ready-full');arrangeReadyOptions()}else close();
  return visible;
 }
 function boot(){
@@ -85,6 +98,7 @@ function boot(){
  window.addEventListener('popstate',close);
  // A restauração do modo PRONTAS não depende mais de somente 10 segundos de tentativas.
  setInterval(()=>{if(!document.hidden&&$('dfFormulaOps')?.classList.contains('on'))repair()},1400);
+ const readyList=$('dfOkList');if(readyList){const observer=new MutationObserver(()=>{if(document.body.classList.contains('df-ready-full'))requestAnimationFrame(arrangeReadyOptions)});observer.observe(readyList,{childList:true,subtree:true})}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
