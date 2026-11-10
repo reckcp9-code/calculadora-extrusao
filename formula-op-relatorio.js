@@ -309,8 +309,16 @@
     clearTimeout(dfReadyScrollIdle);
     dfReadyScrollIdle=setTimeout(()=>{dfReadyScrolling=false;scheduleServerRender(50)},650);
   }
-  document.addEventListener('touchmove',e=>{if(e.target?.closest?.('#dfPaneOk'))markReadyScrolling()},{passive:true});
-  document.addEventListener('scroll',e=>{if(e.target?.id==='dfPaneOk')markReadyScrolling()},{passive:true,capture:true});
+  // O iPhone pode rolar o documento, o painel ou um ancestral do painel.
+  // Detectar todos esses casos, inclusive o impulso após soltar o dedo.
+  document.addEventListener('touchstart',e=>{if($('dfPaneOk')?.classList.contains('on'))markReadyScrolling()},{passive:true,capture:true});
+  document.addEventListener('touchmove',e=>{if($('dfPaneOk')?.classList.contains('on'))markReadyScrolling()},{passive:true,capture:true});
+  document.addEventListener('touchend',e=>{if($('dfPaneOk')?.classList.contains('on'))markReadyScrolling()},{passive:true,capture:true});
+  document.addEventListener('scroll',e=>{
+    const pane=$('dfPaneOk');if(!pane?.classList.contains('on'))return;
+    const target=e.target;
+    if(target===document||target===document.documentElement||target===document.body||target===window||pane.contains(target)||target?.contains?.(pane))markReadyScrolling();
+  },{passive:true,capture:true});
   function scheduleServerRender(ms){
     clearTimeout(dfRenderTimer);
     dfRenderTimer=setTimeout(()=>{
