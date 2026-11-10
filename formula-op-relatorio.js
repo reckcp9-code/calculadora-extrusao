@@ -176,7 +176,7 @@
     const input=$('dfProductHistorySearch'),search=String(input?.value||'').trim().toLocaleLowerCase('pt-BR');
     const allMonths=!!$('dfProductHistoryAll')?.checked;
     const month=String(localStorage.getItem('df_production_history_month_v1')||$('dfOpMonth')?.value||monthNow()).slice(0,7);
-    const normalized=s=>String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+    const normalized=s=>String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     const q=normalized(search);
     const reg=registry();
     const matches=o=>{
