@@ -1,6 +1,6 @@
 {
-  "version": "1.0.845",
+  "version": "1.0.848",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulação: entrada na equipe pelo código, sem bloquear por nome repetido ou vazio.",
-  "updatedAt": "2026-11-06"
+  "message": "Correção da estabilidade de Prontas da Formulação e restauração do aviso de atualização.",
+  "updatedAt": "2026-11-10"
 }
