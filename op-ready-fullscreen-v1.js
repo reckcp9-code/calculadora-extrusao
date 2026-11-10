@@ -34,6 +34,8 @@ function addStyle(){
   'body.df-ready-full #dfPaneOk .dfFormulaReadyDetails[open] summary{list-style:disclosure-open}',
   'body.df-ready-full #dfPaneOk .dfFormulaReadyExtra{padding:10px;color:#cbd5e1;font-size:13px;line-height:1.7}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryBox{margin-top:0!important;margin-bottom:8px!important;padding:10px!important}',
+  'body.df-ready-full #dfPaneOk #dfProductHistoryBox{position:sticky!important;top:72px!important;z-index:12!important;overflow-anchor:none!important}',
+  'body.df-ready-full #dfPaneOk #dfOkList{overflow-anchor:none!important}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryResults{margin-top:8px!important}',
   'body.df-ready-full #dfPaneOk .dfPhSummary div{padding:8px!important}',
   'body.df-ready-full #dfPaneOk #dfProductHistoryBox .dfPhSearchLine{grid-template-columns:1fr!important}',
