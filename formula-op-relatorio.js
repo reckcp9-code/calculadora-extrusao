@@ -12,7 +12,7 @@
   const fmt=(v,d=2)=>Number.isFinite(+v)?(+v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
   const today=()=>new Date().toISOString().slice(0,10), monthNow=()=>today().slice(0,7);
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
-  function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}scheduleServerRender(80)}
+  function save(a){try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}requestAnimationFrame(renderAll)}
   function registry(){try{return JSON.parse(localStorage.getItem(REG_KEY)||'{}')}catch(e){return{}}}
   // Somente leitura: nenhum dado de produção ou fechamento é regravado.
   let originalProducts={};
