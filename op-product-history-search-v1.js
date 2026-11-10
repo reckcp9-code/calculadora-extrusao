@@ -55,10 +55,14 @@ function render(){
   if(out.dataset.lastHtml!==summaryHtml){out.innerHTML=summaryHtml;out.dataset.lastHtml=summaryHtml}
   // Reutiliza os cartões oficiais, inclusive foto, exclusão e histórico;
   // não cria uma segunda lista divergente da fonte de verdade.
-  box.querySelectorAll(':scope > .dfOpList').forEach(function(row){
-    var btn=row.querySelector('[data-view]'),id=normId(btn&&btn.getAttribute('data-view'));
-    var nextDisplay=matching.has(id)?'':'none';if(row.style.display!==nextDisplay)row.style.display=nextDisplay;
-  });
+  // Um único controlador (renderOk) administra os cartões e seus filtros.
+  // Este módulo calcula apenas a pesquisa e o resumo; não altera display.
+  var signature=Array.from(matching).sort().join('|');
+  if(window.__dfReadyFilterSignature!==signature){
+    window.__dfReadyFilterSignature=signature;
+    window.__dfReadyFilterIds=matching;
+    window.dispatchEvent(new Event('df-ready-filter-changed'));
+  }
 }
 function style(){if($('dfProductHistoryStyle'))return;var s=document.createElement('style');s.id='dfProductHistoryStyle';s.textContent='\
 #dfProductHistoryBox .dfPhAllLabel{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:#f8fafc;font-weight:800;font-size:14px;cursor:pointer}#dfProductHistoryAll{width:20px;height:20px;accent-color:#f5a000}#dfProductHistoryBox{margin:0 0 15px;padding:13px;border:1px solid #334155;background:#0b1324;border-radius:14px}\
