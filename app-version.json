@@ -1,6 +1,6 @@
 {
-  "version": "1.0.854",
+  "version": "1.0.855",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Prontas da Formulação em uma única área de rolagem, como Produção.",
+  "message": "Correção de tremedeira na rolagem das OPs Prontas da Formulação.",
   "updatedAt": "2026-11-10"
 }
