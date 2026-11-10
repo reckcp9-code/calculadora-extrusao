@@ -1,6 +1,6 @@
 {
-  "version": "1.0.851",
+  "version": "1.0.852",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Prontas da Formulação: removida reorganização automática por data e ID.",
+  "message": "Correção de cache: não carregar telas antigas de Prontas da Formulação.",
   "updatedAt": "2026-11-10"
 }
