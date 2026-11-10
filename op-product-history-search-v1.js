@@ -74,9 +74,10 @@ function style(){if($('dfProductHistoryStyle'))return;var s=document.createEleme
 function mount(){
   style();var list=$('dfOkList');if(!list||$('dfProductHistoryBox'))return !!list;
   var box=document.createElement('div');box.id='dfProductHistoryBox';box.innerHTML='<label class="dfPhAllLabel"><input type="checkbox" id="dfProductHistoryAll"> TODAS — TODOS OS MESES</label><h4>🔎 PESQUISAR PRODUTO / HISTÓRICO DE OP</h4><div class="dfPhSub">Pesquise pelo nome do produto ou pelo ID da OP para ver somente OPs com baixa concluída, independentemente do operador, com produção, apara e foto.</div><div class="dfPhSearchLine"><input id="dfProductHistorySearch" placeholder="NOME DO PRODUTO OU ID DA OP" autocomplete="off"><button id="dfProductHistoryBtn" type="button">PESQUISAR</button></div><div id="dfProductHistoryResults"><div class="dfPhHint">Digite o nome do produto ou o ID da OP.</div></div>';
-  list.parentNode.insertBefore(box,list);
-  // A busca deve permanecer acima da lista mesmo quando módulos reconstroem as OPs.
-  var stableParent=list.parentNode;new MutationObserver(function(){if(box.parentNode===stableParent&&list.parentNode===stableParent&&box.nextElementSibling!==list)stableParent.insertBefore(box,list)}).observe(stableParent,{childList:true});
+  // A barra de pesquisa pertence ao painel fixo, não à lista reconstruída.
+  // Inserção única: nunca mover a barra durante sincronizações.
+  var pane=$('dfPaneOk');if(pane)pane.insertBefore(box,pane.firstChild);
+  else list.parentNode.insertBefore(box,list);
   $('dfProductHistoryAll').checked=true;
   $('dfProductHistoryAll').addEventListener('change',render);
   $('dfProductHistoryBtn').onclick=render;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(render,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render()}});
