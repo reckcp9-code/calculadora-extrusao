@@ -39,7 +39,13 @@
     // O SELECT somente é confiável quando o título da OP impressa coincide com a formulação.
     const precise=linked&&title&&name&&title===name;
     const formulaId=String(source.formulaId||source.__dfFormulaId||(precise?selectedId:'')||'LEGACY-'+id).trim();
-    const snapshot={...source,formulaId,opId:id};
+    const savedName=String(linked?.nome||linked?.name||'').trim();
+    const sourceName=String(source.cliente||source.clienteFormulacao||source.title||'').trim();
+    // Snapshot imutável do cliente da formulação efetivamente salva; nunca usar
+    // texto digitado sem salvar nem outra fórmula selecionada.
+    const clientName=precise?savedName:sourceName;
+    const snapshot={...source,formulaId,opId:id,cliente:clientName,clienteFormulacao:clientName,
+      produto:clientName,product:clientName,title:clientName};
     const r=loadReg();r[id]={id,createdAt:new Date().toISOString(),expected:snapshot};const keys=Object.keys(r).sort((a,b)=>String(r[b]?.createdAt||'').localeCompare(String(r[a]?.createdAt||'')));keys.slice(500).forEach(k=>delete r[k]);saveReg(r);try{window.dispatchEvent(new CustomEvent('df-op-qr-created',{detail:r[id]}))}catch(e){}}
 
   function inject(html){
