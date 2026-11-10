@@ -188,6 +188,14 @@
         .some(v=>normalized(v).includes(q));
     };
     const a=all.filter(matches),known=new Map();
+    // O cabeçalho e os cartões recebem exatamente o mesmo conjunto de OPs.
+    // Não existe outra consulta/reconstrução de resultados.
+    const results=$('dfProductHistoryResults');
+    if(results){
+      const kg=a.reduce((sum,o)=>sum+Number(o.produzido||0),0);
+      const html='<div class="dfPhSummary"><div><span>OPs baixadas</span><b>'+a.length+'</b></div><div><span>Produção encontrada</span><b>'+fmt(kg,2)+' kg</b></div></div>'+(a.length?'':'<div class="dfPhEmpty">Nenhuma OP encontrada neste filtro.</div>');
+      if(results.dataset.lastHtml!==html){results.innerHTML=html;results.dataset.lastHtml=html}
+    }
     Array.from(b.children).filter(r=>r.classList?.contains('dfOpList')).forEach(row=>{
       const btn=row.querySelector('[data-view]'),id=normId(btn?.getAttribute('data-view')||'');
       if(id)known.set(id,row);
