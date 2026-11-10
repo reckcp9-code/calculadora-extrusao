@@ -1,4 +1,4 @@
-const DF_CACHE='df-extrusor-shell-v848-formulation-stable';
+const DF_CACHE='df-extrusor-shell-v852-no-legacy';
 const STATE_CACHE='df-extrusor-state-v1';
 const API='https://df-extrusor-api.reck-cp9.workers.dev';
 const CORE=[
@@ -34,7 +34,7 @@ async function notifyUpdate(data){const title=data.title||'DF EXTRUSOR PRO — N
 // Install only the entry shell. Large modules are cached as users open them;
 // precaching every module simultaneously caused unnecessary network/CPU pressure.
 const BOOT_CACHE=['./','./index.html','./acessar.html','./app-shell.html','./df-viewport-responsive-lock-v1.js','./manifest.webmanifest','./app-version.json','./logo.svg','./device-identity.js','./auto-access.js','./performance-guard-v3.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./op-ready-fullscreen-v1.js','./op-team-panel-collapse-v1.js','./op-monthly-photo-editor-v1.js','./op-product-history-search-v1.js','./op-ui-integrity-v1.js','./team-license-restore-v1.js','./op-team-date-canonical-v1.js','./team-formulas-duplicates-v2.js','./formula-save-first-op-v1.js','./op-producao.html','./producao-stable-flow-v3.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js'];
-const BUILD_VERSION='20261110-formulation-stable-v848';
+const BUILD_VERSION='20261110-no-legacy-v852';
 const VERSIONED_BOOT=['./app-shell.html','./auto-access.js','./app-bundle.js','./formula-op-relatorio.js','./op-cloud-team-v3.js','./op-server-authority-v1.js','./team-license-restore-v1.js','./op-team-panel-collapse-v1.js','./op-ready-fullscreen-v1.js','./producao-equipe-online-v1.js','./producao-equipe-separada-v2.js','./producao-agora-maquinas-v1.js','./op-team-date-canonical-v1.js','./team-formulas-duplicates-v2.js','./formula-save-first-op-v1.js'];
 async function precache(){
  const cache=await caches.open(DF_CACHE);
@@ -67,7 +67,7 @@ async function networkFirst(req){
   // Nunca combinar dois builds diferentes por ignorar ?v nas bibliotecas.
   const url=new URL(req.url);
   // Uma URL com ?v nunca aceita arquivos de outra versão, nem do precache.
-  const hit=await cache.match(req,{ignoreSearch:!url.searchParams.has('v')});
+  const hit=await cache.match(req,{ignoreSearch:false});
   if(hit)return hit;
   return new Response('Recurso da versao atual indisponivel. Tente novamente com internet.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
  }
@@ -97,13 +97,11 @@ self.addEventListener('fetch',event=>{
   }
   // O shell e os modulos versionados nao dependem de D1/R2: usar copia exata
   // da versao atual na reabertura, evitando aguardar a rede em cada toque.
-  if(p.endsWith('/app-shell.html')&&url.searchParams.has('v')){
-    event.respondWith((async()=>{const cache=await caches.open(DF_CACHE);const hit=await cache.match(req);return hit||networkFirst(req)})());return;
-  }
+  if(p.endsWith('/app-shell.html')&&url.searchParams.has('v')){event.respondWith(networkFirst(req));return;}
   if(p.endsWith('/app-version.json')||p.endsWith('/sw.js')){event.respondWith(networkFirst(req));return}
   // JS precisa ser consistente com a versao publicada. Nao reutilizar modulos antigos em silencio.
   // API/D1/R2 sao de outra origem e nao sao interceptados aqui.
-  if(/\.js$/i.test(p)){event.respondWith(url.searchParams.has('v')?(async()=>{const cache=await caches.open(DF_CACHE);const hit=await cache.match(req);return hit||networkFirst(req)})():networkFirst(req));return}
+  if(/\.js$/i.test(p)){event.respondWith(networkFirst(req));return}
   if(/\.(?:css|svg|png|jpe?g|webp|woff2?)$/i.test(p)){event.respondWith(staleWhileRevalidate(req));return}
   if(p.endsWith('/cost-simple-v154.js')||p.endsWith('/cost-fabril-v1.js')||p.endsWith('/cost-back-v155.js')||p.endsWith('/formula-saved-search-v1.js')||p.endsWith('/formula-save-first-op-v1.js')){event.respondWith(networkFirst(req));return}
   if(p.endsWith('/op-producao.html')||p.endsWith('/producao-stable-flow-v3.js')||p.endsWith('/producao-pdf-native-v1.js')||p.endsWith('/producao-pdf-native-v6.js')||p.endsWith('/producao-ops-automaticas-v2.js')||p.endsWith('/producao-agora-maquinas-v1.js')||p.endsWith('/producao-equipe-online-v1.js')||p.endsWith('/producao-equipe-separada-v2.js')||p.endsWith('/producao-equipe-area-guard-v2.js')||p.endsWith('/producao-sacoleira-vm900-v1.js')||p.endsWith('/producao-machine-produtos-v1.js')||p.endsWith('/producao-produtos-fullscreen-v1.js')||p.endsWith('/teste/producao-op-setores-v3.js')||p.endsWith('/teste/producao-op-cadastros-v2.js')||p.endsWith('/op-status-artifact-filter-v170.js')){event.respondWith(networkFirst(req));return}
