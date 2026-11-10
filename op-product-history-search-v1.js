@@ -53,16 +53,9 @@ function render(){
   list.forEach(function(r){ids(r.op).forEach(function(id){matching.add(id)});matching.add(normId(r.id));produced+=Number(r.op.produzido||0)});
   var summaryHtml='<div class="dfPhSummary"><div><span>OPs baixadas</span><b>'+list.length+'</b></div><div><span>Produção encontrada</span><b>'+fmt(produced,2)+' kg</b></div></div>'+(list.length?'':'<div class="dfPhEmpty">Nenhuma OP encontrada neste filtro.</div>');
   if(out.dataset.lastHtml!==summaryHtml){out.innerHTML=summaryHtml;out.dataset.lastHtml=summaryHtml}
-  // Reutiliza os cartões oficiais, inclusive foto, exclusão e histórico;
-  // não cria uma segunda lista divergente da fonte de verdade.
-  // Um único controlador (renderOk) administra os cartões e seus filtros.
-  // Este módulo calcula apenas a pesquisa e o resumo; não altera display.
-  var signature=Array.from(matching).sort().join('|');
-  if(window.__dfReadyFilterSignature!==signature){
-    window.__dfReadyFilterSignature=signature;
-    window.__dfReadyFilterIds=matching;
-    window.dispatchEvent(new Event('df-ready-filter-changed'));
-  }
+  // Nenhum segundo controlador de cartões. A renderização oficial lê
+  // diretamente os campos da pesquisa e o snapshot das OPs.
+
 }
 function style(){if($('dfProductHistoryStyle'))return;var s=document.createElement('style');s.id='dfProductHistoryStyle';s.textContent='\
 #dfProductHistoryBox .dfPhAllLabel{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:#f8fafc;font-weight:800;font-size:14px;cursor:pointer}#dfProductHistoryAll{width:20px;height:20px;accent-color:#f5a000}#dfProductHistoryBox{margin:0 0 15px;padding:13px;border:1px solid #334155;background:#0b1324;border-radius:14px}\
@@ -84,8 +77,9 @@ function mount(){
   // Pesquisa e cartões na mesma coluna/rolagem, sem dois painéis separados.
   (card||list.parentNode).insertBefore(box,list);
   $('dfProductHistoryAll').checked=true;
-  $('dfProductHistoryAll').addEventListener('change',render);
-  $('dfProductHistoryBtn').onclick=render;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(render,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render()}});
+  function searchChanged(){render();window.dispatchEvent(new Event('df-ready-filter-changed'))}
+  $('dfProductHistoryAll').addEventListener('change',searchChanged);
+  $('dfProductHistoryBtn').onclick=searchChanged;$('dfProductHistorySearch').addEventListener('input',function(){clearTimeout(window.__dfPhTimer);window.__dfPhTimer=setTimeout(searchChanged,180)});$('dfProductHistorySearch').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();searchChanged()}});
   requestAnimationFrame(render);
   return true;
 }
