@@ -1,6 +1,6 @@
 {
-  "version": "1.0.850",
+  "version": "1.0.851",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Estabilização estrutural da lista Prontas da Formulação, sem pesquisa flutuante.",
+  "message": "Prontas da Formulação: removida reorganização automática por data e ID.",
   "updatedAt": "2026-11-10"
 }
