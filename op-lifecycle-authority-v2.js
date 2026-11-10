@@ -127,7 +127,7 @@ function enhance(){
     const view=row.querySelector('[data-view]');if(!view)return;const id=norm(view.getAttribute('data-view'));if(!id)return;
     if(tombstoneFor(id)){row.remove();return}
     if(row.querySelector('[data-life-delete-op]'))return;
-    const b=document.createElement('button');b.type='button';b.className='dfLifecycleDelete';b.dataset.lifeDeleteOp=id;b.textContent='🗑️ EXCLUIR OP E FOTO';view.insertAdjacentElement('afterend',b);
+    const b=document.createElement('button');b.type='button';b.className='dfLifecycleDelete';b.dataset.lifeDeleteOp=id;b.textContent='🗑️ EXCLUIR OP E FOTO';const details=row.querySelector('.dfFormulaReadyDetails');if(details)details.appendChild(b);else view.insertAdjacentElement('afterend',b);
   });
   document.querySelectorAll('#dfCloudPhotosBox .dfCloudPhotoRow').forEach(row=>{
     const open=row.querySelector('[data-cloud-open]');if(!open)return;const cloudId=String(open.getAttribute('data-cloud-open')||'').trim(),id=sourceFromRow(row);if(!cloudId||!id)return;
