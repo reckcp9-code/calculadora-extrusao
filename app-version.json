@@ -1,6 +1,6 @@
 {
-  "version": "1.0.869",
+  "version": "1.0.870",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Extrusão: calculadora de produção real kg/h por peso e horários.",
+  "message": "Extrusão: calculadora kg/h movida para o final da aba Produção +%.",
   "updatedAt": "2026-11-21"
 }
