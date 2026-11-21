@@ -148,7 +148,9 @@ const st=document.createElement('style');st.textContent=`
 .df-fp-empty{padding:28px;text-align:center;color:#94a3b8}
 @media(min-width:900px){.df-fp-title,.df-fp-search,.df-fp-filter,.df-fp-list{width:min(100%,1050px);margin-left:auto;margin-right:auto}}
 `;
-document.head.appendChild(st);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});else scan();new MutationObserver(scan).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('df-ui-ready',scan);
+document.head.appendChild(st);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});else scan();let scanQueued=false;
+function scheduleScan(){if(scanQueued)return;scanQueued=true;requestAnimationFrame(()=>{scanQueued=false;scan()})}
+new MutationObserver(records=>{for(const record of records){for(const node of record.addedNodes){if(node.nodeType===1&&(node.tagName==='SELECT'||node.querySelector?.('select'))){scheduleScan();return}}}}).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('df-ui-ready',scheduleScan);
 })();
 (function(){
   if(window.DF_FORMULA_SAVE_FIRST_OP_V1)return;
