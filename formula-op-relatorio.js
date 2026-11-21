@@ -160,7 +160,7 @@
   function renderAll(){renderOk();renderPending();renderReport();renderArchive()}
   function itemHtml(o,pending){
     if(pending)return `<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge warn">PENDENTE</span><div class="dfOpsTiny">${esc(o.data||'')} • ${esc(o.produto||'Sem produto')} • ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div><div class="dfPendingReason">${esc((o.reasons||[]).join(' • '))}</div><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button></div>`;
-    const reg=registry(),e=reg[o.id]?.expected||{},name=String(o.serverProductName||o.clienteFormulacao||o.produto||e.clienteFormulacao||e.cliente||e.title||'').trim();
+    const reg=registry(),e=reg[o.id]?.expected||{},name=realName(o.serverProductName)||realName(o.clienteFormulacao)||realName(e.clienteFormulacao)||realName(e.cliente)||realName(e.title)||realName(productFor(o))||'Produto não informado';
     return `<div class="dfOpList dfFormulaReadyCard"><div class="dfFormulaReadyHead"><div><strong>${esc(name||o.id)}</strong><small>${esc(o.id)}</small></div><span class="dfFormulaReadyBadge">RODADA / PRONTA</span></div><div class="dfFormulaReadyMeta">${esc(o.data||'')} • Produção ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><details class="dfFormulaReadyDetails"><summary>MAIS OPÇÕES</summary><div class="dfFormulaReadyExtra">Operador: ${esc(o.operador||'—')}<br>Máquina: ${esc(o.maquina||'—')}<br>Formulação: ${esc(name||'Não identificada')}</div><button class="dfOpsBtn gray" type="button" data-view="${esc(o.id)}">VER DADOS DA OP</button><button class="dfOpsBtn dfLifecycleDelete" type="button" data-life-delete-op="${esc(o.id)}">🗑️ EXCLUIR OP E FOTO</button><button class="dfHistoryBtn" type="button" data-history-op="${esc(o.id)}">📜 HISTÓRICO DA OP</button></details></div>`;
   }
   function bindViews(box){box?.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>openStored(b.dataset.view))}
@@ -192,7 +192,7 @@
     // não tocar no DOM nem no scroll (inclusive cabeçalho e lista).
     const visualSignature=JSON.stringify({
       q,allMonths,month,
-      rows:a.map(o=>[normId(o.id||o.qr),o.data,o.produto,o.produzido,o.apara,o.status,o.serverProductName,o.clienteFormulacao])
+      rows:a.map(o=>[normId(o.id||o.qr),o.data,o.produto,o.produzido,o.apara,o.status,o.serverProductName,o.clienteFormulacao,productFor(o)])
     });
     if(b.dataset.dfVisualSignature===visualSignature)return;
     b.dataset.dfVisualSignature=visualSignature;
