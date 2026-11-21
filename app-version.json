@@ -1,6 +1,6 @@
 {
-  "version": "1.0.866",
+  "version": "1.0.867",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulação: estabilização da rolagem no final da lista de OPs Prontas no iPhone.",
+  "message": "Formulação: recuperar nome de produto pelos vínculos da OP ao exibir Prontas.",
   "updatedAt": "2026-11-21"
 }
