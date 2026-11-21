@@ -1,6 +1,6 @@
 {
-  "version": "1.0.868",
+  "version": "1.0.869",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulação: nome da OP por ID sincronizado no D1 para dono e operadores.",
+  "message": "Extrusão: calculadora de produção real kg/h por peso e horários.",
   "updatedAt": "2026-11-21"
 }
