@@ -118,6 +118,14 @@
         <div><label>% para aumentar ou diminuir</label><input id="exProdPerc" class="main" inputmode="decimal" placeholder="Ex.: +20 ou -10"></div>
       </div>
       <button id="btnProd" class="calcBtn" type="button">CALCULAR NOVA PRODUÇÃO</button>
+      <div class="result"><span>PRODUÇÃO ESTIMADA</span><b id="exProdTitulo">—</b></div>
+      <div class="kpi"><span>Motor de massa</span><b id="exProdMasRes">—</b></div><div id="exProdMasDelta" class="status"></div>
+      <div class="kpi"><span>Puxador</span><b id="exProdPuxRes">—</b></div><div id="exProdPuxDelta" class="status"></div>
+      <div class="kpi"><span>Ar — referência inicial</span><b id="exProdArRes">—</b></div><div id="exProdArDelta" class="status"></div>
+      <div class="kpi"><span>Relação massa/puxador atual</span><b id="exRelAtual">—</b></div>
+      <div class="kpi"><span>Relação massa/puxador nova</span><b id="exRelNova">—</b></div><div id="exRelMsg" class="status"></div>
+      <div class="smallNote">O RPM do ar é apenas uma referência inicial. O ajuste final deve ser feito observando largura, estabilidade, refrigeração e formato do balão.</div>
+    </div>
       <div class="card" style="margin-top:18px;padding:18px;border:1px solid #34516c;background:#0d1b2b;border-radius:16px">
         <h2 style="margin:0 0 8px">Produção real por hora (kg/h)</h2>
         <div class="hint">Informe o peso produzido e os horários. O cálculo considera os minutos exatos, inclusive quando atravessa a meia-noite.</div>
@@ -128,14 +136,6 @@
         </div>
         <div class="result"><span>PRODUÇÃO REAL</span><b id="exKgHoraResultado">—</b><div id="exKgHoraTempo" class="smallNote">Quilos × 60 ÷ minutos trabalhados</div></div>
       </div>
-      <div class="result"><span>PRODUÇÃO ESTIMADA</span><b id="exProdTitulo">—</b></div>
-      <div class="kpi"><span>Motor de massa</span><b id="exProdMasRes">—</b></div><div id="exProdMasDelta" class="status"></div>
-      <div class="kpi"><span>Puxador</span><b id="exProdPuxRes">—</b></div><div id="exProdPuxDelta" class="status"></div>
-      <div class="kpi"><span>Ar — referência inicial</span><b id="exProdArRes">—</b></div><div id="exProdArDelta" class="status"></div>
-      <div class="kpi"><span>Relação massa/puxador atual</span><b id="exRelAtual">—</b></div>
-      <div class="kpi"><span>Relação massa/puxador nova</span><b id="exRelNova">—</b></div><div id="exRelMsg" class="status"></div>
-      <div class="smallNote">O RPM do ar é apenas uma referência inicial. O ajuste final deve ser feito observando largura, estabilidade, refrigeração e formato do balão.</div>
-    </div>
   </section>
 
   <section id="pgSa" class="page">
