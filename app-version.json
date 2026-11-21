@@ -1,6 +1,6 @@
 {
-  "version": "1.0.864",
+  "version": "1.0.865",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Prontas Formulação: renderizar somente quando OPs ou filtros mudarem, sem redesenho por polling.",
-  "updatedAt": "2026-11-10"
+  "message": "Formulação: reduzir varreduras desnecessárias do DOM durante atualização e navegação.",
+  "updatedAt": "2026-11-21"
 }
