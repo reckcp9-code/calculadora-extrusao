@@ -26,6 +26,7 @@
     }
     return null;
   }
+  function authoritativeProduct(o){const map=(()=>{try{return JSON.parse(localStorage.getItem('df_manual_op_product_v1')||'{}')}catch(e){return{}}})();for(const key of opIds(o)){const name=realName(map[key]);if(name)return name}return ''}
   function linkedProduction(o){
     const ids=opIds(o);if(!ids.length)return[];
     const matches=[];
@@ -37,7 +38,7 @@
     return matches;
   }
   function productFor(o){
-    let name=realName(o?.produto);if(name)return name;
+    let name=authoritativeProduct(o)||realName(o?.serverProductName)||realName(o?.manualProductName)||realName(o?.clienteFormulacao)||realName(o?.produto);if(name)return name;
     const original=originalEntry(o),ids=opIds(o);
     name=realName(original?.expected?.title)||realName(original?.expected?.produto)||realName(original?.produto);
     if(name)return name;
@@ -160,7 +161,7 @@
   function renderAll(){renderOk();renderPending();renderReport();renderArchive()}
   function itemHtml(o,pending){
     if(pending)return `<div class="dfOpList"><strong>${esc(o.numero?'OP '+o.numero:o.id)}</strong><span class="dfOpBadge warn">PENDENTE</span><div class="dfOpsTiny">${esc(o.data||'')} • ${esc(o.produto||'Sem produto')} • ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div><div class="dfPendingReason">${esc((o.reasons||[]).join(' • '))}</div><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button></div>`;
-    const reg=registry(),e=reg[o.id]?.expected||{},name=realName(o.serverProductName)||realName(o.clienteFormulacao)||realName(e.clienteFormulacao)||realName(e.cliente)||realName(e.title)||realName(productFor(o))||'Produto não informado';
+    const reg=registry(),e=reg[o.id]?.expected||{},name=authoritativeProduct(o)||realName(o.serverProductName)||realName(o.clienteFormulacao)||realName(e.clienteFormulacao)||realName(e.cliente)||realName(e.title)||realName(productFor(o))||'Produto não informado';
     return `<div class="dfOpList dfFormulaReadyCard"><div class="dfFormulaReadyHead"><div><strong>${esc(name||o.id)}</strong><small>${esc(o.id)}</small></div><span class="dfFormulaReadyBadge">RODADA / PRONTA</span></div><div class="dfFormulaReadyMeta">${esc(o.data||'')} • Produção ${fmt(o.produzido||0,2)} kg • Apara ${fmt(o.apara||0,2)} kg</div><button class="dfOpsBtn gray" data-view="${esc(o.id)}">ABRIR FOTO</button><details class="dfFormulaReadyDetails"><summary>MAIS OPÇÕES</summary><div class="dfFormulaReadyExtra">Operador: ${esc(o.operador||'—')}<br>Máquina: ${esc(o.maquina||'—')}<br>Formulação: ${esc(name||'Não identificada')}</div><button class="dfOpsBtn gray" type="button" data-view="${esc(o.id)}">VER DADOS DA OP</button><button class="dfOpsBtn dfLifecycleDelete" type="button" data-life-delete-op="${esc(o.id)}">🗑️ EXCLUIR OP E FOTO</button><button class="dfHistoryBtn" type="button" data-history-op="${esc(o.id)}">📜 HISTÓRICO DA OP</button></details></div>`;
   }
   function bindViews(box){box?.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>openStored(b.dataset.view))}
@@ -361,6 +362,7 @@
   window.addEventListener('df-ready-filter-changed',()=>scheduleServerRender(0));
   window.addEventListener('df-op-d1-applied',()=>{dfServerLoaded=true;scheduleServerRender(100)});
   window.addEventListener('df-op-saved',()=>scheduleServerRender(100));
+  window.addEventListener('df-product-server-applied',()=>scheduleServerRender(100));
   window.addEventListener('df-op-formula-status',()=>scheduleServerRender(100));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(mount,500),{once:true});else setTimeout(mount,500);
   window.addEventListener('df-ui-ready',()=>setTimeout(mount,350));
