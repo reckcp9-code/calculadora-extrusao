@@ -1,6 +1,6 @@
 {
-  "version": "1.0.867",
+  "version": "1.0.868",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Formulação: recuperar nome de produto pelos vínculos da OP ao exibir Prontas.",
+  "message": "Formulação: nome da OP por ID sincronizado no D1 para dono e operadores.",
   "updatedAt": "2026-11-21"
 }
