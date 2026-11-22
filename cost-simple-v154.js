@@ -60,6 +60,7 @@
     if(u&&unid&&document.activeElement!==unid)unid.value=u.value||'';
   }
   function fabrilExtra(){
+    if(typeof window.DFCustoFabrilIndustrialKg==='number' && Number.isFinite(window.DFCustoFabrilIndustrialKg))return window.DFCustoFabrilIndustrialKg;
     try{
       const d=JSON.parse(localStorage.getItem('df_custo_fabril_v1')||'{}');
       const n=k=>{
@@ -137,6 +138,7 @@
     $('dfCostModo154')?.addEventListener('change',calc);
     $('dfCostIncludeFabril')?.addEventListener('change',()=>{calc();document.getElementById('dfCostKg154')?.dispatchEvent(new Event('change',{bubbles:true}))});
     window.addEventListener('storage',e=>{if(e.key==='df_custo_fabril_v1')calc()});
+    window.addEventListener('df-custo-fabril-updated',calc);
     auto.addEventListener('change',()=>{syncAutoToOriginal();setTimeout(()=>{pullFromOriginal();calc()},100)});
     bindOriginal();pullFromOriginal();calc();return true;
   }
