@@ -102,7 +102,7 @@
     const vendaKg=custoKg>0?custoKg*factor:0,vendaUn=custoUn>0?custoUn*factor:0,vendaTotal=custoTotal>0?custoTotal*factor:0;
     const vk=$('dfCostVendaKg154'),vu=$('dfCostVendaUn154'),vt=$('dfCostVendaTotal154'),mt=$('dfCostModoTexto154');
     if(!vk||!vu||!vt||!mt)return false;
-    vk.textContent=vendaKg>0?money(vendaKg):'—';vu.textContent=vendaUn>0?money(vendaUn):'—';vt.textContent=vendaTotal>0?money(vendaTotal):'—';
+    vk.textContent=vendaKg>0?money(vendaKg):'—';vu.textContent=vendaTotal>0?money(vendaTotal):'—';vt.textContent=vendaTotal>0?money(vendaTotal):'—';
     mt.textContent=mode==='margin'?'Margem sobre a venda: o percentual representa a parte do preço final que fica como lucro.':'Markup sobre o custo: o percentual é acrescentado diretamente em cima do custo.';
     sale.classList.add('on');
     return true;
