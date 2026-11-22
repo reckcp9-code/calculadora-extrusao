@@ -6726,12 +6726,12 @@
 })();
 
 
-/* ---- sacolas-fardo-pedido-v3 ---- */
+/* ---- sacolas-fardo-pedido-v4 ---- */
 (function(){
  'use strict';
  const $=id=>document.getElementById(id);
  const num=v=>Number(String(v??'').trim().replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
- const fmt=(v,d=3)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+ const fmt=(v,d=3)=>v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:d});
  const write=(id,s)=>{const e=$(id);if(e&&e.textContent!==s)e.textContent=s};
  let mode='auto';
  function sourceWeight(){
