@@ -6627,8 +6627,13 @@
     }finally{working=false;}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',align,{once:true});else align();
-  const observer=new MutationObserver(()=>align());
-  const start=()=>{const page=document.getElementById('pgFo');if(page){observer.observe(page,{childList:true,subtree:true});align();}};
+  let scheduled=false;
+  const observer=new MutationObserver(()=>{
+    if(scheduled||document.hidden)return;
+    scheduled=true;
+    setTimeout(()=>{scheduled=false;const page=document.getElementById('pgFo');if(page&&page.getClientRects().length)align();},180);
+  });
+  const start=()=>{const page=document.getElementById('pgFo');if(page){observer.observe(page,{childList:true,subtree:false});align();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 
