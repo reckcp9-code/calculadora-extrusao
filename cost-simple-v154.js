@@ -130,6 +130,8 @@
     const auto=$('dfCostAuto154'),origAuto=$('cuAuto');auto.checked=!!origAuto?.checked;
     ['dfCostPeso154','dfCostUnid154','dfCostKg154','dfCostLucro154'].forEach(id=>{const el=$(id);if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}});
     $('dfCostModo154')?.addEventListener('change',calc);
+    $('dfCostIncludeFabril')?.addEventListener('change',()=>{calc();document.getElementById('dfCostKg154')?.dispatchEvent(new Event('change',{bubbles:true}))});
+    window.addEventListener('storage',e=>{if(e.key==='df_custo_fabril_v1')calc()});
     auto.addEventListener('change',()=>{syncAutoToOriginal();setTimeout(()=>{pullFromOriginal();calc()},100)});
     bindOriginal();pullFromOriginal();calc();return true;
   }
