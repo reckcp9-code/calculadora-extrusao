@@ -386,6 +386,9 @@
     setText('cfManutencaoKg',kgMoney(manKg));
     setText('cfDepreciacaoKg',kgMoney(depKg));
     setText('cfIndustrialKg',kgMoney(industrialKg));
+    // Fonte única do indicador industrial exibido no Custo Fabril.
+    window.DFCustoFabrilIndustrialKg=prod>0?industrialKg:null;
+    window.dispatchEvent(new Event('df-custo-fabril-updated'));
     setText('cfFormulaKg',kgMoney(formula));
     setText('cfTotalMensal',money(totalMensal));
     setText('cfCustoFinal',kgMoney(finalKg));
