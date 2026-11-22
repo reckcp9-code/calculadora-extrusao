@@ -1,6 +1,6 @@
 {
-  "version": "1.0.873",
+  "version": "1.0.874",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Sacolas FARDO: pedido em unidades de rolinhos, peso total e distribuição em fardos.",
+  "message": "FARDO: peso do rolinho automático pelo cálculo anterior ou manual.",
   "updatedAt": "2026-11-22"
 }
