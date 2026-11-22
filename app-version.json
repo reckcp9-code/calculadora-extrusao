@@ -1,6 +1,6 @@
 {
-  "version": "1.0.874",
+  "version": "1.0.875",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "FARDO: peso do rolinho automático pelo cálculo anterior ou manual.",
+  "message": "FARDO: peso com unidade correta (kg ou g), conversão automática e entrada manual.",
   "updatedAt": "2026-11-22"
 }
