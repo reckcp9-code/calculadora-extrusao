@@ -1,6 +1,6 @@
 {
-  "version": "1.0.879",
+  "version": "1.0.880",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Otimização global: reduzir verificações de interface em segundo plano.",
+  "message": "Custo do produto: opção de somar custo fabril por kg sem duplicar matéria-prima.",
   "updatedAt": "2026-11-22"
 }
