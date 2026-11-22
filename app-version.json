@@ -1,6 +1,6 @@
 {
-  "version": "1.0.875",
+  "version": "1.0.876",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "FARDO: peso com unidade correta (kg ou g), conversão automática e entrada manual.",
+  "message": "FARDO: pesos sem zeros decimais desnecessários.",
   "updatedAt": "2026-11-22"
 }
