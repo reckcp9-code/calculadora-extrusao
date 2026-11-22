@@ -6739,7 +6739,7 @@
     for(const block of blocks){
       if(block.closest('#saFardoCalc'))continue;
       const label=block.querySelector('span')?.textContent?.toUpperCase()||'';
-      if(!/PESO DO (FARDO|ROLO)/.test(label))continue;
+      if(!/PESO DO ROLO/.test(label))continue;
       const raw=block.querySelector('b')?.textContent||'';
       const m=raw.match(/([\d.,]+)\s*(kg|g)\b/i);
       if(m){const n=num(m[1]);if(n>0)return m[2].toLowerCase()==='kg'?n*1000:n}
@@ -6751,14 +6751,14 @@
     const field=$('saFardoPesoRolo');
     if(field&&!field.dataset.dfEdited){const w=sourceWeight();if(w>0){const v=fmt(w,2);if(field.value!==v)field.value=v}}
     const per=num($('saFardoPorFardo')?.value),weight=num(field?.value),qty=num($('saFardoQuantidade')?.value);
-    const mode=$('saFardoModo')?.value;
-    const label=$('saFardoQtdLabel');if(label)label.textContent=mode==='fardos'?'Quantidade de fardos do pedido':'Quantidade de rolinhos do pedido';
+    
     const valid=Number.isInteger(per)&&per>0&&weight>0&&Number.isInteger(qty)&&qty>0;
-    if(!valid){for(const id of ['saFardoKg','saFardoRolos','saFardoFardos','saFardoSobra'])write(id,'—');write('saFardoPesoFardo',per>0&&weight>0?fmt(per*weight/1000,3)+' kg':'—');return}
-    const rolls=mode==='fardos'?qty*per:qty;
+    if(!valid){for(const id of ['saFardoKg','saFardoRolos','saFardoFardos','saFardoTotal','saFardoSobra'])write(id,'—');write('saFardoPesoFardo',per>0&&weight>0?fmt(per*weight/1000,3)+' kg':'—');return}
+    const rolls=qty;
     write('saFardoKg',fmt(rolls*weight/1000,3)+' kg');
     write('saFardoRolos',fmt(rolls,0));
     write('saFardoFardos',fmt(Math.floor(rolls/per),0));
+    write('saFardoTotal',fmt(Math.ceil(rolls/per),0));
     write('saFardoSobra',fmt(rolls%per,0));
     write('saFardoPesoFardo',fmt(per*weight/1000,3)+' kg');
   }
