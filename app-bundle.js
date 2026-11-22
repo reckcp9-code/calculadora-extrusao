@@ -6726,52 +6726,57 @@
 })();
 
 
-/* ---- sacolas-fardo-pedido-v2 ---- */
+/* ---- sacolas-fardo-pedido-v3 ---- */
 (function(){
  'use strict';
  const $=id=>document.getElementById(id);
  const num=v=>Number(String(v??'').trim().replace(/\s/g,'').replace(/\./g,'').replace(',','.'));
- const fmt=(v,d=2)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+ const fmt=(v,d=3)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
  const write=(id,s)=>{const e=$(id);if(e&&e.textContent!==s)e.textContent=s};
  let mode='auto';
  function sourceWeight(){
    const raw=$('saRoM')?.textContent||'';
    const m=raw.match(/([\d.,]+)\s*(kg|g)\b/i);
-   if(!m)return 0;
-   const n=num(m[1]);
-   return Number.isFinite(n)&&n>0?(m[2].toLowerCase()==='kg'?n*1000:n):0;
+   if(!m)return null;
+   const n=num(m[1]),unit=m[2].toLowerCase();
+   return Number.isFinite(n)&&n>0?{value:n,unit}:null;
  }
  function update(){
    if(!$('saFardoCalc'))return;
-   const field=$('saFardoPesoRolo');
-   if(field&&mode==='auto'){
-     const w=sourceWeight();
-     field.value=w>0?fmt(w,3):'';
+   const field=$('saFardoPesoRolo'),unitField=$('saFardoUnidade');
+   if(field&&unitField&&mode==='auto'){
+     const source=sourceWeight();
+     field.value=source?fmt(source.value,3):'';
+     if(source)unitField.value=source.unit;
    }
-   const per=num($('saFardoPorFardo')?.value),weight=num(field?.value),qty=num($('saFardoQuantidade')?.value);
-   const valid=Number.isInteger(per)&&per>0&&Number.isFinite(weight)&&weight>0&&Number.isInteger(qty)&&qty>0;
+   const unit=unitField?.value==='kg'?'kg':'g';
+   const per=num($('saFardoPorFardo')?.value),value=num(field?.value),qty=num($('saFardoQuantidade')?.value);
+   const grams=value*(unit==='kg'?1000:1);
+   const valid=Number.isInteger(per)&&per>0&&Number.isFinite(grams)&&grams>0&&Number.isInteger(qty)&&qty>0;
    if(!valid){
      for(const id of ['saFardoKg','saFardoRolos','saFardoFardos','saFardoTotal','saFardoSobra'])write(id,'—');
-     write('saFardoPesoFardo',per>0&&weight>0?fmt(per*weight/1000,3)+' kg':'—');
+     write('saFardoPesoFardo',per>0&&grams>0?fmt(per*grams/1000)+' kg':'—');
      return;
    }
-   write('saFardoKg',fmt(qty*weight/1000,3)+' kg');
+   write('saFardoKg',fmt(qty*grams/1000)+' kg');
    write('saFardoRolos',fmt(qty,0));
    write('saFardoFardos',fmt(Math.floor(qty/per),0));
    write('saFardoTotal',fmt(Math.ceil(qty/per),0));
    write('saFardoSobra',fmt(qty%per,0));
-   write('saFardoPesoFardo',fmt(per*weight/1000,3)+' kg');
+   write('saFardoPesoFardo',fmt(per*grams/1000)+' kg');
  }
  function setMode(next){
    mode=next;
-   const field=$('saFardoPesoRolo');
+   const field=$('saFardoPesoRolo'),unit=$('saFardoUnidade');
    if(field)field.readOnly=mode==='auto';
+   if(unit)unit.disabled=mode==='auto';
    for(const [id,active] of [['saFardoAuto',mode==='auto'],['saFardoManual',mode==='manual']]){
-     const el=$(id);if(!el)continue;el.setAttribute('aria-pressed',String(active));
+     const el=$(id);if(!el)continue;
+     el.setAttribute('aria-pressed',String(active));
      el.style.borderColor=active?'#f6ad13':'';
      el.style.background=active?'#4c3100':'';
    }
-   write('saFardoFonte',mode==='auto'?'Peso calculado em Peso do rolo pela quantidade':'Peso manual: digite o valor em gramas');
+   write('saFardoFonte',mode==='auto'?'Peso e unidade puxados de Peso do rolo pela quantidade':'Peso manual: digite o valor e selecione g ou kg');
    update();
    if(mode==='manual')field?.focus();
  }
@@ -6786,7 +6791,7 @@
  function init(){
    setMode('auto');
    const source=$('saRoM');
-   if(source){new MutationObserver(()=>{if(mode==='auto')update()}).observe(source,{childList:true,characterData:true,subtree:true})}
+   if(source)new MutationObserver(()=>{if(mode==='auto')update()}).observe(source,{childList:true,characterData:true,subtree:true});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
