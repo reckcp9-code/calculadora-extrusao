@@ -59,12 +59,31 @@
     if(p&&peso&&document.activeElement!==peso)peso.value=p.value||'';
     if(u&&unid&&document.activeElement!==unid)unid.value=u.value||'';
   }
+  function fabrilExtra(){
+    try{
+      const d=JSON.parse(localStorage.getItem('df_custo_fabril_v1')||'{}');
+      const n=k=>{let s=String(d[k]||'').replace(/\\s/g,'');if(s.includes(','))s=s.replace(/\\./g,'').replace(',','.');else if(/^\\d{1,3}(\\.\\d{3})+$/.test(s))s=s.replace(/\\./g,'');return Number(s)||0};
+      const prod=n('producao');if(!(prod>0))return null;
+      const depOn=String(d.depIncluir||d.cfDepIncluir||'nao')==='sim';
+      const dep=depOn?n('depBase')*n('depPct')/100:0;
+      const base=n('aluguel')+n('energia')+n('folha')+n('aparaKg')*n('reprocKg')+n('embalagem')+dep;
+      const manMode=String(d.manModo||d.cfManModo||'valor');
+      const man=manMode==='percentual'?base*n('manPct')/100:n('manValor');
+      const rosca=n('roscaMeses')>0?n('roscaValor')/n('roscaMeses'):0;
+      const reserva=String(d.reservaIncluir||d.cfReservaIncluir||'nao')==='sim'?n('reservaValor'):0;
+      return Math.max(0,(base+man+rosca+reserva)/prod);
+    }catch(e){return null}
+  }
+  window.DFCostExtraFabrilKg=fabrilExtra;
+  window.DFCostTotalKg=function(){const material=num($('dfCostKg154')?.value),checked=!!$('dfCostIncludeFabril')?.checked,extra=checked?fabrilExtra():0;return checked&&extra===null?0:material+extra};
   function calc(){
     const pesoEl=$('dfCostPeso154'),unidEl=$('dfCostUnid154'),kgEl=$('dfCostKg154'),lucroEl=$('dfCostLucro154'),modoEl=$('dfCostModo154');
     const resKg=$('dfCostResKg154'),resUn=$('dfCostResUn154'),resTotal=$('dfCostResTotal154');
     const sale=$('dfCostVenda154'),err=$('dfCostErro154');
     if(!pesoEl||!unidEl||!kgEl||!lucroEl||!modoEl||!resKg||!resUn||!resTotal||!sale||!err)return false;
-    const peso=num(pesoEl.value),unid=num(unidEl.value),custoKg=num(kgEl.value),pct=num(lucroEl.value),mode=modoEl.value||'markup';
+    const peso=num(pesoEl.value),unid=num(unidEl.value),custoKg=window.DFCostTotalKg(),pct=num(lucroEl.value),mode=modoEl.value||'markup';
+    const checked=$('dfCostIncludeFabril')?.checked,extra=checked?fabrilExtra():0,info=$('dfCostFabrilInfo');
+    if(info)info.textContent=checked?(extra===null?'Custo fabril não disponível: informe a produção mensal na aba Custo Fabril.':'Custo fabril adicional: '+money(extra)+'/kg • Total: '+money(custoKg)+'/kg'):'Somente custo do material.';
     const custoTotal=peso>0&&custoKg>0?peso*custoKg:0;
     const custoUn=unid>0&&custoTotal>0?custoTotal/unid:0;
     resKg.textContent=custoKg>0?money(custoKg):'—';
@@ -103,7 +122,7 @@
       <label class="autoLine"><input id="dfCostAuto154" type="checkbox"> Puxar peso e quantidade automaticamente da aba Sacolas</label>
       <div class="step"><label>Peso do rolo (kg)</label><input id="dfCostPeso154" inputmode="decimal" placeholder="Ex.: 5"></div>
       <div class="step"><label>Quantas unidades tem no rolo?</label><input id="dfCostUnid154" inputmode="numeric" placeholder="Ex.: 200"></div>
-      <div class="step"><label>Custo do material por kg (R$)</label><input id="dfCostKg154" inputmode="decimal" placeholder="Ex.: 8,50"></div>
+      <div class="step"><label>Custo do material por kg (R$)</label><input id="dfCostKg154" inputmode="decimal" placeholder="Ex.: 8,50"><label class="autoLine"><input id="dfCostIncludeFabril" type="checkbox"> Somar custo fabril automaticamente</label><small id="dfCostFabrilInfo">Somente custo do material.</small></div>
       <div class="step optional"><label>Lucro (%) — opcional</label><div class="modeGrid"><input id="dfCostLucro154" inputmode="decimal" placeholder="Ex.: 30"><select id="dfCostModo154"><option value="markup">Markup sobre o custo</option><option value="margin">Margem sobre a venda</option></select></div><small>Markup soma o percentual em cima do custo. Margem calcula o preço para que o lucro represente esse percentual da venda.</small><div id="dfCostErro154" class="err"></div></div>
       <div class="greenResult"><span>CUSTO POR KG</span><b id="dfCostResKg154">—</b></div><div class="greenResult"><span>CUSTO POR UNIDADE</span><b id="dfCostResUn154">—</b></div><div class="greenResult"><span>CUSTO TOTAL</span><b id="dfCostResTotal154">—</b></div>
       <div id="dfCostVenda154" class="saleBox"><div class="saleTitle">PREÇO DE VENDA COM LUCRO</div><div id="dfCostModoTexto154" class="saleModeText"></div><div class="greenResult"><span>VENDA POR KG</span><b id="dfCostVendaKg154">—</b></div><div class="greenResult"><span>VENDA POR UNIDADE</span><b id="dfCostVendaUn154">—</b></div><div class="greenResult"><span>VENDA TOTAL</span><b id="dfCostVendaTotal154">—</b></div></div>`;
