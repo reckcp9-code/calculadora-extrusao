@@ -1,6 +1,6 @@
 {
-  "version": "1.0.870",
+  "version": "1.0.871",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Extrusão: calculadora kg/h movida para o final da aba Produção +%.",
-  "updatedAt": "2026-11-21"
+  "message": "Correção dos botões Voltar e Imprimir no relatório de formulação.",
+  "updatedAt": "2026-11-22"
 }
