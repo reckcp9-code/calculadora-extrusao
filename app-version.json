@@ -1,6 +1,6 @@
 {
-  "version": "1.0.882",
+  "version": "1.0.883",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Custo: exibir somente venda e lucro por rolinho; integrar custo fabril.",
+  "message": "Venda por rolinho: custo do rolo mais lucro; lucro por unidade separado.",
   "updatedAt": "2026-11-22"
 }
