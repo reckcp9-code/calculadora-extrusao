@@ -1,6 +1,6 @@
 {
-  "version": "1.0.881",
+  "version": "1.0.882",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Custo do produto soma apenas o custo fabril industrial por kg.",
+  "message": "Custo: exibir somente venda e lucro por rolinho; integrar custo fabril.",
   "updatedAt": "2026-11-22"
 }
