@@ -1,6 +1,6 @@
 {
-  "version": "1.0.871",
+  "version": "1.0.872",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Correção dos botões Voltar e Imprimir no relatório de formulação.",
+  "message": "Sacolas: nova aba FARDO com pedidos por rolinhos ou fardos e peso total em kg.",
   "updatedAt": "2026-11-22"
 }
