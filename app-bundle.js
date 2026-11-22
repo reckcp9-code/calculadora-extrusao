@@ -3693,7 +3693,7 @@
         '<div class="note">Custos referentes apenas às matérias-primas; não incluem despesas fabris, perdas, tributos ou frete.</div>'+ 
         '<div class="spacer"></div>'+ 
       '</main>'+ 
-      '<script>function dfReturnToFormula(){try{if(window.opener&&!window.opener.closed){window.opener.location.hash="#formulacao";window.opener.focus();window.close();return}}catch(e){}try{if(history.length>1){history.back();return}}catch(e){}location.href="./#formulacao"}function dfPrintFormula(){try{window.focus();window.print()}catch(e){alert("Abra este relatório no Safari e use Compartilhar > Imprimir ou Salvar em Arquivos.")}}function dfFitA4(){var e=document.querySelector(".sheet");if(!e)return;e.style.zoom="1";var max=1040;var h=e.scrollHeight;if(h>max)e.style.zoom=String(Math.max(.55,max/h));}window.addEventListener("beforeprint",dfFitA4);window.addEventListener("load",dfFitA4);<\/script></body></html>';
+      '<script>function dfReturnToFormula(){try{if(window.opener&&!window.opener.closed){window.opener.focus();window.close();return}}catch(e){}try{location.replace("./#formulacao")}catch(e){location.href="./#formulacao"}}function dfPrintFormula(){try{window.focus();setTimeout(function(){try{window.print()}catch(e){alert("Não foi possível abrir a impressão. Use Compartilhar no navegador para salvar o PDF.")}},80)}catch(e){alert("Não foi possível iniciar a impressão.")}}function dfFitA4(){var e=document.querySelector(".sheet");if(!e)return;e.style.zoom="1";var max=1040;var h=e.scrollHeight;if(h>max)e.style.zoom=String(Math.max(.55,max/h));}window.addEventListener("beforeprint",dfFitA4);window.addEventListener("load",dfFitA4);<\/script></body></html>';
 
     try{
       win.document.open();
