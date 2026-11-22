@@ -4176,7 +4176,7 @@
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initLast();setTimeout(ajustarAuto,500)});
   else{initLast();setTimeout(ajustarAuto,500)}
-  setInterval(watchNew,5000);
+  setInterval(()=>{const page=document.getElementById('pgFo');if(!document.hidden&&page&&page.getClientRects().length)watchNew()},20000);
 })();
 
 /* ---- cloud-backup-auto.js ---- */
