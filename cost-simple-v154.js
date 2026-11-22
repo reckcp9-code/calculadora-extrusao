@@ -62,16 +62,21 @@
   function fabrilExtra(){
     try{
       const d=JSON.parse(localStorage.getItem('df_custo_fabril_v1')||'{}');
-      const n=k=>{let s=String(d[k]||'').replace(/\\s/g,'');if(s.includes(','))s=s.replace(/\\./g,'').replace(',','.');else if(/^\\d{1,3}(\\.\\d{3})+$/.test(s))s=s.replace(/\\./g,'');return Number(s)||0};
-      const prod=n('producao');if(!(prod>0))return null;
-      const depOn=String(d.depIncluir||d.cfDepIncluir||'nao')==='sim';
-      const dep=depOn?n('depBase')*n('depPct')/100:0;
+      const n=k=>{
+        let s=String(d[k]??'').trim().replace(/\s/g,'');
+        if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+        else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
+        const v=Number(s);return Number.isFinite(v)?v:0;
+      };
+      const prod=n('producao');
+      if(!(prod>0))return null;
+      const dep=String(d.depIncluir||'nao')==='sim'?n('depBase')*n('depPct')/100:0;
       const base=n('aluguel')+n('energia')+n('folha')+n('aparaKg')*n('reprocKg')+n('embalagem')+dep;
-      const manMode=String(d.manModo||d.cfManModo||'valor');
-      const man=manMode==='percentual'?base*n('manPct')/100:n('manValor');
+      const man=String(d.manModo||'valor')==='percentual'?base*n('manPct')/100:n('manValor');
       const rosca=n('roscaMeses')>0?n('roscaValor')/n('roscaMeses'):0;
-      const reserva=String(d.reservaIncluir||d.cfReservaIncluir||'nao')==='sim'?n('reservaValor'):0;
-      return Math.max(0,(base+man+rosca+reserva)/prod);
+      // Mesmo indicador "CUSTO FABRIL POR KG" da aba Custo Fabril:
+      // não somar formulação nem reserva opcional.
+      return Math.max(0,(base+man+rosca)/prod);
     }catch(e){return null}
   }
   window.DFCostExtraFabrilKg=fabrilExtra;
