@@ -4158,6 +4158,7 @@
   let lastId='';
   function initLast(){const f=forms()[0];lastId=f?String(f.id):'';syncPhone();}
   function watchNew(){
+    if(document.hidden||document.activeElement?.matches?.('input,textarea,[contenteditable="true"]'))return;
     ajustarAuto();
     try{localStorage.setItem(OLD_KEY,'0')}catch(e){}
     const f=forms()[0];
@@ -4420,11 +4421,13 @@
   }
 
   function detectChanges(){
+    if(document.hidden||document.activeElement?.matches?.('input,textarea,[contenteditable="true"]'))return;
     const h=snapshotHash();
     if(!lastHash){lastHash=h;return}
     if(h!==lastHash){lastHash=h;markPending();if(navigator.onLine!==false)setTimeout(()=>saveNow(),1200)}
   }
   async function sync(){
+    if(document.hidden||document.activeElement?.matches?.('input,textarea,[contenteditable="true"]'))return false;
     ensureCard();
     if(navigator.onLine===false){updateCard();return false}
     if(!localStorage.getItem(ACCESS_KEY)){updateCard();return false}
