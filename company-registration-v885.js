@@ -27,7 +27,7 @@ async function session(){
 }
 async function save(value){
  const t=team();if(!t?.teamId)throw Error('Conecte uma equipe antes de cadastrar a empresa.');
- if(t.role!=='owner')throw Error('Somente o dono da equipe pode alterar o cadastro.');
+ 
  const token=await session();
  const r=await fetch(API+'/op/team/company/save',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'X-DF-Device':device()},body:JSON.stringify({teamId:t.teamId,area:t.area||'extrusao',name:value}),cache:'no-store'});
  const j=await r.json();if(!r.ok||!j.ok)throw Error(j.error||'Não foi possível salvar.');
@@ -48,8 +48,8 @@ function render(){
  if(!btn){btn=document.createElement('button');btn.id='dfCompanyNav';btn.type='button';btn.className='dfAutoTopic';btn.textContent='🏢 CADASTRO';n.appendChild(btn);}
  let card=$('dfCompanyCard');
  if(!card){card=document.createElement('section');card.id='dfCompanyCard';card.innerHTML='<h2>🏢 Cadastro da empresa</h2><p>Nome exibido no cabeçalho das novas ordens de produção.</p><label for="dfCompanyInput">Nome da empresa</label><input id="dfCompanyInput" maxlength="80" autocomplete="organization"><button id="dfCompanySave" type="button">SALVAR NOME DA EMPRESA</button><p id="dfCompanyMsg" role="status"></p>';p.appendChild(card);}
- if(!btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.DFFormulaOpsUI?.close?.();p.classList.remove('dfCleanBackupOnly','dfCleanWhatsOnly');p.classList.add('dfCompanyOnly');n.querySelectorAll('.dfAutoTopic').forEach(x=>x.classList.toggle('on',x===btn));const t=team(),owner=t?.role==='owner';$('dfCompanyInput').value=name();$('dfCompanyInput').disabled=!owner;$('dfCompanySave').disabled=!owner;$('dfCompanyMsg').textContent=!t?'Conecte uma equipe para salvar.':owner?'Somente o dono pode alterar este nome.':'Cadastro disponível apenas para o dono da equipe.';window.scrollTo(0,0);},true);}
- if(!card.dataset.bound){card.dataset.bound='1';$('dfCompanySave').addEventListener('click',async()=>{const b=$('dfCompanySave'),m=$('dfCompanyMsg'),v=clean($('dfCompanyInput').value).toUpperCase();if(!v){m.textContent='Digite o nome da empresa.';return;}b.disabled=true;m.textContent='Salvando na nuvem...';try{await save(v);m.textContent='✅ Nome salvo na Cloudflare. As próximas OPs usarão '+v+'.';}catch(e){m.textContent='⚠️ '+(e.message||e)}finally{b.disabled=team()?.role!=='owner';}});}
+ if(!btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.DFFormulaOpsUI?.close?.();p.classList.remove('dfCleanBackupOnly','dfCleanWhatsOnly');p.classList.add('dfCompanyOnly');n.querySelectorAll('.dfAutoTopic').forEach(x=>x.classList.toggle('on',x===btn));const t=team(),owner=!!t?.teamId;$('dfCompanyInput').value=name();$('dfCompanyInput').disabled=!owner;$('dfCompanySave').disabled=!owner;$('dfCompanyMsg').textContent=!t?'Conecte uma equipe para salvar.':owner?'Qualquer integrante da equipe pode alterar este nome.':'Conecte uma equipe para salvar.';window.scrollTo(0,0);},true);}
+ if(!card.dataset.bound){card.dataset.bound='1';$('dfCompanySave').addEventListener('click',async()=>{const b=$('dfCompanySave'),m=$('dfCompanyMsg'),v=clean($('dfCompanyInput').value).toUpperCase();if(!v){m.textContent='Digite o nome da empresa.';return;}b.disabled=true;m.textContent='Salvando na nuvem...';try{await save(v);m.textContent='✅ Nome salvo na Cloudflare. As próximas OPs usarão '+v+'.';}catch(e){m.textContent='⚠️ '+(e.message||e)}finally{b.disabled=!team()?.teamId;}});}
 }
 document.addEventListener('click',e=>{if(!$('pgFo')?.classList.contains('dfCompanyOnly'))return;if(e.target?.closest?.('#dfCompanyNav,#dfCompanyCard'))return;if(e.target?.closest?.('.dfAutoTopic'))$('pgFo').classList.remove('dfCompanyOnly');},true);
 let timer=0;function tick(){if(document.hidden)return;render()}
