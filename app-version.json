@@ -1,6 +1,6 @@
 {
-  "version": "1.0.884",
+  "version": "1.0.885",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Validação técnica da formulação e ajustes para impressão A4.",
-  "updatedAt": "2026-11-22"
+  "message": "Nova aba CADASTRO: nome da empresa por equipe, salvo na nuvem pelo dono e aplicado nas OPs.",
+  "updatedAt": "2026-11-23"
 }
