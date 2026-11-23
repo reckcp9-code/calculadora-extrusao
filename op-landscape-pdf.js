@@ -213,7 +213,7 @@
     ops.push('0.72 w 0 G 0 g');
 
     spanRow([
-      {span:5,text:'FERREIRA EMBALAGENS',size:14,bold:true},
+      {span:5,text:clean(data.companyName||window.DFCompanyRegistration?.name?.()||'FERREIRA EMBALAGENS'),size:14,bold:true},
       {span:2,text:'ORDEM DE PRODUCAO',size:9,bold:true,align:'center',fill:.86},
       {span:1,text:'Data emissao:',size:7,bold:true},
       {span:1,text:data.date||'',size:8,bold:true,align:'center'}
