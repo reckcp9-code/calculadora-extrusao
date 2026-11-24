@@ -52,7 +52,8 @@ function render(){
  if(!card.dataset.bound){card.dataset.bound='1';$('dfCompanySave').addEventListener('click',async()=>{const b=$('dfCompanySave'),m=$('dfCompanyMsg'),v=clean($('dfCompanyInput').value).toUpperCase();if(!v){m.textContent='Digite o nome da empresa.';return;}b.disabled=true;m.textContent='Salvando na nuvem...';try{await save(v);m.textContent='✅ Nome salvo na Cloudflare. As próximas OPs usarão '+v+'.';}catch(e){m.textContent='⚠️ '+(e.message||e)}finally{b.disabled=!team()?.teamId;}});}
 }
 document.addEventListener('click',e=>{if(!$('pgFo')?.classList.contains('dfCompanyOnly'))return;if(e.target?.closest?.('#dfCompanyNav,#dfCompanyCard'))return;if(e.target?.closest?.('.dfAutoTopic'))$('pgFo').classList.remove('dfCompanyOnly');},true);
-let timer=0;function tick(){if(document.hidden)return;render()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();timer=setInterval(tick,1800)});else{render();timer=setInterval(tick,1800)}
+let queued=false;function queueRender(){if(queued||document.hidden)return;queued=true;requestAnimationFrame(()=>{queued=false;const p=$('pgFo');if(p&&(!p.querySelector('#dfCompanyNav')||!$('dfCompanyCard')))render()})}
+function boot(){render();const p=$('pgFo');if(p&&typeof MutationObserver==='function'){const obs=new MutationObserver(queueRender);obs.observe(p,{childList:true,subtree:true})}document.addEventListener('visibilitychange',queueRender);document.addEventListener('click',queueRender,true)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 window.addEventListener('df-team-changed',render);window.addEventListener('df-ui-ready',render);
 })();
