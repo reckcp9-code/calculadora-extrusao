@@ -1,6 +1,6 @@
 {
-  "version": "1.0.887",
+  "version": "1.0.888",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Otimização inicial de carregamento, preservando os módulos e os dados existentes.",
+  "message": "Otimização de sincronização e redução de atualizações repetidas na interface.",
   "updatedAt": "2026-11-23"
 }
