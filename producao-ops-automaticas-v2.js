@@ -185,24 +185,24 @@ function rotateCanvas(src,turns){turns=((turns%4)+4)%4;if(!turns)return src;cons
 function cropCanvas(src,x0,y0,w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.floor(w));c.height=Math.max(1,Math.floor(h));c.getContext('2d',{willReadFrequently:true}).drawImage(src,x0,y0,w,h,0,0,c.width,c.height);return c}
 function scaleCanvas(src,factor){const c=document.createElement('canvas');c.width=Math.round(src.width*factor);c.height=Math.round(src.height*factor);const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=false;x.drawImage(src,0,0,c.width,c.height);return c}
 async function decodeQREveryWay(file){
-  /* QR pequeno no canto da folha: buscar por regiões e ampliar, inclusive foto girada. */
-  const base=await imageCanvas(file,3000);
-  const native=typeof window.BarcodeDetector==='function'?new BarcodeDetector({formats:['qr_code']}):null;
-  await loadQR();
-  const candidates=[base];
-  for(let t=0;t<4;t++){
-    const c=t?rotateCanvas(base,t):base,w=c.width,h=c.height;
-    if(t)candidates.push(c);
-    for(const [x,y] of [[0,0],[.5,0],[0,.5],[.5,.5]]){
-      candidates.push(cropCanvas(c,Math.floor(w*x),Math.floor(h*y),Math.ceil(w*.5),Math.ceil(h*.5)));
-    }
+ const base=await imageCanvas(file,2400);
+ let native=null;try{if(typeof window.BarcodeDetector==='function')native=new BarcodeDetector({formats:['qr_code']})}catch(e){}
+ if(native)try{const hits=await native.detect(base);if(hits?.[0]?.rawValue)return String(hits[0].rawValue)}catch(e){}
+ await loadQR();
+ const yieldUI=()=>new Promise(r=>setTimeout(r,0));
+ const scan=c=>{const raw=scanCanvas(c);return raw};
+ const small=scaleCanvas(base,Math.min(1,1100/Math.max(base.width,base.height)));
+ let raw=scan(small);if(raw)return raw;
+ for(let t=0;t<4;t++){
+  const c=t?rotateCanvas(base,t):base,w=c.width,h=c.height;
+  for(const [x,y] of [[.5,0],[0,0],[.5,.5],[0,.5]]){
+   await yieldUI();const crop=cropCanvas(c,Math.floor(w*x),Math.floor(h*y),Math.ceil(w*.5),Math.ceil(h*.5));
+   raw=scan(crop);if(raw)return raw;
+   if(Math.max(crop.width,crop.height)<1800){raw=scan(scaleCanvas(crop,2));if(raw)return raw}
   }
-  for(const c of candidates){
-    if(native){try{const hits=await native.detect(c);if(hits?.[0]?.rawValue)return String(hits[0].rawValue)}catch(e){}}
-    const raw=scanCanvas(c);if(raw)return raw;
-    if(c!==base&&Math.max(c.width,c.height)<1800){const enlarged=scaleCanvas(c,2);const zoomed=scanCanvas(enlarged);if(zoomed)return zoomed}
-  }
-  return '';
+  await yieldUI();raw=scan(c);if(raw)return raw;
+ }
+ return '';
 }
 function extractId(raw){const s=String(raw||'').trim(),direct=s.match(/DFOP-[A-Z0-9-]+/i);if(direct)return direct[0].toUpperCase();try{const u=new URL(s),q=u.searchParams.get('op')||u.searchParams.get('id')||'',m=String(q).match(/DFOP-[A-Z0-9-]+/i);return m?m[0].toUpperCase():''}catch(e){return''}}
 
@@ -211,12 +211,12 @@ function build(){return `<div id="dfPAExclusiveHeader" class="dfPAExclusiveHeade
 
 function mount(){addStyle();let panel=$('dfProdAuto');if(!panel){panel=document.createElement('section');panel.id='dfProdAuto';panel.innerHTML=build();(document.querySelector('main.wrap')||document.body).appendChild(panel)}if(!bound)bind();repairRecords();renderAll();setTimeout(()=>recoverOrphanPhotos(),80);return panel}
 function setNav(auto){window.__DF_PROD_AUTO_ACTIVE=!!auto;[['prodNewTab',!auto],['prodAutoTab',!!auto]].forEach(([id,on])=>{const b=$(id);if(!b)return;b.className=on?'active':'secondary';if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
-function show(){const panel=mount(),pg=$('pgPr');if(pg)pg.style.setProperty('display','none','important');panel.classList.add('on');setNav(true);renderAll();window.scrollTo({top:0,behavior:'smooth'})}
+function show(){loadQR().catch(()=>{});const panel=mount(),pg=$('pgPr');if(pg)pg.style.setProperty('display','none','important');panel.classList.add('on');setNav(true);renderAll();window.scrollTo({top:0,behavior:'smooth'})}
 function hide(){window.__DF_PROD_AUTO_ACTIVE=false;const panel=$('dfProdAuto');if(panel)panel.classList.remove('on');const pg=$('pgPr');if(pg){pg.style.display='block';pg.classList.add('on')}}
 window.DFShowProductionAuto=show;window.DFHideProductionAuto=hide;
 
 const paneId=name=>'dfPAPane'+({read:'Read',ok:'Ok',pending:'Pending',now:'Now',month:'Month',archive:'Archive'}[name]||'Read');
-function switchPane(name){if(name!=='month'&&$('dfPAPaneMonth')?.classList.contains('on'))persistSelectedMonth($('dfPAMonth')?.value);synchronizeMonthInputs();const panel=$('dfProdAuto');if(panel){panel.dataset.dfActivePane=name;panel.classList.toggle('dfPAExclusive',name==='ok');}document.querySelectorAll('#dfProdAuto [data-pa-pane]').forEach(b=>b.classList.toggle('on',b.dataset.paPane===name));document.querySelectorAll('#dfProdAuto .dfPAPane').forEach(p=>p.classList.remove('on'));$(paneId(name))?.classList.add('on');if(name==='ok')renderOk();if(name==='pending')renderPending();if(name==='now')renderNow();if(name==='month')renderMonth();if(name==='archive'){renderArchive();loadArchive(false)}}
+function switchPane(name){if(name!=='month'&&$('dfPAPaneMonth')?.classList.contains('on'))persistSelectedMonth($('dfPAMonth')?.value);synchronizeMonthInputs();const panel=$('dfProdAuto');if(panel){panel.dataset.dfActivePane=name;panel.classList.toggle('dfPAExclusive',name==='ok');}document.querySelectorAll('#dfProdAuto [data-pa-pane]').forEach(b=>b.classList.toggle('on',b.dataset.paPane===name));document.querySelectorAll('#dfProdAuto .dfPAPane').forEach(p=>p.classList.remove('on'));$(paneId(name))?.classList.add('on');if(name==='read')loadQR().catch(()=>{});if(name==='ok')renderOk();if(name==='pending')renderPending();if(name==='now')renderNow();if(name==='month')renderMonth();if(name==='archive'){renderArchive();loadArchive(false)}}
 function card(r,pending){return '<div class="dfPAList"><strong>'+esc(r.machine||r.opId||r.id)+'</strong><span class="dfPABadge '+(pending?'warn':'ok')+'">'+(pending?'PENDENTE':'OK')+'</span><div class="dfPATiny">'+esc(r.product||r.reason||'')+(r.measure?' • '+esc(r.measure):'')+(pending?'':'<br>Produção '+fmt(r.production)+' kg • Apara '+fmt(r.scrap)+' kg • Líquida '+fmt(r.net)+' kg')+'</div>'+(r.photoId?'<button class="dfPABtn gray" data-pa-view="'+esc(r.photoId)+'">ABRIR FOTO</button>':'')+(pending?(r.status==='pending'?(window.DFProducaoEquipeOnline?.team?.()?.role==='owner'?'<button class="dfPABtn" data-pa-approve="'+esc(r.id)+'">CONFIRMAR OP</button>':'<div class="dfPATiny">AGUARDANDO CONFIRMAÇÃO DO DONO</div>'):'<button class="dfPABtn alt" data-pa-retry="'+esc(r.id)+'">IDENTIFICAR PELO ID</button>'):'')+(pending?'':'<button class="dfPAEditBtn" data-pa-edit="'+esc(r.id)+'">EDITAR</button><button class="dfPAEditBtn" data-pa-machine-edit="'+esc(r.id)+'">EDITAR MÁQUINA</button>')+'<button class="dfPABtn danger" data-pa-del="'+esc(r.id)+'">EXCLUIR REGISTRO</button></div>'}
 function renderProductionNotice(){
  const host=$('dfPAOwnerNotice'),health=$('dfPAHealthBody');if(!host)return;
@@ -349,7 +349,7 @@ async function loadArchive(force=false){
 
 
 function setStatus(text,type=''){const st=$('dfPAStatus');if(st){st.className='dfPAStatus'+(type?' '+type:'');st.innerHTML=text}}
-function resetCurrent(){currentOp=null;currentPendingId='';currentFile=null;currentPhotoId='';const img=$('dfPAPreview');if(img){img.removeAttribute('src');img.style.display='none'}$('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');if($('dfPAManualId'))$('dfPAManualId').value='';if($('dfPAProduction'))$('dfPAProduction').value='';if($('dfPAScrap'))$('dfPAScrap').value=''}
+function resetCurrent(){currentOp=null;currentPendingId='';currentFile=null;currentPhotoId='';const img=$('dfPAPreview');if(img){if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);img.removeAttribute('src');img.style.display='none'}$('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');if($('dfPAManualId'))$('dfPAManualId').value='';if($('dfPAProduction'))$('dfPAProduction').value='';if($('dfPAScrap'))$('dfPAScrap').value=''}
 function showManual(prefill=''){offerRecovery(prefill);const box=$('dfPAManual');if(box)box.classList.add('on');const i=$('dfPAManualId');if(i){i.value=prefill||'';setTimeout(()=>i.focus(),20)}}
 function offerRecovery(id){const btn=$('dfPARecoverMissing');if(btn)btn.style.display=/^DFOP-\d{8}-\d{6}-[A-Z0-9]{4,8}$/.test(normId(id))?'block':'none'}
 function recoverMissingOp(){const id=normId($('dfPAManualId')?.value);if(!/^DFOP-\d{8}-\d{6}-[A-Z0-9]{4,8}$/.test(id))return setStatus('⚠️ Confira o código completo da OP antes de recuperar.','warn');const existing=findOp(id);if(existing){showConfirm(existing);return}if(!confirm('A OP '+id+' não foi encontrada na equipe. Criar um cadastro de RECUPERAÇÃO com esse mesmo ID, sem inventar máquina, produto ou operador? A baixa só será registrada quando você informar os quilos e clicar em SALVAR OP.'))return;const list=ops();if(list.some(o=>normId(o?.id)===id)){showConfirm(findOp(id));return}const recovered={id,sector:'Picote',machine:'',product:'',measure:'',operator:'',shift:'',createdAt:new Date().toISOString(),status:'open',recoveredFromPrintedOp:true,needsCatalogReview:true,productionTeamId:window.DFProducaoEquipeOnline?.team?.()?.teamId||''};list.unshift(recovered);if(!write(OPS_KEY,list))return setStatus('❌ Não foi possível salvar o cadastro de recuperação.','bad');try{window.dispatchEvent(new CustomEvent('df-producao-op-updated',{detail:{opId:id}}))}catch(e){}showConfirm(recovered);setStatus('✅ Cadastro de recuperação criado com o ID da folha. Confira a OP e informe produção e apara para dar baixa.','ok')}
@@ -365,25 +365,16 @@ async function handleFile(file){
  try{
   const raw=await decodeQREveryWay(file),id=extractId(raw);
   if(id){
-   // Antes de salvar a foto ou abrir os campos, verificar a baixa no D1.
-   // Nenhuma consulta de listagem completa e nenhum upload para OP duplicada.
-   try{
-    const available=await checkBeforeOpen(id);
-    if(!available)return;
-   }catch(e){
-    resetCurrent();
-    setStatus('⚠️ Não foi possível conferir esta OP no D1: '+esc(String(e?.message||e))+
-      '. Nenhuma baixa foi iniciada. Conecte à internet e tente novamente.','warn');
-    return;
-   }
-   await photoPut(currentPhotoId,file,{createdAt:new Date().toISOString(),opId:id});
+   if(alreadyCompletedLocally(id)){await checkBeforeOpen(id);return}
    let op=findOp(id);
-   if(!op){
+   if(op){
+    // Exibir campos imediatamente; salvar continua exigindo verificação oficial.
+    showConfirm(op);
+   }else{
     setStatus('🔄 OP nova. Buscando cadastro na equipe...','warn');
     await requestTeamOpSync(id);op=findOp(id);
+    if(op)showConfirm(op);else pendingRecord('QR identificado, mas a OP não foi encontrada.',id);
    }
-   if(op)showConfirm(op);
-   else pendingRecord('QR identificado, mas a OP não foi encontrada.',id);
   }else{
    // Sem QR legível: mantém a recuperação normal por ID manual.
    await photoPut(currentPhotoId,file,{createdAt:new Date().toISOString()});
@@ -570,7 +561,7 @@ window.addEventListener('df-producao-auto-saved',()=>{if(archiveOpen())setTimeou
 window.addEventListener('df-producao-auto-deleted',()=>{if(archiveOpen())setTimeout(()=>loadArchive(true),800)});
 window.addEventListener('df-producao-team-cleared',()=>{lastReadyFilterKey='';lastReadySignature='';const results=$('dfPAReadyResults');if(results)results.innerHTML='<div class="dfPAReadyHint">Entre na Equipe de Produção para visualizar os dados.</div>';setTimeout(renderAll,0)});
 window.addEventListener('df-producao-team-synced',()=>{setTimeout(renderAll,0);if(archiveOpen())setTimeout(()=>loadArchive(false),200)});
-function start(){mount()}
+function start(){mount();const warm=()=>loadQR().catch(()=>{});if('requestIdleCallback' in window)requestIdleCallback(warm,{timeout:2500});else setTimeout(warm,1500)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 window.addEventListener('pageshow',()=>{repairRecords();recoverOrphanPhotos();if(window.__DF_PROD_AUTO_ACTIVE)show();if(archiveOpen())loadArchive(true)},true);
 })();
