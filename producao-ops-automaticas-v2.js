@@ -453,7 +453,7 @@ async function saveCurrent(){
     const createdAt=new Date().toISOString();
     const isOperator=window.DFProducaoEquipeOnline?.team?.()?.role==='operator';
     const rec={id:opId,opId,photoId,createdAt,completedAt:createdAt,date:today(),productionDay:today(),sector:currentOp.sector||'Picote',machine:currentOp.machine||'',product:currentOp.product||'',measure:currentOp.measure||'',operator:currentOp.operator||'',shift:currentOp.shift||'',production,scrap,net:Math.max(0,production-scrap),status:isOperator?'pending':'ok'};
-    if(currentFile)await photoPut(photoId,currentFile,{opId,createdAt});
+    // Foto já persistida acima; evitar segunda gravação do mesmo arquivo.
 
     let a=autos();
     /* Remove somente a pendência da mesma foto/OP concluída, sem afetar outras fotos pendentes. */
@@ -493,10 +493,12 @@ async function saveCurrent(){
      '✅ <b>OP e foto sincronizadas na nuvem. Aguardando aprovação do dono em PENDENTES.</b>':
      '✅ <b>OP e foto confirmadas no servidor e disponíveis em PRONTAS para a equipe.</b><br>Produção: '+fmt(production)+' kg • Apara: '+fmt(scrap)+' kg'):
      '⚠️ <b>Baixa salva somente neste aparelho, ainda NÃO confirmada no servidor.</b> '+esc(cloudError)+'. Não exclua a OP; use SINCRONIZAR PRODUÇÃO para reenviar a foto.',''+(cloudConfirmed?'ok':'warn'));
-    currentOp=null;currentPendingId='';
-    $('dfPAConfirm')?.classList.remove('on');$('dfPAManual')?.classList.remove('on');
-    renderAll();
-    setTimeout(()=>switchPane(isOperator?'pending':'ok'),120)
+    resetCurrent();
+    // Não navegar automaticamente: a próxima fotografia fica disponível.
+    if($('dfProdAuto')?.dataset.dfActivePane==='read'||$('dfPAPaneRead')?.classList.contains('on')){
+      const take=$('dfPATake');if(take)take.scrollIntoView({block:'center',behavior:'instant'});
+    }
+    setTimeout(()=>{if(!$('dfPAPaneRead')?.classList.contains('on'))renderAll()},0);
   }catch(e){
     setStatus('❌ <b>A baixa não foi concluída.</b><br>'+esc(String(e?.message||e)),'bad')
   }finally{
