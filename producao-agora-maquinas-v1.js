@@ -95,7 +95,7 @@ async function officialMonthly(force=false){
   officialCache=records;officialAt=Date.now();officialTeam=team.teamId;return records;
  }).finally(()=>{officialLoading=null});return officialLoading;
 }
-async function render(){
+async function render(){if(!$('dfPAPaneNow')?.classList.contains('on'))return;
  const pane=$('dfPAPaneNow'),box=$('dfPANowList');if(!pane||!box||!pane.classList.contains('on'))return;
  addStyle();const title=pane.querySelector('.dfPACard>h3');if(title)title.textContent='Produção mensal por máquina';
  let records;try{records=await officialMonthly()}catch(err){box.innerHTML='<div class="dfAgoraEmpty">Não foi possível consultar a produção oficial no D1. Verifique a conexão e toque em AGORA novamente.</div>';return}
