@@ -1,0 +1,3 @@
+# DF Extrusor 2.0 — migração incremental
+
+Branch experimental. Não conectar rotinas de escrita ao D1/R2 de produção durante testes. Preservar contratos, equipes e permissões. Migrar primeiro a tela Fotos, depois Produção, Formulação e demais módulos. Agendar renderizações apenas da tela ativa; separar leitura QR em worker; indexar dados locais por equipe; manter validação oficial de baixa e fila persistente. Medir abertura, latência de digitação, troca de abas e memória com 10 mil OPs sintéticas. Comparar fluxos e PDFs com versão atual antes de promover. Metas: interação p95 <100 ms, QR legível ~1 s, sem regressão de dados. O scheduler inicial ainda não está integrado.
