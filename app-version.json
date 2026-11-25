@@ -1,6 +1,6 @@
 {
-  "version": "1.0.889",
+  "version": "1.0.890",
   "title": "DF EXTRUSOR PRO — Sistema online de controle de produção",
-  "message": "Leitura QR progressiva e abertura rápida dos campos de produção.",
+  "message": "Baixa contínua na tela Fotos e eliminação da gravação duplicada da imagem.",
   "updatedAt": "2026-11-25"
 }
