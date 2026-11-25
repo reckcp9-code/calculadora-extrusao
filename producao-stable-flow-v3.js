@@ -170,12 +170,13 @@ async function sync(){
   const newest=shadow(tid);for(const code of Object.keys(newest.deleted))s.deleted[code]=true;
   for(const code of Object.keys(newest.known))if(newest.known[code]==='__DELETED__')s.known[code]='__DELETED__';
   const merged=new Map(local().filter(o=>id(o)&&!s.deleted[id(o)]&&s.known[id(o)]!=='__DELETED__'&&(o.status!=='open'||!s.known[id(o)])).map(o=>[id(o),o]));
+  const localByCode=new Map(local().map(o=>[id(o),o]));
   for(const rec of latest.records||[]){
    const code=String(rec.opCode||'').toUpperCase();if(!code)continue;
    if(rec.state==='deleted'){merged.delete(code);s.known[code]='__DELETED__';continue}
    if(rec.state!=='open'||!rec.payload||typeof rec.payload!=='object'||rec.payload.status!=='open'||s.deleted[code]||s.known[code]==='__DELETED__')continue;
    // Never revive a locally completed OP while its server close is still pending.
-   const localCopy=local().find(o=>id(o)===code);if(localCopy&&localCopy.status&&localCopy.status!=='open')continue;
+   const localCopy=localByCode.get(code);if(localCopy&&localCopy.status&&localCopy.status!=='open')continue;
    const existing=merged.get(code);
    // Local edits not yet uploaded must never be overwritten.
    if(existing&&s.known[code]&&s.known[code]!=='__DELETED__'&&fingerprint(existing)!==s.known[code])continue;
@@ -223,7 +224,7 @@ window.addEventListener('focus',schedule);
 window.addEventListener('pageshow',schedule);
 // Poll aberto a cada 7 s; o evento local continua enviando imediatamente.
 // Recepção dos demais aparelhos: leitura curta do D1. Envio local é direto por evento.
-setInterval(sync,2500);setTimeout(sync,250);
+setInterval(()=>{if(!document.hidden)sync()},10000);setTimeout(sync,250);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(sync,120)});
 window.DFProductionSavedD1Deleted=function(code){
  const t=read(T,null);if(!t?.teamId){status('⚠️ Exclusão local: conecte a equipe para excluir no servidor.',false);return Promise.resolve(false)}
